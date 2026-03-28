@@ -1,0 +1,19 @@
+<div class="glass-panel rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group cursor-default h-full flex flex-col">
+  <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors shrink-0">
+    <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="iconPath()"/>
+    </svg>
+  </div>
+  <h3 class="font-bold text-gray-900 text-base mb-2">{{ name() }}</h3>
+  @if (description()) {
+    <p class="text-gray-500 text-sm leading-relaxed mb-3 flex-1">{{ description() }}</p>
+  }
+  @if (benefit()) {
+    <p class="text-blue-600 text-sm font-medium flex items-center gap-1.5 mt-auto">
+      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+      {{ benefit() }}
+    </p>
+  }
+</div>

@@ -1,0 +1,45 @@
+<section class="bg-gradient-to-br from-blue-50 to-white py-16 md:py-20 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">Patient Reviews</span>
+    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">What Our <span class="text-blue-600">Patients Say</span></h1>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto">Real experiences from 1000+ patients who trusted us with their dental health.</p>
+
+    <!-- Rating summary -->
+    <div class="flex items-center justify-center gap-2 mt-6">
+      <div class="flex gap-0.5">
+        @for (s of [1,2,3,4,5]; track s) {
+          <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+        }
+      </div>
+      <span class="text-2xl font-bold text-gray-900">4.9</span>
+      <span class="text-gray-500 text-sm">from 1000+ patients</span>
+    </div>
+  </div>
+</section>
+
+<section class="bg-white py-16 md:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (t of testimonials; track t.name) {
+        <app-testimonial-card
+          [name]="t.name"
+          [location]="t.location"
+          [rating]="t.rating"
+          [review]="t.review"
+        />
+      }
+    </div>
+  </div>
+</section>
+
+<section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
+  <div class="max-w-2xl mx-auto px-4 text-center">
+    <h2 class="font-display text-3xl text-white mb-4">Join Our Happy Patients</h2>
+    <p class="text-blue-100 mb-7">Experience the same gentle, honest care that 1000+ patients have trusted us with.</p>
+    <a routerLink="/appointment" class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow inline-block transition-all">
+      Book Your Appointment
+    </a>
+  </div>
+</section>

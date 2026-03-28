@@ -1,0 +1,59 @@
+<section class="bg-gradient-to-br from-blue-50 to-white py-16 md:py-20 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">Gallery</span>
+    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">Our Clinic & <span class="text-blue-600">Patient Results</span></h1>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto">A glimpse into our modern, hygienic clinic and the smiles we have helped create.</p>
+  </div>
+</section>
+
+<!-- Clinic Photos -->
+<section class="bg-white py-16 md:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="font-display text-2xl text-gray-900 mb-8">Our Clinic</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      @for (img of clinicImages; track img.alt) {
+        <div class="rounded-2xl overflow-hidden aspect-video border border-gray-100 hover:shadow-lg transition-shadow">
+          <img [src]="img.src" [alt]="img.alt" class="w-full h-full object-cover">
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Before / After -->
+<section class="bg-gray-50 py-16 md:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="font-display text-2xl text-gray-900 mb-3">Before & After Transformations</h2>
+    <p class="text-gray-500 mb-10">Real patient results - with consent. Images are placeholders until actual photos are provided.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      @for (t of transformations; track t.label) {
+        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+          <div class="grid grid-cols-2">
+            <div class="relative">
+              <img [src]="t.before" alt="Before" class="w-full h-40 object-cover">
+              <span class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">Before</span>
+            </div>
+            <div class="relative">
+              <img [src]="t.after" alt="After" class="w-full h-40 object-cover">
+              <span class="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded">After</span>
+            </div>
+          </div>
+          <div class="p-4">
+            <p class="font-semibold text-gray-900 text-sm text-center">{{ t.label }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
+  <div class="max-w-2xl mx-auto px-4 text-center">
+    <h2 class="font-display text-3xl text-white mb-4">Like What You See?</h2>
+    <p class="text-blue-100 mb-7">Book your appointment and join 1000+ patients who trust us with their smiles.</p>
+    <a routerLink="/appointment" class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow inline-block transition-all">
+      Book Appointment
+    </a>
+  </div>
+</section>

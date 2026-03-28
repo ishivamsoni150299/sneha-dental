@@ -1,0 +1,40 @@
+<!-- Hero -->
+<section class="bg-gradient-to-br from-blue-50 to-white py-16 md:py-20 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">All Services</span>
+    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-5 leading-tight">Comprehensive Dental<br><span class="text-blue-600">Care Under One Roof</span></h1>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-8 leading-relaxed">From routine cleanings to advanced restorative procedures - we treat everything with the same gentle, honest approach.</p>
+    <a routerLink="/appointment"
+       class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold shadow-md transition-all hover:-translate-y-px">
+      Book an Appointment
+    </a>
+  </div>
+</section>
+
+<!-- Services Grid -->
+<section class="bg-white py-16 md:py-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (service of services; track service.name) {
+        <app-service-card
+          [iconPath]="service.iconPath"
+          [name]="service.name"
+          [description]="service.description"
+          [benefit]="service.benefit"
+        />
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
+  <div class="max-w-2xl mx-auto px-4 text-center">
+    <h2 class="font-display text-3xl text-white mb-4">Not Sure Which Service You Need?</h2>
+    <p class="text-blue-100 mb-7">Book a general consultation and we will recommend the right treatment for you - honestly.</p>
+    <a routerLink="/appointment"
+       class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow transition-all inline-block">
+      Book Free Consultation
+    </a>
+  </div>
+</section>

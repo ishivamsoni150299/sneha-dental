@@ -1,0 +1,13 @@
+<div [class]="centered() ? 'text-center' : ''">
+  @if (label()) {
+    <span class="inline-block bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">
+      {{ label() }}
+    </span>
+  }
+  <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-4 leading-tight">{{ title() }}</h2>
+  @if (subtitle()) {
+    <p class="text-gray-500 text-lg leading-relaxed" [class]="centered() ? 'max-w-2xl mx-auto' : 'max-w-2xl'">
+      {{ subtitle() }}
+    </p>
+  }
+</div>
