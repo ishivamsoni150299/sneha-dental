@@ -1,5 +1,7 @@
 import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-contact',
@@ -9,11 +11,14 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContactComponent {
-  private fb = inject(FormBuilder);
+  readonly clinic     = inject(ClinicConfigService);
+  readonly config     = this.clinic.config;
+  readonly safeMapUrl: SafeResourceUrl = inject(DomSanitizer).bypassSecurityTrustResourceUrl(this.config.mapEmbedUrl);
 
-  submitted = signal(false);
+  submitted  = signal(false);
   submitting = signal(false);
 
+  private fb = inject(FormBuilder);
   form = this.fb.group({
     name:    ['', [Validators.required, Validators.minLength(2)]],
     phone:   ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],

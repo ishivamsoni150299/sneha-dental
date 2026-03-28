@@ -2,6 +2,7 @@ import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/cor
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment } from '../../core/services/appointment.service';
+import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 type View = 'lookup' | 'detail' | 'edit' | 'cancelled';
 
@@ -15,6 +16,8 @@ type View = 'lookup' | 'detail' | 'edit' | 'cancelled';
 export class MyAppointmentComponent {
   private fb = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
+  readonly config = inject(ClinicConfigService).config;
+  private prefix = this.config.bookingRefPrefix;
 
   view        = signal<View>('lookup');
   appointment = signal<Appointment | null>(null);
@@ -25,23 +28,12 @@ export class MyAppointmentComponent {
   cancelling  = signal(false);
   showConfirm = signal(false);
 
-  services = [
-    'General Dentistry / Checkup',
-    'Dental Cleaning & Scaling',
-    'Tooth Filling',
-    'Tooth Extraction',
-    'Root Canal Treatment',
-    'Cosmetic Dentistry',
-    'Teeth Whitening',
-    'Orthodontics (Braces)',
-    'Dental Implants',
-    'Other / Not Sure',
-  ];
+  services = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
 
   timeSlots = ['Morning (9am - 12pm)', 'Afternoon (12pm - 4pm)', 'Evening (4pm - 8pm)'];
 
   lookupForm = this.fb.group({
-    bookingRef: ['', [Validators.required, Validators.pattern(/^SD-[A-Z0-9]{8}$/)]],
+    bookingRef: ['', [Validators.required, Validators.pattern(new RegExp(`^${this.prefix}-[A-Z0-9]{8}$`))]],
     phone:      ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
   });
 

@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Business Admin Form Utilities ─────────────────────────────────────── */
+@layer components {
+  .form-label {
+    @apply block text-xs font-medium text-gray-700 mb-1;
+  }
+  .form-input {
+    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
+           focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors
+           bg-white text-gray-900 placeholder-gray-400;
+  }
+  .input-error {
+    @apply border-red-300 focus:ring-red-200;
+  }
+}
+
 :root {
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
@@ -119,3 +134,111 @@ body {
 ::-webkit-scrollbar-track { background: #f1f5f9; }
 ::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+
+/* ── TEAL THEME OVERRIDES ─────────────────────────────────────────────────── */
+/* Swap every blue-* utility with its teal equivalent when html.theme-teal    */
+
+/* Backgrounds */
+.theme-teal .bg-blue-600  { background-color: #0d9488 !important; }
+.theme-teal .bg-blue-700  { background-color: #0f766e !important; }
+.theme-teal .bg-blue-50   { background-color: #f0fdfa !important; }
+.theme-teal .bg-blue-100  { background-color: #ccfbf1 !important; }
+
+/* Text */
+.theme-teal .text-blue-600 { color: #0d9488 !important; }
+.theme-teal .text-blue-700 { color: #0f766e !important; }
+.theme-teal .text-blue-100 { color: #ccfbf1 !important; }
+
+/* Borders */
+.theme-teal .border-blue-600 { border-color: #0d9488 !important; }
+.theme-teal .border-blue-300 { border-color: #5eead4 !important; }
+
+/* Hover states */
+.theme-teal .hover\:bg-blue-600:hover  { background-color: #0d9488 !important; }
+.theme-teal .hover\:bg-blue-700:hover  { background-color: #0f766e !important; }
+.theme-teal .hover\:bg-blue-50:hover   { background-color: #f0fdfa !important; }
+.theme-teal .hover\:text-blue-600:hover { color: #0d9488 !important; }
+.theme-teal .hover\:border-blue-300:hover { border-color: #5eead4 !important; }
+
+/* Gradients — bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 */
+.theme-teal .from-blue-600 { --tw-gradient-from: #0d9488 !important; }
+.theme-teal .via-blue-600  { --tw-gradient-via:  #0d9488 !important; }
+.theme-teal .to-sky-500    { --tw-gradient-to:   #06b6d4 !important; }
+
+/* bg-gradient-to-br from-blue-50 to-white */
+.theme-teal .from-blue-50  { --tw-gradient-from: #f0fdfa !important; }
+.theme-teal .from-blue-100 { --tw-gradient-from: #ccfbf1 !important; }
+
+/* Ring / focus */
+.theme-teal .ring-blue-500  { --tw-ring-color: #14b8a6 !important; }
+.theme-teal .focus\:ring-blue-500:focus { --tw-ring-color: #14b8a6 !important; }
+.theme-teal .focus\:border-blue-500:focus { border-color: #14b8a6 !important; }
+
+/* Nav glow */
+.theme-teal .nav-glow::after {
+  background: linear-gradient(90deg, rgba(13,148,136,0), rgba(13,148,136,0.6), rgba(6,182,212,0.6), rgba(13,148,136,0)) !important;
+}
+
+/* Scrollbar */
+.theme-teal ::-webkit-scrollbar-thumb { background: #5eead4 !important; }
+.theme-teal ::-webkit-scrollbar-thumb:hover { background: #0d9488 !important; }
+
+/* Nav underline */
+.theme-teal .nav-link::after { background-color: #0d9488 !important; }
+
+/* White on blue badge (credential badge in hero) */
+.theme-teal .bg-blue-600.text-white { background-color: #0d9488 !important; }
+
+/* ── CARAMEL THEME OVERRIDES ──────────────────────────────────────────────── */
+/* Warm amber-caramel palette: #b45309 (main) · #92400e (dark) · #fffbeb (bg) */
+
+/* Backgrounds */
+.theme-caramel .bg-blue-600  { background-color: #b45309 !important; }
+.theme-caramel .bg-blue-700  { background-color: #92400e !important; }
+.theme-caramel .bg-blue-50   { background-color: #fffbeb !important; }
+.theme-caramel .bg-blue-100  { background-color: #fef3c7 !important; }
+
+/* Text */
+.theme-caramel .text-blue-600 { color: #b45309 !important; }
+.theme-caramel .text-blue-700 { color: #92400e !important; }
+.theme-caramel .text-blue-100 { color: #fef3c7 !important; }
+
+/* Borders */
+.theme-caramel .border-blue-600 { border-color: #b45309 !important; }
+.theme-caramel .border-blue-300 { border-color: #fcd34d !important; }
+
+/* Hover states */
+.theme-caramel .hover\:bg-blue-600:hover   { background-color: #b45309 !important; }
+.theme-caramel .hover\:bg-blue-700:hover   { background-color: #92400e !important; }
+.theme-caramel .hover\:bg-blue-50:hover    { background-color: #fffbeb !important; }
+.theme-caramel .hover\:text-blue-600:hover { color: #b45309 !important; }
+.theme-caramel .hover\:border-blue-300:hover { border-color: #fcd34d !important; }
+
+/* Gradients — bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 */
+.theme-caramel .from-blue-600 { --tw-gradient-from: #b45309 !important; }
+.theme-caramel .via-blue-600  { --tw-gradient-via:  #b45309 !important; }
+.theme-caramel .to-sky-500    { --tw-gradient-to:   #d97706 !important; }
+
+/* bg-gradient-to-br from-blue-50/100 to-white */
+.theme-caramel .from-blue-50  { --tw-gradient-from: #fffbeb !important; }
+.theme-caramel .from-blue-100 { --tw-gradient-from: #fef3c7 !important; }
+
+/* Ring / focus */
+.theme-caramel .ring-blue-500  { --tw-ring-color: #d97706 !important; }
+.theme-caramel .focus\:ring-blue-500:focus   { --tw-ring-color: #d97706 !important; }
+.theme-caramel .focus\:border-blue-500:focus { border-color: #d97706 !important; }
+
+/* Nav glow */
+.theme-caramel .nav-glow::after {
+  background: linear-gradient(90deg, rgba(180,83,9,0), rgba(180,83,9,0.6), rgba(217,119,6,0.6), rgba(180,83,9,0)) !important;
+}
+
+/* Scrollbar */
+.theme-caramel ::-webkit-scrollbar-thumb       { background: #fcd34d !important; }
+.theme-caramel ::-webkit-scrollbar-thumb:hover { background: #b45309 !important; }
+
+/* Nav underline */
+.theme-caramel .nav-link::after { background-color: #b45309 !important; }
+
+/* White on blue badge (credential badge in hero) */
+.theme-caramel .bg-blue-600.text-white { background-color: #b45309 !important; }

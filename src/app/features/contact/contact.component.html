@@ -1,7 +1,7 @@
 <section class="bg-gradient-to-br from-blue-50 to-white py-16 md:py-20 border-b border-gray-100">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">Get in Touch</span>
-    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">Contact <span class="text-blue-600">Sneha Dental</span></h1>
+    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">Contact <span class="text-blue-600">{{ config.name }}</span></h1>
     <p class="text-gray-500 text-lg max-w-xl mx-auto">We are here to help. Reach out by phone, WhatsApp, or the form below.</p>
   </div>
 </section>
@@ -21,7 +21,7 @@
           </div>
           <div>
             <h3 class="font-bold text-gray-900 mb-1">Visit Us</h3>
-            <p class="text-sm text-gray-500">36C, G Block, Kanchanjunga Apartment,<br>Noida — 201301</p>
+            <p class="text-sm text-gray-500">{{ config.addressLine1 }},<br>{{ config.addressLine2 }}</p>
           </div>
         </div>
         <div class="bg-blue-50 rounded-2xl p-6 flex gap-4">
@@ -32,8 +32,8 @@
           </div>
           <div>
             <h3 class="font-bold text-gray-900 mb-1">Call Us</h3>
-            <a href="tel:+919140210648" class="text-sm text-blue-600 font-semibold hover:underline">+91 91402 10648</a>
-            <p class="text-xs text-gray-400 mt-0.5">Mon-Sat: 9am - 8pm</p>
+            <a [href]="'tel:+' + config.phoneE164" class="text-sm text-blue-600 font-semibold hover:underline">{{ config.phone }}</a>
+            <p class="text-xs text-gray-400 mt-0.5">{{ config.hours[0].days }}: {{ config.hours[0].time }}</p>
           </div>
         </div>
         <div class="bg-green-50 border border-green-100 rounded-2xl p-6 flex gap-4">
@@ -44,7 +44,7 @@
           </div>
           <div>
             <h3 class="font-bold text-gray-900 mb-1">WhatsApp</h3>
-            <a href="https://wa.me/919140210648?text=Hi%20Sneha%20Dental!%20I%20would%20like%20to%20book%20an%20appointment.%20Please%20confirm%20an%20available%20slot." class="text-sm text-green-700 font-semibold hover:underline">Chat with us</a>
+            <a [href]="clinic.bookingWhatsappUrl" class="text-sm text-green-700 font-semibold hover:underline">Chat with us</a>
             <p class="text-xs text-gray-400 mt-0.5">Instant replies during clinic hours</p>
           </div>
         </div>
@@ -52,17 +52,17 @@
         <!-- Google Maps Embed -->
         <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style="height: 260px;">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3503.5!2d77.3910!3d28.5850!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjjCsDM1JzA2LjAiTiA3N8KwMjMnMjcuNiJF!5e0!3m2!1sen!2sin!4v1!5m2!1sen!2sin&q=Kanchanjunga+Apartment+G+Block+Noida+201301"
+            [src]="safeMapUrl"
             width="100%"
             height="260"
             style="border:0;"
             allowfullscreen
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
-            title="Sneha Dental Location — Kanchanjunga Apartment, Noida">
+            [title]="config.name + ' Location — ' + clinic.address">
           </iframe>
         </div>
-        <a href="https://maps.google.com/?q=Kanchanjunga+Apartment+G+Block+Noida+201301"
+        <a [href]="config.mapDirectionsUrl"
            target="_blank" rel="noopener noreferrer"
            class="flex items-center justify-center gap-2 text-sm text-blue-600 font-semibold hover:underline mt-2">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

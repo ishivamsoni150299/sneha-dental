@@ -5,7 +5,7 @@
       <div>
         <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">About Us</span>
         <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-5 leading-tight">
-          The Story Behind<br><span class="text-blue-600">Sneha Dental</span>
+          The Story Behind<br><span class="text-blue-600">{{ config.name }}</span>
         </h1>
         <p class="text-gray-500 text-lg leading-relaxed mb-6">
           Founded with a simple mission: to make quality dental care accessible, honest, and completely pain-free. We believe every patient deserves a dentist they can trust.
@@ -19,7 +19,7 @@
         </a>
       </div>
       <div class="bg-gradient-to-br from-blue-50 to-white rounded-3xl overflow-hidden aspect-[4/3]">
-        <img src="https://placehold.co/600x450/EFF6FF/2563EB?text=Our+Clinic" alt="Sneha Dental Clinic" class="w-full h-full object-cover">
+        <img src="https://placehold.co/600x450/EFF6FF/2563EB?text=Our+Clinic" [alt]="config.name + ' Clinic'" class="w-full h-full object-cover">
       </div>
     </div>
   </div>
@@ -28,25 +28,26 @@
 <!-- Doctor Profile -->
 <section class="bg-white py-16 md:py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <app-section-header label="Our Dentist" title="Meet Dr. Sneha Soni" subtitle="Qualified, compassionate, and genuinely passionate about patient care." />
+    <app-section-header label="Our Dentist" [title]="'Meet ' + config.doctorName" subtitle="Qualified, compassionate, and genuinely passionate about patient care." />
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mt-12">
       <div class="bg-blue-50 rounded-3xl overflow-hidden aspect-[3/4] max-w-sm mx-auto lg:mx-0">
-        <img src="https://placehold.co/400x530/EFF6FF/2563EB?text=Dr.+Sneha" alt="Dr. Sneha" class="w-full h-full object-cover">
+        <img src="https://placehold.co/400x530/EFF6FF/2563EB?text=Dr.+Photo" [alt]="config.doctorName" class="w-full h-full object-cover">
       </div>
       <div>
-        <h3 class="font-display text-3xl text-gray-900 mb-2">Dr. Sneha Soni</h3>
-        <p class="text-blue-600 font-semibold mb-5">BDS — Babu Banarsi Das University, Lucknow</p>
+        <h3 class="font-display text-3xl text-gray-900 mb-2">{{ config.doctorName }}</h3>
+        <p class="text-blue-600 font-semibold mb-5">{{ config.doctorQualification }} — {{ config.doctorUniversity }}</p>
         <div class="space-y-4 text-gray-500 leading-relaxed">
-          <p>Dr. Sneha Soni completed her Bachelor of Dental Surgery from Babu Banarsi Das University, Lucknow, and honed her clinical skills with hands-on experience at the District Hospital, Jhansi. Her approach is always gentle, unhurried, and centred around you.</p>
-          <p>She believes in educating patients about their oral health rather than just treating symptoms — empowering you to make informed decisions about your care.</p>
+          @for (para of config.doctorBio; track $index) {
+            <p>{{ para }}</p>
+          }
         </div>
         <div class="grid grid-cols-3 gap-4 mt-8">
           <div class="text-center bg-blue-50 rounded-xl p-4">
-            <p class="text-2xl font-bold text-blue-600">BDS</p>
+            <p class="text-2xl font-bold text-blue-600">{{ config.doctorQualification }}</p>
             <p class="text-xs text-gray-500 mt-1">Qualified Dentist</p>
           </div>
           <div class="text-center bg-blue-50 rounded-xl p-4">
-            <p class="text-2xl font-bold text-blue-600">1000+</p>
+            <p class="text-2xl font-bold text-blue-600">{{ config.patientCount }}</p>
             <p class="text-xs text-gray-500 mt-1">Patients Treated</p>
           </div>
           <div class="text-center bg-blue-50 rounded-xl p-4">

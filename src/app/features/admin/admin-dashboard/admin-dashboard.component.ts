@@ -2,6 +2,7 @@ import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } 
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
+import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 type FilterTab = 'all' | 'pending' | 'confirmed' | 'today';
 
@@ -16,6 +17,8 @@ export class AdminDashboardComponent implements OnInit {
   private auth               = inject(AuthService);
   private appointmentService = inject(AppointmentService);
   private router             = inject(Router);
+  readonly clinic            = inject(ClinicConfigService);
+  readonly clinicConfig      = this.clinic.config;
 
   appointments = signal<Appointment[]>([]);
   loading      = signal(true);
@@ -101,8 +104,8 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   whatsappUrl(appt: Appointment): string {
-    const msg = `Hi ${appt.name}! Your appointment at Sneha Dental is confirmed for ${this.formatDate(appt.date)} (${appt.time}). Your Booking Ref: ${appt.bookingRef}. Address: 36C G Block, Kanchanjunga Apt, Noida. See you soon! — Dr. Sneha Soni`;
-    return `https://wa.me/91${appt.phone}?text=${encodeURIComponent(msg)}`;
+    const msg = `Hi ${appt.name}! Your appointment at ${this.clinicConfig.name} is confirmed for ${this.formatDate(appt.date)} (${appt.time}). Your Booking Ref: ${appt.bookingRef}. Address: ${this.clinic.address}. See you soon! — ${this.clinicConfig.doctorName}`;
+    return this.clinic.whatsappUrl(msg);
   }
 
   statusColor(status: string): string {

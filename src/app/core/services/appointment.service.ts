@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { ClinicConfigService } from './clinic-config.service';
 import { initializeApp, getApps } from 'firebase/app';
 import {
   getFirestore,
@@ -40,6 +41,7 @@ const db = getFirestore(firebaseApp);
 export class AppointmentService {
 
   private readonly COLLECTION = 'appointments';
+  private readonly prefix = inject(ClinicConfigService).config.bookingRefPrefix;
 
   private generateBookingRef(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -47,7 +49,7 @@ export class AppointmentService {
     for (let i = 0; i < 8; i++) {
       suffix += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return `SD-${suffix}`;
+    return `${this.prefix}-${suffix}`;
   }
 
   /** True if appointment date is more than 24 hours from now. */

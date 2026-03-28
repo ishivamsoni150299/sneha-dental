@@ -54,6 +54,11 @@ export const routes: Routes = [
     canActivate: [adminGuard],
   },
   {
+    path: 'business',
+    loadChildren: () =>
+      import('./features/business/business.routes').then(m => m.businessRoutes),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),

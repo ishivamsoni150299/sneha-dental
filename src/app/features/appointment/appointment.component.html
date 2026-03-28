@@ -174,8 +174,9 @@
         <div class="bg-blue-50 rounded-2xl p-6">
           <h3 class="font-bold text-gray-900 mb-4">Clinic Hours</h3>
           <div class="space-y-2 text-sm text-gray-600">
-            <div class="flex justify-between"><span>Monday - Saturday</span><span class="font-semibold text-gray-900">9:00 AM - 8:00 PM</span></div>
-            <div class="flex justify-between"><span>Sunday</span><span class="font-semibold text-gray-900">10:00 AM - 2:00 PM</span></div>
+            @for (h of config.hours; track h.days) {
+              <div class="flex justify-between"><span>{{ h.days }}</span><span class="font-semibold text-gray-900">{{ h.time }}</span></div>
+            }
           </div>
         </div>
 

@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-footer',
@@ -9,7 +10,9 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FooterComponent {
-  year = new Date().getFullYear();
+  readonly clinic = inject(ClinicConfigService);
+  readonly config = this.clinic.config;
+  readonly year   = new Date().getFullYear();
 
   quickLinks = [
     { label: 'Home',             route: '/' },

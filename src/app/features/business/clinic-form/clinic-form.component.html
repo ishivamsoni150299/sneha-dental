@@ -1,0 +1,434 @@
+<div class="max-w-3xl space-y-8">
+
+  <!-- Page Header -->
+  <div class="flex items-center gap-4">
+    <a routerLink="/business/clinics"
+       class="text-gray-400 hover:text-gray-700 transition-colors">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">{{ isEdit ? 'Edit Clinic' : 'New Clinic' }}</h1>
+      <p class="text-sm text-gray-500 mt-0.5">{{ isEdit ? 'Update clinic configuration' : 'Create a new clinic deployment' }}</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+      <p class="text-sm text-gray-400">Loading clinic data…</p>
+    </div>
+  }
+
+  @if (!loading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-6">
+
+      <!-- ── Identity ──────────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Identity</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Clinic Name *</label>
+            <input formControlName="name" type="text" placeholder="e.g. Sneha Dental" class="form-input"
+                   [class.input-error]="form.controls.name.invalid && form.controls.name.touched">
+          </div>
+          <div>
+            <label class="form-label">Patient Count</label>
+            <input formControlName="patientCount" type="text" placeholder="e.g. 1000+" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">Doctor Name *</label>
+            <input formControlName="doctorName" type="text" placeholder="Dr. Full Name" class="form-input"
+                   [class.input-error]="form.controls.doctorName.invalid && form.controls.doctorName.touched">
+          </div>
+          <div>
+            <label class="form-label">Qualification *</label>
+            <input formControlName="doctorQualification" type="text" placeholder="BDS, MDS" class="form-input"
+                   [class.input-error]="form.controls.doctorQualification.invalid && form.controls.doctorQualification.touched">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">University / College</label>
+            <input formControlName="doctorUniversity" type="text" placeholder="University name" class="form-input">
+          </div>
+        </div>
+
+        <!-- Doctor Bio paragraphs -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="form-label mb-0">Doctor Bio (paragraphs)</label>
+            <button type="button" (click)="addBio()"
+                    class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add paragraph</button>
+          </div>
+          <div formArrayName="doctorBio" class="space-y-2">
+            @for (_ of doctorBioArr.controls; track $index) {
+              <div class="flex gap-2">
+                <textarea [formControlName]="$index" rows="3" placeholder="Bio paragraph…"
+                          class="form-input flex-1 resize-none"></textarea>
+                <button type="button" (click)="removeBio($index)"
+                        class="self-start mt-1 text-gray-300 hover:text-red-400 transition-colors">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Contact ───────────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Contact & Location</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Display Phone *</label>
+            <input formControlName="phone" type="text" placeholder="+91 98765 43210" class="form-input"
+                   [class.input-error]="form.controls.phone.invalid && form.controls.phone.touched">
+          </div>
+          <div>
+            <label class="form-label">Phone E164 *</label>
+            <input formControlName="phoneE164" type="text" placeholder="919876543210" class="form-input"
+                   [class.input-error]="form.controls.phoneE164.invalid && form.controls.phoneE164.touched">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">WhatsApp Number *</label>
+            <input formControlName="whatsappNumber" type="text" placeholder="919876543210" class="form-input"
+                   [class.input-error]="form.controls.whatsappNumber.invalid && form.controls.whatsappNumber.touched">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">Address Line 1 *</label>
+            <input formControlName="addressLine1" type="text" placeholder="Shop / flat, street, area" class="form-input"
+                   [class.input-error]="form.controls.addressLine1.invalid && form.controls.addressLine1.touched">
+          </div>
+          <div>
+            <label class="form-label">Address Line 2</label>
+            <input formControlName="addressLine2" type="text" placeholder="City — PIN" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">City *</label>
+            <input formControlName="city" type="text" placeholder="Noida" class="form-input"
+                   [class.input-error]="form.controls.city.invalid && form.controls.city.touched">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">Google Maps Embed URL</label>
+            <input formControlName="mapEmbedUrl" type="url" placeholder="https://www.google.com/maps/embed?pb=…" class="form-input">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">Google Maps Directions URL</label>
+            <input formControlName="mapDirectionsUrl" type="url" placeholder="https://maps.google.com/?q=…" class="form-input">
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Clinic Hours ──────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Clinic Hours</h2>
+          <button type="button" (click)="addHour()"
+                  class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add row</button>
+        </div>
+
+        <div formArrayName="hours" class="space-y-2">
+          @for (hourGroup of hoursArr.controls; track $index) {
+            <div [formGroupName]="$index" class="flex gap-2 items-center">
+              <input formControlName="days" type="text" placeholder="Mon – Sat" class="form-input flex-1">
+              <input formControlName="time" type="text" placeholder="9:00 AM – 8:00 PM" class="form-input flex-1">
+              <button type="button" (click)="removeHour($index)"
+                      class="text-gray-300 hover:text-red-400 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Brand & Platform ──────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Brand & Platform</h2>
+
+        <!-- Theme picker -->
+        <div>
+          <label class="form-label">Theme</label>
+          <div class="flex gap-3 mt-1">
+            @for (opt of [{value:'blue',label:'Blue',color:'#2563eb'},{value:'teal',label:'Teal',color:'#0d9488'},{value:'caramel',label:'Caramel',color:'#b45309'}]; track opt.value) {
+              <button type="button"
+                      (click)="form.controls.theme.setValue(opt.value)"
+                      class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all"
+                      [class]="form.controls.theme.value === opt.value
+                        ? 'border-gray-900 bg-gray-900 text-white'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-400'">
+                <span class="w-3 h-3 rounded-full flex-shrink-0" [style.background]="opt.color"></span>
+                {{ opt.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Booking Ref Prefix *</label>
+            <input formControlName="bookingRefPrefix" type="text" placeholder="SD" class="form-input"
+                   [class.input-error]="form.controls.bookingRefPrefix.invalid && form.controls.bookingRefPrefix.touched">
+            <p class="text-xs text-gray-400 mt-1">e.g. "SD" → generates "SD-A1B2C3"</p>
+          </div>
+          <div>
+            <label class="form-label">Domain</label>
+            <input formControlName="domain" type="text" placeholder="snehadental.com" class="form-input">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input formControlName="active" type="checkbox" class="sr-only peer">
+            <div class="w-9 h-5 bg-gray-200 peer-checked:bg-gray-900 rounded-full transition-colors
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                        after:bg-white after:rounded-full after:h-4 after:w-4
+                        after:transition-all peer-checked:after:translate-x-4"></div>
+          </label>
+          <span class="text-sm text-gray-700">Active deployment</span>
+        </div>
+      </section>
+
+      <!-- ── Social ────────────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Social Links</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="form-label">Facebook</label>
+            <input formControlName="facebook" type="url" placeholder="https://facebook.com/…" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">Instagram</label>
+            <input formControlName="instagram" type="url" placeholder="https://instagram.com/…" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">LinkedIn</label>
+            <input formControlName="linkedin" type="url" placeholder="https://linkedin.com/in/…" class="form-input">
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Services ──────────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Services</h2>
+          <button type="button" (click)="addService()"
+                  class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add service</button>
+        </div>
+
+        <div formArrayName="services" class="space-y-4">
+          @for (svcGroup of servicesArr.controls; track $index) {
+            <div [formGroupName]="$index"
+                 class="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500">Service {{ $index + 1 }}</span>
+                <button type="button" (click)="removeService($index)"
+                        class="text-gray-300 hover:text-red-400 transition-colors text-xs">Remove</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="form-label">Name *</label>
+                  <input formControlName="name" type="text" placeholder="Service name" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Price</label>
+                  <input formControlName="price" type="text" placeholder="₹500 – ₹1,500" class="form-input">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="form-label">Description</label>
+                  <input formControlName="description" type="text" placeholder="Short description" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Benefit tag</label>
+                  <input formControlName="benefit" type="text" placeholder="e.g. Fresh mouth in 30 min" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Icon SVG path</label>
+                  <input formControlName="iconPath" type="text" placeholder="M…" class="form-input font-mono text-xs">
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Plans ─────────────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Health Plans</h2>
+          <button type="button" (click)="addPlan()"
+                  class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add plan</button>
+        </div>
+
+        <div formArrayName="plans" class="space-y-4">
+          @for (planGroup of plansArr.controls; track $index) {
+            <div [formGroupName]="$index"
+                 class="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500">Plan {{ $index + 1 }}</span>
+                <button type="button" (click)="removePlan($index)"
+                        class="text-gray-300 hover:text-red-400 transition-colors text-xs">Remove</button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="form-label">Plan Name *</label>
+                  <input formControlName="name" type="text" placeholder="Dental Health Plan" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Tag</label>
+                  <input formControlName="tag" type="text" placeholder="Best for Individuals" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Price</label>
+                  <input formControlName="price" type="text" placeholder="₹1,999" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Period</label>
+                  <input formControlName="period" type="text" placeholder="/year" class="form-input">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="form-label">Subtitle</label>
+                  <input formControlName="subtitle" type="text" placeholder="Ideal for students & working professionals" class="form-input">
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input formControlName="highlighted" type="checkbox" class="sr-only peer">
+                  <div class="w-9 h-5 bg-gray-200 peer-checked:bg-gray-900 rounded-full transition-colors
+                              after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                              after:bg-white after:rounded-full after:h-4 after:w-4
+                              after:transition-all peer-checked:after:translate-x-4"></div>
+                </label>
+                <span class="text-sm text-gray-700">Highlighted (featured plan)</span>
+              </div>
+
+              <!-- Plan Features -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <label class="form-label mb-0">Features</label>
+                  <button type="button" (click)="addPlanFeature($index)"
+                          class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add feature</button>
+                </div>
+                <div [formArrayName]="'features'" class="space-y-2">
+                  @for (_ of planFeaturesArr($index).controls; track $index) {
+                    <div class="flex gap-2">
+                      <input [formControlName]="$index" type="text" placeholder="Feature description" class="form-input flex-1">
+                      <button type="button" (click)="removePlanFeature($index, $index)"
+                              class="text-gray-300 hover:text-red-400 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Testimonials ──────────────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Testimonials</h2>
+          <button type="button" (click)="addTestimonial()"
+                  class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add testimonial</button>
+        </div>
+
+        <div formArrayName="testimonials" class="space-y-4">
+          @for (tGroup of testimonialsArr.controls; track $index) {
+            <div [formGroupName]="$index"
+                 class="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-500">Testimonial {{ $index + 1 }}</span>
+                <button type="button" (click)="removeTestimonial($index)"
+                        class="text-gray-300 hover:text-red-400 transition-colors text-xs">Remove</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="form-label">Patient Name *</label>
+                  <input formControlName="name" type="text" placeholder="Priya M." class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Location</label>
+                  <input formControlName="location" type="text" placeholder="Pune - Verified Patient" class="form-input">
+                </div>
+                <div>
+                  <label class="form-label">Rating (1–5)</label>
+                  <input formControlName="rating" type="number" min="1" max="5" class="form-input w-24">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="form-label">Review</label>
+                  <textarea formControlName="review" rows="3" placeholder="Patient review text…"
+                            class="form-input resize-none"></textarea>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ── Inline error ──────────────────────────────────────────────────── -->
+      @if (error()) {
+        <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+          {{ error() }}
+        </div>
+      }
+
+      <!-- spacer so content isn't hidden behind sticky bar -->
+      <div class="h-20"></div>
+
+    </form>
+  }
+
+  <!-- ── Sticky Save Bar ──────────────────────────────────────────────────── -->
+  @if (!loading()) {
+    <div class="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3">
+      <div class="max-w-3xl mx-auto flex items-center justify-between gap-4">
+
+        @if (success()) {
+          <div class="flex items-center gap-2 text-sm font-medium text-green-700">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            {{ isEdit ? 'Changes saved!' : 'Clinic created!' }} Redirecting…
+          </div>
+        } @else {
+          <p class="text-xs text-gray-400 hidden sm:block">
+            {{ isEdit ? 'Editing: ' + (form.controls.name.value || '—') : 'New clinic' }}
+          </p>
+        }
+
+        <div class="flex items-center gap-3 ml-auto">
+          <a routerLink="/business/clinics"
+             class="text-sm text-gray-500 hover:text-gray-800 transition-colors">Cancel</a>
+          <button type="submit" form="clinicForm" [disabled]="saving() || success()"
+                  (click)="onSubmit()"
+                  class="bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold
+                         px-5 py-2 rounded-xl transition-colors flex items-center gap-2">
+            @if (saving()) {
+              <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Saving…
+            } @else {
+              {{ isEdit ? 'Save Changes' : 'Create Clinic' }}
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

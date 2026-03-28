@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
+import { ClinicConfigService } from './core/services/clinic-config.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +19,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
     </div>
 
     <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/919140210648?text=Hi%20Sneha%20Dental!%20I%20would%20like%20to%20book%20an%20appointment.%20Please%20confirm%20an%20available%20slot."
+    <a [href]="clinic.bookingWhatsappUrl"
        target="_blank"
        rel="noopener noreferrer"
        aria-label="Chat on WhatsApp"
@@ -40,4 +42,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 12px); }
   `]
 })
-export class AppComponent {}
+export class AppComponent {
+  readonly clinic = inject(ClinicConfigService);
+  private readonly theme = inject(ThemeService);
+}

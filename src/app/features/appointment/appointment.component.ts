@@ -2,6 +2,7 @@ import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/cor
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppointmentService } from '../../core/services/appointment.service';
+import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-appointment',
@@ -13,25 +14,15 @@ import { AppointmentService } from '../../core/services/appointment.service';
 export class AppointmentComponent {
   private fb = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
+  readonly clinic = inject(ClinicConfigService);
+  readonly config = this.clinic.config;
 
-  submitted   = signal(false);
-  submitting  = signal(false);
-  error       = signal<string | null>(null);
-  bookingRef  = signal<string | null>(null);
+  submitted  = signal(false);
+  submitting = signal(false);
+  error      = signal<string | null>(null);
+  bookingRef = signal<string | null>(null);
 
-  services = [
-    'General Dentistry / Checkup',
-    'Dental Cleaning & Scaling',
-    'Tooth Filling',
-    'Tooth Extraction',
-    'Root Canal Treatment',
-    'Cosmetic Dentistry',
-    'Teeth Whitening',
-    'Orthodontics (Braces)',
-    'Dental Implants',
-    'Other / Not Sure',
-  ];
-
+  services  = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
   timeSlots = ['Morning (9am - 12pm)', 'Afternoon (12pm - 4pm)', 'Evening (4pm - 8pm)'];
 
   form = this.fb.group({
@@ -53,25 +44,19 @@ export class AppointmentComponent {
     return ctrl?.invalid && ctrl?.touched;
   }
 
-  /** Dynamic WhatsApp URL built from current form values. */
   get whatsappUrl(): string {
-    const name    = this.form.get('name')?.value;
-    const service = this.form.get('service')?.value;
-    const date    = this.form.get('date')?.value;
-    let msg = 'Hi Sneha Dental! ';
+    const { name, service, date } = this.form.value;
+    let msg = `Hi ${this.config.name}! `;
     if (name)    msg += `My name is ${name}. `;
     if (service) msg += `I would like to book for ${service}. `;
     if (date)    msg += `Preferred date: ${date}. `;
     msg += 'Please confirm an available slot.';
-    return `https://wa.me/919140210648?text=${encodeURIComponent(msg)}`;
+    return this.clinic.whatsappUrl(msg);
   }
 
-  /** WhatsApp URL that includes the booking ref (used on success screen). */
   get confirmationWhatsappUrl(): string {
-    const ref  = this.bookingRef();
-    const name = this.form.get('name')?.value;
-    const msg  = `Hi Sneha Dental! I just booked an appointment. My name is ${name ?? ''} and my Booking Ref is ${ref}. Please confirm my slot. Thank you!`;
-    return `https://wa.me/919140210648?text=${encodeURIComponent(msg)}`;
+    const msg = `Hi ${this.config.name}! I just booked an appointment. My name is ${this.form.value.name ?? ''} and my Booking Ref is ${this.bookingRef()}. Please confirm my slot. Thank you!`;
+    return this.clinic.whatsappUrl(msg);
   }
 
   async onSubmit() {
