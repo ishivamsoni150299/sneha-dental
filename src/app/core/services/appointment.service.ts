@@ -7,6 +7,7 @@ import {
   query,
   where,
   getDocs,
+  orderBy,
   doc,
   updateDoc,
   deleteDoc,
@@ -89,6 +90,18 @@ export class AppointmentService {
     data: Partial<Pick<Appointment, 'service' | 'date' | 'time' | 'message'>>
   ): Promise<void> {
     await updateDoc(doc(db, this.COLLECTION, id), { ...data });
+  }
+
+  /** Fetch all appointments ordered by date desc (admin only). */
+  async getAllAppointments(): Promise<Appointment[]> {
+    const q = query(collection(db, this.COLLECTION), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Appointment));
+  }
+
+  /** Set status directly (admin use: confirm or cancel without 24hr restriction). */
+  async setStatus(id: string, status: 'confirmed' | 'cancelled'): Promise<void> {
+    await updateDoc(doc(db, this.COLLECTION, id), { status });
   }
 
   /** Cancel (delete) appointment — enforces 24-hour rule. */

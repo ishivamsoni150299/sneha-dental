@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx @angular/cli@19 new sneha-dental --standalone --routing --style=css --skip-tests --directory . --force)"
+      "Bash(npx @angular/cli@19 new sneha-dental --standalone --routing --style=css --skip-tests --directory . --force)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(./node_modules/.bin/tailwindcss init:*)",
+      "Bash(npm list:*)",
+      "Bash(ng generate:*)",
+      "Bash(ng build:*)",
+      "Bash(npx claude-code-templates@latest --skill creative-design/frontend-design)",
+      "Bash(npm run:*)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data[0][''''text'''']\\)\")",
+      "Bash(node -e \"const fs=require\\(''''fs''''\\); const data=JSON.parse\\(fs.readFileSync\\(''''C:/Users/nkhg5710/.claude/projects/c--dentalprojectnew/9ae10940-b348-499d-9ef8-73982533d1a9/tool-results/toolu_01QSFRzkyJi73w9RFbxx9LVq.json''''\\)\\); console.log\\(data[0].text\\);\")"
     ]
   }
 }
