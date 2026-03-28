@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx @angular/cli@19 new sneha-dental --standalone --routing --style=css --skip-tests --directory . --force)"
+    ]
+  }
+}
