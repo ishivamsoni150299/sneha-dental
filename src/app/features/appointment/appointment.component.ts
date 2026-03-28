@@ -1,18 +1,23 @@
 import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { AppointmentService } from '../../core/services/appointment.service';
 
 @Component({
   selector: 'app-appointment',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentComponent {
   private fb = inject(FormBuilder);
+  private appointmentService = inject(AppointmentService);
 
-  submitted = signal(false);
-  submitting = signal(false);
+  submitted   = signal(false);
+  submitting  = signal(false);
+  error       = signal<string | null>(null);
+  bookingRef  = signal<string | null>(null);
 
   services = [
     'General Dentistry / Checkup',
@@ -48,19 +53,58 @@ export class AppointmentComponent {
     return ctrl?.invalid && ctrl?.touched;
   }
 
-  onSubmit() {
+  /** Dynamic WhatsApp URL built from current form values. */
+  get whatsappUrl(): string {
+    const name    = this.form.get('name')?.value;
+    const service = this.form.get('service')?.value;
+    const date    = this.form.get('date')?.value;
+    let msg = 'Hi Sneha Dental! ';
+    if (name)    msg += `My name is ${name}. `;
+    if (service) msg += `I would like to book for ${service}. `;
+    if (date)    msg += `Preferred date: ${date}. `;
+    msg += 'Please confirm an available slot.';
+    return `https://wa.me/919140210648?text=${encodeURIComponent(msg)}`;
+  }
+
+  /** WhatsApp URL that includes the booking ref (used on success screen). */
+  get confirmationWhatsappUrl(): string {
+    const ref  = this.bookingRef();
+    const name = this.form.get('name')?.value;
+    const msg  = `Hi Sneha Dental! I just booked an appointment. My name is ${name ?? ''} and my Booking Ref is ${ref}. Please confirm my slot. Thank you!`;
+    return `https://wa.me/919140210648?text=${encodeURIComponent(msg)}`;
+  }
+
+  async onSubmit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
+
     this.submitting.set(true);
-    // Simulate async submission
-    setTimeout(() => {
-      this.submitting.set(false);
+    this.error.set(null);
+
+    try {
+      const val = this.form.value;
+      const ref = await this.appointmentService.bookAppointment({
+        name:    val.name!,
+        phone:   val.phone!,
+        email:   val.email || undefined,
+        service: val.service!,
+        date:    val.date!,
+        time:    val.time!,
+        message: val.message || undefined,
+      });
+      this.bookingRef.set(ref);
       this.submitted.set(true);
-    }, 1000);
+    } catch {
+      this.error.set('Something went wrong. Please try again or WhatsApp us.');
+    } finally {
+      this.submitting.set(false);
+    }
   }
 
   resetForm() {
     this.form.reset();
     this.submitted.set(false);
+    this.bookingRef.set(null);
+    this.error.set(null);
   }
 }

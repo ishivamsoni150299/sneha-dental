@@ -14,7 +14,7 @@
       <div class="lg:col-span-3">
 
         @if (submitted()) {
-          <!-- Success Message -->
+          <!-- Success Screen -->
           <div class="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -22,9 +22,31 @@
               </svg>
             </div>
             <h2 class="font-display text-2xl text-gray-900 mb-2">Appointment Request Sent!</h2>
-            <p class="text-gray-500 mb-6">Thank you! We will call you within 2 hours to confirm your appointment slot.</p>
-            <button (click)="resetForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 rounded-xl font-semibold transition-colors">
-              Book Another
+            <p class="text-gray-500 mb-6">We will call you within 2 hours to confirm your slot.</p>
+
+            <!-- Booking Reference Box -->
+            <div class="bg-white border-2 border-blue-200 rounded-xl px-6 py-4 mb-6 inline-block mx-auto">
+              <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Your Booking Reference</p>
+              <p class="font-mono text-2xl font-bold text-blue-600 tracking-widest">{{ bookingRef() }}</p>
+              <p class="text-xs text-gray-400 mt-1">Save this — you will need it to manage your appointment</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center mt-2">
+              <a [href]="confirmationWhatsappUrl" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+                </svg>
+                Confirm via WhatsApp
+              </a>
+              <a routerLink="/my-appointment"
+                 class="inline-flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-5 py-3 rounded-xl font-semibold text-sm transition-colors">
+                Manage My Booking
+              </a>
+            </div>
+
+            <button (click)="resetForm()" class="mt-5 text-sm text-gray-400 hover:text-gray-600 underline transition-colors">
+              Book another appointment
             </button>
           </div>
         } @else {
@@ -122,22 +144,32 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
-                  Sending...
+                  Saving...
                 </span>
               } @else {
                 Book Appointment Now
               }
             </button>
 
+            @if (error()) {
+              <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                {{ error() }}
+              </div>
+            }
+
             <p class="text-xs text-gray-400 text-center">
-              We will call you within 2 hours to confirm. Or
-              <a href="https://wa.me/919140210648?text=Hi%20Sneha%20Dental!%20I%20would%20like%20to%20book%20an%20appointment.%20Please%20confirm%20an%20available%20slot." class="text-green-600 font-medium hover:underline">WhatsApp us directly</a>.
+              Or book instantly via
+              <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer" class="text-green-600 font-medium hover:underline">WhatsApp</a>
+              — we reply during clinic hours.
             </p>
           </form>
         }
       </div>
 
-      <!-- Sidebar info (2/5) -->
+      <!-- Sidebar (2/5) -->
       <div class="lg:col-span-2 space-y-5">
         <div class="bg-blue-50 rounded-2xl p-6">
           <h3 class="font-bold text-gray-900 mb-4">Clinic Hours</h3>
@@ -146,27 +178,40 @@
             <div class="flex justify-between"><span>Sunday</span><span class="font-semibold text-gray-900">10:00 AM - 2:00 PM</span></div>
           </div>
         </div>
+
+        <!-- Dynamic WhatsApp booking -->
         <div class="bg-green-50 border border-green-100 rounded-2xl p-6">
           <h3 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
             <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
             </svg>
-            Quick Booking via WhatsApp
+            Book via WhatsApp
           </h3>
-          <p class="text-sm text-gray-500 mb-3">Prefer WhatsApp? Chat with us directly and we will book your slot instantly.</p>
-          <a href="https://wa.me/919140210648?text=Hi%20Sneha%20Dental!%20I%20would%20like%20to%20book%20an%20appointment.%20Please%20confirm%20an%20available%20slot."
+          <p class="text-sm text-gray-500 mb-3">Fill in the form and click below — your details will be pre-filled in the message.</p>
+          <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer"
              class="inline-block w-full text-center bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-colors">
             Chat on WhatsApp
           </a>
         </div>
+
         <div class="bg-white border border-gray-100 rounded-2xl p-6">
           <h3 class="font-bold text-gray-900 mb-3">What to Expect</h3>
           <ul class="space-y-2 text-sm text-gray-500">
             <li class="flex gap-2"><span class="text-blue-600 font-bold">1.</span> Fill the form and submit</li>
             <li class="flex gap-2"><span class="text-blue-600 font-bold">2.</span> We call within 2 hours to confirm</li>
-            <li class="flex gap-2"><span class="text-blue-600 font-bold">3.</span> Visit at your scheduled time</li>
-            <li class="flex gap-2"><span class="text-blue-600 font-bold">4.</span> Leave with a healthier smile</li>
+            <li class="flex gap-2"><span class="text-blue-600 font-bold">3.</span> Save your booking reference</li>
+            <li class="flex gap-2"><span class="text-blue-600 font-bold">4.</span> Visit at your scheduled time</li>
+            <li class="flex gap-2"><span class="text-blue-600 font-bold">5.</span> Leave with a healthier smile</li>
           </ul>
+        </div>
+
+        <div class="bg-blue-600 rounded-2xl p-6 text-white text-center">
+          <p class="text-sm font-semibold opacity-90 mb-1">Already have a booking?</p>
+          <p class="text-xs opacity-70 mb-4">View, edit or cancel your appointment</p>
+          <a routerLink="/my-appointment"
+             class="inline-block bg-white text-blue-600 hover:bg-blue-50 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors">
+            Manage My Appointment
+          </a>
         </div>
       </div>
 
