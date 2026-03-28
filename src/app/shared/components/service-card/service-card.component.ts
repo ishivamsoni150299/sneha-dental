@@ -11,4 +11,5 @@ export class ServiceCardComponent {
   name        = input.required<string>();
   description = input<string>('');
   benefit     = input<string>('');
+  price       = input<string>('');
 }

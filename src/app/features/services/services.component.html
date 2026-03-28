@@ -1,19 +1,23 @@
 <!-- Hero -->
 <section class="bg-gradient-to-br from-blue-50 to-white py-16 md:py-20 border-b border-gray-100">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">All Services</span>
-    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-5 leading-tight">Comprehensive Dental<br><span class="text-blue-600">Care Under One Roof</span></h1>
-    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-8 leading-relaxed">From routine cleanings to advanced restorative procedures - we treat everything with the same gentle, honest approach.</p>
+    <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">All Services & Pricing</span>
+    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-5 leading-tight">Transparent Dental Care<br><span class="text-blue-600">No Hidden Charges</span></h1>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-8 leading-relaxed">Every price shown is what you actually pay. No surprise bills, no hidden fees — just honest dental care.</p>
     <a routerLink="/appointment"
        class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold shadow-md transition-all hover:-translate-y-px">
-      Book an Appointment
+      Book Free Consultation
     </a>
   </div>
 </section>
 
-<!-- Services Grid -->
+<!-- Services Grid with Prices -->
 <section class="bg-white py-16 md:py-24">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">All Treatments & Prices</h2>
+      <p class="text-gray-500 max-w-lg mx-auto">Prices are indicative ranges. Exact cost is confirmed before treatment begins — always.</p>
+    </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (service of services; track service.name) {
         <app-service-card
@@ -21,8 +25,170 @@
           [name]="service.name"
           [description]="service.description"
           [benefit]="service.benefit"
+          [price]="service.price"
         />
       }
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-8">* Prices include all charges. Payment via cash, UPI, or card accepted.</p>
+  </div>
+</section>
+
+<!-- Family Dentist + Health Plans -->
+<section class="bg-gray-50 py-16 md:py-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="text-center mb-14">
+      <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Annual Health Plans</span>
+      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Your Family Dentist,<br><span class="text-blue-600">Year-Round</span></h2>
+      <p class="text-gray-500 max-w-lg mx-auto">Pay once, visit all year. Save on regular dental care and keep your whole family's smile healthy.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+      <!-- Family Dentist SVG Illustration -->
+      <div class="flex justify-center">
+        <div class="relative w-full max-w-md">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-blue-50 rounded-3xl"></div>
+          <div class="relative p-6">
+            <svg viewBox="0 0 400 340" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full drop-shadow-sm">
+              <rect width="400" height="340" rx="20" fill="#EFF6FF"/>
+
+              <!-- Dental chair base -->
+              <rect x="60" y="222" width="190" height="14" rx="7" fill="#BFDBFE"/>
+              <rect x="75" y="182" width="155" height="44" rx="10" fill="#93C5FD"/>
+              <rect x="88" y="162" width="75" height="24" rx="8" fill="#BFDBFE"/>
+              <rect x="138" y="236" width="18" height="38" rx="6" fill="#93C5FD"/>
+              <rect x="118" y="270" width="58" height="10" rx="5" fill="#BFDBFE"/>
+
+              <!-- Patient (child) -->
+              <rect x="98" y="172" width="48" height="34" rx="10" fill="#FEE2E2"/>
+              <circle cx="122" cy="158" r="17" fill="#FBBF24"/>
+              <circle cx="116" cy="155" r="2.5" fill="#92400E"/>
+              <circle cx="128" cy="155" r="2.5" fill="#92400E"/>
+              <path d="M115 163 Q122 169 129 163" stroke="#92400E" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+              <path d="M106 150 Q109 139 122 138 Q135 139 138 150" fill="#92400E"/>
+              <rect x="100" y="202" width="16" height="28" rx="6" fill="#DBEAFE"/>
+              <rect x="126" y="202" width="16" height="28" rx="6" fill="#DBEAFE"/>
+              <ellipse cx="108" cy="232" rx="10" ry="6" fill="#1E40AF"/>
+              <ellipse cx="134" cy="232" rx="10" ry="6" fill="#1E40AF"/>
+
+              <!-- Dentist Dr. Sneha -->
+              <rect x="242" y="158" width="58" height="98" rx="12" fill="white"/>
+              <rect x="252" y="168" width="38" height="82" rx="8" fill="#DBEAFE"/>
+              <circle cx="271" cy="138" r="23" fill="#FBBF24"/>
+              <path d="M250 131 Q254 112 271 110 Q288 112 292 131" fill="#92400E"/>
+              <ellipse cx="293" cy="138" rx="5" ry="9" fill="#92400E"/>
+              <circle cx="264" cy="134" r="2.5" fill="#92400E"/>
+              <circle cx="278" cy="134" r="2.5" fill="#92400E"/>
+              <rect x="259" y="141" width="24" height="11" rx="4" fill="#BFDBFE" opacity="0.8"/>
+              <!-- Stethoscope -->
+              <path d="M256 178 Q246 188 249 202 Q252 212 261 212" stroke="#1D4ED8" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <circle cx="261" cy="214" r="4.5" fill="#1D4ED8"/>
+              <!-- Arm + dental mirror -->
+              <rect x="222" y="177" width="26" height="11" rx="5.5" fill="white"/>
+              <line x1="222" y1="182" x2="202" y2="167" stroke="#6B7280" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="200" cy="165" r="5.5" fill="#D1D5DB" stroke="#6B7280" stroke-width="1.5"/>
+              <!-- Name tag -->
+              <rect x="253" y="194" width="44" height="16" rx="4" fill="#1D4ED8"/>
+              <text x="275" y="206" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">Dr. Sneha</text>
+              <rect x="248" y="253" width="18" height="44" rx="6" fill="#DBEAFE"/>
+              <rect x="272" y="253" width="18" height="44" rx="6" fill="#DBEAFE"/>
+              <ellipse cx="257" cy="299" rx="12" ry="6" fill="#1E3A8A"/>
+              <ellipse cx="281" cy="299" rx="12" ry="6" fill="#1E3A8A"/>
+
+              <!-- Parent (dad, left) -->
+              <rect x="18" y="168" width="42" height="88" rx="10" fill="#D1FAE5"/>
+              <circle cx="39" cy="152" r="19" fill="#F59E0B"/>
+              <path d="M22 145 Q26 130 39 128 Q52 130 56 145" fill="#78350F"/>
+              <circle cx="33" cy="148" r="2" fill="#78350F"/>
+              <circle cx="45" cy="148" r="2" fill="#78350F"/>
+              <path d="M32 157 Q39 163 46 157" stroke="#78350F" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <rect x="4" y="182" width="16" height="10" rx="5" fill="#D1FAE5"/>
+              <rect x="60" y="182" width="16" height="10" rx="5" fill="#D1FAE5"/>
+              <rect x="20" y="253" width="14" height="38" rx="5" fill="#A7F3D0"/>
+              <rect x="44" y="253" width="14" height="38" rx="5" fill="#A7F3D0"/>
+              <ellipse cx="27" cy="293" rx="10" ry="6" fill="#065F46"/>
+              <ellipse cx="51" cy="293" rx="10" ry="6" fill="#065F46"/>
+
+              <!-- Decorative tooth (top right) -->
+              <g transform="translate(316 22) scale(0.85)">
+                <path d="M30 8C30 4 26 0 20 0C16 0 13 2 12 5C11 2 8 0 4 0C-2 0-6 4-6 8C-6 12-3 15 0 18L0 32C0 35 2 37 4 37C5 37 6 36 6 35L6 28C6 25 7 23 12 23C17 23 18 25 18 28L18 35C18 36 19 37 20 37C22 37 24 35 24 32L24 18C27 15 30 12 30 8Z" fill="#BFDBFE" stroke="#93C5FD" stroke-width="1.5"/>
+              </g>
+
+              <!-- Stars -->
+              <circle cx="352" cy="88" r="3" fill="#FCD34D" opacity="0.9"/>
+              <circle cx="368" cy="68" r="2" fill="#FCD34D" opacity="0.7"/>
+              <circle cx="335" cy="72" r="2" fill="#FCD34D" opacity="0.8"/>
+              <circle cx="358" cy="108" r="1.5" fill="#FCD34D" opacity="0.6"/>
+
+              <!-- Bottom label -->
+              <rect x="110" y="310" width="180" height="22" rx="11" fill="#1D4ED8" opacity="0.9"/>
+              <text x="200" y="326" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif" font-weight="bold">Sneha Dental — Noida</text>
+            </svg>
+          </div>
+
+          <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg p-3.5 border border-gray-100 flex items-center gap-2.5">
+            <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">Trusted by</p>
+              <p class="text-sm font-bold text-gray-900">1000+ Families</p>
+            </div>
+          </div>
+          <div class="absolute -top-4 -right-4 bg-blue-600 text-white rounded-2xl shadow-lg px-4 py-3 text-center">
+            <p class="text-2xl font-bold leading-none">4.9★</p>
+            <p class="text-xs opacity-80">Patient Rating</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Plan Cards -->
+      <div class="space-y-6">
+        @for (plan of plans; track plan.name) {
+          <div class="rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+               [class]="plan.highlighted ? 'border-blue-600' : 'border-gray-200'">
+            <div class="px-6 py-5 flex items-start justify-between"
+                 [class]="plan.highlighted ? 'bg-blue-600' : 'bg-white'">
+              <div>
+                <span class="inline-block text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2"
+                      [class]="plan.tagColor">{{ plan.tag }}</span>
+                <h3 class="font-display text-xl font-bold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">{{ plan.name }}</h3>
+                <p class="text-sm mt-0.5" [class]="plan.highlighted ? 'text-blue-100' : 'text-gray-500'">{{ plan.subtitle }}</p>
+              </div>
+              <div class="text-right shrink-0 ml-4">
+                <p class="text-3xl font-bold" [class]="plan.highlighted ? 'text-white' : 'text-blue-600'">{{ plan.price }}</p>
+                <p class="text-xs" [class]="plan.highlighted ? 'text-blue-200' : 'text-gray-400'">{{ plan.period }}</p>
+              </div>
+            </div>
+            <div class="bg-white px-6 py-5">
+              <ul class="space-y-2.5 mb-5">
+                @for (f of plan.features; track f) {
+                  <li class="flex items-center gap-2.5 text-sm text-gray-600">
+                    <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ f }}
+                  </li>
+                }
+              </ul>
+              <a routerLink="/appointment"
+                 class="block w-full text-center py-3 rounded-xl font-bold text-sm transition-all"
+                 [class]="plan.highlighted ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50'">
+                Get This Plan
+              </a>
+            </div>
+          </div>
+        }
+        <p class="text-xs text-gray-400 text-center pt-1">
+          Plans enrolled at the clinic. Call
+          <a href="tel:+919140210648" class="text-blue-600 font-semibold hover:underline">+91 91402 10648</a>
+          to know more.
+        </p>
+      </div>
+
     </div>
   </div>
 </section>
@@ -31,7 +197,7 @@
 <section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
   <div class="max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl text-white mb-4">Not Sure Which Service You Need?</h2>
-    <p class="text-blue-100 mb-7">Book a general consultation and we will recommend the right treatment for you - honestly.</p>
+    <p class="text-blue-100 mb-7">Book a free consultation and we will recommend the right treatment — honestly, with full cost transparency.</p>
     <a routerLink="/appointment"
        class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow transition-all inline-block">
       Book Free Consultation
