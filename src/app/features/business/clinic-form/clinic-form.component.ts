@@ -50,8 +50,9 @@ export class ClinicFormComponent implements OnInit {
     mapDirectionsUrl: [''],
 
     // Platform
-    domain: [''],
-    active: [true],
+    domain:       [''],
+    vercelDomain: [''],
+    active:       [true],
 
     // Brand
     theme:            ['blue', Validators.required],
@@ -119,7 +120,7 @@ export class ClinicFormComponent implements OnInit {
       addressLine1: c.addressLine1, addressLine2: c.addressLine2 ?? '',
       city: c.city, mapEmbedUrl: c.mapEmbedUrl ?? '',
       mapDirectionsUrl: c.mapDirectionsUrl ?? '',
-      domain: c.domain ?? '', active: c.active ?? true,
+      domain: c.domain ?? '', vercelDomain: c.vercelDomain ?? '', active: c.active ?? true,
       theme: c.theme, bookingRefPrefix: c.bookingRefPrefix,
       facebook:  c.social?.facebook  ?? '',
       instagram: c.social?.instagram ?? '',
@@ -213,8 +214,9 @@ export class ClinicFormComponent implements OnInit {
         city: v.city,
         mapEmbedUrl: v.mapEmbedUrl,
         mapDirectionsUrl: v.mapDirectionsUrl,
-        domain: v.domain,
-        active: v.active,
+        domain:       v.domain,
+        vercelDomain: v.vercelDomain,
+        active:       v.active,
         theme: v.theme as 'blue' | 'teal' | 'caramel',
         bookingRefPrefix: v.bookingRefPrefix,
         social: {

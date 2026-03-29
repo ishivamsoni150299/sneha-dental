@@ -11,12 +11,12 @@ const db  = getFirestore(app);
 export class ClinicConfigService {
   private readonly _config = signal<ClinicConfig>(clinicConfig);
 
-  /** Current clinic config — synchronous, always has a value (static fallback until Firestore loads). */
+  /** Current clinic config — synchronous, always has a value. */
   get config(): ClinicConfig { return this._config(); }
 
   /**
    * Called once by APP_INITIALIZER before the app renders.
-   * Loads the matching clinic config from Firestore based on the current hostname.
+   * Tries to match by custom domain first, then by vercelDomain as fallback.
    * On localhost, skips Firestore and uses the static fallback.
    * Never throws — falls back to static config on any error.
    */
@@ -24,15 +24,26 @@ export class ClinicConfigService {
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') return;
     try {
-      const q = query(
+      // 1st attempt — match on primary custom domain
+      let snap = await getDocs(query(
         collection(db, 'clinics'),
         where('domain', '==', host),
         where('active', '==', true),
         limit(1)
-      );
-      const snap = await getDocs(q);
+      ));
+
+      // 2nd attempt — fall back to vercelDomain (e.g. sneha-dental.vercel.app)
+      if (snap.empty) {
+        snap = await getDocs(query(
+          collection(db, 'clinics'),
+          where('vercelDomain', '==', host),
+          where('active', '==', true),
+          limit(1)
+        ));
+      }
+
       if (!snap.empty) {
-        const { id: _id, domain: _domain, active: _active, createdAt: _ts, ...rest } =
+        const { id: _id, domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
           snap.docs[0].data() as Record<string, unknown>;
         this._config.set(rest as unknown as ClinicConfig);
       }

@@ -177,8 +177,14 @@
             <p class="text-xs text-gray-400 mt-1">e.g. "SD" → generates "SD-A1B2C3"</p>
           </div>
           <div>
-            <label class="form-label">Domain</label>
+            <label class="form-label">Custom Domain</label>
             <input formControlName="domain" type="text" placeholder="snehadental.com" class="form-input">
+            <p class="text-xs text-gray-400 mt-1">Client's own domain once pointed</p>
+          </div>
+          <div>
+            <label class="form-label">Vercel Domain</label>
+            <input formControlName="vercelDomain" type="text" placeholder="sneha-dental.vercel.app" class="form-input">
+            <p class="text-xs text-gray-400 mt-1">Fallback while custom domain isn't ready</p>
           </div>
         </div>
 

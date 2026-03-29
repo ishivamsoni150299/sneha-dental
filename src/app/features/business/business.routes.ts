@@ -2,11 +2,22 @@ import { Routes } from '@angular/router';
 import { superAdminGuard } from '../../core/guards/super-admin.guard';
 
 export const businessRoutes: Routes = [
+  // ── Public landing page (no auth required) ────────────────────────────────
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
+  },
+
+  // ── Super admin login ─────────────────────────────────────────────────────
   {
     path: 'login',
     loadComponent: () =>
       import('./business-login/business-login.component').then(m => m.BusinessLoginComponent),
   },
+
+  // ── Protected admin shell (clinics CRUD) ──────────────────────────────────
   {
     path: '',
     canActivate: [superAdminGuard],

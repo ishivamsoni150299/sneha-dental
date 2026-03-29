@@ -29,7 +29,8 @@ export interface ClinicConfig {
   mapDirectionsUrl: string;
 
   // ── Platform (set by business panel, not the clinic) ─────────────────────
-  domain?: string;                 // hostname e.g. "snehadental.com"
+  domain?: string;                 // custom domain  e.g. "snehadental.com"
+  vercelDomain?: string;           // vercel preview  e.g. "sneha-dental.vercel.app"
   active?: boolean;                // false = paused deployment
 
   // ── Brand ─────────────────────────────────────────────────────────────────
