@@ -32,6 +32,12 @@ export class ClinicFirestoreService {
     return snap.exists() ? ({ id: snap.id, ...snap.data() } as StoredClinic) : null;
   }
 
+  async getActive(): Promise<StoredClinic[]> {
+    const q    = query(collection(db, this.COL), where('active', '==', true), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+  }
+
   async getByDomain(domain: string): Promise<StoredClinic | null> {
     const q    = query(collection(db, this.COL), where('domain', '==', domain), where('active', '==', true), limit(1));
     const snap = await getDocs(q);

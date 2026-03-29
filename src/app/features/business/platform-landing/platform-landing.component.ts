@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
 
 @Component({
   selector: 'app-platform-landing',
@@ -8,7 +9,13 @@ import { RouterLink } from '@angular/router';
   templateUrl: './platform-landing.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlatformLandingComponent {
+export class PlatformLandingComponent implements OnInit {
+  private readonly firestoreService = inject(ClinicFirestoreService);
+  readonly liveClinics = signal<StoredClinic[]>([]);
+
+  ngOnInit() {
+    this.firestoreService.getActive().then(clinics => this.liveClinics.set(clinics));
+  }
 
   readonly plans = [
     {
@@ -125,6 +132,12 @@ export class PlatformLandingComponent {
   readonly devEmail    = 'hello@yourplatform.com';
   readonly demoUrl     = 'https://sneha-dental.vercel.app';
   // ─────────────────────────────────────────────────────────────────────────
+
+  clinicUrl(clinic: StoredClinic): string {
+    if (clinic.domain)       return `https://${clinic.domain}`;
+    if (clinic.vercelDomain) return `https://${clinic.vercelDomain}`;
+    return '#';
+  }
 
   whatsappEnquiry(planName: string) {
     const msg = `Hi! I'm interested in the ${planName} plan for my dental clinic. Can we discuss?`;
