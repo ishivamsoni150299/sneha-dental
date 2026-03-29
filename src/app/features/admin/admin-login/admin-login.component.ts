@@ -2,6 +2,7 @@ import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/cor
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-admin-login',
@@ -14,6 +15,7 @@ export class AdminLoginComponent {
   private fb     = inject(FormBuilder);
   private auth   = inject(AuthService);
   private router = inject(Router);
+  readonly clinic = inject(ClinicConfigService);
 
   loading = signal(false);
   error   = signal<string | null>(null);
