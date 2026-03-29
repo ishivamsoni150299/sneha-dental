@@ -9,10 +9,17 @@ const db  = getFirestore(app);
 
 @Injectable({ providedIn: 'root' })
 export class ClinicConfigService {
-  private readonly _config = signal<ClinicConfig>(clinicConfig);
+  private readonly _config   = signal<ClinicConfig>(clinicConfig);
+  private readonly _isLoaded = signal<boolean>(false);
 
   /** Current clinic config — synchronous, always has a value. */
   get config(): ClinicConfig { return this._config(); }
+
+  /**
+   * True once a real clinic config has been loaded from Firestore (or on localhost).
+   * False when running on a platform/admin-only domain with no matching clinic doc.
+   */
+  get isLoaded(): boolean { return this._isLoaded(); }
 
   /**
    * Called once by APP_INITIALIZER before the app renders.
@@ -22,7 +29,10 @@ export class ClinicConfigService {
    */
   async loadFromFirestore(): Promise<void> {
     const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      this._isLoaded.set(true); // dev mode — always treat as loaded
+      return;
+    }
     try {
       // 1st attempt — match on primary custom domain
       let snap = await getDocs(query(
@@ -47,6 +57,7 @@ export class ClinicConfigService {
         const { id: _id, domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
           snap.docs[0].data() as Record<string, unknown>;
         this._config.set({ ...(rest as unknown as ClinicConfig), clinicId: docId });
+        this._isLoaded.set(true);
       }
     } catch (e) {
       console.error('[ClinicConfig] Firestore load failed — using static config:', e);
