@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
 
@@ -12,9 +12,21 @@ import { ClinicFirestoreService, StoredClinic } from '../../../core/services/cli
 export class PlatformLandingComponent implements OnInit {
   private readonly firestoreService = inject(ClinicFirestoreService);
   readonly liveClinics = signal<StoredClinic[]>([]);
+  readonly clinicsLoaded = signal(false);
+
+  // First active clinic URL used as the live demo link
+  readonly demoUrl = computed(() => {
+    const first = this.liveClinics()[0];
+    if (!first) return null;
+    if (first.domain)       return `https://${first.domain}`;
+    if (first.vercelDomain) return `https://${first.vercelDomain}`;
+    return null;
+  });
 
   ngOnInit() {
-    this.firestoreService.getActive().then(clinics => this.liveClinics.set(clinics));
+    this.firestoreService.getActive()
+      .then(clinics => { this.liveClinics.set(clinics); this.clinicsLoaded.set(true); })
+      .catch(() => this.clinicsLoaded.set(true));
   }
 
   readonly plans = [
@@ -130,13 +142,17 @@ export class PlatformLandingComponent implements OnInit {
   // ── Replace with your real details ───────────────────────────────────────
   readonly devWhatsapp = '919999999999';
   readonly devEmail    = 'hello@yourplatform.com';
-  readonly demoUrl     = 'https://sneha-dental.vercel.app';
   // ─────────────────────────────────────────────────────────────────────────
 
   clinicUrl(clinic: StoredClinic): string {
     if (clinic.domain)       return `https://${clinic.domain}`;
     if (clinic.vercelDomain) return `https://${clinic.vercelDomain}`;
     return '#';
+  }
+
+  scrollTo(sectionId: string): void {
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   whatsappEnquiry(planName: string) {
