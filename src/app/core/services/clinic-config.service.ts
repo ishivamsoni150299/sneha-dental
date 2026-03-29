@@ -43,9 +43,10 @@ export class ClinicConfigService {
       }
 
       if (!snap.empty) {
+        const docId = snap.docs[0].id;
         const { id: _id, domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
           snap.docs[0].data() as Record<string, unknown>;
-        this._config.set(rest as unknown as ClinicConfig);
+        this._config.set({ ...(rest as unknown as ClinicConfig), clinicId: docId });
       }
     } catch (e) {
       console.error('[ClinicConfig] Firestore load failed — using static config:', e);

@@ -1,6 +1,6 @@
 import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
@@ -12,15 +12,14 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentComponent {
-  private fb = inject(FormBuilder);
+  private fb                 = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
-  readonly clinic = inject(ClinicConfigService);
-  readonly config = this.clinic.config;
+  private router             = inject(Router);
+  readonly clinic            = inject(ClinicConfigService);
+  readonly config            = this.clinic.config;
 
-  submitted  = signal(false);
   submitting = signal(false);
   error      = signal<string | null>(null);
-  bookingRef = signal<string | null>(null);
 
   services  = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
   timeSlots = ['Morning (9am - 12pm)', 'Afternoon (12pm - 4pm)', 'Evening (4pm - 8pm)'];
@@ -54,11 +53,6 @@ export class AppointmentComponent {
     return this.clinic.whatsappUrl(msg);
   }
 
-  get confirmationWhatsappUrl(): string {
-    const msg = `Hi ${this.config.name}! I just booked an appointment. My name is ${this.form.value.name ?? ''} and my Booking Ref is ${this.bookingRef()}. Please confirm my slot. Thank you!`;
-    return this.clinic.whatsappUrl(msg);
-  }
-
   async onSubmit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
@@ -77,8 +71,14 @@ export class AppointmentComponent {
         time:    val.time!,
         message: val.message || undefined,
       });
-      this.bookingRef.set(ref);
-      this.submitted.set(true);
+      this.router.navigate(['/appointment/confirmed'], {
+        queryParams: {
+          ref,
+          name:    val.name,
+          date:    val.date,
+          service: val.service,
+        },
+      });
     } catch {
       this.error.set('Something went wrong. Please try again or WhatsApp us.');
     } finally {
@@ -86,10 +86,4 @@ export class AppointmentComponent {
     }
   }
 
-  resetForm() {
-    this.form.reset();
-    this.submitted.set(false);
-    this.bookingRef.set(null);
-    this.error.set(null);
-  }
 }

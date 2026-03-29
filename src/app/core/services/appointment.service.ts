@@ -19,29 +19,34 @@ import { environment } from '../../../environments/environment';
 
 export interface Appointment {
   id?: string;
+  clinicId: string;      // scopes this appointment to its clinic
   bookingRef: string;
   name: string;
   phone: string;
   email?: string;
   service: string;
-  date: string;       // "YYYY-MM-DD"
+  date: string;          // "YYYY-MM-DD"
   time: string;
   message?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt?: Timestamp;
 }
 
-// Initialize Firebase once (guard prevents duplicate init)
-const firebaseApp = getApps().length
-  ? getApps()[0]
-  : initializeApp(environment.firebase);
+const firebaseApp = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
 const db = getFirestore(firebaseApp);
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
-
+  private readonly clinic = inject(ClinicConfigService);
   private readonly COLLECTION = 'appointments';
-  private readonly prefix = inject(ClinicConfigService).config.bookingRefPrefix;
+
+  private get clinicId(): string {
+    return this.clinic.config.clinicId ?? this.clinic.config.bookingRefPrefix;
+  }
+
+  private get prefix(): string {
+    return this.clinic.config.bookingRefPrefix;
+  }
 
   private generateBookingRef(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -61,11 +66,12 @@ export class AppointmentService {
 
   /** Save a new appointment and return the booking reference. */
   async bookAppointment(
-    data: Omit<Appointment, 'id' | 'bookingRef' | 'status' | 'createdAt'>
+    data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>
   ): Promise<string> {
     const bookingRef = this.generateBookingRef();
     await addDoc(collection(db, this.COLLECTION), {
       ...data,
+      clinicId: this.clinicId,
       bookingRef,
       status: 'pending',
       createdAt: serverTimestamp(),
@@ -73,10 +79,11 @@ export class AppointmentService {
     return bookingRef;
   }
 
-  /** Fetch appointment by bookingRef + phone (acts as ownership check without auth). */
+  /** Fetch appointment by bookingRef + phone — scoped to this clinic. */
   async getAppointmentByRef(bookingRef: string, phone: string): Promise<Appointment | null> {
     const q = query(
       collection(db, this.COLLECTION),
+      where('clinicId', '==', this.clinicId),
       where('bookingRef', '==', bookingRef),
       where('phone', '==', phone)
     );
@@ -94,14 +101,18 @@ export class AppointmentService {
     await updateDoc(doc(db, this.COLLECTION, id), { ...data });
   }
 
-  /** Fetch all appointments ordered by date desc (admin only). */
+  /** Fetch all appointments for this clinic, ordered by date desc (admin only). */
   async getAllAppointments(): Promise<Appointment[]> {
-    const q = query(collection(db, this.COLLECTION), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, this.COLLECTION),
+      where('clinicId', '==', this.clinicId),
+      orderBy('createdAt', 'desc')
+    );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Appointment));
   }
 
-  /** Set status directly (admin use: confirm or cancel without 24hr restriction). */
+  /** Set status directly (admin use). */
   async setStatus(id: string, status: 'confirmed' | 'cancelled'): Promise<void> {
     await updateDoc(doc(db, this.COLLECTION, id), { status });
   }
@@ -110,7 +121,7 @@ export class AppointmentService {
   async cancelAppointment(id: string, date: string): Promise<void> {
     if (!this.canCancel(date)) {
       throw new Error(
-        'Cannot cancel within 24 hours of your appointment. Please call +91 91402 10648.'
+        `Cannot cancel within 24 hours of your appointment. Please call ${this.clinic.config.phone}.`
       );
     }
     await deleteDoc(doc(db, this.COLLECTION, id));

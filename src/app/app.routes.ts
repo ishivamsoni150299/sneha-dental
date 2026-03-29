@@ -23,6 +23,11 @@ export const routes: Routes = [
       import('./features/appointment/appointment.component').then((m) => m.AppointmentComponent),
   },
   {
+    path: 'appointment/confirmed',
+    loadComponent: () =>
+      import('./features/appointment/confirmed/confirmed.component').then((m) => m.ConfirmedComponent),
+  },
+  {
     path: 'my-appointment',
     loadComponent: () =>
       import('./features/my-appointment/my-appointment.component').then((m) => m.MyAppointmentComponent),

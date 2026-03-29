@@ -13,44 +13,7 @@
       <!-- Form (3/5) -->
       <div class="lg:col-span-3">
 
-        @if (submitted()) {
-          <!-- Success Screen -->
-          <div class="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-            <h2 class="font-display text-2xl text-gray-900 mb-2">Appointment Request Sent!</h2>
-            <p class="text-gray-500 mb-6">We will call you within 2 hours to confirm your slot.</p>
-
-            <!-- Booking Reference Box -->
-            <div class="bg-white border-2 border-blue-200 rounded-xl px-6 py-4 mb-6 inline-block mx-auto">
-              <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Your Booking Reference</p>
-              <p class="font-mono text-2xl font-bold text-blue-600 tracking-widest">{{ bookingRef() }}</p>
-              <p class="text-xs text-gray-400 mt-1">Save this — you will need it to manage your appointment</p>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-3 justify-center mt-2">
-              <a [href]="confirmationWhatsappUrl" target="_blank" rel="noopener noreferrer"
-                 class="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-colors">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-                </svg>
-                Confirm via WhatsApp
-              </a>
-              <a routerLink="/my-appointment"
-                 class="inline-flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-5 py-3 rounded-xl font-semibold text-sm transition-colors">
-                Manage My Booking
-              </a>
-            </div>
-
-            <button (click)="resetForm()" class="mt-5 text-sm text-gray-400 hover:text-gray-600 underline transition-colors">
-              Book another appointment
-            </button>
-          </div>
-        } @else {
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
 
             <!-- Name + Phone -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -166,7 +129,6 @@
               — we reply during clinic hours.
             </p>
           </form>
-        }
       </div>
 
       <!-- Sidebar (2/5) -->
