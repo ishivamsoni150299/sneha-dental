@@ -1,25 +1,23 @@
-<div class="min-h-screen bg-white">
+<div class="min-h-screen bg-white" style="scroll-behavior: smooth;">
 
   <!-- ── Top Nav ──────────────────────────────────────────────────────────── -->
   <header class="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
-          <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-sm">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
           </svg>
         </div>
-        <span class="font-bold text-gray-900 text-sm">DentalSite</span>
+        <span class="font-bold text-gray-900">DentalSite</span>
         <span class="hidden sm:inline text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">for clinics</span>
       </div>
       <nav class="flex items-center gap-4">
+        <a href="#problem"  class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors">Why now?</a>
         <a href="#features" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors">Features</a>
+        <a href="#portfolio" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors">Demo</a>
         <a href="#pricing"  class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors">Pricing</a>
         <a href="#faq"      class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors">FAQ</a>
-        <a [href]="demoUrl" target="_blank"
-           class="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors">
-          Live demo ↗
-        </a>
         <a routerLink="/business/login"
            class="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200
                   hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
@@ -30,104 +28,121 @@
   </header>
 
   <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+  <section class="relative overflow-hidden">
+    <!-- gradient mesh background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100 rounded-full opacity-40 blur-3xl pointer-events-none"></div>
 
-      <!-- Left: copy -->
-      <div>
-        <span class="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-5 uppercase tracking-wide">
-          Dental clinic websites · Made in India
-        </span>
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
-          Your dental clinic deserves a
-          <span class="text-blue-600"> professional website</span>
-        </h1>
-        <p class="mt-5 text-lg text-gray-500 leading-relaxed">
-          Ready-to-launch, mobile-first websites with online booking, WhatsApp integration
-          and a booking dashboard — live in 24 hours.
-        </p>
+    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-        <div class="mt-8 flex flex-col sm:flex-row gap-3">
-          <button (click)="whatsappEnquiry('Professional')"
-                  class="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800
-                         text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm">
-            <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Get started on WhatsApp
-          </button>
-          <a [href]="demoUrl" target="_blank"
-             class="inline-flex items-center justify-center gap-1.5 border border-gray-200
-                    hover:border-gray-300 text-gray-700 hover:text-gray-900 font-medium
-                    px-6 py-3 rounded-xl transition-colors text-sm">
-            See live demo ↗
-          </a>
+        <!-- Left: copy -->
+        <div>
+          <!-- urgency badge -->
+          <div class="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            Accepting new clinics · Hyderabad & nearby
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
+            Your dental clinic deserves a
+            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              professional website
+            </span>
+          </h1>
+          <p class="mt-5 text-lg text-gray-500 leading-relaxed">
+            Ready-to-launch, mobile-first websites with online booking, WhatsApp integration
+            and a booking dashboard — live in <strong class="text-gray-700">24 hours</strong>.
+          </p>
+
+          <div class="mt-8 flex flex-col sm:flex-row gap-3">
+            <button (click)="whatsappEnquiry('Professional')"
+                    class="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800
+                           text-white font-semibold px-6 py-3.5 rounded-xl transition-all
+                           hover:shadow-lg hover:-translate-y-0.5 text-sm">
+              <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Get started on WhatsApp
+            </button>
+            <a [href]="demoUrl" target="_blank"
+               class="inline-flex items-center justify-center gap-1.5 border border-gray-200
+                      hover:border-gray-300 bg-white text-gray-700 hover:text-gray-900 font-medium
+                      px-6 py-3.5 rounded-xl transition-all hover:shadow-md text-sm">
+              See live demo ↗
+            </a>
+          </div>
+
+          <!-- Trust strip -->
+          <div class="mt-8 flex flex-wrap gap-5 text-xs text-gray-400">
+            @for (t of ['Live in 24 hours', 'No tech knowledge needed', 'Cancel anytime', '₹999/month']; track t) {
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>{{ t }}
+              </span>
+            }
+          </div>
         </div>
 
-        <!-- Trust strip -->
-        <div class="mt-8 flex flex-wrap gap-4 text-xs text-gray-400">
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>Live in 24 hours
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>No tech knowledge needed
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>Cancel anytime
-          </span>
+        <!-- Right: browser mockup -->
+        <div class="hidden lg:block">
+          <div class="rounded-2xl border border-gray-200 shadow-2xl overflow-hidden ring-1 ring-gray-900/5">
+            <!-- Browser chrome -->
+            <div class="bg-gray-100 border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+              <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+              </div>
+              <div class="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 border border-gray-200 flex items-center gap-1.5">
+                <svg class="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                snehadental.com
+              </div>
+            </div>
+            <!-- Clinic website preview -->
+            <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-7 text-white">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center text-xs font-bold">S</div>
+                <span class="text-sm font-semibold">Sneha Dental Clinic</span>
+              </div>
+              <div class="text-2xl font-extrabold leading-snug mb-2">Pain-Free Dental<br>Care You Can Trust</div>
+              <p class="text-blue-200 text-xs mb-5">Modern equipment · Sterilized tools · Transparent pricing</p>
+              <div class="flex gap-2 mb-6">
+                <div class="bg-white text-blue-700 text-xs font-bold px-4 py-2 rounded-xl shadow">Book Appointment</div>
+                <div class="border border-white/30 text-white text-xs px-4 py-2 rounded-xl">Call Now</div>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                @for (s of ['1000+\nPatients', 'Modern\nEquipment', 'Sterilized\nTools']; track s) {
+                  <div class="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] font-semibold leading-tight whitespace-pre-line">{{ s }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="bg-white px-5 py-4">
+              <div class="text-xs font-bold text-gray-900 mb-3">Our Services</div>
+              <div class="grid grid-cols-2 gap-2">
+                @for (s of ['Root Canal', 'Teeth Whitening', 'Dental Implants', 'Orthodontics']; track s) {
+                  <div class="bg-blue-50 text-blue-700 rounded-lg px-3 py-2 text-[11px] font-semibold">{{ s }}</div>
+                }
+              </div>
+              <div class="mt-3 flex items-center gap-1.5 text-[10px] text-green-600 font-medium">
+                <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                Live now · accepting bookings
+              </div>
+            </div>
+          </div>
+          <p class="text-center text-xs text-gray-400 mt-3">
+            Live example →
+            <a [href]="demoUrl" target="_blank" class="text-blue-500 hover:underline">sneha-dental.vercel.app</a>
+          </p>
         </div>
+
       </div>
-
-      <!-- Right: browser mockup -->
-      <div class="hidden lg:block">
-        <div class="rounded-2xl border border-gray-200 shadow-2xl overflow-hidden">
-          <!-- Browser chrome -->
-          <div class="bg-gray-100 border-b border-gray-200 px-4 py-3 flex items-center gap-2">
-            <div class="flex gap-1.5">
-              <div class="w-3 h-3 rounded-full bg-red-400"></div>
-              <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-              <div class="w-3 h-3 rounded-full bg-green-400"></div>
-            </div>
-            <div class="flex-1 mx-3 bg-white rounded-md px-3 py-1 text-xs text-gray-400 border border-gray-200">
-              snehadental.com
-            </div>
-          </div>
-          <!-- Preview content -->
-          <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white">
-            <div class="text-xs font-semibold opacity-70 mb-2">SNEHA DENTAL CLINIC</div>
-            <div class="text-xl font-bold leading-snug mb-3">Pain-Free Dental Care<br>You Can Trust</div>
-            <div class="flex gap-2 mb-4">
-              <div class="bg-white text-blue-600 text-xs font-bold px-3 py-1.5 rounded-lg">Book Appointment</div>
-              <div class="border border-white/40 text-white text-xs px-3 py-1.5 rounded-lg">Call Now</div>
-            </div>
-            <div class="grid grid-cols-3 gap-2 mt-4">
-              @for (s of ['1000+ Patients', 'Modern Equipment', 'Sterilized Tools']; track s) {
-                <div class="bg-white/10 rounded-lg p-2 text-center">
-                  <div class="text-[10px] font-semibold">{{ s }}</div>
-                </div>
-              }
-            </div>
-          </div>
-          <div class="bg-white p-4">
-            <div class="text-xs font-semibold text-gray-900 mb-2">Our Services</div>
-            <div class="grid grid-cols-2 gap-2">
-              @for (s of ['Root Canal', 'Teeth Whitening', 'Dental Implants', 'Orthodontics']; track s) {
-                <div class="bg-gray-50 rounded-lg p-2 text-[10px] text-gray-600 font-medium">{{ s }}</div>
-              }
-            </div>
-          </div>
-        </div>
-        <p class="text-center text-xs text-gray-400 mt-3">
-          Live example → <a [href]="demoUrl" target="_blank" class="text-blue-500 hover:underline">sneha-dental.vercel.app</a>
-        </p>
-      </div>
-
     </div>
   </section>
 
@@ -136,10 +151,10 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
         @for (stat of [
-          {value: '24 hrs', label: 'Average go-live time'},
-          {value: '₹999/mo', label: 'Starting monthly price'},
-          {value: '100%', label: 'Mobile responsive'},
-          {value: '0', label: 'Technical skills needed'}
+          {value: '24 hrs',   label: 'Average go-live time'},
+          {value: '₹999/mo',  label: 'Starting monthly price'},
+          {value: '100%',     label: 'Mobile responsive'},
+          {value: '0',        label: 'Technical skills needed'}
         ]; track stat.label) {
           <div>
             <div class="text-2xl font-extrabold text-gray-900">{{ stat.value }}</div>
@@ -150,8 +165,43 @@
     </div>
   </div>
 
+  <!-- ── Problem section ───────────────────────────────────────────────────── -->
+  <section id="problem" class="py-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="inline-block text-xs font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+          The real cost of no website
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">
+          Without a website, your clinic<br class="hidden sm:block"> is losing patients every day
+        </h2>
+        <p class="text-gray-500 text-sm mt-3 max-w-xl mx-auto">
+          Most dental clinics in India still rely on word of mouth. That's exactly why you should move first.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @for (p of painPoints; track p.title) {
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-6">
+            <div class="text-3xl mb-3">{{ p.emoji }}</div>
+            <h3 class="font-bold text-gray-900 mb-2 text-sm">{{ p.title }}</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">{{ p.desc }}</p>
+          </div>
+        }
+      </div>
+      <!-- solution bridge -->
+      <div class="mt-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white text-center">
+        <p class="font-bold text-lg">DentalSite solves all three — for less than ₹1,000 a month.</p>
+        <button (click)="whatsappEnquiry('General')"
+                class="mt-4 inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50
+                       font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm">
+          Fix this today →
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- ── Features ─────────────────────────────────────────────────────────── -->
-  <section id="features" class="py-20">
+  <section id="features" class="bg-gray-50 py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h2 class="text-2xl font-bold text-gray-900">Everything your clinic needs online</h2>
@@ -159,13 +209,13 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         @for (f of features; track f.title) {
-          <div class="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-md p-5 flex gap-4 transition-all">
-            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+          <div class="bg-white rounded-2xl border border-gray-200 hover:border-blue-200 hover:shadow-lg p-5 flex gap-4 transition-all group">
+            <div class="w-11 h-11 bg-blue-50 group-hover:bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl transition-colors">
               {{ f.emoji }}
             </div>
             <div>
               <p class="font-semibold text-gray-900 text-sm">{{ f.title }}</p>
-              <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ f.desc }}</p>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ f.desc }}</p>
             </div>
           </div>
         }
@@ -173,20 +223,97 @@
     </div>
   </section>
 
-  <!-- ── Comparison ───────────────────────────────────────────────────────── -->
+  <!-- ── Portfolio / Live demo ─────────────────────────────────────────────── -->
+  <section id="portfolio" class="py-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+          Live client websites
+        </span>
+        <h2 class="text-2xl font-bold text-gray-900">See exactly what your clinic will look like</h2>
+        <p class="text-gray-500 text-sm mt-2">Not mockups. Real websites. Live on the internet right now.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <!-- Client card -->
+        <div class="rounded-2xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+          <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white flex items-center justify-between">
+            <div>
+              <div class="font-bold text-lg">Sneha Dental Clinic</div>
+              <div class="text-blue-200 text-xs mt-1">Hyderabad · Professional plan</div>
+            </div>
+            <span class="bg-green-400 text-green-900 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
+              Live ✓
+            </span>
+          </div>
+          <div class="bg-white p-6">
+            <div class="grid grid-cols-2 gap-3 mb-4 text-xs">
+              @for (feat of ['Online booking', 'WhatsApp integration', 'Custom domain', 'Admin dashboard', 'Services page', 'Patient reviews']; track feat) {
+                <div class="flex items-center gap-2 text-gray-600">
+                  <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  {{ feat }}
+                </div>
+              }
+            </div>
+            <a [href]="demoUrl" target="_blank"
+               class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white
+                      font-semibold py-2.5 rounded-xl text-sm transition-colors">
+              View live website ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- "Your clinic here" card -->
+        <div class="rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center flex flex-col items-center justify-center bg-gray-50 min-h-[260px]">
+          <div class="w-14 h-14 bg-gray-200 rounded-2xl flex items-center justify-center text-2xl mb-4">🏥</div>
+          <p class="font-bold text-gray-700 text-lg">Your clinic here</p>
+          <p class="text-gray-400 text-sm mt-2 max-w-xs">
+            Your name, your brand, your domain. Live in 24 hours.
+          </p>
+          <button (click)="whatsappEnquiry('Professional')"
+                  class="mt-6 inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800
+                         text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm">
+            Get started →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Included in every plan ────────────────────────────────────────────── -->
   <section class="bg-gray-50 py-16">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold text-gray-900">Included in every plan</h2>
+        <p class="text-gray-500 text-sm mt-2">No matter which plan you choose, you always get:</p>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        @for (g of guarantees; track g.text) {
+          <div class="bg-white rounded-2xl border border-gray-200 p-4 text-center">
+            <div class="text-2xl mb-2">{{ g.emoji }}</div>
+            <p class="text-xs text-gray-700 font-medium leading-snug">{{ g.text }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Comparison ───────────────────────────────────────────────────────── -->
+  <section class="py-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
         <h2 class="text-2xl font-bold text-gray-900">Why not just use a generic website builder?</h2>
         <p class="text-gray-500 text-sm mt-2">We built this specifically for dental clinics. Here's the difference.</p>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-100">
+            <tr class="border-b border-gray-100 bg-gray-50">
               <th class="text-left p-4 text-gray-500 font-medium text-xs">Feature</th>
               <th class="p-4 text-center">
-                <span class="bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full">DentalSite</span>
+                <span class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">DentalSite</span>
               </th>
               <th class="p-4 text-center text-xs text-gray-400 font-medium">Wix / Squarespace</th>
               <th class="p-4 text-center text-xs text-gray-400 font-medium">DIY / Developer</th>
@@ -203,41 +330,21 @@
               ['WhatsApp support included',   true,  false, false],
               ['Built for Indian clinics',    true,  false, false]
             ]; track row[0]) {
-              <tr class="border-b border-gray-50 last:border-0">
-                <td class="p-4 text-gray-700 text-xs">{{ row[0] }}</td>
-                <td class="p-4 text-center">
-                  @if (row[1]) {
-                    <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  } @else {
-                    <svg class="w-4 h-4 text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  }
-                </td>
-                <td class="p-4 text-center">
-                  @if (row[2]) {
-                    <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  } @else {
-                    <svg class="w-4 h-4 text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  }
-                </td>
-                <td class="p-4 text-center">
-                  @if (row[3]) {
-                    <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  } @else {
-                    <svg class="w-4 h-4 text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  }
-                </td>
+              <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                <td class="p-4 text-gray-700 text-xs font-medium">{{ row[0] }}</td>
+                @for (val of [row[1], row[2], row[3]]; track $index) {
+                  <td class="p-4 text-center">
+                    @if (val) {
+                      <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    } @else {
+                      <svg class="w-4 h-4 text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    }
+                  </td>
+                }
               </tr>
             }
           </tbody>
@@ -247,7 +354,7 @@
   </section>
 
   <!-- ── Pricing ───────────────────────────────────────────────────────────── -->
-  <section id="pricing" class="py-20">
+  <section id="pricing" class="bg-gray-50 py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h2 class="text-2xl font-bold text-gray-900">Simple, transparent pricing</h2>
@@ -256,14 +363,14 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         @for (plan of plans; track plan.name) {
-          <div class="rounded-2xl border p-6 flex flex-col gap-5 relative"
+          <div class="rounded-2xl border p-6 flex flex-col gap-5 relative transition-all"
                [class]="plan.highlighted
-                 ? 'border-gray-900 bg-gray-900 text-white shadow-2xl md:scale-[1.03]'
-                 : 'border-gray-200 bg-white'">
+                 ? 'border-blue-600 bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-2xl md:scale-[1.04]'
+                 : 'border-gray-200 bg-white hover:shadow-lg'">
 
             @if (plan.highlighted) {
               <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                <span class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide shadow-sm">
                   Most Popular
                 </span>
               </div>
@@ -310,12 +417,11 @@
             </ul>
 
             <button (click)="whatsappEnquiry(plan.name)"
-                    class="w-full font-semibold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                    class="w-full font-semibold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                     [class]="plan.highlighted
-                      ? 'bg-white text-gray-900 hover:bg-gray-100'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'">
-              <svg class="w-4 h-4" [class]="plan.highlighted ? 'text-green-600' : 'text-green-400'"
-                   fill="currentColor" viewBox="0 0 24 24">
+                      ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-md'
+                      : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md'">
+              <svg class="w-4 h-4" [class]="plan.highlighted ? 'text-green-600' : 'text-green-400'" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
               Enquire on WhatsApp
@@ -329,51 +435,52 @@
   </section>
 
   <!-- ── How it works ──────────────────────────────────────────────────────── -->
-  <section class="bg-gray-50 py-16">
+  <section class="py-16">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-10">How it works</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-12">From WhatsApp message to live website in 3 steps</h2>
+      <div class="relative grid grid-cols-1 sm:grid-cols-3 gap-8">
         @for (step of [
-          {n:'1', emoji:'💬', title:'Share your details', desc:'Send us your clinic name, phone, address, doctor info and services. WhatsApp is fine.'},
-          {n:'2', emoji:'⚙️', title:'We build & configure', desc:'We set up your website, link your domain and configure booking — in under 24 hours.'},
-          {n:'3', emoji:'🚀', title:'Go live', desc:'Your website is live. Patients can find you on Google and book appointments instantly.'}
+          {n:'1', emoji:'💬', title:'Share your details',    desc:'Send clinic name, phone, address, doctor info and services. A WhatsApp message is enough.'},
+          {n:'2', emoji:'⚙️', title:'We build & configure', desc:'We set up your website, connect your domain and configure booking — in under 24 hours.'},
+          {n:'3', emoji:'🚀', title:'Go live',              desc:'Your website is live. Patients find you on Google and book appointments instantly.'}
         ]; track step.n) {
-          <div class="flex flex-col items-center">
-            <div class="w-12 h-12 rounded-2xl bg-gray-900 text-white text-xl
-                        flex items-center justify-center mb-4 shadow-lg">
+          <div class="flex flex-col items-center relative">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-2xl
+                        flex items-center justify-center mb-4 shadow-lg shadow-blue-200">
               {{ step.emoji }}
             </div>
-            <p class="font-bold text-gray-900 text-sm">{{ step.title }}</p>
+            <div class="absolute -top-2 -right-2 sm:block hidden w-5 h-5 bg-blue-100 rounded-full text-blue-600 text-[10px] font-bold flex items-center justify-center">
+              {{ step.n }}
+            </div>
+            <p class="font-bold text-gray-900">{{ step.title }}</p>
             <p class="text-xs text-gray-500 mt-2 leading-relaxed">{{ step.desc }}</p>
           </div>
         }
       </div>
-
-      <!-- connector lines (desktop) -->
     </div>
   </section>
 
   <!-- ── Testimonial ───────────────────────────────────────────────────────── -->
-  <section class="py-16">
+  <section class="bg-gray-50 py-16">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-blue-50 border border-blue-100 rounded-3xl p-8 text-center">
-        <div class="flex justify-center mb-4">
+      <div class="bg-white border border-gray-200 rounded-3xl p-8 text-center shadow-sm">
+        <div class="flex justify-center gap-1 mb-5">
           @for (i of [1,2,3,4,5]; track i) {
             <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
           }
         </div>
-        <blockquote class="text-gray-700 text-base leading-relaxed font-medium italic mb-5">
-          "We were getting patients calling to ask if we were open. Now they check our website and
-          book directly. The WhatsApp notifications are instant. Best ₹999 we spend every month."
+        <blockquote class="text-gray-700 text-lg leading-relaxed font-medium italic mb-6">
+          "We were getting patients calling just to ask if we were open. Now they check our website
+          and book directly. The WhatsApp notifications are instant. Best ₹999 we spend every month."
         </blockquote>
         <div class="flex items-center justify-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center font-bold text-blue-700 text-sm">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center font-bold text-white">
             SD
           </div>
           <div class="text-left">
-            <p class="font-semibold text-gray-900 text-sm">Dr. Sneha Patel</p>
+            <p class="font-bold text-gray-900">Dr. Sneha Patel</p>
             <p class="text-xs text-gray-500">Sneha Dental Clinic, Hyderabad</p>
           </div>
         </div>
@@ -382,10 +489,11 @@
   </section>
 
   <!-- ── FAQ ───────────────────────────────────────────────────────────────── -->
-  <section id="faq" class="bg-gray-50 py-16">
+  <section id="faq" class="py-16">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
         <h2 class="text-2xl font-bold text-gray-900">Frequently asked questions</h2>
+        <p class="text-gray-500 text-sm mt-2">Can't find your answer? WhatsApp us directly.</p>
       </div>
       <div class="space-y-3">
         @for (faq of faqs; track faq.q; let i = $index) {
@@ -410,26 +518,31 @@
     </div>
   </section>
 
-  <!-- ── CTA Banner ────────────────────────────────────────────────────────── -->
-  <section class="py-16">
+  <!-- ── Final CTA ─────────────────────────────────────────────────────────── -->
+  <section class="py-16 bg-gray-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-gray-900 rounded-3xl px-8 py-14 text-center relative overflow-hidden">
-        <!-- subtle background pattern -->
+      <div class="bg-gradient-to-br from-gray-900 via-gray-900 to-blue-950 rounded-3xl px-8 py-16 text-center relative overflow-hidden">
         <div class="absolute inset-0 opacity-5"
              style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 24px 24px;"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full opacity-10 blur-3xl"></div>
         <div class="relative">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white">Ready to grow your clinic?</h2>
-          <p class="text-gray-400 text-sm mt-2 mb-8">
-            Message us today and your website could be live by tomorrow.
+          <div class="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            Available now · Limited slots this month
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Ready to grow your clinic?</h2>
+          <p class="text-gray-400 text-base mt-3 mb-8 max-w-lg mx-auto">
+            Message us today and your website could be live by tomorrow morning.
           </p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button (click)="whatsappEnquiry('General')"
                     class="inline-flex items-center gap-2 bg-white text-gray-900
-                           hover:bg-gray-100 font-semibold px-7 py-3.5 rounded-xl transition-colors text-sm">
-              <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                           hover:bg-gray-100 font-bold px-8 py-4 rounded-xl transition-all
+                           hover:shadow-xl hover:-translate-y-0.5 text-sm">
+              <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
-              Chat on WhatsApp
+              Chat on WhatsApp — it's free
             </button>
             <a [href]="'mailto:' + devEmail"
                class="text-sm text-gray-400 hover:text-white transition-colors">
@@ -442,21 +555,30 @@
   </section>
 
   <!-- ── Footer ────────────────────────────────────────────────────────────── -->
-  <footer class="border-t border-gray-100 py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <div class="w-5 h-5 bg-gray-900 rounded flex items-center justify-center">
-          <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-          </svg>
+  <footer class="border-t border-gray-100 py-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-6 h-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
+              </svg>
+            </div>
+            <span class="font-bold text-gray-900 text-sm">DentalSite</span>
+          </div>
+          <p class="text-xs text-gray-400">Professional websites for dental clinics · India</p>
         </div>
-        <span class="text-xs text-gray-400">DentalSite · Dental clinic websites · India</span>
+        <div class="flex items-center gap-6 text-xs text-gray-400">
+          <a [href]="demoUrl" target="_blank" class="hover:text-gray-700 transition-colors">Live demo</a>
+          <a href="#pricing"  class="hover:text-gray-700 transition-colors">Pricing</a>
+          <a href="#faq"      class="hover:text-gray-700 transition-colors">FAQ</a>
+          <a routerLink="/business/login" class="hover:text-gray-700 transition-colors">Client login</a>
+          <a [href]="'mailto:' + devEmail" class="hover:text-gray-700 transition-colors">Contact</a>
+        </div>
       </div>
-      <div class="flex items-center gap-4 text-xs text-gray-400">
-        <a [href]="demoUrl" target="_blank" class="hover:text-gray-700 transition-colors">Live demo</a>
-        <a href="#pricing" class="hover:text-gray-700 transition-colors">Pricing</a>
-        <a routerLink="/business/login" class="hover:text-gray-700 transition-colors">Client login</a>
-        <a [href]="'mailto:' + devEmail" class="hover:text-gray-700 transition-colors">Contact</a>
+      <div class="mt-6 pt-6 border-t border-gray-100 text-center text-[11px] text-gray-300">
+        Built with Angular · Hosted on Vercel · Data on Firebase · Made in India 🇮🇳
       </div>
     </div>
   </footer>
@@ -466,7 +588,7 @@
        style="padding-bottom: env(safe-area-inset-bottom, 12px)">
     <button (click)="whatsappEnquiry('Professional')"
             class="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800
-                   text-white font-bold py-3 rounded-xl text-sm transition-colors">
+                   text-white font-bold py-3.5 rounded-xl text-sm transition-colors">
       <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
       </svg>
