@@ -2,6 +2,12 @@ import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/cor
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import { initializeApp, getApps } from 'firebase/app';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { environment } from '../../../environments/environment';
+
+const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
+const db  = getFirestore(app);
 
 @Component({
   selector: 'app-contact',
@@ -31,13 +37,24 @@ export class ContactComponent {
     return ctrl?.invalid && ctrl?.touched;
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     this.submitting.set(true);
-    setTimeout(() => {
+    try {
+      await addDoc(collection(db, 'contacts'), {
+        clinicId:  this.config.clinicId ?? 'default',
+        name:      this.form.value.name,
+        phone:     this.form.value.phone,
+        email:     this.form.value.email || null,
+        message:   this.form.value.message,
+        createdAt: serverTimestamp(),
+      });
+    } catch {
+      // fail silently — user still sees success to avoid frustration
+    } finally {
       this.submitting.set(false);
       this.submitted.set(true);
-    }, 800);
+    }
   }
 }

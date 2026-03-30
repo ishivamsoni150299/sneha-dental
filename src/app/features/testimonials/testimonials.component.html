@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">Patient Reviews</span>
     <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">What Our <span class="text-blue-600">Patients Say</span></h1>
-    <p class="text-gray-500 text-lg max-w-xl mx-auto">Real experiences from 1000+ patients who trusted us with their dental health.</p>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto">Real experiences from {{ config.patientCount }} patients who trusted us with their dental health.</p>
 
     <!-- Rating summary -->
     <div class="flex items-center justify-center gap-2 mt-6">
@@ -14,7 +14,7 @@
         }
       </div>
       <span class="text-2xl font-bold text-gray-900">4.9</span>
-      <span class="text-gray-500 text-sm">from 1000+ patients</span>
+      <span class="text-gray-500 text-sm">from {{ config.patientCount }} patients</span>
     </div>
   </div>
 </section>
@@ -37,7 +37,7 @@
 <section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
   <div class="max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl text-white mb-4">Join Our Happy Patients</h2>
-    <p class="text-blue-100 mb-7">Experience the same gentle, honest care that 1000+ patients have trusted us with.</p>
+    <p class="text-blue-100 mb-7">Experience the same gentle, honest care that {{ config.patientCount }} patients have trusted us with.</p>
     <a routerLink="/appointment" class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow inline-block transition-all">
       Book Your Appointment
     </a>

@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-gallery',
@@ -9,6 +10,7 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GalleryComponent {
+  readonly config = inject(ClinicConfigService).config;
   clinicImages = [
     { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Reception+Area',     alt: 'Clinic reception area' },
     { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Treatment+Room+1',   alt: 'Treatment room' },
