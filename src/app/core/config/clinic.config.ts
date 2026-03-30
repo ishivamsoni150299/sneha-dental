@@ -33,6 +33,7 @@ export interface ClinicConfig {
   domain?: string;                 // custom domain  e.g. "snehadental.com"
   vercelDomain?: string;           // vercel preview  e.g. "sneha-dental.vercel.app"
   active?: boolean;                // false = paused deployment
+  googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
 
   // ── Brand ─────────────────────────────────────────────────────────────────
   theme: 'blue' | 'teal' | 'caramel'; // default color theme for this deployment

@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  googleMapsApiKey: '', // Set your Google Maps API key here before deploying
   firebase: {
     apiKey: 'AIzaSyA_efkmE9dWE6jjyDwgE6qGMLrx_BMJEmQ',
     authDomain: 'sneha-dental-6373b.firebaseapp.com',
