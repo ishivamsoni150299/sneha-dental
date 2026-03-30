@@ -113,23 +113,20 @@
             <input formControlName="city" type="text" placeholder="Noida" class="form-input"
                    [class.input-error]="form.controls.city.invalid && form.controls.city.touched">
           </div>
-          <!-- Google Place ID — drives all map + reviews automation -->
+          <!-- Google Place ID — drives map + reviews automation (buttons enabled once API key is set) -->
           <div class="sm:col-span-2">
-            <label class="form-label">Google Place ID</label>
-            <div class="flex gap-2">
-              <input formControlName="googlePlaceId" type="text"
-                     placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4"
-                     class="form-input flex-1">
-              <button type="button" (click)="autoFillMapUrls()"
-                      class="shrink-0 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors whitespace-nowrap">
-                Auto-fill Maps ↓
-              </button>
-            </div>
+            <label class="form-label">Google Place ID <span class="text-gray-400 font-normal">(optional — for future automation)</span></label>
+            <input formControlName="googlePlaceId" type="text"
+                   placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4"
+                   class="form-input">
+            <!-- TODO: Uncomment Auto-fill button when googleMapsApiKey is set in environment.ts
+            <button type="button" (click)="autoFillMapUrls()"
+                    class="shrink-0 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors whitespace-nowrap">
+              Auto-fill Maps ↓
+            </button>
+            -->
             <p class="text-xs text-gray-400 mt-1">
-              Find your Place ID at
-              <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder"
-                 target="_blank" rel="noopener" class="underline text-blue-500">Place ID Finder</a>.
-              Paste it above and click <strong>Auto-fill Maps ↓</strong> to generate both map URLs automatically.
+              Save this now — auto-fill map URLs and Google Reviews sync will work once API key is configured.
             </p>
           </div>
 
@@ -368,6 +365,7 @@
         <div class="flex items-center justify-between gap-3 flex-wrap">
           <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Testimonials</h2>
           <div class="flex items-center gap-3">
+            <!-- TODO: Uncomment Sync from Google button when googleMapsApiKey is set in environment.ts
             <button type="button" (click)="syncGoogleReviews()" [disabled]="syncing()"
                     class="flex items-center gap-1.5 text-xs bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
               <svg class="w-3.5 h-3.5" [class.animate-spin]="syncing()" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -375,16 +373,19 @@
               </svg>
               {{ syncing() ? 'Syncing…' : 'Sync from Google' }}
             </button>
+            -->
             <button type="button" (click)="addTestimonial()"
-                    class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add manually</button>
+                    class="text-xs text-gray-600 hover:text-gray-900 font-medium underline">+ Add testimonial</button>
           </div>
         </div>
 
+        <!-- TODO: Uncomment syncError display when Google Maps API is enabled
         @if (syncError()) {
           <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">
             {{ syncError() }}
           </div>
         }
+        -->
 
         <div formArrayName="testimonials" class="space-y-4">
           @for (tGroup of testimonialsArr.controls; track $index) {
