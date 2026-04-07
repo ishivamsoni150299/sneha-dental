@@ -16,9 +16,19 @@
         <p class="text-sm leading-relaxed text-gray-500 mb-6">
           Gentle, pain-free dental care for the whole family. Modern equipment, transparent pricing, and 1000+ happy smiles.
         </p>
+        <div class="flex flex-wrap gap-3 mb-6">
+          <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+            Book on WhatsApp
+          </a>
+          <a [href]="'tel:+' + config.phoneE164"
+             class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-blue-200 border border-blue-500/40 hover:border-blue-400 hover:text-white rounded-lg transition-colors">
+            Call Now
+          </a>
+        </div>
         <div class="flex gap-2.5">
           @if (config.social.facebook) {
-          <a [href]="config.social.facebook" aria-label="Facebook"
+          <a [href]="config.social.facebook" target="_blank" rel="noopener noreferrer" aria-label="Facebook"
              class="w-9 h-9 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
@@ -26,7 +36,7 @@
           </a>
           }
           @if (config.social.instagram) {
-          <a [href]="config.social.instagram" aria-label="Instagram"
+          <a [href]="config.social.instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
              class="w-9 h-9 bg-gray-800 hover:bg-pink-600 rounded-lg flex items-center justify-center transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
@@ -43,7 +53,7 @@
             </svg>
           </a>
           }
-          <a [href]="clinic.bookingWhatsappUrl" aria-label="WhatsApp"
+          <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
              class="w-9 h-9 bg-gray-800 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
@@ -91,12 +101,30 @@
             </svg>
             <a [href]="clinic.bookingWhatsappUrl" class="text-gray-500 hover:text-white transition-colors">WhatsApp Us</a>
           </div>
-          <div class="flex items-center gap-3 text-gray-500">
+          <div class="flex items-start gap-3 text-gray-500">
             <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span>{{ config.hours[0].days }}: {{ config.hours[0].time }}</span>
+            @if (config.hours.length > 0) {
+              <div class="space-y-1">
+                @for (slot of config.hours; track slot.days) {
+                  <span class="block">{{ slot.days }}: {{ slot.time }}</span>
+                }
+              </div>
+            } @else {
+              <span>Hours available on request</span>
+            }
           </div>
+          @if (config.mapDirectionsUrl) {
+            <a [href]="config.mapDirectionsUrl" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-2 text-blue-400 hover:text-white transition-colors">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="text-sm">Get Directions</span>
+            </a>
+          }
         </div>
       </div>
 

@@ -11,7 +11,16 @@
       "Bash(npx claude-code-templates@latest --skill creative-design/frontend-design)",
       "Bash(npm run:*)",
       "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data[0][''''text'''']\\)\")",
-      "Bash(node -e \"const fs=require\\(''''fs''''\\); const data=JSON.parse\\(fs.readFileSync\\(''''C:/Users/nkhg5710/.claude/projects/c--dentalprojectnew/9ae10940-b348-499d-9ef8-73982533d1a9/tool-results/toolu_01QSFRzkyJi73w9RFbxx9LVq.json''''\\)\\); console.log\\(data[0].text\\);\")"
+      "Bash(node -e \"const fs=require\\(''''fs''''\\); const data=JSON.parse\\(fs.readFileSync\\(''''C:/Users/nkhg5710/.claude/projects/c--dentalprojectnew/9ae10940-b348-499d-9ef8-73982533d1a9/tool-results/toolu_01QSFRzkyJi73w9RFbxx9LVq.json''''\\)\\); console.log\\(data[0].text\\);\")",
+      "WebFetch(domain:indramdental.in)",
+      "WebFetch(domain:www.justdial.com)",
+      "WebFetch(domain:indram-dental-implant-laser-center.business.site)",
+      "WebFetch(domain:www.facebook.com)",
+      "WebFetch(domain:jhansi.idbf.in)",
+      "WebSearch",
+      "WebFetch(domain:www.practo.com)",
+      "WebFetch(domain:ind.5bestincity.com)",
+      "WebFetch(domain:www.instagram.com)"
     ]
   }
 }
