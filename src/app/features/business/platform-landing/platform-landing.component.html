@@ -92,7 +92,7 @@
           </div>
 
           <div class="mt-8 flex flex-wrap gap-5 text-xs text-gray-400">
-            @for (t of ['Live in 24 hours', 'No tech knowledge needed', 'Cancel anytime', '₹999/month']; track t) {
+            @for (t of ['Live in 24 hours', 'No tech knowledge needed', 'Cancel anytime', 'From ₹399/month']; track t) {
               <span class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -168,7 +168,7 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
         @for (stat of [
           {value: '24 hrs',   label: 'Average go-live time'},
-          {value: '₹999/mo',  label: 'Starting monthly price'},
+          {value: '₹399/mo',  label: 'Starting monthly price'},
           {value: '100%',     label: 'Mobile responsive'},
           {value: '0',        label: 'Technical skills needed'}
         ]; track stat.label) {
@@ -205,7 +205,7 @@
         }
       </div>
       <div class="mt-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white text-center">
-        <p class="font-bold text-lg">mydentalplatform solves all three — for less than ₹1,000 a month.</p>
+        <p class="font-bold text-lg">mydentalplatform solves all three — from just ₹399/month.</p>
         <button (click)="whatsappEnquiry('General')"
                 class="mt-4 inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50
                        font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm">
@@ -368,7 +368,7 @@
               ['WhatsApp integration',        true,  false, false],
               ['Patient admin dashboard',     true,  false, false],
               ['No technical knowledge',      true,  true,  false],
-              ['₹999/month total cost',       true,  false, false],
+              ['₹399/month total cost',       true,  false, false],
               ['WhatsApp support included',   true,  false, false],
               ['Built for Indian clinics',    true,  false, false]
             ]; track row[0]) {
@@ -400,7 +400,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h2 class="text-2xl font-bold text-gray-900">Simple, transparent pricing</h2>
-        <p class="text-gray-500 text-sm mt-2">One-time setup fee + monthly hosting & support. No hidden charges.</p>
+        <p class="text-gray-500 text-sm mt-2">Start free for 30 days — no credit card needed. Upgrade anytime.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
@@ -419,23 +419,25 @@
             }
 
             <div>
-              <p class="text-xs font-medium uppercase tracking-wide text-gray-400">{{ plan.tag }}</p>
+              <p class="text-xs font-medium uppercase tracking-wide" [class]="plan.highlighted ? 'text-blue-400' : 'text-gray-400'">{{ plan.tag }}</p>
               <p class="text-xl font-bold mt-1" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">{{ plan.name }}</p>
             </div>
 
             <div class="border-t border-b py-4 space-y-1" [class]="plan.highlighted ? 'border-gray-700' : 'border-gray-100'">
-              <div class="flex items-baseline gap-1">
-                <span class="text-2xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">{{ plan.setupFee }}</span>
-                @if (plan.setupFee !== 'Custom') {
-                  <span class="text-xs text-gray-400"> one-time setup</span>
-                }
-              </div>
-              <div class="flex items-baseline gap-1">
-                <span class="text-sm font-semibold" [class]="plan.highlighted ? 'text-gray-300' : 'text-gray-600'">{{ plan.monthly }}</span>
-                @if (plan.monthly !== 'Custom') {
-                  <span class="text-xs text-gray-400">/month</span>
-                }
-              </div>
+              @if (plan.monthly === 0) {
+                <div class="flex items-baseline gap-1">
+                  <span class="text-3xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">Free</span>
+                </div>
+                <p class="text-xs" [class]="plan.highlighted ? 'text-gray-400' : 'text-gray-400'">{{ plan.trialDays }}-day trial · no card needed</p>
+              } @else {
+                <div class="flex items-baseline gap-1">
+                  <span class="text-3xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">₹{{ plan.monthly }}</span>
+                  <span class="text-xs" [class]="plan.highlighted ? 'text-gray-400' : 'text-gray-400'">/month</span>
+                </div>
+                <p class="text-xs" [class]="plan.highlighted ? 'text-blue-400' : 'text-green-600'">
+                  ₹{{ plan.yearly }}/year — save 2 months
+                </p>
+              }
             </div>
 
             <ul class="space-y-2.5 flex-1">
@@ -457,12 +459,12 @@
               <svg class="w-4 h-4" [class]="plan.highlighted ? 'text-green-600' : 'text-green-400'" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
-              Enquire on WhatsApp
+              @if (plan.monthly === 0) { Start free trial } @else { Enquire on WhatsApp }
             </button>
           </div>
         }
       </div>
-      <p class="text-center text-xs text-gray-400 mt-8">All prices in INR · GST extra · Cancel anytime</p>
+      <p class="text-center text-xs text-gray-400 mt-8">All prices in INR · GST extra · Cancel anytime · No setup fee</p>
     </div>
   </section>
 
@@ -502,7 +504,7 @@
         </div>
         <blockquote class="text-gray-700 text-lg leading-relaxed font-medium italic mb-6">
           "We were getting patients calling just to ask if we were open. Now they check our website
-          and book directly. The WhatsApp notifications are instant. Best ₹999 we spend every month."
+          and book directly. The WhatsApp notifications are instant. Best ₹399 we spend every month."
         </blockquote>
         <div class="flex items-center justify-center gap-3">
           <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center font-bold text-white">SC</div>
