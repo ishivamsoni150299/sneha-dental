@@ -46,6 +46,11 @@ export const businessRoutes: Routes = [
           import('./revenue/revenue.component').then(m => m.RevenueComponent),
       },
       {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./analytics/analytics.component').then(m => m.AnalyticsComponent),
+      },
+      {
         path: 'leads',
         loadComponent: () =>
           import('./leads/lead-list/lead-list.component').then(m => m.LeadListComponent),

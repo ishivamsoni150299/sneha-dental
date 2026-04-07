@@ -177,6 +177,12 @@
               <span class="text-xs text-gray-400 block">{{ monthlyRate(clinic) }}</span>
             </div>
 
+            <!-- Bookings this month -->
+            <div class="text-sm min-w-24 hidden sm:block">
+              <span class="text-gray-500 text-xs block">Bookings / mo</span>
+              <span class="font-semibold text-gray-900">{{ bookingsThisMonth(clinic) }}</span>
+            </div>
+
             <!-- Renewal date -->
             <div class="text-sm min-w-32">
               <span class="text-gray-500 text-xs block">Renewal / Trial End</span>

@@ -1,7 +1,7 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
+import { ClinicFirestoreService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-firestore.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 @Component({
@@ -14,8 +14,9 @@ import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 export class RevenueComponent implements OnInit {
   private clinicStore = inject(ClinicFirestoreService);
 
-  clinics = signal<StoredClinic[]>([]);
-  loading = signal(true);
+  clinics      = signal<StoredClinic[]>([]);
+  appointments = signal<AppointmentDoc[]>([]);
+  loading      = signal(true);
 
   costs        = signal({ vercel: 0, firebase: 0, domain: 0, other: 0 });
   editingCosts = signal(false);
@@ -81,12 +82,14 @@ export class RevenueComponent implements OnInit {
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
     try {
-      const [clinics, costs] = await Promise.all([
+      const [clinics, costs, appointments] = await Promise.all([
         this.clinicStore.getAll(),
         this.clinicStore.getPlatformSettings(),
+        this.clinicStore.getAllAppointments(),
       ]);
       this.clinics.set(clinics);
       this.costs.set(costs);
+      this.appointments.set(appointments);
     } finally {
       this.loading.set(false);
     }
@@ -149,6 +152,14 @@ export class RevenueComponent implements OnInit {
       : PLATFORM_PLANS[plan].monthly;
     if (!rate) return '—';
     return `₹${rate}${cycle === 'yearly' ? '/yr' : '/mo'}`;
+  }
+
+  bookingsThisMonth(clinic: StoredClinic): number {
+    const prefix = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+    return this.appointments().filter(a =>
+      (a.clinicId === clinic.clinicId || a.clinicId === clinic.id) &&
+      (a.date ?? '').startsWith(prefix)
+    ).length;
   }
 
   whatsappReminder(clinic: StoredClinic): string {

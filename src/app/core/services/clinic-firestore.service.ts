@@ -10,6 +10,19 @@ import { environment } from '../../../environments/environment';
 const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
 const db  = getFirestore(app);
 
+export interface AppointmentDoc {
+  id:         string;
+  clinicId:   string;
+  bookingRef: string;
+  name:       string;
+  phone:      string;
+  service:    string;
+  date:       string;
+  time:       string;
+  status:     'pending' | 'confirmed' | 'cancelled';
+  createdAt?: Timestamp;
+}
+
 export interface StoredClinic extends ClinicConfig {
   id:         string;
   domain:     string;
@@ -73,6 +86,13 @@ export class ClinicFirestoreService {
 
   async remove(id: string): Promise<void> {
     await deleteDoc(doc(db, this.COL, id));
+  }
+
+  // ── Cross-clinic appointments (super admin only) ──────────────────────────
+  async getAllAppointments(): Promise<AppointmentDoc[]> {
+    const q    = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as AppointmentDoc));
   }
 
   // ── Platform settings (costs, etc.) ───────────────────────────────────────
