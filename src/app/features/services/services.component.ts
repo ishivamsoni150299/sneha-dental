@@ -11,5 +11,6 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServicesComponent {
-  readonly config = inject(ClinicConfigService).config;
+  readonly clinic = inject(ClinicConfigService);
+  readonly config = this.clinic.config;
 }

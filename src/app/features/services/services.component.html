@@ -3,11 +3,22 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">All Services & Pricing</span>
     <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-5 leading-tight">Transparent Dental Care<br><span class="text-blue-600">No Hidden Charges</span></h1>
-    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-8 leading-relaxed">Every price shown is what you actually pay. No surprise bills, no hidden fees — just honest dental care.</p>
-    <a routerLink="/appointment"
-       class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold shadow-md transition-all hover:-translate-y-px">
-      Book Free Consultation
-    </a>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-8 leading-relaxed">
+      Every price shown is what you actually pay. No surprise bills, no hidden fees - just honest dental care.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a routerLink="/appointment"
+         class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold shadow-md transition-all hover:-translate-y-px">
+        Book Free Consultation
+      </a>
+      <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
+         class="inline-block border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3.5 rounded-xl font-semibold transition-all">
+        Ask on WhatsApp
+      </a>
+    </div>
+    <p class="text-xs text-gray-400 mt-4">
+      Prefer to talk? Call <a [href]="'tel:+' + config.phoneE164" class="text-blue-600 font-semibold hover:underline">{{ config.phone }}</a>
+    </p>
   </div>
 </section>
 
@@ -16,19 +27,26 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
       <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">All Treatments & Prices</h2>
-      <p class="text-gray-500 max-w-lg mx-auto">Prices are indicative ranges. Exact cost is confirmed before treatment begins — always.</p>
+      <p class="text-gray-500 max-w-lg mx-auto">Prices are indicative ranges. Exact cost is confirmed before treatment begins - always.</p>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (service of config.services; track service.name) {
-        <app-service-card
-          [iconPath]="service.iconPath"
-          [name]="service.name"
-          [description]="service.description"
-          [benefit]="service.benefit"
-          [price]="service.price"
-        />
-      }
-    </div>
+    @if (config.services.length > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (service of config.services; track service.name) {
+          <app-service-card
+            [iconPath]="service.iconPath"
+            [name]="service.name"
+            [description]="service.description"
+            [benefit]="service.benefit"
+            [price]="service.price"
+          />
+        }
+      </div>
+    } @else {
+      <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500">
+        Services will be listed here soon. For pricing, call <span class="font-semibold text-gray-700">{{ config.phone }}</span>
+        or message us on WhatsApp.
+      </div>
+    }
     <p class="text-center text-xs text-gray-400 mt-8">* Prices include all charges. Payment via cash, UPI, or card accepted.</p>
   </div>
 </section>
@@ -123,7 +141,7 @@
 
               <!-- Bottom label -->
               <rect x="110" y="310" width="180" height="22" rx="11" fill="#1D4ED8" opacity="0.9"/>
-              <text x="200" y="326" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif" font-weight="bold">{{ config.name }} — {{ config.city }}</text>
+              <text x="200" y="326" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif" font-weight="bold">{{ config.name }} - {{ config.city }}</text>
             </svg>
           </div>
 
@@ -139,7 +157,7 @@
             </div>
           </div>
           <div class="absolute -top-4 -right-4 bg-blue-600 text-white rounded-2xl shadow-lg px-4 py-3 text-center">
-            <p class="text-2xl font-bold leading-none">4.9★</p>
+            <p class="text-2xl font-bold leading-none">4.9/5</p>
             <p class="text-xs opacity-80">Patient Rating</p>
           </div>
         </div>
@@ -197,7 +215,7 @@
 <section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
   <div class="max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl text-white mb-4">Not Sure Which Service You Need?</h2>
-    <p class="text-blue-100 mb-7">Book a free consultation and we will recommend the right treatment — honestly, with full cost transparency.</p>
+    <p class="text-blue-100 mb-7">Book a free consultation and we will recommend the right treatment - honestly, with full cost transparency.</p>
     <a routerLink="/appointment"
        class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow transition-all inline-block">
       Book Free Consultation
