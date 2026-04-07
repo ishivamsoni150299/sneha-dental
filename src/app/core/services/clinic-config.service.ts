@@ -58,9 +58,26 @@ export class ClinicConfigService {
           snap.docs[0].data() as Record<string, unknown>;
         const config = { ...(rest as unknown as ClinicConfig), clinicId: docId };
 
-        // Enforce subscription — expired clinics behave as if not loaded,
-        // so clinicRequiredGuard redirects visitors to the platform landing page.
-        if (config.subscriptionStatus === 'expired' || config.subscriptionStatus === 'cancelled') {
+        // Enforce subscription — block site if explicitly expired/cancelled,
+        // OR if dates show the trial/subscription has ended (with 3-day grace period).
+        // clinicRequiredGuard then redirects visitors to the platform landing page.
+        const GRACE_DAYS = 3;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const isExplicitlyBlocked =
+          config.subscriptionStatus === 'expired' ||
+          config.subscriptionStatus === 'cancelled';
+
+        const isTrialExpired = config.subscriptionStatus === 'trial' &&
+          !!config.trialEndDate &&
+          this.isPastWithGrace(config.trialEndDate, GRACE_DAYS);
+
+        const isSubExpired = config.subscriptionStatus === 'active' &&
+          !!config.subscriptionEndDate &&
+          this.isPastWithGrace(config.subscriptionEndDate, GRACE_DAYS);
+
+        if (isExplicitlyBlocked || isTrialExpired || isSubExpired) {
           return; // _isLoaded stays false → guard redirects to /business
         }
 
@@ -70,6 +87,14 @@ export class ClinicConfigService {
     } catch (e) {
       console.error('[ClinicConfig] Firestore load failed — using static config:', e);
     }
+  }
+
+  /** Returns true if the ISO date string is more than graceDays in the past. */
+  private isPastWithGrace(isoDate: string, graceDays: number): boolean {
+    const end = new Date(isoDate);
+    end.setDate(end.getDate() + graceDays);
+    end.setHours(23, 59, 59, 999);
+    return end < new Date();
   }
 
   /** Full single-line address derived from the two address lines. */

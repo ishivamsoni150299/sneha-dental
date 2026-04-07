@@ -35,6 +35,31 @@ export class RevenueComponent implements OnInit {
 
   arr = computed(() => this.mrr() * 12);
 
+  // Clinics expiring within 7 days (trial or active subscription)
+  expiringSoon = computed(() => {
+    const in7 = new Date();
+    in7.setDate(in7.getDate() + 7);
+    const today = new Date();
+    return this.clinics().filter(c => {
+      const status = c.subscriptionStatus ?? 'trial';
+      if (status === 'expired' || status === 'cancelled') return false;
+      const dateStr = status === 'trial' ? c.trialEndDate : c.subscriptionEndDate;
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d >= today && d <= in7;
+    });
+  });
+
+  daysUntil(isoDate: string): number {
+    return Math.ceil((new Date(isoDate).getTime() - Date.now()) / 86_400_000);
+  }
+
+  expiryDate(clinic: StoredClinic): string {
+    return clinic.subscriptionStatus === 'trial'
+      ? (clinic.trialEndDate ?? '')
+      : (clinic.subscriptionEndDate ?? '');
+  }
+
   // Clinics sorted: active first by renewal date, then trial by trial end
   sortedClinics = computed(() =>
     [...this.clinics()].sort((a, b) => {
