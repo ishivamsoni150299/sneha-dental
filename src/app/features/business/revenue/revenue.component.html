@@ -1,0 +1,121 @@
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h1 class="text-xl font-bold text-gray-900">Revenue</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Subscription overview and billing status across all clinics</p>
+  </div>
+
+  @if (loading()) {
+    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+      <p class="text-sm text-gray-400">Loading revenue data…</p>
+    </div>
+  }
+
+  @if (!loading()) {
+
+    <!-- ── Stats cards ───────────────────────────────────────────────────── -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">MRR</p>
+        <p class="text-2xl font-bold text-gray-900">₹{{ mrr() }}</p>
+        <p class="text-xs text-gray-400 mt-1">Monthly Recurring Revenue</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">ARR</p>
+        <p class="text-2xl font-bold text-gray-900">₹{{ arr() }}</p>
+        <p class="text-xs text-gray-400 mt-1">Annual Run Rate</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-green-200 bg-green-50 p-5">
+        <p class="text-xs text-green-600 uppercase tracking-wide font-semibold mb-1">Active</p>
+        <p class="text-2xl font-bold text-green-700">{{ activeClinics().length }}</p>
+        <p class="text-xs text-green-600 mt-1">Paying clients</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-yellow-200 bg-yellow-50 p-5">
+        <p class="text-xs text-yellow-600 uppercase tracking-wide font-semibold mb-1">Trial</p>
+        <p class="text-2xl font-bold text-yellow-700">{{ trialClinics().length }}</p>
+        <p class="text-xs text-yellow-600 mt-1">To convert</p>
+      </div>
+    </div>
+
+    <!-- ── Clinics table ─────────────────────────────────────────────────── -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-900">All Clinics</h2>
+        <span class="text-xs text-gray-400">Sorted by renewal date (soonest first)</span>
+      </div>
+
+      @if (sortedClinics().length === 0) {
+        <div class="p-12 text-center text-sm text-gray-400">No clinics yet.</div>
+      }
+
+      <div class="divide-y divide-gray-50">
+        @for (clinic of sortedClinics(); track clinic.id) {
+          <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-gray-50 transition-colors">
+
+            <!-- Clinic info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="font-semibold text-gray-900 text-sm">{{ clinic.name }}</p>
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClasses(clinic)">
+                  {{ statusLabel(clinic) }}
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">{{ clinic.city }} · {{ clinic.vercelDomain || clinic.domain || '—' }}</p>
+            </div>
+
+            <!-- Plan -->
+            <div class="text-sm text-gray-700 min-w-24">
+              <span class="font-medium">{{ planLabel(clinic) }}</span>
+              <span class="text-xs text-gray-400 block">{{ monthlyRate(clinic) }}</span>
+            </div>
+
+            <!-- Renewal date -->
+            <div class="text-sm min-w-32">
+              <span class="text-gray-500 text-xs block">Renewal / Trial End</span>
+              <span class="font-medium text-gray-900">{{ renewalDate(clinic) }}</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 shrink-0">
+              @if (clinic.subscriptionStatus === 'trial') {
+                <a [routerLink]="['/business/clinics', clinic.id, 'edit']"
+                   class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                  Convert
+                </a>
+              }
+              @if (clinic.subscriptionStatus === 'active') {
+                <a [href]="whatsappReminder(clinic)" target="_blank" rel="noopener"
+                   class="text-xs bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                  Send Reminder
+                </a>
+              }
+              @if (clinic.subscriptionStatus === 'expired' || clinic.subscriptionStatus === 'cancelled') {
+                <a [routerLink]="['/business/clinics', clinic.id, 'edit']"
+                   class="text-xs bg-gray-600 hover:bg-gray-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                  Reactivate
+                </a>
+              }
+              @if (!clinic.subscriptionStatus) {
+                <a [routerLink]="['/business/clinics', clinic.id, 'edit']"
+                   class="text-xs border border-gray-200 hover:border-gray-300 text-gray-600 font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                  Set Plan
+                </a>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Expired alert ──────────────────────────────────────────────────── -->
+    @if (expiredClinics().length > 0) {
+      <div class="bg-red-50 border border-red-200 rounded-2xl px-5 py-4">
+        <p class="text-sm font-semibold text-red-700 mb-1">{{ expiredClinics().length }} clinic(s) expired / cancelled</p>
+        <p class="text-xs text-red-600">Their websites are currently inaccessible to visitors. Update subscription status to reactivate.</p>
+      </div>
+    }
+
+  }
+</div>

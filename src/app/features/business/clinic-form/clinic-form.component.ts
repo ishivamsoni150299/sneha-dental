@@ -8,6 +8,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   ClinicFirestoreService, StoredClinic,
 } from '../../../core/services/clinic-firestore.service';
+import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 // TODO: Uncomment when Google Maps API key is ready in environment.ts
 // import { environment } from '../../../../environments/environment';
@@ -38,6 +39,8 @@ export class ClinicFormComponent implements OnInit {
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
   // private ngZone   = inject(NgZone); // TODO: Uncomment with Google Maps API
+
+  readonly platformPlans = PLATFORM_PLANS;
 
   loading   = signal(false);
   saving    = signal(false);
@@ -73,6 +76,18 @@ export class ClinicFormComponent implements OnInit {
     domain:        [''],
     vercelDomain:  [''],
     active:        [true],
+
+    // Subscription & Billing
+    subscriptionPlan:    ['trial'],
+    subscriptionStatus:  ['trial'],
+    billingCycle:        ['monthly'],
+    trialEndDate:        [''],
+    subscriptionEndDate: [''],
+    lastPaymentDate:     [''],
+    lastPaymentAmount:   [0],
+    lastPaymentRef:      [''],
+    billingEmail:        [''],
+    billingNotes:        [''],
 
     // Brand
     theme:            ['blue', Validators.required],
@@ -125,6 +140,13 @@ export class ClinicFormComponent implements OnInit {
       this.addService();
       this.addPlan();
       this.addTestimonial();
+
+      // Default trial: starts today, ends in 30 days
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 30);
+      this.form.controls.trialEndDate.setValue(trialEnd.toISOString().split('T')[0]);
+      this.form.controls.subscriptionPlan.setValue('trial');
+      this.form.controls.subscriptionStatus.setValue('trial');
     }
 
     this.setupAutoFills();
@@ -154,6 +176,29 @@ export class ClinicFormComponent implements OnInit {
         if (prefix) this.form.controls.bookingRefPrefix.setValue(prefix, { emitEvent: false });
       });
     }
+
+    // Billing auto-fills
+    const updateAmount = () => {
+      const plan  = this.form.controls.subscriptionPlan.value as 'trial' | 'starter' | 'pro';
+      const cycle = this.form.controls.billingCycle.value as 'monthly' | 'yearly';
+      const rate  = cycle === 'yearly' ? PLATFORM_PLANS[plan].yearly : PLATFORM_PLANS[plan].monthly;
+      this.form.controls.lastPaymentAmount.setValue(rate, { emitEvent: false });
+    };
+    this.form.controls.subscriptionPlan.valueChanges.subscribe(updateAmount);
+    this.form.controls.billingCycle.valueChanges.subscribe(updateAmount);
+
+    // Auto-calculate subscriptionEndDate from lastPaymentDate + billingCycle
+    const updateEndDate = () => {
+      const paid  = this.form.controls.lastPaymentDate.value;
+      const cycle = this.form.controls.billingCycle.value;
+      if (!paid) return;
+      const d = new Date(paid);
+      if (cycle === 'yearly')  d.setFullYear(d.getFullYear() + 1);
+      else                     d.setMonth(d.getMonth() + 1);
+      this.form.controls.subscriptionEndDate.setValue(d.toISOString().split('T')[0], { emitEvent: false });
+    };
+    this.form.controls.lastPaymentDate.valueChanges.subscribe(updateEndDate);
+    this.form.controls.billingCycle.valueChanges.subscribe(updateEndDate);
   }
 
   // TODO: Uncomment autoFillMapUrls + syncGoogleReviews when Google Maps API key is ready
@@ -216,6 +261,16 @@ export class ClinicFormComponent implements OnInit {
       mapDirectionsUrl: c.mapDirectionsUrl ?? '',
       googlePlaceId: c.googlePlaceId ?? '',
       domain: c.domain ?? '', vercelDomain: c.vercelDomain ?? '', active: c.active ?? true,
+      subscriptionPlan:    c.subscriptionPlan    ?? 'trial',
+      subscriptionStatus:  c.subscriptionStatus  ?? 'trial',
+      billingCycle:        c.billingCycle         ?? 'monthly',
+      trialEndDate:        c.trialEndDate         ?? '',
+      subscriptionEndDate: c.subscriptionEndDate  ?? '',
+      lastPaymentDate:     c.lastPaymentDate      ?? '',
+      lastPaymentAmount:   c.lastPaymentAmount    ?? 0,
+      lastPaymentRef:      c.lastPaymentRef       ?? '',
+      billingEmail:        c.billingEmail         ?? '',
+      billingNotes:        c.billingNotes         ?? '',
       theme: c.theme, bookingRefPrefix: c.bookingRefPrefix,
       facebook:  c.social?.facebook  ?? '',
       instagram: c.social?.instagram ?? '',
@@ -309,7 +364,17 @@ export class ClinicFormComponent implements OnInit {
         city: v.city,
         mapEmbedUrl: v.mapEmbedUrl,
         mapDirectionsUrl: v.mapDirectionsUrl,
-        googlePlaceId: v.googlePlaceId || undefined,
+        googlePlaceId:      v.googlePlaceId || undefined,
+        subscriptionPlan:   v.subscriptionPlan   as 'trial' | 'starter' | 'pro',
+        subscriptionStatus: v.subscriptionStatus as 'trial' | 'active' | 'expired' | 'cancelled',
+        billingCycle:       v.billingCycle        as 'monthly' | 'yearly',
+        trialEndDate:       v.trialEndDate        || undefined,
+        subscriptionEndDate: v.subscriptionEndDate || undefined,
+        lastPaymentDate:    v.lastPaymentDate     || undefined,
+        lastPaymentAmount:  v.lastPaymentAmount   || undefined,
+        lastPaymentRef:     v.lastPaymentRef      || undefined,
+        billingEmail:       v.billingEmail        || undefined,
+        billingNotes:       v.billingNotes        || undefined,
         domain:       v.domain,
         vercelDomain: v.vercelDomain,
         active:       v.active,

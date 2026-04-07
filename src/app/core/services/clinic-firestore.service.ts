@@ -44,6 +44,23 @@ export class ClinicFirestoreService {
     return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
   }
 
+  async getActiveSubscriptions(): Promise<StoredClinic[]> {
+    const q    = query(collection(db, this.COL), where('subscriptionStatus', '==', 'active'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+  }
+
+  async getExpiredTrials(): Promise<StoredClinic[]> {
+    const today = new Date().toISOString().split('T')[0];
+    const q     = query(
+      collection(db, this.COL),
+      where('subscriptionStatus', '==', 'trial'),
+      where('trialEndDate', '<', today),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+  }
+
   async create(data: Omit<StoredClinic, 'id' | 'createdAt'>): Promise<string> {
     const ref = await addDoc(collection(db, this.COL), { ...data, createdAt: serverTimestamp() });
     return ref.id;

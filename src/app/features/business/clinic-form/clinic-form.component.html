@@ -420,6 +420,86 @@
         </div>
       </section>
 
+      <!-- ── Subscription & Billing ──────────────────────────────────────────── -->
+      <section class="bg-white rounded-2xl border border-blue-200 p-6 space-y-4">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Subscription &amp; Billing</h2>
+          <p class="text-xs text-gray-400 mt-0.5">This section is for your records only — not visible to the clinic.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Plan + Status -->
+          <div>
+            <label class="form-label">Platform Plan</label>
+            <select formControlName="subscriptionPlan" class="form-input">
+              <option value="trial">Free Trial</option>
+              <option value="starter">Starter — ₹399/mo · ₹3,999/yr</option>
+              <option value="pro">Pro — ₹699/mo · ₹6,999/yr</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Subscription Status</label>
+            <select formControlName="subscriptionStatus" class="form-input">
+              <option value="trial">Trial</option>
+              <option value="active">Active (Paid)</option>
+              <option value="expired">Expired</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            @if (form.controls.subscriptionStatus.value === 'expired' || form.controls.subscriptionStatus.value === 'cancelled') {
+              <p class="text-xs text-red-500 mt-1">Clinic site will be inaccessible to visitors.</p>
+            }
+          </div>
+
+          <!-- Billing cycle -->
+          <div>
+            <label class="form-label">Billing Cycle</label>
+            <select formControlName="billingCycle" class="form-input">
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+
+          <!-- Trial end date -->
+          <div>
+            <label class="form-label">Trial End Date</label>
+            <input formControlName="trialEndDate" type="date" class="form-input">
+            <p class="text-xs text-gray-400 mt-1">Auto-set to today + 30 days for new clinics</p>
+          </div>
+
+          <!-- Last payment -->
+          <div>
+            <label class="form-label">Last Payment Date</label>
+            <input formControlName="lastPaymentDate" type="date" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">Amount Paid (₹)</label>
+            <input formControlName="lastPaymentAmount" type="number" min="0" placeholder="399" class="form-input">
+            <p class="text-xs text-gray-400 mt-1">Auto-filled when plan + cycle set</p>
+          </div>
+          <div>
+            <label class="form-label">Payment Reference</label>
+            <input formControlName="lastPaymentRef" type="text" placeholder="Razorpay ID or UPI-xxxx" class="form-input">
+          </div>
+          <div>
+            <label class="form-label">Subscription End / Next Renewal</label>
+            <input formControlName="subscriptionEndDate" type="date" class="form-input">
+            <p class="text-xs text-gray-400 mt-1">Auto-calculated from last payment + cycle</p>
+          </div>
+
+          <!-- Billing email + notes -->
+          <div>
+            <label class="form-label">Billing Email</label>
+            <input formControlName="billingEmail" type="email" placeholder="owner@clinic.com" class="form-input">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">Internal Notes</label>
+            <textarea formControlName="billingNotes" rows="2"
+                      placeholder="e.g. Client pays via UPI on 7th every month. Contact: Dr. Shalabh +91 87950 62186"
+                      class="form-input resize-none"></textarea>
+          </div>
+        </div>
+      </section>
+
       <!-- ── Inline error ──────────────────────────────────────────────────── -->
       @if (error()) {
         <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">

@@ -40,6 +40,11 @@ export const businessRoutes: Routes = [
         loadComponent: () =>
           import('./clinic-form/clinic-form.component').then(m => m.ClinicFormComponent),
       },
+      {
+        path: 'revenue',
+        loadComponent: () =>
+          import('./revenue/revenue.component').then(m => m.RevenueComponent),
+      },
     ],
   },
 ];

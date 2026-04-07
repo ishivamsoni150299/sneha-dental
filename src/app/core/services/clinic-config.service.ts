@@ -56,7 +56,15 @@ export class ClinicConfigService {
         const docId = snap.docs[0].id;
         const { id: _id, domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
           snap.docs[0].data() as Record<string, unknown>;
-        this._config.set({ ...(rest as unknown as ClinicConfig), clinicId: docId });
+        const config = { ...(rest as unknown as ClinicConfig), clinicId: docId };
+
+        // Enforce subscription — expired clinics behave as if not loaded,
+        // so clinicRequiredGuard redirects visitors to the platform landing page.
+        if (config.subscriptionStatus === 'expired' || config.subscriptionStatus === 'cancelled') {
+          return; // _isLoaded stays false → guard redirects to /business
+        }
+
+        this._config.set(config);
         this._isLoaded.set(true);
       }
     } catch (e) {

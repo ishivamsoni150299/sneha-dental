@@ -4,6 +4,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
+import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 interface Toast { msg: string; type: 'success' | 'error' }
 
@@ -104,6 +105,32 @@ export class ClinicListComponent implements OnInit {
     } finally {
       this.toggling.set(null);
     }
+  }
+
+  // ── Subscription badge ────────────────────────────────────────────────────
+  subscriptionBadge(clinic: StoredClinic): { label: string; classes: string } {
+    const status = clinic.subscriptionStatus ?? 'trial';
+    const plan   = clinic.subscriptionPlan   ?? 'trial';
+    const planLabel = PLATFORM_PLANS[plan]?.label ?? 'Trial';
+
+    if (status === 'active') {
+      return { label: `${planLabel} · Active`, classes: 'bg-green-100 text-green-700' };
+    }
+    if (status === 'expired') {
+      return { label: 'Expired', classes: 'bg-red-100 text-red-700' };
+    }
+    if (status === 'cancelled') {
+      return { label: 'Cancelled', classes: 'bg-gray-100 text-gray-500' };
+    }
+    // trial — show days left
+    const endDate  = clinic.trialEndDate ? new Date(clinic.trialEndDate) : null;
+    const daysLeft = endDate
+      ? Math.ceil((endDate.getTime() - Date.now()) / 86_400_000)
+      : null;
+    const dayStr = daysLeft !== null
+      ? (daysLeft > 0 ? ` · ${daysLeft}d left` : ' · Ended')
+      : '';
+    return { label: `Trial${dayStr}`, classes: 'bg-yellow-100 text-yellow-700' };
   }
 
   // ── Navigate ──────────────────────────────────────────────────────────────

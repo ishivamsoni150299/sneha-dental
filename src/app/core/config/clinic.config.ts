@@ -35,6 +35,18 @@ export interface ClinicConfig {
   active?: boolean;                // false = paused deployment
   googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
 
+  // ── Subscription & Billing (managed by platform admin) ───────────────────
+  subscriptionPlan?:   'trial' | 'starter' | 'pro';
+  subscriptionStatus?: 'trial' | 'active' | 'expired' | 'cancelled';
+  trialEndDate?:       string;     // ISO date e.g. "2026-05-07"
+  subscriptionEndDate?: string;    // ISO date — next renewal / expiry date
+  billingCycle?:       'monthly' | 'yearly';
+  lastPaymentDate?:    string;     // ISO date
+  lastPaymentAmount?:  number;     // e.g. 399
+  lastPaymentRef?:     string;     // Razorpay payment ID or "UPI-xxxx"
+  billingEmail?:       string;
+  billingNotes?:       string;     // free-text notes for manual tracking
+
   // ── Brand ─────────────────────────────────────────────────────────────────
   theme: 'blue' | 'teal' | 'caramel'; // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"
@@ -74,9 +86,12 @@ export const clinicConfig: ClinicConfig = {
   mapEmbedUrl:     '',
   mapDirectionsUrl: '',
 
-  clinicId:         'default',
-  theme:            'blue',
-  bookingRefPrefix: 'BK',
+  clinicId:           'default',
+  theme:              'blue',
+  bookingRefPrefix:   'BK',
+  subscriptionPlan:   'trial',
+  subscriptionStatus: 'trial',
+  trialEndDate:       '',
 
   social: {},
   hours:        [],
@@ -84,3 +99,12 @@ export const clinicConfig: ClinicConfig = {
   plans:        [],
   testimonials: [],
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLATFORM PLANS — pricing for the SaaS subscription (not clinic health plans)
+// ─────────────────────────────────────────────────────────────────────────────
+export const PLATFORM_PLANS = {
+  trial:   { label: 'Free Trial', monthly: 0,   yearly: 0    },
+  starter: { label: 'Starter',    monthly: 399, yearly: 3999 },
+  pro:     { label: 'Pro',        monthly: 699, yearly: 6999 },
+} as const;
