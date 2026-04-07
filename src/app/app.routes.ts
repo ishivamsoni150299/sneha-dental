@@ -16,57 +16,105 @@ export const routes: Routes = [
         pathMatch: 'full',
         loadComponent: () =>
           import('./features/home/home.component').then(m => m.HomeComponent),
+        data: {
+          title: 'Pain-Free Dental Care',
+          description: 'Gentle, pain-free dental care with modern equipment and transparent pricing. Book your appointment today.',
+        },
       },
       {
         path: 'services',
         loadComponent: () =>
           import('./features/services/services.component').then(m => m.ServicesComponent),
+        data: {
+          title: 'Services & Pricing',
+          description: 'Explore dental treatments, transparent pricing, and health plans. Book a consultation in minutes.',
+        },
       },
       {
         path: 'about',
         loadComponent: () =>
           import('./features/about/about.component').then(m => m.AboutComponent),
+        data: {
+          title: 'About Our Clinic',
+          description: 'Meet the dentist and learn about our gentle, patient-first approach to dental care.',
+        },
       },
       {
         path: 'appointment',
         loadComponent: () =>
           import('./features/appointment/appointment.component').then(m => m.AppointmentComponent),
+        data: {
+          title: 'Book Appointment',
+          description: 'Request your preferred date and time. Same-day appointments often available.',
+        },
       },
       {
         path: 'appointment/confirmed',
         loadComponent: () =>
           import('./features/appointment/confirmed/confirmed.component').then(m => m.ConfirmedComponent),
+        data: {
+          title: 'Appointment Confirmed',
+          description: 'Your appointment is confirmed. Save your booking reference for future changes.',
+          noIndex: true,
+        },
       },
       {
         path: 'my-appointment',
         loadComponent: () =>
           import('./features/my-appointment/my-appointment.component').then(m => m.MyAppointmentComponent),
+        data: {
+          title: 'Manage Appointment',
+          description: 'View, reschedule, or cancel your appointment with your booking reference.',
+          noIndex: true,
+        },
       },
       {
         path: 'gallery',
         loadComponent: () =>
           import('./features/gallery/gallery.component').then(m => m.GalleryComponent),
+        data: {
+          title: 'Clinic Gallery',
+          description: 'See photos of our clinic, equipment, and patient-friendly spaces.',
+        },
       },
       {
         path: 'testimonials',
         loadComponent: () =>
           import('./features/testimonials/testimonials.component').then(m => m.TestimonialsComponent),
+        data: {
+          title: 'Patient Testimonials',
+          description: 'Real reviews from patients who trusted us with their smiles.',
+        },
       },
       {
         path: 'contact',
         loadComponent: () =>
           import('./features/contact/contact.component').then(m => m.ContactComponent),
+        data: {
+          title: 'Contact Us',
+          description: 'Call, WhatsApp, or message us. We respond quickly during clinic hours.',
+        },
       },
       {
         path: 'admin/login',
         loadComponent: () =>
           import('./features/admin/admin-login/admin-login.component').then(m => m.AdminLoginComponent),
+        data: {
+          title: 'Admin Login',
+          description: 'Restricted access. Admin login for clinic staff.',
+          noIndex: true,
+        },
       },
       {
         path: 'admin',
         loadComponent: () =>
           import('./features/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
         canActivate: [adminGuard],
+        data: {
+          title: 'Admin Dashboard',
+          description: 'Clinic admin dashboard.',
+          noIndex: true,
+        },
       },
     ],
   },
@@ -76,6 +124,11 @@ export const routes: Routes = [
     path: 'business',
     loadChildren: () =>
       import('./features/business/business.routes').then(m => m.businessRoutes),
+    data: {
+      title: 'Business Portal',
+      description: 'Internal business portal.',
+      noIndex: true,
+    },
   },
 
   // ── 404 ───────────────────────────────────────────────────────────────────
@@ -83,5 +136,10 @@ export const routes: Routes = [
     path: '**',
     loadComponent: () =>
       import('./features/not-found/not-found.component').then(m => m.NotFoundComponent),
+    data: {
+      title: 'Page Not Found',
+      description: 'The page you are looking for does not exist.',
+      noIndex: true,
+    },
   },
 ];
