@@ -1,12 +1,13 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 @Component({
   selector: 'app-revenue',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './revenue.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -15,6 +16,10 @@ export class RevenueComponent implements OnInit {
 
   clinics = signal<StoredClinic[]>([]);
   loading = signal(true);
+
+  costs        = signal({ vercel: 0, firebase: 0, domain: 0, other: 0 });
+  editingCosts = signal(false);
+  savingCosts  = signal(false);
 
   // ── Derived stats ─────────────────────────────────────────────────────────
   activeClinics  = computed(() => this.clinics().filter(c => c.subscriptionStatus === 'active'));
@@ -34,6 +39,10 @@ export class RevenueComponent implements OnInit {
   );
 
   arr = computed(() => this.mrr() * 12);
+
+  totalCosts   = computed(() => Object.values(this.costs()).reduce((s, v) => s + (Number(v) || 0), 0));
+  profit       = computed(() => this.mrr() - this.totalCosts());
+  profitMargin = computed(() => this.mrr() > 0 ? Math.round((this.profit() / this.mrr()) * 100) : 0);
 
   // Clinics expiring within 7 days (trial or active subscription)
   expiringSoon = computed(() => {
@@ -72,10 +81,33 @@ export class RevenueComponent implements OnInit {
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
     try {
-      this.clinics.set(await this.clinicStore.getAll());
+      const [clinics, costs] = await Promise.all([
+        this.clinicStore.getAll(),
+        this.clinicStore.getPlatformSettings(),
+      ]);
+      this.clinics.set(clinics);
+      this.costs.set(costs);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async saveCosts() {
+    this.savingCosts.set(true);
+    try {
+      await this.clinicStore.savePlatformSettings(this.costs());
+      this.editingCosts.set(false);
+    } finally {
+      this.savingCosts.set(false);
+    }
+  }
+
+  getCost(key: string): number {
+    return (this.costs() as Record<string, number>)[key] ?? 0;
+  }
+
+  updateCost(key: string, value: string) {
+    this.costs.set({ ...this.costs(), [key]: Number(value) || 0 });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

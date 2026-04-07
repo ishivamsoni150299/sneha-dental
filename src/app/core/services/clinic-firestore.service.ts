@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { initializeApp, getApps } from 'firebase/app';
 import {
-  getFirestore, collection, getDocs, getDoc, addDoc, updateDoc,
+  getFirestore, collection, getDocs, getDoc, setDoc, addDoc, updateDoc,
   deleteDoc, doc, query, orderBy, where, serverTimestamp, Timestamp, limit,
 } from 'firebase/firestore';
 import { ClinicConfig } from '../config/clinic.config';
@@ -73,5 +73,16 @@ export class ClinicFirestoreService {
 
   async remove(id: string): Promise<void> {
     await deleteDoc(doc(db, this.COL, id));
+  }
+
+  // ── Platform settings (costs, etc.) ───────────────────────────────────────
+  async getPlatformSettings(): Promise<{ vercel: number; firebase: number; domain: number; other: number }> {
+    const snap = await getDoc(doc(db, 'platform', 'settings'));
+    const data = snap.exists() ? (snap.data() as Record<string, unknown>)['monthlyCosts'] as Record<string, number> : {};
+    return { vercel: 0, firebase: 0, domain: 0, other: 0, ...data };
+  }
+
+  async savePlatformSettings(costs: { vercel: number; firebase: number; domain: number; other: number }): Promise<void> {
+    await setDoc(doc(db, 'platform', 'settings'), { monthlyCosts: costs });
   }
 }
