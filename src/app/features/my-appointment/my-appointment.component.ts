@@ -132,7 +132,7 @@ export class MyAppointmentComponent {
       await this.appointmentService.cancelAppointment(appt.id!, appt.date);
       this.view.set('cancelled');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Could not cancel. Please call +91 91402 10648.';
+      const msg = e instanceof Error ? e.message : `Could not cancel. Please call ${this.config.phone}.`;
       this.saveError.set(msg);
     } finally {
       this.cancelling.set(false);
