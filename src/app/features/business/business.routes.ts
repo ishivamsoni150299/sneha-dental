@@ -51,6 +51,11 @@ export const businessRoutes: Routes = [
           import('./leads/lead-list/lead-list.component').then(m => m.LeadListComponent),
       },
       {
+        path: 'leads/discover',
+        loadComponent: () =>
+          import('./leads/lead-discover/lead-discover.component').then(m => m.LeadDiscoverComponent),
+      },
+      {
         path: 'leads/new',
         loadComponent: () =>
           import('./leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),

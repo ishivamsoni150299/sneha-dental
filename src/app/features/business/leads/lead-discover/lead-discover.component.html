@@ -1,0 +1,151 @@
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Discover Leads</h1>
+      <p class="text-sm text-gray-500 mt-0.5">Find dental clinics with no website — powered by Google Places</p>
+    </div>
+    <a routerLink="/business/leads"
+       class="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300
+              px-3 py-1.5 rounded-lg transition-colors">
+      ← Back to Leads
+    </a>
+  </div>
+
+  <!-- No API key state -->
+  @if (!hasKey) {
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 space-y-3">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <p class="text-sm font-semibold text-amber-800">Google Places API key not configured yet</p>
+      </div>
+      <p class="text-sm text-amber-700 leading-relaxed">
+        This feature requires a Google Cloud API key with the <strong>Places API</strong> enabled.
+        The rest of the app works fine without it — set it up when you're ready.
+      </p>
+      <div class="bg-white border border-amber-200 rounded-xl p-4 space-y-2 text-xs text-gray-700">
+        <p class="font-semibold text-gray-900 mb-2">Quick setup (5 minutes):</p>
+        <p>1. Go to <strong>console.cloud.google.com</strong> → create a project</p>
+        <p>2. Enable <strong>Places API</strong> in APIs &amp; Services → Library</p>
+        <p>3. Create an API key in Credentials → restrict to your domain</p>
+        <p>4. Add the key to <code class="bg-gray-100 px-1 rounded">src/environments/environment.ts</code> and <code class="bg-gray-100 px-1 rounded">environment.prod.ts</code></p>
+        <p>5. Redeploy — this page will work automatically</p>
+      </div>
+    </div>
+  }
+
+  <!-- Search (only shown when API key exists) -->
+  @if (hasKey) {
+
+    @if (error()) {
+      <div class="bg-red-50 border border-red-200 rounded-2xl px-5 py-3.5 text-sm text-red-700">
+        {{ error() }}
+      </div>
+    }
+
+    <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <p class="text-sm font-semibold text-gray-900 mb-3">Search by city or area</p>
+      <div class="flex gap-3">
+        <input type="text"
+               [ngModel]="city()" (ngModelChange)="city.set($event)"
+               (keyup.enter)="search()"
+               placeholder="e.g. Noida, Gurgaon, Faridabad…"
+               class="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5
+                      focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+        <button (click)="search()"
+                [disabled]="!city().trim() || searching() || !apiReady()"
+                class="shrink-0 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm
+                       px-5 py-2.5 rounded-xl transition-colors disabled:opacity-40 flex items-center gap-2">
+          @if (searching()) {
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+            Searching…
+          } @else {
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+            </svg>
+            Search
+          }
+        </button>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Searches Google Places for dental clinics. Results sorted: no-website clinics first.</p>
+    </div>
+
+    <!-- Results -->
+    @if (searched()) {
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-semibold text-gray-900">
+            {{ results().length }} clinics found
+          </p>
+          @if (noWebsiteCount() > 0) {
+            <span class="text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full">
+              {{ noWebsiteCount() }} with no website — prime prospects
+            </span>
+          }
+        </div>
+
+        @if (results().length === 0) {
+          <div class="bg-white rounded-2xl border border-gray-200 p-10 text-center">
+            <p class="text-sm text-gray-400">No dental clinics found in "{{ city() }}". Try a different area.</p>
+          </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          @for (clinic of results(); track clinic.placeId) {
+            <div class="bg-white rounded-2xl border p-5 flex flex-col gap-3 transition-colors"
+                 [class]="!clinic.hasWebsite ? 'border-green-300 bg-green-50/30' : 'border-gray-200'">
+
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <p class="font-semibold text-gray-900 text-sm leading-snug">{{ clinic.name }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5 leading-relaxed">{{ clinic.address }}</p>
+                </div>
+                @if (!clinic.hasWebsite) {
+                  <span class="shrink-0 text-[10px] font-bold bg-green-100 text-green-700
+                               px-2 py-0.5 rounded-full uppercase tracking-wide">
+                    No website
+                  </span>
+                } @else {
+                  <span class="shrink-0 text-[10px] font-medium bg-gray-100 text-gray-500
+                               px-2 py-0.5 rounded-full uppercase tracking-wide">
+                    Has website
+                  </span>
+                }
+              </div>
+
+              @if (clinic.rating) {
+                <div class="flex items-center gap-1.5">
+                  <div class="flex gap-0.5">
+                    @for (s of stars(clinic.rating); track $index) {
+                      <svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                      </svg>
+                    }
+                  </div>
+                  <span class="text-xs text-gray-500">{{ clinic.rating }} ({{ clinic.totalRatings }} reviews)</span>
+                </div>
+              }
+
+              <button (click)="addToPipeline(clinic)"
+                      class="w-full text-xs font-semibold py-2 rounded-xl transition-colors"
+                      [class]="!clinic.hasWebsite
+                        ? 'bg-gray-900 hover:bg-gray-800 text-white'
+                        : 'border border-gray-200 hover:border-gray-300 text-gray-600'">
+                Add to Pipeline →
+              </button>
+
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  }
+
+</div>

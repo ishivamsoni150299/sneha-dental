@@ -6,14 +6,24 @@
       <h1 class="text-xl font-bold text-gray-900">Leads</h1>
       <p class="text-sm text-gray-500 mt-0.5">Track prospects through your sales pipeline</p>
     </div>
-    <a routerLink="/business/leads/new"
-       class="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white
-              font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors">
-      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-      </svg>
-      Add Lead
-    </a>
+    <div class="flex items-center gap-2">
+      <a routerLink="/business/leads/discover"
+         class="inline-flex items-center gap-1.5 border border-gray-200 hover:border-gray-300
+                text-gray-600 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+        </svg>
+        Discover Clinics
+      </a>
+      <a routerLink="/business/leads/new"
+         class="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white
+                font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Lead
+      </a>
+    </div>
   </div>
 
   @if (loading()) {

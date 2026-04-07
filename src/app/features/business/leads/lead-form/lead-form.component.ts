@@ -56,6 +56,16 @@ export class LeadFormComponent implements OnInit {
   get isReferral() { return this.form.controls.source.value === 'referral'; }
 
   async ngOnInit() {
+    // Pre-fill from Lead Discovery query params
+    const qp = this.route.snapshot.queryParamMap;
+    if (qp.get('clinicName')) {
+      this.form.patchValue({
+        clinicName: qp.get('clinicName') ?? '',
+        city:       qp.get('city') ?? '',
+        source:     (qp.get('source') as LeadSource) ?? 'google_maps',
+      });
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
     this.editId.set(id);
