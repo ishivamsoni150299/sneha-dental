@@ -4,6 +4,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
+import { BillingService, BillingPlan } from '../../../core/services/billing.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 interface Toast { msg: string; type: 'success' | 'error' }
@@ -17,6 +18,7 @@ interface Toast { msg: string; type: 'success' | 'error' }
 })
 export class ClinicListComponent implements OnInit {
   private clinicStore = inject(ClinicFirestoreService);
+  private billing     = inject(BillingService);
   private router      = inject(Router);
 
   clinics          = signal<StoredClinic[]>([]);
@@ -28,6 +30,11 @@ export class ClinicListComponent implements OnInit {
   search           = signal('');
   toast            = signal<Toast | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // ── Billing ───────────────────────────────────────────────────────────────
+  billingClinicId  = signal<string | null>(null);   // which card is showing plan picker
+  billingPlan      = signal<BillingPlan>('starter'); // selected plan in picker
+  sendingPayment   = signal<string | null>(null);    // id being processed
 
   readonly themeColors: Record<string, string> = {
     blue:    '#2563eb',
@@ -131,6 +138,46 @@ export class ClinicListComponent implements OnInit {
       ? (daysLeft > 0 ? ` · ${daysLeft}d left` : ' · Ended')
       : '';
     return { label: `Trial${dayStr}`, classes: 'bg-yellow-100 text-yellow-700' };
+  }
+
+  // ── Billing ───────────────────────────────────────────────────────────────
+  openBilling(clinicId: string) {
+    this.billingClinicId.set(clinicId);
+    this.billingPlan.set('starter');
+  }
+
+  closeBilling() {
+    this.billingClinicId.set(null);
+  }
+
+  async sendPaymentLink(clinic: StoredClinic) {
+    this.sendingPayment.set(clinic.id);
+    try {
+      const phone = clinic.whatsappNumber || clinic.phone?.replace(/\D/g, '');
+      const result = await this.billing.createSubscription(
+        clinic.id,
+        this.billingPlan(),
+        clinic.name,
+        phone,
+      );
+
+      // Store subscription ID in Firestore so we can track it
+      await this.clinicStore.update(clinic.id, {
+        razorpaySubscriptionId: result.subscriptionId,
+      } as Parameters<typeof this.clinicStore.update>[1]);
+
+      // Open WhatsApp with payment link — clinic owner clicks once, Razorpay does the rest
+      const waUrl = this.billing.whatsappPaymentMessage(clinic.name, this.billingPlan(), result.shortUrl);
+      window.open(waUrl, '_blank');
+
+      this.billingClinicId.set(null);
+      this.showToast('Payment link sent via WhatsApp!', 'success');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create payment link.';
+      this.showToast(msg, 'error');
+    } finally {
+      this.sendingPayment.set(null);
+    }
   }
 
   // ── Navigate ──────────────────────────────────────────────────────────────
