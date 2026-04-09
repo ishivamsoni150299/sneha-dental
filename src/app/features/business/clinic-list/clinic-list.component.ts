@@ -36,6 +36,9 @@ export class ClinicListComponent implements OnInit {
   billingPlan      = signal<BillingPlan>('starter'); // selected plan in picker
   sendingPayment   = signal<string | null>(null);    // id being processed
 
+  // ── Voice Agent ───────────────────────────────────────────────────────────
+  creatingVoiceAgent = signal<string | null>(null);  // id being processed
+
   readonly themeColors: Record<string, string> = {
     blue:    '#2563eb',
     teal:    '#0d9488',
@@ -177,6 +180,38 @@ export class ClinicListComponent implements OnInit {
       this.showToast(msg, 'error');
     } finally {
       this.sendingPayment.set(null);
+    }
+  }
+
+  // ── Voice Agent ───────────────────────────────────────────────────────────
+  async createVoiceAgent(clinic: StoredClinic) {
+    this.creatingVoiceAgent.set(clinic.id);
+    try {
+      const res = await fetch('/api/vapi-create-assistant', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clinicId:            clinic.id,
+          name:                clinic.name,
+          city:                clinic.city,
+          addressLine1:        clinic.addressLine1,
+          phone:               clinic.phone,
+          doctorName:          clinic.doctorName,
+          doctorQualification: clinic.doctorQualification,
+          hours:               clinic.hours ?? [],
+          services:            clinic.services ?? [],
+        }),
+      });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json() as { assistantId: string };
+      this.clinics.update(list =>
+        list.map(c => c.id === clinic.id ? { ...c, vapiAssistantId: data.assistantId } : c)
+      );
+      this.showToast('Voice agent created! Mic button will appear on the clinic site.', 'success');
+    } catch {
+      this.showToast('Failed to create voice agent. Check VAPI_API_KEY in Vercel.', 'error');
+    } finally {
+      this.creatingVoiceAgent.set(null);
     }
   }
 

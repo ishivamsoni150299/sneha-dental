@@ -35,6 +35,10 @@ export interface ClinicConfig {
   active?: boolean;                // false = paused deployment
   googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
 
+  // ── Voice Agent (Vapi.ai) ─────────────────────────────────────────────────
+  vapiAssistantId?: string;        // Vapi assistant ID for this clinic
+  vapiPublicKey?: string;          // Vapi public key (safe to expose in browser)
+
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';
   subscriptionStatus?: 'trial' | 'active' | 'expired' | 'cancelled';

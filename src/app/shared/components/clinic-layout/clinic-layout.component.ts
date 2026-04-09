@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { startVapiWidget } from '../../../core/utils/vapi-widget';
 
 @Component({
   selector: 'app-clinic-layout',
@@ -39,6 +40,13 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 12px); }
   `]
 })
-export class ClinicLayoutComponent {
+export class ClinicLayoutComponent implements OnInit {
   readonly clinic = inject(ClinicConfigService);
+
+  ngOnInit() {
+    const cfg = this.clinic.config;
+    if (cfg.vapiAssistantId && cfg.vapiPublicKey) {
+      startVapiWidget(cfg.vapiPublicKey, cfg.vapiAssistantId);
+    }
+  }
 }
