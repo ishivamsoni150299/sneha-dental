@@ -72,11 +72,12 @@ export class PlatformLandingComponent implements OnInit {
       highlighted: true,
       features: [
         'Everything in Starter',
+        'AI Voice Receptionist (Hindi + English)',
+        'Website voice mic widget',
         'Google Reviews integration',
         'Testimonials management',
         'SEO optimised pages',
         'Google Analytics setup',
-        'Multi-doctor support',
         'Unlimited content updates',
         'Priority support',
       ],
@@ -104,6 +105,7 @@ export class PlatformLandingComponent implements OnInit {
   readonly features = [
     { emoji: '📱', title: 'Mobile-first design',         desc: 'Looks perfect on every screen — phones, tablets and desktops.' },
     { emoji: '📅', title: 'Online appointment booking',  desc: 'Patients book directly from the website. Instant WhatsApp confirmation.' },
+    { emoji: '🎙️', title: 'AI Voice Receptionist',       desc: 'Answers patient calls in Hindi & English 24/7. Books appointments automatically — even at midnight.' },
     { emoji: '🔒', title: 'Secure admin dashboard',      desc: 'Clinic owner logs in to view and manage all patient bookings.' },
     { emoji: '🌐', title: 'Custom domain',               desc: 'Your clinic on your own domain — e.g. snehadental.com.' },
     { emoji: '⚡', title: 'Live in 24 hours',            desc: 'From zero to a live website in one business day. No waiting.' },
