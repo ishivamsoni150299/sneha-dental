@@ -116,6 +116,17 @@ export const routes: Routes = [
           noIndex: true,
         },
       },
+      {
+        path: 'admin/settings',
+        loadComponent: () =>
+          import('./features/admin/admin-settings/admin-settings.component').then(m => m.AdminSettingsComponent),
+        canActivate: [adminGuard],
+        data: {
+          title: 'Clinic Settings',
+          description: 'Edit your clinic information, hours, and contact details.',
+          noIndex: true,
+        },
+      },
     ],
   },
 

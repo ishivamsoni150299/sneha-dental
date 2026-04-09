@@ -1,5 +1,4 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-firestore.service';
 
 interface ClinicStats {
@@ -17,7 +16,7 @@ interface ServiceCount {
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './analytics.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

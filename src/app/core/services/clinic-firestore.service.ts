@@ -4,11 +4,32 @@ import {
   getFirestore, collection, getDocs, getDoc, setDoc, addDoc, updateDoc,
   deleteDoc, doc, query, orderBy, where, serverTimestamp, Timestamp, limit,
 } from 'firebase/firestore';
-import { ClinicConfig } from '../config/clinic.config';
+import { ClinicConfig, ClinicHours, Testimonial } from '../config/clinic.config';
 import { environment } from '../../../environments/environment';
 
 const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
 const db  = getFirestore(app);
+
+// ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
+// Billing, subscription, domain, active, theme are intentionally excluded.
+export interface ClinicSettingsPayload {
+  doctorName?:          string;
+  doctorQualification?: string;
+  doctorUniversity?:    string;
+  patientCount?:        string;
+  doctorBio?:           string[];
+  phone?:               string;
+  phoneE164?:           string;
+  whatsappNumber?:      string;
+  addressLine1?:        string;
+  addressLine2?:        string;
+  city?:                string;
+  mapEmbedUrl?:         string;
+  mapDirectionsUrl?:    string;
+  hours?:               ClinicHours[];
+  testimonials?:        Testimonial[];
+  social?:              { facebook?: string; instagram?: string; linkedin?: string };
+}
 
 export interface AppointmentDoc {
   id:         string;
@@ -104,5 +125,12 @@ export class ClinicFirestoreService {
 
   async savePlatformSettings(costs: { vercel: number; firebase: number; domain: number; other: number }): Promise<void> {
     await setDoc(doc(db, 'platform', 'settings'), { monthlyCosts: costs });
+  }
+
+  // ── Clinic self-service (whitelist-enforced) ───────────────────────────────
+  async updateClinicSettings(id: string, data: ClinicSettingsPayload): Promise<void> {
+    if (!id || id === 'default') throw new Error('Invalid clinic ID');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await updateDoc(doc(db, this.COL, id), data as any);
   }
 }

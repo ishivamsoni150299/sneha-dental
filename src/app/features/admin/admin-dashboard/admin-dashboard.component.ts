@@ -1,5 +1,5 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
@@ -9,7 +9,7 @@ type FilterTab = 'all' | 'pending' | 'confirmed' | 'today';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
