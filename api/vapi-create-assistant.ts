@@ -75,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     method:  'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      name:         `${body.name ?? clinicId} Receptionist`,
+      name:         `${(body.name ?? clinicId as string).slice(0, 28)} Receptionist`,
       firstMessage: `Namaste! ${body.name ?? 'Clinic'} mein aapka swagat hai. Main aapki kaise madad kar sakti hoon?`,
       model: {
         provider: 'openai',
@@ -84,10 +84,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         temperature: 0.4,
       },
       voice: {
-        provider: '11labs',
-        voiceId:  'Nzm9nWGETi0B0VFeMhgd',   // Indian English female (Priya)
-        stability: 0.5,
-        similarityBoost: 0.75,
+        provider: 'openai',
+        voiceId:  'nova',
       },
       serverUrl:    `${process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : ''}/api/vapi-webhook`,
       serverUrlSecret: process.env['VAPI_WEBHOOK_SECRET'],
