@@ -212,12 +212,15 @@
 </section>
 
 <!-- CTA -->
-<section class="bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 py-14">
-  <div class="max-w-2xl mx-auto px-4 text-center">
+<section class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 py-14">
+  <div class="absolute -top-12 -right-12 w-56 h-56 bg-white/5 rounded-full pointer-events-none"></div>
+  <div class="absolute -bottom-16 -left-10 w-72 h-72 bg-white/5 rounded-full pointer-events-none"></div>
+  <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:24px 24px;"></div>
+  <div class="relative max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl text-white mb-4">Not Sure Which Service You Need?</h2>
-    <p class="text-blue-100 mb-7">Book a free consultation and we will recommend the right treatment - honestly, with full cost transparency.</p>
+    <p class="text-blue-100 mb-7 leading-relaxed">Book a free consultation and we will recommend the right treatment — honestly, with full cost transparency.</p>
     <a routerLink="/appointment"
-       class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow transition-all inline-block">
+       class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px inline-block">
       Book Free Consultation
     </a>
   </div>
