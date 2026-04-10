@@ -39,6 +39,9 @@ export class ClinicListComponent implements OnInit {
   // ── Voice Agent ───────────────────────────────────────────────────────────
   creatingVoiceAgent = signal<string | null>(null);  // id being processed
 
+  // ── Coming Soon ───────────────────────────────────────────────────────────
+  togglingComingSoon = signal<string | null>(null);
+
   readonly themeColors: Record<string, string> = {
     blue:    '#2563eb',
     teal:    '#0d9488',
@@ -212,6 +215,23 @@ export class ClinicListComponent implements OnInit {
       this.showToast('Failed to create voice agent. Check VAPI_API_KEY in Vercel.', 'error');
     } finally {
       this.creatingVoiceAgent.set(null);
+    }
+  }
+
+  // ── Coming Soon toggle ────────────────────────────────────────────────────
+  async toggleComingSoon(clinic: StoredClinic) {
+    this.togglingComingSoon.set(clinic.id);
+    try {
+      const next = !clinic.comingSoon;
+      await this.clinicStore.update(clinic.id, { comingSoon: next } as Parameters<typeof this.clinicStore.update>[1]);
+      this.clinics.update(list =>
+        list.map(c => c.id === clinic.id ? { ...c, comingSoon: next } : c)
+      );
+      this.showToast(`"${clinic.name}" ${next ? 'set to Coming Soon' : 'restored to live site'}.`, 'success');
+    } catch {
+      this.showToast('Failed to update coming soon status.', 'error');
+    } finally {
+      this.togglingComingSoon.set(null);
     }
   }
 

@@ -4,12 +4,16 @@ import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { startVapiWidget } from '../../../core/utils/vapi-widget';
+import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.component';
 
 @Component({
   selector: 'app-clinic-layout',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FooterComponent],
+  imports: [RouterOutlet, NavbarComponent, FooterComponent, ComingSoonComponent],
   template: `
+    @if (clinic.config.comingSoon) {
+      <app-coming-soon />
+    } @else {
     <app-navbar />
     <main class="min-h-[60vh]">
       <router-outlet />
@@ -42,6 +46,7 @@ import { startVapiWidget } from '../../../core/utils/vapi-widget';
         Book Appointment · Same Day Available
       </a>
     </div>
+    }
   `,
   styles: [`
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 12px); }

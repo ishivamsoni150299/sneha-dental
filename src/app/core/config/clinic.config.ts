@@ -35,6 +35,10 @@ export interface ClinicConfig {
   active?: boolean;                // false = paused deployment
   googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
 
+  // ── Launch Mode ────────────────────────────────────────────────────────────
+  comingSoon?: boolean;            // true = show "Launching Soon" page instead of full site
+  launchDate?: string;             // ISO date e.g. "2026-05-01" — drives countdown timer
+
   // ── Voice Agent (Vapi.ai) ─────────────────────────────────────────────────
   vapiAssistantId?: string;        // Vapi assistant ID for this clinic
   vapiPublicKey?: string;          // Vapi public key (safe to expose in browser)
