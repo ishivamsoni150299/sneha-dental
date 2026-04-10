@@ -1,0 +1,344 @@
+[{
+  "document": {
+    "name": "projects/sneha-dental-6373b/databases/(default)/documents/clinics/6vm3EL8YiYYSyeNs1w7R",
+    "fields": {
+      "name": {
+        "stringValue": "Indram Dental Implant & Laser Center"
+      },
+      "doctorName": {
+        "stringValue": "Dr. Shalabh Soni"
+      },
+      "doctorQualification": {
+        "stringValue": "MDS"
+      },
+      "doctorUniversity": {
+        "stringValue": ""
+      },
+      "patientCount": {
+        "stringValue": "500+"
+      },
+      "phone": {
+        "stringValue": "+91 87950 62186"
+      },
+      "phoneE164": {
+        "stringValue": "918795062186"
+      },
+      "whatsappNumber": {
+        "stringValue": "918795062186"
+      },
+      "addressLine1": {
+        "stringValue": "1278, Civil Lines, Near Patanjali Mega Store"
+      },
+      "addressLine2": {
+        "stringValue": "Gwalior Road, Opposite CMO Office, Jhansi, UP 284002"
+      },
+      "city": {
+        "stringValue": "Jhansi"
+      },
+      "mapEmbedUrl": {
+        "stringValue": ""
+      },
+      "mapDirectionsUrl": {
+        "stringValue": ""
+      },
+      "domain": {
+        "stringValue": ""
+      },
+      "vercelDomain": {
+        "stringValue": "indram-dental.vercel.app"
+      },
+      "theme": {
+        "stringValue": "blue"
+      },
+      "bookingRefPrefix": {
+        "stringValue": "IDC"
+      },
+      "social": {
+        "mapValue": {
+          "fields": {
+            "facebook": {
+              "stringValue": "https://www.facebook.com/indramdentalclinic/"
+            },
+            "instagram": {
+              "stringValue": "https://www.instagram.com/indramdental/"
+            }
+          }
+        }
+      },
+      "doctorBio": {
+        "arrayValue": {
+          "values": [
+            {
+              "stringValue": "Dr. Shalabh Soni is an MDS specialist in Periodontology & Implantology with expertise in dental implants, laser dentistry, and full-mouth rehabilitation. He is known for his painless techniques and personalized patient care.\nAssisted by Dr. Pooja Soni (BDS), the clinic offers comprehensive dental care for the entire family — from kids' dentistry to advanced implant surgery — in a clean, modern, and hygienic environment."
+            }
+          ]
+        }
+      },
+      "hours": {
+        "arrayValue": {
+          "values": [
+            {
+              "mapValue": {
+                "fields": {
+                  "days": {
+                    "stringValue": "Mon – Sat"
+                  },
+                  "time": {
+                    "stringValue": "10:00 AM – 8:00 PM"
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "days": {
+                    "stringValue": "Sunday"
+                  },
+                  "time": {
+                    "stringValue": "11:00 AM – 2:00 PM"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "services": {
+        "arrayValue": {
+          "values": [
+            {
+              "mapValue": {
+                "fields": {
+                  "iconPath": {
+                    "stringValue": ""
+                  },
+                  "name": {
+                    "stringValue": "Dental Implants"
+                  },
+                  "description": {
+                    "stringValue": ""
+                  },
+                  "benefit": {
+                    "stringValue": ""
+                  },
+                  "price": {
+                    "stringValue": "₹18,000 – ₹25,000"
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "iconPath": {
+                    "stringValue": ""
+                  },
+                  "name": {
+                    "stringValue": "Painless Root Canal (RCT)"
+                  },
+                  "description": {
+                    "stringValue": ""
+                  },
+                  "benefit": {
+                    "stringValue": ""
+                  },
+                  "price": {
+                    "stringValue": "₹3,500 – ₹6,000"
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "iconPath": {
+                    "stringValue": ""
+                  },
+                  "name": {
+                    "stringValue": "Orthodontic Treatment (Braces)"
+                  },
+                  "description": {
+                    "stringValue": ""
+                  },
+                  "benefit": {
+                    "stringValue": ""
+                  },
+                  "price": {
+                    "stringValue": "₹15,000 – ₹35,000"
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "iconPath": {
+                    "stringValue": ""
+                  },
+                  "name": {
+                    "stringValue": "Teeth Whitening"
+                  },
+                  "description": {
+                    "stringValue": ""
+                  },
+                  "benefit": {
+                    "stringValue": ""
+                  },
+                  "price": {
+                    "stringValue": "₹3,000 – ₹5,000"
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "iconPath": {
+                    "stringValue": ""
+                  },
+                  "name": {
+                    "stringValue": "Laser Dentistry"
+                  },
+                  "description": {
+                    "stringValue": ""
+                  },
+                  "benefit": {
+                    "stringValue": ""
+                  },
+                  "price": {
+                    "stringValue": "₹2,000 – ₹8,000"
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "iconPath": {
+                    "stringValue": ""
+                  },
+                  "name": {
+                    "stringValue": "Dental Cleaning & Scaling"
+                  },
+                  "description": {
+                    "stringValue": ""
+                  },
+                  "benefit": {
+                    "stringValue": ""
+                  },
+                  "price": {
+                    "stringValue": "₹500 – ₹800"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "plans": {
+        "arrayValue": {
+          "values": [
+            {
+              "mapValue": {
+                "fields": {
+                  "tag": {
+                    "stringValue": "Best For Individual"
+                  },
+                  "name": {
+                    "stringValue": "Dental Health Plan"
+                  },
+                  "subtitle": {
+                    "stringValue": "Ideal For Student And Working Professional"
+                  },
+                  "price": {
+                    "stringValue": "₹1999"
+                  },
+                  "period": {
+                    "stringValue": "/year"
+                  },
+                  "highlighted": {
+                    "booleanValue": false
+                  },
+                  "features": {
+                    "arrayValue": {}
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "testimonials": {
+        "arrayValue": {
+          "values": [
+            {
+              "mapValue": {
+                "fields": {
+                  "name": {
+                    "stringValue": "Verified Patient"
+                  },
+                  "location": {
+                    "stringValue": "Jhansi"
+                  },
+                  "rating": {
+                    "integerValue": "5"
+                  },
+                  "review": {
+                    "stringValue": "Highly qualified and professional doctors. Dr. Shalabh Soni gives personal attention and explains the full treatment before starting. Painless procedure and very hygienic clinic."
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "name": {
+                    "stringValue": "Verified Patient"
+                  },
+                  "location": {
+                    "stringValue": "Jhansi"
+                  },
+                  "rating": {
+                    "integerValue": "5"
+                  },
+                  "review": {
+                    "stringValue": "Got my tooth extraction and dentures done here. Dr. Shalabh Soni and Dr. Pooja Soni both attended to me. The denture fit perfectly without any complications. Highly recommend."
+                  }
+                }
+              }
+            },
+            {
+              "mapValue": {
+                "fields": {
+                  "name": {
+                    "stringValue": "Verified Patient"
+                  },
+                  "location": {
+                    "stringValue": "Jhansi"
+                  },
+                  "rating": {
+                    "integerValue": "5"
+                  },
+                  "review": {
+                    "stringValue": "Best dental clinic in Jhansi. Friendly staff, modern equipment, and the doctors explain everything clearly. I travelled from far away and it was worth every rupee."
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "createdAt": {
+        "timestampValue": "2026-03-30T13:09:44.706Z"
+      },
+      "active": {
+        "booleanValue": true
+      }
+    },
+    "createTime": "2026-03-30T13:09:44.773723Z",
+    "updateTime": "2026-04-09T14:15:21.208235Z"
+  },
+  "readTime": "2026-04-09T15:21:07.221642Z"
+}
+]

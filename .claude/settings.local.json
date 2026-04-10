@@ -20,7 +20,14 @@
       "WebSearch",
       "WebFetch(domain:www.practo.com)",
       "WebFetch(domain:ind.5bestincity.com)",
-      "WebFetch(domain:www.instagram.com)"
+      "WebFetch(domain:www.instagram.com)",
+      "Bash(npx ng:*)",
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/nkhg5710/.claude/**)",
+      "Bash(\\\\[WARN\\\\]\" | head -30)",
+      "Bash(xargs grep:*)",
+      "Bash(ls *.json *.md)",
+      "Bash(git add:*)"
     ]
   }
 }
