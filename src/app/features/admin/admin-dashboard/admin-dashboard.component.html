@@ -158,10 +158,22 @@
                       </button>
                     }
                     @if (appt.status !== 'cancelled') {
-                      <button (click)="cancel(appt)" [disabled]="updatingId() === appt.id"
-                              class="border border-red-300 hover:bg-red-50 text-red-600 disabled:opacity-50 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
-                        Cancel
-                      </button>
+                      @if (confirmCancelId() === appt.id) {
+                        <span class="text-xs text-gray-600">Cancel?</span>
+                        <button (click)="cancel(appt)"
+                                class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                          Yes
+                        </button>
+                        <button (click)="dismissCancel()"
+                                class="border border-gray-300 hover:bg-gray-50 text-gray-600 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                          No
+                        </button>
+                      } @else {
+                        <button (click)="requestCancel(appt)" [disabled]="updatingId() === appt.id"
+                                class="border border-red-300 hover:bg-red-50 text-red-600 disabled:opacity-50 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                          Cancel
+                        </button>
+                      }
                     }
                     <!-- WhatsApp confirmation -->
                     <a [href]="whatsappUrl(appt)" target="_blank" rel="noopener noreferrer"
@@ -206,10 +218,24 @@
                 </button>
               }
               @if (appt.status !== 'cancelled') {
-                <button (click)="cancel(appt)" [disabled]="updatingId() === appt.id"
-                        class="flex-1 border border-red-300 hover:bg-red-50 text-red-600 text-sm py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50">
-                  Cancel
-                </button>
+                @if (confirmCancelId() === appt.id) {
+                  <div class="flex-1 flex gap-2 items-center">
+                    <span class="text-xs text-gray-600">Cancel?</span>
+                    <button (click)="cancel(appt)"
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm py-2.5 rounded-xl font-semibold transition-colors">
+                      Yes
+                    </button>
+                    <button (click)="dismissCancel()"
+                            class="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-600 text-sm py-2.5 rounded-xl font-semibold transition-colors">
+                      No
+                    </button>
+                  </div>
+                } @else {
+                  <button (click)="requestCancel(appt)" [disabled]="updatingId() === appt.id"
+                          class="flex-1 border border-red-300 hover:bg-red-50 text-red-600 text-sm py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50">
+                    Cancel
+                  </button>
+                }
               }
               <a [href]="whatsappUrl(appt)" target="_blank" rel="noopener noreferrer"
                  class="flex-1 bg-green-50 hover:bg-green-100 text-green-700 text-sm py-2.5 rounded-xl font-semibold text-center transition-colors">

@@ -20,11 +20,12 @@ export class AdminDashboardComponent implements OnInit {
   readonly clinic            = inject(ClinicConfigService);
   readonly clinicConfig      = this.clinic.config;
 
-  appointments = signal<Appointment[]>([]);
-  loading      = signal(true);
-  activeTab    = signal<FilterTab>('all');
-  actionError  = signal<string | null>(null);
-  updatingId   = signal<string | null>(null);
+  appointments    = signal<Appointment[]>([]);
+  loading         = signal(true);
+  activeTab       = signal<FilterTab>('all');
+  actionError     = signal<string | null>(null);
+  updatingId      = signal<string | null>(null);
+  confirmCancelId = signal<string | null>(null);   // inline confirm instead of browser confirm()
 
   today = new Date().toISOString().split('T')[0];
 
@@ -77,8 +78,16 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
+  requestCancel(appt: Appointment) {
+    this.confirmCancelId.set(appt.id!);
+  }
+
+  dismissCancel() {
+    this.confirmCancelId.set(null);
+  }
+
   async cancel(appt: Appointment) {
-    if (!confirm(`Cancel appointment for ${appt.name} on ${appt.date}?`)) return;
+    this.confirmCancelId.set(null);
     this.updatingId.set(appt.id!);
     this.actionError.set(null);
     try {

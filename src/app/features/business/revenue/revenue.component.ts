@@ -32,9 +32,11 @@ export class RevenueComponent implements OnInit {
     this.activeClinics().reduce((sum, c) => {
       const plan  = c.subscriptionPlan ?? 'trial';
       const cycle = c.billingCycle ?? 'monthly';
+      const planData = PLATFORM_PLANS[plan];
+      if (!planData) return sum;
       const rate  = cycle === 'yearly'
-        ? Math.round(PLATFORM_PLANS[plan].yearly / 12)
-        : PLATFORM_PLANS[plan].monthly;
+        ? Math.round(planData.yearly / 12)
+        : planData.monthly;
       return sum + rate;
     }, 0)
   );
@@ -145,11 +147,11 @@ export class RevenueComponent implements OnInit {
   }
 
   monthlyRate(clinic: StoredClinic): string {
-    const plan  = clinic.subscriptionPlan ?? 'trial';
-    const cycle = clinic.billingCycle ?? 'monthly';
-    const rate  = cycle === 'yearly'
-      ? PLATFORM_PLANS[plan].yearly
-      : PLATFORM_PLANS[plan].monthly;
+    const plan     = clinic.subscriptionPlan ?? 'trial';
+    const cycle    = clinic.billingCycle ?? 'monthly';
+    const planData = PLATFORM_PLANS[plan];
+    if (!planData) return '—';
+    const rate = cycle === 'yearly' ? planData.yearly : planData.monthly;
     if (!rate) return '—';
     return `₹${rate}${cycle === 'yearly' ? '/yr' : '/mo'}`;
   }

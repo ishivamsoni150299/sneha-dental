@@ -1,6 +1,7 @@
 import {
-  Component, signal, ChangeDetectionStrategy, inject, OnInit,
+  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import {
   ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators,
 } from '@angular/forms';
@@ -33,7 +34,8 @@ import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
   templateUrl: './clinic-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ClinicFormComponent implements OnInit {
+export class ClinicFormComponent implements OnInit, OnDestroy {
+  private readonly _subs = new Subscription();
   private fb          = inject(FormBuilder);
   private clinicStore = inject(ClinicFirestoreService);
   private route       = inject(ActivatedRoute);
@@ -156,36 +158,38 @@ export class ClinicFormComponent implements OnInit {
 
   /** Strips formatting from phone and auto-updates phoneE164 + whatsappNumber */
   private setupAutoFills() {
-    this.form.controls.phone.valueChanges.subscribe(val => {
+    this._subs.add(this.form.controls.phone.valueChanges.subscribe(val => {
       if (!val) return;
       const digits = val.replace(/\D/g, '');
       if (digits.length >= 10) {
         this.form.controls.phoneE164.setValue(digits, { emitEvent: false });
         this.form.controls.whatsappNumber.setValue(digits, { emitEvent: false });
       }
-    });
+    }));
 
     // Auto-generate booking ref prefix from clinic name (new clinics only)
     if (!this.isEdit) {
-      this.form.controls.name.valueChanges.subscribe(name => {
+      this._subs.add(this.form.controls.name.valueChanges.subscribe(name => {
         if (!name) return;
         const prefix = name.trim().split(/\s+/)
           .map(w => w[0]?.toUpperCase() ?? '')
           .join('')
           .slice(0, 4);
         if (prefix) this.form.controls.bookingRefPrefix.setValue(prefix, { emitEvent: false });
-      });
+      }));
     }
 
     // Billing auto-fills
     const updateAmount = () => {
       const plan  = this.form.controls.subscriptionPlan.value as 'trial' | 'starter' | 'pro';
       const cycle = this.form.controls.billingCycle.value as 'monthly' | 'yearly';
-      const rate  = cycle === 'yearly' ? PLATFORM_PLANS[plan].yearly : PLATFORM_PLANS[plan].monthly;
+      const rate  = PLATFORM_PLANS[plan]
+        ? (cycle === 'yearly' ? PLATFORM_PLANS[plan].yearly : PLATFORM_PLANS[plan].monthly)
+        : 0;
       this.form.controls.lastPaymentAmount.setValue(rate, { emitEvent: false });
     };
-    this.form.controls.subscriptionPlan.valueChanges.subscribe(updateAmount);
-    this.form.controls.billingCycle.valueChanges.subscribe(updateAmount);
+    this._subs.add(this.form.controls.subscriptionPlan.valueChanges.subscribe(updateAmount));
+    this._subs.add(this.form.controls.billingCycle.valueChanges.subscribe(updateAmount));
 
     // Auto-calculate subscriptionEndDate from lastPaymentDate + billingCycle
     const updateEndDate = () => {
@@ -197,8 +201,8 @@ export class ClinicFormComponent implements OnInit {
       else                     d.setMonth(d.getMonth() + 1);
       this.form.controls.subscriptionEndDate.setValue(d.toISOString().split('T')[0], { emitEvent: false });
     };
-    this.form.controls.lastPaymentDate.valueChanges.subscribe(updateEndDate);
-    this.form.controls.billingCycle.valueChanges.subscribe(updateEndDate);
+    this._subs.add(this.form.controls.lastPaymentDate.valueChanges.subscribe(updateEndDate));
+    this._subs.add(this.form.controls.billingCycle.valueChanges.subscribe(updateEndDate));
   }
 
   // TODO: Uncomment autoFillMapUrls + syncGoogleReviews when Google Maps API key is ready
@@ -408,5 +412,9 @@ export class ClinicFormComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  ngOnDestroy() {
+    this._subs.unsubscribe();
   }
 }
