@@ -76,18 +76,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: true });
   }
 
-  await db.collection('appointments').add({
-    clinicId,
-    bookingRef: `VOICE-${Date.now().toString(36).toUpperCase()}`,
-    name:       name     || 'Voice Caller',
-    phone:      phone    || '',
-    service:    service  || 'Dental Consultation',
-    date:       preferredDate || '',
-    time:       preferredTime || '',
-    status:     'pending',
-    source:     'voice',
-    createdAt:  FieldValue.serverTimestamp(),
-  });
+  try {
+    await db.collection('appointments').add({
+      clinicId,
+      bookingRef: `VOICE-${Date.now().toString(36).toUpperCase()}`,
+      name:       name     || 'Voice Caller',
+      phone:      phone    || '',
+      service:    service  || 'Dental Consultation',
+      date:       preferredDate || '',
+      time:       preferredTime || '',
+      status:     'pending',
+      source:     'voice',
+      createdAt:  FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    console.error('[vapi-webhook] Firestore write failed:', err);
+    // Still return 200 so Vapi does not retry the webhook endlessly
+    return res.status(200).json({ ok: true });
+  }
 
   return res.status(200).json({ ok: true });
 }

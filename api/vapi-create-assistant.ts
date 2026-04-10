@@ -87,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         provider: 'openai',
         voiceId:  'nova',
       },
-      serverUrl:    `${process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : ''}/api/vapi-webhook`,
+      serverUrl:    `${process.env['APP_BASE_URL'] ?? `https://${process.env['VERCEL_PROJECT_PRODUCTION_URL'] ?? process.env['VERCEL_URL']}`}/api/vapi-webhook`,
       serverUrlSecret: process.env['VAPI_WEBHOOK_SECRET'],
       metadata:    { clinicId },
       endCallMessage: 'Shukriya! Aapka din accha ho. Goodbye!',
@@ -104,10 +104,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const assistant = await vapiRes.json() as { id: string };
 
   // Store vapiAssistantId in Firestore
-  await db.collection('clinics').doc(clinicId).update({
-    vapiAssistantId: assistant.id,
-    vapiPublicKey:   process.env['VAPI_PUBLIC_KEY'] ?? '',
-  });
+  try {
+    await db.collection('clinics').doc(clinicId).update({
+      vapiAssistantId: assistant.id,
+      vapiPublicKey:   process.env['VAPI_PUBLIC_KEY'] ?? '',
+    });
+  } catch (err) {
+    console.error('[vapi-create-assistant] Firestore update failed:', err);
+    // Return the assistantId so the caller knows what was created,
+    // even if Firestore save failed (can be manually patched).
+    return res.status(500).json({
+      error:       'Vapi assistant created but Firestore update failed',
+      assistantId: assistant.id,
+    });
+  }
 
   return res.status(200).json({ assistantId: assistant.id });
 }
