@@ -142,8 +142,8 @@ export class PlatformLandingComponent implements OnInit {
   toggleFaq(i: number) { this.openFaq.set(this.openFaq() === i ? null : i); }
 
   // ── Replace with your real details ───────────────────────────────────────
-  readonly devWhatsapp = '919999999999';
-  readonly devEmail    = 'hello@yourplatform.com';
+  readonly devWhatsapp = '919140210648';
+  readonly devEmail    = 'hello@mydentalplatform.com';
   // ─────────────────────────────────────────────────────────────────────────
 
   clinicUrl(clinic: StoredClinic): string {
