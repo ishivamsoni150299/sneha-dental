@@ -143,7 +143,7 @@ export class PlatformLandingComponent implements OnInit {
 
   // ── Replace with your real details ───────────────────────────────────────
   readonly devWhatsapp = '919140210648';
-  readonly devEmail    = 'hello@mydentalplatform.com';
+  readonly devEmail    = 'ishivamsoni150299@gmail.com';
   // ─────────────────────────────────────────────────────────────────────────
 
   clinicUrl(clinic: StoredClinic): string {
