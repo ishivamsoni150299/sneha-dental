@@ -1,9 +1,9 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex flex-col">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
 
   <!-- ── Top bar ───────────────────────────────────────────────────────────── -->
   <header class="border-b border-gray-100 bg-white/90 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-      <a routerLink="/business" class="flex items-center gap-2 group">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a routerLink="/business" class="flex items-center gap-2">
         <div class="w-7 h-7 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
           <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
@@ -12,90 +12,96 @@
         <span class="font-bold text-gray-900 text-sm">mydentalplatform</span>
       </a>
       <p class="text-xs text-gray-400">Already have an account?
-        <a routerLink="/business/login" class="text-blue-600 hover:underline font-medium">Sign in →</a>
+        <a routerLink="/business/login" class="text-blue-600 hover:underline font-semibold">Sign in →</a>
       </p>
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col items-center justify-start py-10 px-4">
-    <div class="w-full max-w-xl">
+  <main class="flex-1 flex flex-col lg:flex-row max-w-6xl mx-auto w-full px-4 py-8 lg:py-0 gap-8 lg:gap-0">
 
-      <!-- ── Progress bar ──────────────────────────────────────────────────── -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- LEFT — Form                                                          -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="flex-1 flex flex-col justify-center lg:py-12 lg:pr-10">
+
+      <!-- Progress steps -->
       @if (step() < 4) {
         <div class="mb-8">
-          <div class="flex items-center justify-between mb-3">
+          <!-- Step indicators -->
+          <div class="flex items-center gap-0 mb-4">
             @for (s of [1, 2, 3]; track s) {
               <div class="flex items-center" [class.flex-1]="s < 3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300"
-                     [class]="step() > s
-                       ? 'bg-green-500 text-white'
-                       : step() === s
-                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                         : 'bg-gray-100 text-gray-400'">
-                  @if (step() > s) {
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  } @else {
-                    {{ s }}
-                  }
+                <div class="flex flex-col items-center">
+                  <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 border-2"
+                       [class]="step() > s
+                         ? 'bg-green-500 border-green-500 text-white'
+                         : step() === s
+                           ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
+                           : 'bg-white border-gray-200 text-gray-400'">
+                    @if (step() > s) {
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    } @else { {{ s }} }
+                  </div>
+                  <span class="text-[10px] mt-1 font-medium hidden sm:block"
+                        [class]="step() === s ? 'text-blue-600' : step() > s ? 'text-green-500' : 'text-gray-300'">
+                    @if (s === 1) { Clinic }
+                    @else if (s === 2) { Account }
+                    @else { Plan }
+                  </span>
                 </div>
                 @if (s < 3) {
-                  <div class="flex-1 h-0.5 mx-2 transition-colors duration-300"
+                  <div class="flex-1 h-0.5 mx-2 mb-4 transition-colors duration-500"
                        [class]="step() > s ? 'bg-green-400' : 'bg-gray-200'"></div>
                 }
               </div>
             }
           </div>
-          <p class="text-xs text-gray-400 text-center">
-            @if (step() === 1) { Step 1 of 3 — Clinic details }
-            @else if (step() === 2) { Step 2 of 3 — Your account & subdomain }
-            @else if (step() === 3) { Step 3 of 3 — Choose your plan }
-          </p>
         </div>
       }
 
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- STEP 1 — Clinic basics                                             -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- ─── STEP 1 — Clinic basics ───────────────────────────────────── -->
       @if (step() === 1) {
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h1 class="text-xl font-bold text-gray-900 mb-1">Tell us about your clinic</h1>
-          <p class="text-sm text-gray-400 mb-7">This will appear on your public website.</p>
+        <div class="animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div class="mb-7">
+            <h1 class="text-2xl font-extrabold text-gray-900">Your clinic, your website</h1>
+            <p class="text-gray-400 text-sm mt-1">Takes 2 minutes. Goes live in seconds.</p>
+          </div>
 
-          <form [formGroup]="step1" class="space-y-5" (ngSubmit)="next()">
+          <form [formGroup]="step1" class="space-y-4" (ngSubmit)="next()">
 
             <!-- Clinic name -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                Clinic name <span class="text-red-500">*</span>
+                Clinic name <span class="text-red-400">*</span>
               </label>
-              <input formControlName="name" type="text"
+              <input formControlName="name" type="text" autocomplete="organization"
                      placeholder="e.g. Indram Dental Clinic"
                      class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all
-                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                      [class]="isInvalid(step1.controls.name) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
               @if (isInvalid(step1.controls.name)) {
-                <p class="text-xs text-red-500 mt-1">Enter the full clinic name (at least 3 characters)</p>
+                <p class="text-xs text-red-500 mt-1">Please enter your clinic name (at least 3 characters)</p>
               }
             </div>
 
-            <!-- Doctor -->
-            <div class="grid grid-cols-2 gap-4">
-              <div>
+            <!-- Doctor name + Qualification -->
+            <div class="grid grid-cols-5 gap-3">
+              <div class="col-span-3">
                 <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                  Doctor's name <span class="text-red-500">*</span>
+                  Doctor's name <span class="text-red-400">*</span>
                 </label>
-                <input formControlName="doctorName" type="text"
+                <input formControlName="doctorName" type="text" autocomplete="name"
                        placeholder="Dr. Ankit Jain"
                        class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all
-                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                        [class]="isInvalid(step1.controls.doctorName) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Qualification</label>
+              <div class="col-span-2">
+                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Degree</label>
                 <select formControlName="doctorQualification"
-                        class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none
+                        class="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm outline-none
                                focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                   <option>BDS</option>
                   <option>MDS</option>
@@ -109,28 +115,28 @@
             <!-- City -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                City <span class="text-red-500">*</span>
+                City <span class="text-red-400">*</span>
               </label>
-              <input formControlName="city" type="text"
+              <input formControlName="city" type="text" autocomplete="address-level2"
                      placeholder="e.g. Jhansi, Uttar Pradesh"
                      class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all
-                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                      [class]="isInvalid(step1.controls.city) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
             </div>
 
             <!-- Phone -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                Clinic phone number <span class="text-red-500">*</span>
+                Clinic phone <span class="text-red-400">*</span>
               </label>
               <div class="flex gap-2">
-                <span class="flex items-center px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 select-none">
-                  +91
+                <span class="flex items-center px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 font-medium select-none">
+                  🇮🇳 +91
                 </span>
-                <input formControlName="phone" type="tel" maxlength="10"
+                <input formControlName="phone" type="tel" maxlength="10" autocomplete="tel"
                        placeholder="9876543210"
                        class="flex-1 border rounded-xl px-4 py-3 text-sm outline-none transition-all
-                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                        [class]="isInvalid(step1.controls.phone) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
               </div>
               @if (isInvalid(step1.controls.phone)) {
@@ -138,305 +144,315 @@
               }
             </div>
 
-            <!-- WhatsApp (optional) -->
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                WhatsApp number
-                <span class="text-gray-400 font-normal ml-1">(defaults to phone if blank)</span>
-              </label>
-              <div class="flex gap-2">
-                <span class="flex items-center px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 select-none">
-                  +91
-                </span>
-                <input formControlName="whatsappNumber" type="tel" maxlength="10"
-                       placeholder="Same as phone"
-                       class="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none
-                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-            </div>
-
             <button type="submit"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl
-                           text-sm transition-all hover:shadow-lg hover:-translate-y-0.5 mt-2">
-              Continue →
+                           text-sm transition-all hover:shadow-lg hover:-translate-y-0.5 mt-2
+                           shadow-md shadow-blue-200 flex items-center justify-center gap-2">
+              Continue
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
             </button>
           </form>
         </div>
       }
 
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- STEP 2 — Account + subdomain                                       -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- ─── STEP 2 — Account + subdomain ─────────────────────────────── -->
       @if (step() === 2) {
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-7 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h1 class="text-xl font-bold text-gray-900 mb-1">Set up your account</h1>
-          <p class="text-sm text-gray-400 mb-7">This is how you'll log in to manage your clinic.</p>
+        <div class="animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div class="mb-7">
+            <h1 class="text-2xl font-extrabold text-gray-900">Set up your account</h1>
+            <p class="text-gray-400 text-sm mt-1">Your login details and website address.</p>
+          </div>
 
-          <form [formGroup]="step2" class="space-y-5" (ngSubmit)="next()">
+          <form [formGroup]="step2" class="space-y-4" (ngSubmit)="next()">
 
             <!-- Subdomain -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                Your website address <span class="text-red-500">*</span>
+                Your website address <span class="text-red-400">*</span>
               </label>
-              <div class="flex items-stretch">
+              <div class="flex items-stretch rounded-xl border overflow-hidden transition-all focus-within:ring-2 focus-within:ring-blue-500"
+                   [class]="isInvalid(step2.controls.slug) ? 'border-red-300' : 'border-gray-200'">
                 <input type="text" [value]="step2.controls.slug.value"
                        (input)="onSlugInput($event)"
                        maxlength="30"
                        placeholder="yourclinic"
-                       class="flex-1 border-y border-l rounded-l-xl px-4 py-3 text-sm outline-none transition-all
-                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-0"
-                       [class]="isInvalid(step2.controls.slug) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
-                <span class="flex items-center px-3 bg-gray-50 border border-gray-200 rounded-r-xl text-xs text-gray-500 whitespace-nowrap select-none border-l-0">
+                       class="flex-1 px-4 py-3 text-sm outline-none bg-white min-w-0">
+                <span class="flex items-center px-3 bg-gray-50 text-xs text-gray-400 whitespace-nowrap border-l border-gray-200 select-none">
                   .mydentalplatform.com
                 </span>
               </div>
-              <!-- Availability indicator -->
-              <div class="mt-2 h-5">
+
+              <!-- Availability status -->
+              <div class="mt-2 min-h-[20px]">
                 @if (slugStatus() === 'checking') {
                   <p class="text-xs text-gray-400 flex items-center gap-1.5">
-                    <span class="inline-block w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></span>
+                    <span class="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block"></span>
                     Checking availability…
                   </p>
                 } @else if (slugStatus() === 'available') {
                   <p class="text-xs text-green-600 flex items-center gap-1.5 font-medium">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Available! Your site will be at <strong>{{ step2.controls.slug.value }}.mydentalplatform.com</strong>
+                    <strong>{{ step2.controls.slug.value }}.mydentalplatform.com</strong> is available!
                   </p>
                 } @else if (slugStatus() === 'taken') {
                   <p class="text-xs text-red-500 flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    This address is already taken. Try a different name.
+                    Already taken — try a different name
                   </p>
                 }
               </div>
-              @if (isInvalid(step2.controls.slug)) {
-                <p class="text-xs text-red-500 mt-1">Only lowercase letters and numbers, 3–30 characters</p>
-              }
             </div>
 
             <!-- Email -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                Your email address <span class="text-red-500">*</span>
+                Email address <span class="text-red-400">*</span>
               </label>
-              <input formControlName="email" type="email"
-                     placeholder="doctor@yourclinic.com"
+              <input formControlName="email" type="email" autocomplete="email"
+                     placeholder="doctor@example.com"
                      class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all
-                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                      [class]="isInvalid(step2.controls.email) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
               @if (isInvalid(step2.controls.email)) {
                 <p class="text-xs text-red-500 mt-1">Enter a valid email address</p>
               }
             </div>
 
-            <!-- Password -->
+            <!-- Password with show/hide -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                Password <span class="text-red-500">*</span>
-                <span class="text-gray-400 font-normal ml-1">(min. 6 characters)</span>
+                Password <span class="text-red-400">*</span>
+                <span class="text-gray-400 font-normal ml-1">— min. 6 characters</span>
               </label>
-              <input formControlName="password" type="password"
-                     placeholder="••••••••"
-                     class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all
-                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                     [class]="isInvalid(step2.controls.password) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
+              <div class="relative">
+                <input formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+                       autocomplete="new-password"
+                       placeholder="••••••••"
+                       class="w-full border rounded-xl px-4 py-3 pr-11 text-sm outline-none transition-all
+                              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                       [class]="isInvalid(step2.controls.password) ? 'border-red-300 bg-red-50' : 'border-gray-200'">
+                <button type="button" (click)="showPassword.set(!showPassword())"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                  @if (showPassword()) {
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                  }
+                </button>
+              </div>
               @if (isInvalid(step2.controls.password)) {
                 <p class="text-xs text-red-500 mt-1">Password must be at least 6 characters</p>
               }
-              <p class="text-xs text-gray-400 mt-1.5">You'll use this to log in to your admin dashboard.</p>
             </div>
 
             <div class="flex gap-3 pt-1">
               <button type="button" (click)="back()"
-                      class="flex-1 border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900
+                      class="flex-1 border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50
                              font-semibold py-3 rounded-xl text-sm transition-all">
                 ← Back
               </button>
               <button type="submit"
                       [disabled]="slugStatus() === 'taken' || slugStatus() === 'checking'"
-                      class="flex-[2] bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
-                             text-white font-bold py-3 rounded-xl text-sm transition-all hover:shadow-lg">
-                Continue →
+                      class="flex-[2] bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed
+                             text-white font-bold py-3 rounded-xl text-sm transition-all hover:shadow-lg
+                             flex items-center justify-center gap-2">
+                Continue
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
               </button>
             </div>
           </form>
         </div>
       }
 
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- STEP 3 — Plan selection                                            -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- ─── STEP 3 — Plan ─────────────────────────────────────────────── -->
       @if (step() === 3) {
-        <div class="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4">
-          <div class="text-center mb-2">
-            <h1 class="text-xl font-bold text-gray-900">Choose your plan</h1>
-            <p class="text-sm text-gray-400 mt-1">Start free — upgrade anytime. No lock-in.</p>
+        <div class="animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div class="mb-6">
+            <h1 class="text-2xl font-extrabold text-gray-900">Choose your plan</h1>
+            <p class="text-gray-400 text-sm mt-1">Start free. Upgrade anytime. No lock-in ever.</p>
           </div>
 
-          @for (plan of plans; track plan.id) {
-            <div (click)="selectPlan(plan.id)"
-                 class="bg-white rounded-2xl border-2 p-5 cursor-pointer transition-all duration-200"
-                 [class]="selectedPlan() === plan.id
-                   ? 'border-blue-600 shadow-lg shadow-blue-100'
-                   : 'border-gray-200 hover:border-gray-300 hover:shadow-md'">
-              <div class="flex items-start gap-4">
-                <!-- Radio -->
-                <div class="w-5 h-5 rounded-full border-2 mt-0.5 flex-shrink-0 flex items-center justify-center transition-all"
-                     [class]="selectedPlan() === plan.id ? 'border-blue-600' : 'border-gray-300'">
-                  @if (selectedPlan() === plan.id) {
-                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
-                  }
-                </div>
-                <!-- Content -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center justify-between gap-2 flex-wrap">
-                    <div class="flex items-center gap-2">
-                      <p class="font-bold text-gray-900">{{ plan.name }}</p>
-                      @if (plan.highlighted) {
-                        <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">Popular</span>
-                      }
-                    </div>
-                    <div class="text-right">
-                      <span class="text-lg font-extrabold text-gray-900">{{ plan.price }}</span>
-                      <span class="text-xs text-gray-400 ml-1">{{ plan.period }}</span>
-                    </div>
+          <div class="space-y-3">
+            @for (plan of plans; track plan.id) {
+              <div (click)="selectPlan(plan.id)"
+                   class="rounded-2xl border-2 p-4 cursor-pointer transition-all duration-200 relative"
+                   [class]="selectedPlan() === plan.id
+                     ? plan.id === 'trial'
+                       ? 'border-green-500 bg-green-50/50 shadow-md shadow-green-100'
+                       : 'border-blue-600 bg-blue-50/30 shadow-md shadow-blue-100'
+                     : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'">
+
+                @if (plan.id === 'trial' && selectedPlan() === 'trial') {
+                  <div class="absolute -top-3 left-4">
+                    <span class="bg-green-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
+                      Recommended — Start here
+                    </span>
                   </div>
-                  <p class="text-xs text-gray-400 mt-0.5 mb-3">{{ plan.desc }}</p>
-                  <ul class="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-3">
-                    @for (feat of plan.features; track feat) {
-                      <li class="flex items-center gap-1.5 text-xs text-gray-600">
-                        <svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        {{ feat }}
-                      </li>
+                }
+                @if (plan.highlighted && selectedPlan() === plan.id) {
+                  <div class="absolute -top-3 left-4">
+                    <span class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
+                      Most Popular
+                    </span>
+                  </div>
+                }
+
+                <div class="flex items-start gap-3">
+                  <!-- Radio dot -->
+                  <div class="w-5 h-5 rounded-full border-2 mt-0.5 flex-shrink-0 flex items-center justify-center transition-all"
+                       [class]="selectedPlan() === plan.id
+                         ? plan.id === 'trial' ? 'border-green-500' : 'border-blue-600'
+                         : 'border-gray-300'">
+                    @if (selectedPlan() === plan.id) {
+                      <div class="w-2.5 h-2.5 rounded-full"
+                           [class]="plan.id === 'trial' ? 'bg-green-500' : 'bg-blue-600'"></div>
                     }
-                  </ul>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <p class="font-bold text-gray-900 text-sm">{{ plan.name }}</p>
+                      </div>
+                      <div class="text-right flex-shrink-0">
+                        <span class="text-base font-extrabold" [class]="plan.id === 'trial' ? 'text-green-600' : 'text-gray-900'">
+                          {{ plan.price }}
+                        </span>
+                        <span class="text-xs text-gray-400 ml-0.5">{{ plan.period }}</span>
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-0.5 mb-2">{{ plan.desc }}</p>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-3">
+                      @for (feat of plan.features; track feat) {
+                        <li class="flex items-center gap-1.5 text-xs text-gray-600">
+                          <svg class="w-3 h-3 flex-shrink-0" [class]="plan.id === 'trial' ? 'text-green-500' : 'text-blue-500'"
+                               fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          {{ feat }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-          }
+            }
+          </div>
 
-          <!-- Error -->
           @if (error()) {
-            <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mt-4">
               {{ error() }}
             </div>
           }
 
-          <div class="flex gap-3 pt-1">
+          <div class="flex gap-3 pt-4">
             <button (click)="back()"
-                    class="flex-1 border border-gray-200 text-gray-600 hover:border-gray-300
+                    class="flex-1 border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50
                            font-semibold py-3 rounded-xl text-sm transition-all">
               ← Back
             </button>
             <button (click)="submit()" [disabled]="submitting()"
                     class="flex-[2] font-bold py-3.5 rounded-xl text-sm transition-all
-                           flex items-center justify-center gap-2"
+                           flex items-center justify-center gap-2 shadow-md"
                     [class]="submitting()
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-lg hover:-translate-y-0.5'">
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                      : selectedPlan() === 'trial'
+                        ? 'bg-green-600 hover:bg-green-700 text-white hover:shadow-lg shadow-green-200'
+                        : 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-lg'">
               @if (submitting()) {
                 <span class="w-4 h-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin"></span>
                 Creating your website…
               } @else if (selectedPlan() === 'trial') {
-                Launch my free website →
+                🚀 Launch my free website
               } @else {
                 Create website &amp; pay →
               }
             </button>
           </div>
-
-          <p class="text-center text-xs text-gray-400">
-            All prices in INR · GST extra · Cancel anytime · No setup fee
-          </p>
+          <p class="text-center text-xs text-gray-400 mt-3">All prices in INR · GST extra · No setup fee</p>
         </div>
       }
 
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
-      <!-- STEP 4 — Success                                                   -->
-      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- ─── STEP 4 — Success ──────────────────────────────────────────── -->
       @if (step() === 4 && result()) {
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center animate-in fade-in zoom-in-95 duration-300">
-          <!-- Checkmark -->
-          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg class="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          </div>
+        <div class="animate-in fade-in zoom-in-95 duration-500">
 
-          <h1 class="text-2xl font-extrabold text-gray-900 mb-2">Your website is live! 🎉</h1>
-
-          @if (result()!.plan === 'trial') {
-            <p class="text-sm text-gray-500 mb-6">
-              Your 30-day free trial is active.
-              @if (result()!.trialEndDate) {
-                Trial ends on <strong>{{ result()!.trialEndDate }}</strong>.
+          <!-- Big celebration -->
+          <div class="text-center mb-8">
+            <div class="text-6xl mb-4">🎉</div>
+            <h1 class="text-3xl font-extrabold text-gray-900">Your website is live!</h1>
+            <p class="text-gray-500 text-sm mt-2">
+              @if (result()!.plan === 'trial') {
+                30-day free trial active
+                @if (result()!.trialEndDate) { · Trial ends <strong>{{ result()!.trialEndDate }}</strong> }
+              } @else {
+                Your clinic website is ready
               }
             </p>
-          } @else if (result()!.paymentUrl) {
-            <p class="text-sm text-gray-500 mb-2">
-              Your site is created. Complete payment to keep it active.
-            </p>
-          } @else {
-            <p class="text-sm text-gray-500 mb-6">Your clinic website is live and ready.</p>
-          }
-
-          <!-- Site URL -->
-          <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4 text-left">
-            <p class="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Your website</p>
-            <a [href]="result()!.siteUrl" target="_blank" rel="noopener"
-               class="text-blue-600 hover:underline font-semibold text-sm break-all">
-              {{ result()!.siteUrl }} ↗
-            </a>
           </div>
 
-          <!-- Admin URL -->
-          <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-left">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Admin dashboard</p>
-            <a [href]="result()!.adminUrl" target="_blank" rel="noopener"
-               class="text-gray-700 hover:underline font-semibold text-sm break-all">
-              {{ result()!.adminUrl }} ↗
-            </a>
-            <p class="text-xs text-gray-400 mt-1">Login with: <strong>{{ result()!.email }}</strong></p>
-          </div>
+          <!-- Site URL — most prominent -->
+          <a [href]="result()!.siteUrl" target="_blank" rel="noopener"
+             class="block bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-5 mb-4
+                    hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 group">
+            <p class="text-xs font-semibold text-blue-200 uppercase tracking-wide mb-1">Your website</p>
+            <p class="font-bold text-lg break-all group-hover:underline">{{ result()!.siteUrl }}</p>
+            <p class="text-xs text-blue-200 mt-1">Click to visit your live website ↗</p>
+          </a>
+
+          <!-- Admin dashboard -->
+          <a [href]="result()!.adminUrl" target="_blank" rel="noopener"
+             class="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 hover:shadow-md transition-all group">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Admin dashboard</p>
+            <p class="font-semibold text-gray-800 text-sm break-all group-hover:text-blue-600">{{ result()!.adminUrl }} ↗</p>
+            <p class="text-xs text-gray-400 mt-1">Login: <strong>{{ result()!.email }}</strong></p>
+          </a>
 
           <!-- Payment link for paid plans -->
           @if (result()!.paymentUrl) {
             <a [href]="result()!.paymentUrl" target="_blank" rel="noopener"
-               class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl
-                      text-sm transition-all hover:shadow-lg mb-4">
-              Complete payment →
+               class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl
+                      text-sm transition-all hover:shadow-lg mb-4 text-center">
+              Complete payment to activate →
             </a>
           }
 
           <!-- What's next -->
-          <div class="text-left mt-4 space-y-2.5">
-            <p class="text-xs font-semibold text-gray-700 uppercase tracking-wide">What's next?</p>
-            @for (tip of [
-              'Visit your website and try booking an appointment',
-              'Log in to your admin dashboard to see appointments',
-              'Share your website link with patients on WhatsApp',
-              'Upgrade to a paid plan to add a custom domain'
-            ]; track tip) {
-              <div class="flex items-start gap-2 text-xs text-gray-500">
-                <span class="text-blue-500 font-bold mt-0.5">→</span>
-                {{ tip }}
-              </div>
-            }
+          <div class="bg-white border border-gray-200 rounded-2xl p-5">
+            <p class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">What to do next</p>
+            <div class="space-y-3">
+              @for (tip of [
+                {icon: '🌐', text: 'Visit your website and try booking an appointment'},
+                {icon: '📊', text: 'Log in to your admin dashboard to manage bookings'},
+                {icon: '📲', text: 'Share your website link with patients on WhatsApp'},
+                {icon: '🌟', text: 'Upgrade to Starter/Pro to add your custom domain'}
+              ]; track tip.text) {
+                <div class="flex items-start gap-3 text-sm text-gray-600">
+                  <span class="text-base flex-shrink-0">{{ tip.icon }}</span>
+                  {{ tip.text }}
+                </div>
+              }
+            </div>
           </div>
         </div>
       }
 
-      <!-- Trust strip (shown on steps 1-3) -->
+      <!-- Trust strip -->
       @if (step() < 4) {
-        <div class="mt-6 flex flex-wrap justify-center gap-4 text-xs text-gray-400">
-          @for (t of ['No credit card for trial', 'Cancel anytime', 'Live in seconds', 'Data secured by Firebase']; track t) {
+        <div class="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-gray-400">
+          @for (t of ['No credit card for trial', 'Cancel anytime', 'Data secured by Firebase', 'HTTPS on every site']; track t) {
             <span class="flex items-center gap-1.5">
               <svg class="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -446,7 +462,85 @@
           }
         </div>
       }
-
     </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- RIGHT — Benefits panel (desktop only)                               -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="hidden lg:flex w-80 xl:w-96 flex-col justify-center py-12 pl-10 border-l border-gray-100">
+
+      @if (step() < 4) {
+        <!-- What you get -->
+        <div class="mb-8">
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">What you get — free</p>
+          <ul class="space-y-3">
+            @for (f of [
+              {icon: '🌐', title: 'Live website in seconds',    desc: 'Your clinic online at yourclinic.mydentalplatform.com'},
+              {icon: '📅', title: 'Online appointment booking', desc: 'Patients book 24/7 without calling you'},
+              {icon: '💬', title: 'WhatsApp notifications',     desc: 'Instant alert every time someone books'},
+              {icon: '📊', title: 'Admin dashboard',            desc: 'View and manage all bookings in one place'},
+              {icon: '🔒', title: 'Free SSL (HTTPS)',           desc: 'Secure, professional, trusted by Google'},
+              {icon: '🎙️', title: 'AI voice receptionist',      desc: 'Answers calls in Hindi & English 24/7 (Pro)'},
+            ]; track f.title) {
+              <li class="flex items-start gap-3">
+                <span class="text-xl flex-shrink-0 mt-0.5">{{ f.icon }}</span>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">{{ f.title }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ f.desc }}</p>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Testimonial -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex gap-1 mb-3">
+            @for (i of [1,2,3,4,5]; track i) {
+              <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+            }
+          </div>
+          <p class="text-sm text-gray-600 leading-relaxed italic">
+            "Launched on a Friday. By Monday we had 5 new appointment requests from patients who found us online."
+          </p>
+          <div class="flex items-center gap-2.5 mt-4">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
+              PS
+            </div>
+            <div>
+              <p class="text-xs font-bold text-gray-900">Dr. Priya Sharma</p>
+              <p class="text-[11px] text-gray-400">Smile Care Dental · Delhi</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social proof numbers -->
+        <div class="mt-5 flex items-center justify-between text-center">
+          @for (s of [{v:'20+', l:'Clinics live'}, {v:'4.9★', l:'Avg rating'}, {v:'₹0', l:'Setup cost'}]; track s.l) {
+            <div>
+              <div class="text-lg font-extrabold text-gray-900">{{ s.v }}</div>
+              <div class="text-[11px] text-gray-400">{{ s.l }}</div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (step() === 4) {
+        <div class="text-center space-y-6">
+          <div class="text-7xl">🦷</div>
+          <div>
+            <p class="text-xl font-extrabold text-gray-900">Welcome to mydentalplatform!</p>
+            <p class="text-sm text-gray-400 mt-2">Your clinic is now visible to patients searching online.</p>
+          </div>
+          <div class="bg-blue-50 border border-blue-100 rounded-2xl p-5 text-left space-y-2">
+            <p class="text-xs font-bold text-blue-700 uppercase tracking-wide">Quick tip</p>
+            <p class="text-sm text-gray-600">Share your new website URL on your clinic's WhatsApp groups and ask patients to bookmark it.</p>
+          </div>
+        </div>
+      }
+    </div>
+
   </main>
 </div>

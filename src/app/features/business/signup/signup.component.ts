@@ -111,13 +111,14 @@ export class SignupComponent implements OnInit {
   ];
 
   // ── Forms ───────────────────────────────────────────────────────────────
+  readonly showPassword = signal(false);
+
   readonly step1 = this.fb.nonNullable.group({
     name:                ['', [Validators.required, Validators.minLength(3)]],
     doctorName:          ['', Validators.required],
     doctorQualification: ['BDS', Validators.required],
     city:                ['', Validators.required],
     phone:               ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
-    whatsappNumber:      [''],
   });
 
   readonly step2 = this.fb.nonNullable.group({
@@ -143,15 +144,6 @@ export class SignupComponent implements OnInit {
     ).subscribe(name => {
       const slug = toSlug(name);
       this.step2.controls.slug.setValue(slug, { emitEvent: true });
-    });
-
-    // Auto-fill WhatsApp = phone if blank
-    this.step1.controls.phone.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(phone => {
-      if (!this.step1.controls.whatsappNumber.value) {
-        this.step1.controls.whatsappNumber.setValue(phone);
-      }
     });
 
     // Real-time slug availability check
@@ -234,7 +226,7 @@ export class SignupComponent implements OnInit {
           city:                s1.city.trim(),
           phone:               s1.phone.trim(),
           phoneE164,
-          whatsappNumber:      s1.whatsappNumber.trim() || phoneE164,
+          whatsappNumber:      phoneE164,
           email:               s2.email.trim(),
           password:            s2.password,
           slug:                s2.slug,
