@@ -37,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       subscriptionId: sub.id,
-      shortUrl:       (sub as Record<string, unknown>)['short_url'],
+      shortUrl:       (sub as unknown as Record<string, unknown>)['short_url'],
     });
   } catch (err: unknown) {
     console.error('Razorpay create subscription error:', err);

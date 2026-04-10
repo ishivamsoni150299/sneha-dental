@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, serverTimestamp } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 if (!getApps().length) {
   initializeApp({
@@ -86,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     time:       preferredTime || '',
     status:     'pending',
     source:     'voice',
-    createdAt:  serverTimestamp(),
+    createdAt:  FieldValue.serverTimestamp(),
   });
 
   return res.status(200).json({ ok: true });
