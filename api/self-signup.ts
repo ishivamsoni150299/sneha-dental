@@ -1,0 +1,241 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
+import Razorpay from 'razorpay';
+
+// ── Firebase Admin ────────────────────────────────────────────────────────────
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId:   process.env['FIREBASE_PROJECT_ID'],
+      clientEmail: process.env['FIREBASE_CLIENT_EMAIL'],
+      privateKey:  process.env['FIREBASE_PRIVATE_KEY']?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+const db   = getFirestore();
+const auth = getAuth();
+
+// ── Razorpay plan IDs ─────────────────────────────────────────────────────────
+const RAZORPAY_PLAN_IDS: Record<string, string | undefined> = {
+  starter: process.env['RAZORPAY_PLAN_STARTER'],
+  pro:     process.env['RAZORPAY_PLAN_PRO'],
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Convert clinic name to a URL-safe slug, e.g. "Indram Dental!" → "indramdental" */
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')   // remove non-alphanumeric
+    .slice(0, 30);                // max 30 chars
+}
+
+/** Find a unique slug by appending an incrementing number if needed. */
+async function uniqueSlug(base: string): Promise<string> {
+  let candidate = base;
+  let i = 2;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const existing = await db.collection('clinics')
+      .where('vercelDomain', '==', `${candidate}.mydentalplatform.com`)
+      .limit(1).get();
+    if (existing.empty) return candidate;
+    candidate = `${base}${i}`;
+    i++;
+    if (i > 99) return `${base}${Date.now()}`; // fallback
+  }
+}
+
+// ── Handler ───────────────────────────────────────────────────────────────────
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const {
+    // Clinic
+    name, doctorName, doctorQualification, city,
+    addressLine1, addressLine2,
+    phone, phoneE164, whatsappNumber,
+    // Account
+    email, password,
+    // Plan
+    plan = 'trial',
+    // Optional
+    slug: preferredSlug,
+  } = req.body ?? {};
+
+  // ── Basic validation ───────────────────────────────────────────────────────
+  if (!name || !email || !password || !phone) {
+    return res.status(400).json({ error: 'name, email, password, and phone are required.' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  }
+  if (!['trial', 'starter', 'pro'].includes(plan)) {
+    return res.status(400).json({ error: 'Invalid plan.' });
+  }
+
+  // ── Generate unique subdomain ──────────────────────────────────────────────
+  const baseSlug = preferredSlug ? toSlug(preferredSlug) : toSlug(name);
+  if (!baseSlug) return res.status(400).json({ error: 'Clinic name too short to generate a subdomain.' });
+
+  const slug    = await uniqueSlug(baseSlug);
+  const domain  = `${slug}.mydentalplatform.com`;
+  const siteUrl = `https://${domain}`;
+
+  // ── Trial end date (30 days from today) ────────────────────────────────────
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 30);
+  const trialEndDate = trialEnd.toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+  // ── Create Firebase Auth user ──────────────────────────────────────────────
+  let uid: string;
+  try {
+    const user = await auth.createUser({ email, password, displayName: name });
+    uid = user.uid;
+  } catch (err: unknown) {
+    const msg = (err as { code?: string; message?: string });
+    if (msg.code === 'auth/email-already-exists') {
+      return res.status(409).json({ error: 'An account with this email already exists. Please log in.' });
+    }
+    console.error('[self-signup] Auth create user failed:', err);
+    return res.status(500).json({ error: 'Failed to create account.' });
+  }
+
+  // ── Create Firestore clinic doc ────────────────────────────────────────────
+  const clinicData: Record<string, unknown> = {
+    name:                name.trim(),
+    doctorName:          doctorName?.trim() ?? '',
+    doctorQualification: doctorQualification?.trim() ?? 'BDS',
+    doctorUniversity:    '',
+    doctorBio:           [],
+    patientCount:        '0',
+    phone:               phone.trim(),
+    phoneE164:           phoneE164?.trim() ?? whatsappNumber?.trim() ?? '',
+    whatsappNumber:      whatsappNumber?.trim() ?? phoneE164?.trim() ?? '',
+    addressLine1:        addressLine1?.trim() ?? city?.trim() ?? '',
+    addressLine2:        addressLine2?.trim() ?? '',
+    city:                city?.trim() ?? '',
+    mapEmbedUrl:         '',
+    mapDirectionsUrl:    '',
+    theme:               'blue',
+    bookingRefPrefix:    slug.slice(0, 2).toUpperCase() || 'BK',
+    social:              {},
+    hours:               [],
+    services:            [],
+    plans:               [],
+    testimonials:        [],
+    // Platform fields
+    vercelDomain:        domain,
+    active:              true,
+    // Billing
+    subscriptionPlan:    plan,
+    subscriptionStatus:  plan === 'trial' ? 'trial' : 'pending',
+    trialEndDate:        plan === 'trial' ? trialEndDate : null,
+    billingEmail:        email,
+    // Auth
+    adminEmail:          email,
+    adminUid:            uid,
+    // Timestamps
+    createdAt:           FieldValue.serverTimestamp(),
+  };
+
+  let clinicId: string;
+  try {
+    const ref = await db.collection('clinics').add(clinicData);
+    clinicId = ref.id;
+  } catch (err) {
+    console.error('[self-signup] Firestore create clinic failed:', err);
+    // Cleanup: delete the auth user we just created
+    await auth.deleteUser(uid).catch(() => null);
+    return res.status(500).json({ error: 'Failed to save clinic. Please try again.' });
+  }
+
+  // Store clinicId in the Firestore doc itself
+  await db.collection('clinics').doc(clinicId).update({ clinicId }).catch(() => null);
+
+  // Set custom claim on the Firebase Auth user so adminGuard works on the clinic site
+  await auth.setCustomUserClaims(uid, { clinicId, role: 'admin' }).catch(() => null);
+
+  // ── Register subdomain on Vercel (Hobby-plan compatible — individual domain, not wildcard) ──
+  // Requires VERCEL_TOKEN + VERCEL_PROJECT_ID env vars.
+  // The wildcard CNAME *.mydentalplatform.com → cname.vercel-dns.com at Hostinger
+  // already resolves the DNS — this call just tells Vercel to route it to this project.
+  const vercelToken     = process.env['VERCEL_TOKEN'];
+  const vercelProjectId = process.env['VERCEL_PROJECT_ID'];
+  let vercelDomainAdded = false;
+
+  if (vercelToken && vercelProjectId) {
+    try {
+      const vRes = await fetch(
+        `https://api.vercel.com/v9/projects/${vercelProjectId}/domains`,
+        {
+          method:  'POST',
+          headers: {
+            Authorization:  `Bearer ${vercelToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: domain }),
+        },
+      );
+      const vBody = await vRes.json() as { error?: { code?: string } };
+      if (vRes.ok || vBody?.error?.code === 'domain_already_exists') {
+        vercelDomainAdded = true;
+      } else {
+        console.warn('[self-signup] Vercel domain add returned non-OK:', vRes.status);
+      }
+    } catch (err) {
+      console.error('[self-signup] Vercel domain registration failed (non-fatal):', err);
+    }
+  } else {
+    console.warn('[self-signup] VERCEL_TOKEN or VERCEL_PROJECT_ID not set — skipping domain registration');
+  }
+
+  // ── Razorpay subscription for paid plans ───────────────────────────────────
+  let razorpayShortUrl: string | null = null;
+  let subscriptionId: string | null   = null;
+
+  if (plan !== 'trial') {
+    const planId = RAZORPAY_PLAN_IDS[plan];
+    if (planId) {
+      try {
+        const razorpay = new Razorpay({
+          key_id:     process.env['RAZORPAY_KEY_ID']!,
+          key_secret: process.env['RAZORPAY_KEY_SECRET']!,
+        });
+        const sub = await razorpay.subscriptions.create({
+          plan_id:     planId,
+          total_count: 120,
+          quantity:    1,
+          notes:       { clinicId, clinicName: name, plan },
+        });
+        subscriptionId    = sub.id;
+        razorpayShortUrl  = (sub as unknown as Record<string, unknown>)['short_url'] as string ?? null;
+        // Store subscription info on the clinic doc
+        await db.collection('clinics').doc(clinicId).update({
+          razorpaySubscriptionId: sub.id,
+        }).catch(() => null);
+      } catch (err) {
+        console.error('[self-signup] Razorpay subscription creation failed:', err);
+        // Non-fatal — site is still created, admin can manually send payment link later
+      }
+    }
+  }
+
+  // ── Success ────────────────────────────────────────────────────────────────
+  return res.status(200).json({
+    clinicId,
+    slug,
+    siteUrl,
+    adminUrl:         `${siteUrl}/admin/login`,
+    email,
+    plan,
+    subscriptionId,
+    paymentUrl:       razorpayShortUrl,
+    trialEndDate:     plan === 'trial' ? trialEndDate : null,
+    domainRegistered: vercelDomainAdded,
+  });
+}

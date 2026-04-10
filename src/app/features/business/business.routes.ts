@@ -10,6 +10,13 @@ export const businessRoutes: Routes = [
       import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
   },
 
+  // ── Self-service clinic signup (public) ──────────────────────────────────
+  {
+    path: 'signup',
+    loadComponent: () =>
+      import('./signup/signup.component').then(m => m.SignupComponent),
+  },
+
   // ── Super admin login ─────────────────────────────────────────────────────
   {
     path: 'login',
