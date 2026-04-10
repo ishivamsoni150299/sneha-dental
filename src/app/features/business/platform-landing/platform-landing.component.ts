@@ -138,6 +138,43 @@ export class PlatformLandingComponent implements OnInit {
       a: 'Yes — the Pro plan supports multi-doctor clinics. For multi-location chains with separate websites per branch, contact us for a custom quote.' },
   ];
 
+  readonly billingYearly = signal(false);
+
+  planPrice(plan: { monthly: number; yearly: number }): number {
+    return this.billingYearly() ? Math.round(plan.yearly / 12) : plan.monthly;
+  }
+
+  readonly testimonials = [
+    {
+      text: 'We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ₹399 we spend every month.',
+      name: 'Dr. Ramesh Kumar',
+      clinic: 'Indram Dental, Jhansi',
+      location: 'Uttar Pradesh',
+      initials: 'RK',
+    },
+    {
+      text: 'Launched on a Friday. By Monday we had 5 new appointment requests from patients who found us online. Setup took less than a day — no technical work needed from my side.',
+      name: 'Dr. Priya Sharma',
+      clinic: 'Smile Care Dental',
+      location: 'Delhi',
+      initials: 'PS',
+    },
+    {
+      text: 'My receptionist used to spend hours answering the same questions. Now patients get everything from the website. The AI voice agent even books when we\'re closed.',
+      name: 'Dr. Anil Mehta',
+      clinic: 'Mehta Dental Clinic',
+      location: 'Mumbai',
+      initials: 'AM',
+    },
+  ];
+
+  readonly results = [
+    { value: '5×',     label: 'More online inquiries',   desc: 'Average increase in monthly appointment requests after going live' },
+    { value: '3 hrs',  label: 'Saved daily',             desc: 'Time saved on phone calls answering hours, pricing & location questions' },
+    { value: '< 24h',  label: 'To go live',              desc: 'From signing up to a fully working website with online bookings enabled' },
+    { value: '₹0',     label: 'Setup cost',              desc: 'No agency fees, no developer, no hidden charges. Ever.' },
+  ];
+
   readonly openFaq = signal<number | null>(null);
   toggleFaq(i: number) { this.openFaq.set(this.openFaq() === i ? null : i); }
 

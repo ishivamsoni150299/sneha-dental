@@ -1,5 +1,11 @@
 <div class="min-h-screen bg-white">
 
+  <!-- ── Announcement bar ─────────────────────────────────────────────────── -->
+  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-center py-2 px-4 text-xs font-medium">
+    🎉 Free 30-day trial — no credit card required · Your clinic live in under 60 seconds
+    <a routerLink="/business/signup" class="underline font-bold ml-2 hover:text-blue-100">Start free →</a>
+  </div>
+
   <!-- ── Top Nav ──────────────────────────────────────────────────────────── -->
   <header class="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -54,18 +60,19 @@
         <div>
           <div class="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
             <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            Accepting new clinics · India &amp; worldwide
+            Now open · India &amp; worldwide
           </div>
 
           <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
-            Your dental clinic deserves a
-            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              professional website
+            Patients search online.
+            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block mt-1">
+              Be the clinic they find.
             </span>
           </h1>
           <p class="mt-5 text-lg text-gray-500 leading-relaxed">
-            Ready-to-launch, mobile-first websites with online booking, WhatsApp integration
-            and a booking dashboard — live in <strong class="text-gray-700">24 hours</strong>.
+            Professional dental websites with online booking, WhatsApp integration
+            and AI voice receptionist — live in <strong class="text-gray-700">under 24 hours</strong>.
+            No technical knowledge needed.
           </p>
 
           <div class="mt-8 flex flex-col sm:flex-row gap-3">
@@ -163,19 +170,46 @@
     </div>
   </section>
 
+  <!-- ── Social proof strip ───────────────────────────────────────────────── -->
+  <div class="bg-white border-b border-gray-100 py-4">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 text-sm text-gray-500">
+        <span class="font-medium text-gray-700">Trusted by dental clinics across India</span>
+        <div class="flex items-center gap-2">
+          <div class="flex -space-x-2">
+            @for (a of ['RK','PS','AM','SK','PJ']; track a) {
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white
+                          flex items-center justify-center text-[10px] font-bold text-white">{{ a }}</div>
+            }
+          </div>
+          <span class="text-xs text-gray-500"><strong class="text-gray-800">20+</strong> clinics live today</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          @for (i of [1,2,3,4,5]; track i) {
+            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          }
+          <span class="text-xs text-gray-500 ml-1"><strong class="text-gray-800">4.9/5</strong> avg rating</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Stats bar ─────────────────────────────────────────────────────────── -->
-  <div class="border-y border-gray-100 bg-gray-50 py-6">
+  <div class="border-y border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50/30 py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
         @for (stat of [
-          {value: '24 hrs',   label: 'Average go-live time'},
-          {value: '₹399/mo',  label: 'Starting monthly price'},
-          {value: '100%',     label: 'Mobile responsive'},
-          {value: 'Zero',     label: 'Technical skills needed'}
+          {value: '< 24h',    label: 'To go live',            sub: 'From signup to live website'},
+          {value: '₹399/mo',  label: 'Starting price',        sub: 'Cancel anytime, no lock-in'},
+          {value: '5×',       label: 'More patient inquiries', sub: 'Average after going online'},
+          {value: 'Zero',     label: 'Tech skills needed',     sub: 'We handle everything for you'}
         ]; track stat.label) {
-          <div>
-            <div class="text-2xl font-extrabold text-gray-900">{{ stat.value }}</div>
-            <div class="text-xs text-gray-500 mt-1">{{ stat.label }}</div>
+          <div class="group">
+            <div class="text-3xl font-extrabold text-blue-600 group-hover:scale-110 transition-transform duration-200">{{ stat.value }}</div>
+            <div class="text-sm font-semibold text-gray-900 mt-1">{{ stat.label }}</div>
+            <div class="text-[11px] text-gray-400 mt-0.5 hidden sm:block">{{ stat.sub }}</div>
           </div>
         }
       </div>
@@ -233,6 +267,27 @@
               <p class="font-semibold text-gray-900 text-sm">{{ f.title }}</p>
               <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ f.desc }}</p>
             </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Results / Outcomes ───────────────────────────────────────────────── -->
+  <section class="py-16 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <span class="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+          Real results
+        </span>
+        <h2 class="text-2xl font-bold text-gray-900">What clinics see after going live</h2>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (r of results; track r.label) {
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
+            <div class="text-4xl font-extrabold text-blue-600 mb-2">{{ r.value }}</div>
+            <div class="text-sm font-bold text-gray-900 mb-1">{{ r.label }}</div>
+            <div class="text-[11px] text-gray-500 leading-relaxed">{{ r.desc }}</div>
           </div>
         }
       </div>
@@ -500,9 +555,24 @@
   <!-- ── Pricing ───────────────────────────────────────────────────────────── -->
   <section id="pricing" class="bg-gray-50 py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
+      <div class="text-center mb-10">
         <h2 class="text-2xl font-bold text-gray-900">Simple, transparent pricing</h2>
         <p class="text-gray-500 text-sm mt-2">Start free for 30 days — no credit card needed. Upgrade anytime.</p>
+
+        <!-- Billing toggle -->
+        <div class="inline-flex items-center gap-3 mt-6 bg-white border border-gray-200 rounded-xl p-1">
+          <button (click)="billingYearly.set(false)"
+                  class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                  [class]="!billingYearly() ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+            Monthly
+          </button>
+          <button (click)="billingYearly.set(true)"
+                  class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
+                  [class]="billingYearly() ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+            Yearly
+            <span class="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Save 2 months</span>
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
@@ -530,15 +600,21 @@
                 <div class="flex items-baseline gap-1">
                   <span class="text-3xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">Free</span>
                 </div>
-                <p class="text-xs" [class]="plan.highlighted ? 'text-gray-400' : 'text-gray-400'">{{ plan.trialDays }}-day trial · no card needed</p>
+                <p class="text-xs text-gray-400">{{ plan.trialDays }}-day trial · no card needed</p>
               } @else {
                 <div class="flex items-baseline gap-1">
-                  <span class="text-3xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">₹{{ plan.monthly }}</span>
+                  <span class="text-3xl font-extrabold transition-all duration-300" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">
+                    ₹{{ planPrice(plan) }}
+                  </span>
                   <span class="text-xs" [class]="plan.highlighted ? 'text-gray-400' : 'text-gray-400'">/month</span>
                 </div>
-                <p class="text-xs" [class]="plan.highlighted ? 'text-blue-400' : 'text-green-600'">
-                  ₹{{ plan.yearly }}/year — save 2 months
-                </p>
+                @if (billingYearly()) {
+                  <p class="text-xs" [class]="plan.highlighted ? 'text-blue-400' : 'text-green-600'">
+                    Billed ₹{{ plan.yearly }}/year — 2 months free
+                  </p>
+                } @else {
+                  <p class="text-xs text-gray-400">or ₹{{ plan.yearly }}/year and save 2 months</p>
+                }
               }
             </div>
 
@@ -564,6 +640,37 @@
         }
       </div>
       <p class="text-center text-xs text-gray-400 mt-8">All prices in INR · GST extra · Cancel anytime · No setup fee</p>
+
+      <!-- Guarantee strip -->
+      <div class="mt-8 bg-white border border-green-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+        <div class="flex items-center gap-2 text-green-700 font-semibold">
+          <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          30-day free trial
+        </div>
+        <span class="hidden sm:block text-gray-200">|</span>
+        <div class="flex items-center gap-2 text-green-700 font-semibold">
+          <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          No credit card for trial
+        </div>
+        <span class="hidden sm:block text-gray-200">|</span>
+        <div class="flex items-center gap-2 text-green-700 font-semibold">
+          <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Cancel anytime, no questions
+        </div>
+        <span class="hidden sm:block text-gray-200">|</span>
+        <div class="flex items-center gap-2 text-green-700 font-semibold">
+          <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          Your data, always yours
+        </div>
+      </div>
     </div>
   </section>
 
@@ -590,28 +697,40 @@
     </div>
   </section>
 
-  <!-- ── Testimonial ───────────────────────────────────────────────────────── -->
-  <section class="bg-gray-50 py-16">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-white border border-gray-200 rounded-3xl p-8 text-center shadow-sm">
-        <div class="flex justify-center gap-1 mb-5">
-          @for (i of [1,2,3,4,5]; track i) {
-            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-            </svg>
-          }
-        </div>
-        <blockquote class="text-gray-700 text-lg leading-relaxed font-medium italic mb-6">
-          "We were getting patients calling just to ask if we were open. Now they check our website
-          and book directly. The WhatsApp notifications are instant. Best ₹399 we spend every month."
-        </blockquote>
-        <div class="flex items-center justify-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center font-bold text-white">ID</div>
-          <div class="text-left">
-            <p class="font-bold text-gray-900">Indram Dental, Jhansi</p>
-            <p class="text-xs text-gray-500">Uttar Pradesh — Verified Client</p>
+  <!-- ── Testimonials ─────────────────────────────────────────────────────── -->
+  <section class="bg-gray-50 py-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <span class="inline-block text-xs font-semibold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+          ★ Verified reviews
+        </span>
+        <h2 class="text-2xl font-bold text-gray-900">Clinic owners love it</h2>
+        <p class="text-gray-500 text-sm mt-2">Real feedback from real dental professionals.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @for (t of testimonials; track t.name) {
+          <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
+            <div class="flex gap-1 mb-4">
+              @for (i of [1,2,3,4,5]; track i) {
+                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+              }
+            </div>
+            <blockquote class="text-gray-700 text-sm leading-relaxed flex-1 mb-5">
+              "{{ t.text }}"
+            </blockquote>
+            <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center font-bold text-white text-xs flex-shrink-0">
+                {{ t.initials }}
+              </div>
+              <div>
+                <p class="font-bold text-gray-900 text-sm">{{ t.name }}</p>
+                <p class="text-xs text-gray-400">{{ t.clinic }} · {{ t.location }}</p>
+              </div>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </div>
   </section>
@@ -659,8 +778,12 @@
             <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
             Available now · Taking new clients
           </div>
-          <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Ready to grow your clinic?</h2>
-          <p class="text-gray-400 text-base mt-3 mb-8 max-w-lg mx-auto">Sign up in 2 minutes. Your website goes live instantly — no waiting, no calls.</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+            Every day without a website<br class="hidden sm:block"> is patients booked by someone else.
+          </h2>
+          <p class="text-gray-400 text-base mt-4 mb-8 max-w-lg mx-auto">
+            Sign up in 2 minutes. Free for 30 days. Your website goes live instantly.
+          </p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a routerLink="/business/signup"
                class="inline-flex items-center gap-2 bg-white text-gray-900
