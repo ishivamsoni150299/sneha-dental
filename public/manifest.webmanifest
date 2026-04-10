@@ -1,7 +1,7 @@
 {
-  "name": "Dental Clinic",
-  "short_name": "Dental",
-  "description": "Book dental appointments online",
+  "name": "mydentalplatform",
+  "short_name": "mydentalplatform",
+  "description": "Professional websites for dental clinics — online booking, WhatsApp & AI receptionist. Live in 24h.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

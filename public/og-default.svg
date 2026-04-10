@@ -1,18 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Dental clinic">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="mydentalplatform">
   <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#E0F2FE"/>
-      <stop offset="100%" stop-color="#FFFFFF"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eff6ff"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
     </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faff"/>
+    </linearGradient>
+    <linearGradient id="icon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#2563eb" flood-opacity="0.08"/>
+    </filter>
   </defs>
+
+  <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <circle cx="1080" cy="80" r="140" fill="#DBEAFE"/>
-  <circle cx="120" cy="560" r="180" fill="#EFF6FF"/>
-  <rect x="120" y="150" width="960" height="330" rx="32" fill="#FFFFFF" stroke="#E5E7EB"/>
-  <text x="600" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="64" font-weight="700" fill="#1F2937">
-    Dental Clinic
-  </text>
-  <text x="600" y="370" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="500" fill="#2563EB">
-    Pain-Free Care You Can Trust
-  </text>
+
+  <!-- Decorative circles -->
+  <circle cx="1120" cy="80" r="180" fill="#dbeafe" opacity="0.5"/>
+  <circle cx="80"   cy="560" r="220" fill="#e0e7ff" opacity="0.4"/>
+  <circle cx="600"  cy="600" r="100" fill="#bfdbfe" opacity="0.3"/>
+
+  <!-- Main card -->
+  <rect x="100" y="100" width="1000" height="430" rx="32" fill="url(#card)" filter="url(#shadow)" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Logo mark -->
+  <rect x="200" y="180" width="80" height="80" rx="20" fill="url(#icon)"/>
+  <path d="M240 195c-5.5 0-9.5 2.8-12 6.7-1.3 2.2-2 4.7-2 7.3 0 4.3 2 7.5 2 11.8 0 3.2 2 10.7 5 14.7.9 1.2 2.2.2 2.7-1.5 1-4.7 1-8.2 4.3-8.2s3.3 3.5 4.3 8.2c.5 1.7 1.8 2.7 2.7 1.5 3-4 5-11.5 5-14.7 0-4.3 2-7.5 2-11.8 0-2.6-.7-5.1-2-7.3C249.5 197.8 245.5 195 240 195z" fill="white"/>
+
+  <!-- Wordmark -->
+  <text x="302" y="224" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6b7280">my</text>
+  <text x="345" y="224" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" fill="#2563eb">dental</text>
+  <text x="490" y="224" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6b7280">platform</text>
+
+  <!-- Tagline -->
+  <text x="200" y="272" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#9ca3af" font-weight="400">Professional websites for dental clinics — live in under 24 hours</text>
+
+  <!-- Divider -->
+  <line x1="200" y1="305" x2="1000" y2="305" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Hero headline -->
+  <text x="200" y="375" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800" fill="#111827">Patients search online.</text>
+  <text x="200" y="435" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800" fill="#2563eb">Be the clinic they find.</text>
+
+  <!-- CTA pill -->
+  <rect x="200" y="462" width="220" height="44" rx="22" fill="#2563eb"/>
+  <text x="310" y="490" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="white">Start free — ₹0</text>
+
+  <!-- Stats -->
+  <text x="760" y="380" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#2563eb">₹399</text>
+  <text x="760" y="412" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6b7280">/month · Starter plan</text>
+  <text x="760" y="455" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#2563eb">&lt;24h</text>
+  <text x="760" y="487" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6b7280">to go live</text>
 </svg>
