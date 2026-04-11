@@ -1,8 +1,9 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-service-card',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './service-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
