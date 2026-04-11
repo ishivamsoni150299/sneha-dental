@@ -407,6 +407,131 @@
         </div>
       }
 
+      <!-- ── Subscription ─────────────────────────────────────────────────── -->
+      @if (activeTab() === 'subscription') {
+        <div class="space-y-6">
+
+          <!-- Current plan status card -->
+          <div class="rounded-2xl border p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+               [class]="isExpired ? 'border-red-200 bg-red-50' : isTrial ? 'border-blue-200 bg-blue-50' : isStarter ? 'border-blue-100 bg-white' : 'border-purple-200 bg-purple-50'">
+            <div class="flex-1">
+              <p class="text-xs font-bold uppercase tracking-widest mb-1"
+                 [class]="isExpired ? 'text-red-500' : isTrial ? 'text-blue-600' : isStarter ? 'text-blue-600' : 'text-purple-600'">
+                Current Plan
+              </p>
+              <p class="font-bold text-gray-900 text-lg leading-tight">
+                @if (isExpired)  { Trial Expired }
+                @else if (isTrial)   { Free Trial — {{ trialDaysLeft }} days left }
+                @else if (isStarter) { Starter · ₹399/month }
+                @else if (isPro)     { Pro · ₹699/month }
+                @else { Trial }
+              </p>
+              @if (isTrial && !isExpired) {
+                <p class="text-blue-700 text-xs mt-1">Your website goes offline when the trial ends. Upgrade to keep it live.</p>
+              }
+              @if (isExpired) {
+                <p class="text-red-600 text-xs mt-1">Your website is currently hidden from patients. Upgrade now to restore it.</p>
+              }
+              @if (isStarter) {
+                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro to unlock AI Voice Receptionist + Google Reviews sync.</p>
+              }
+              @if (isPro) {
+                <p class="text-purple-700 text-xs mt-1">You're on the best plan. All features are unlocked.</p>
+              }
+            </div>
+            @if (!isPro) {
+              <a href="https://wa.me/919140210648?text={{ 'I want to upgrade my dental website plan. Clinic: ' + cfg.name }}"
+                 target="_blank" rel="noopener noreferrer"
+                 class="shrink-0 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+                </svg>
+                Upgrade via WhatsApp
+              </a>
+            }
+          </div>
+
+          <!-- Plan comparison cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            @for (p of PLANS; track p.id) {
+              <div class="rounded-2xl border p-5 flex flex-col relative overflow-hidden"
+                   [class]="p.id === 'pro' ? 'border-purple-300 bg-purple-50 ring-2 ring-purple-200' : 'border-gray-200 bg-white'">
+
+                @if (p.id === 'pro') {
+                  <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+                }
+
+                <div class="flex items-start justify-between mb-3">
+                  <div>
+                    <p class="font-bold text-gray-900 text-sm">{{ p.label }}</p>
+                    <p class="text-2xl font-extrabold mt-0.5"
+                       [class]="p.id === 'pro' ? 'text-purple-600' : p.id === 'starter' ? 'text-blue-600' : 'text-gray-500'">
+                      {{ p.price }}<span class="text-xs font-semibold text-gray-400 ml-0.5">{{ p.period }}</span>
+                    </p>
+                  </div>
+                  @if ((p.id === 'trial' && (isTrial || isExpired)) ||
+                       (p.id === 'starter' && isStarter) ||
+                       (p.id === 'pro' && isPro)) {
+                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full"
+                          [class]="isExpired && p.id === 'trial' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'">
+                      {{ isExpired && p.id === 'trial' ? 'Expired' : 'Current' }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Included features -->
+                <ul class="space-y-1.5 mb-4 flex-1">
+                  @for (f of p.features; track f) {
+                    <li class="flex items-start gap-2 text-xs text-gray-700">
+                      <svg class="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      {{ f }}
+                    </li>
+                  }
+                </ul>
+
+                <!-- Locked features -->
+                @if (p.locked.length > 0) {
+                  <ul class="space-y-1.5 mb-4 border-t border-gray-100 pt-3">
+                    @for (f of p.locked; track f) {
+                      <li class="flex items-start gap-2 text-xs text-gray-400">
+                        <svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        {{ f }}
+                      </li>
+                    }
+                  </ul>
+                }
+
+                <!-- CTA -->
+                @if (!((p.id === 'trial' && isTrial) || (p.id === 'starter' && isStarter) || (p.id === 'pro' && isPro))) {
+                  <a href="https://wa.me/919140210648?text={{ 'I want to upgrade to ' + p.label + ' plan. Clinic: ' + cfg.name }}"
+                     target="_blank" rel="noopener noreferrer"
+                     class="block w-full text-center text-sm font-bold py-2.5 rounded-xl transition-colors"
+                     [class]="p.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700 text-white' : p.id === 'starter' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-100 text-gray-400 cursor-default pointer-events-none'">
+                    @if (p.id === 'trial') { Downgrade }
+                    @else if (p.id === 'starter') { Upgrade to Starter · ₹399/mo }
+                    @else { Upgrade to Pro · ₹699/mo }
+                  </a>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- ROI nudge -->
+          <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+            <p class="text-sm font-bold text-gray-900 mb-1">Is it worth it?</p>
+            <p class="text-xs text-gray-500 leading-relaxed">
+              One extra patient booking per week = ~₹1,500–₹3,000 revenue. Pro costs ₹699/month.
+              The AI Voice Receptionist alone pays for itself if it books even <strong class="text-gray-700">one missed call</strong> a month.
+            </p>
+          </div>
+
+        </div>
+      }
+
     }
   </main>
 </div>

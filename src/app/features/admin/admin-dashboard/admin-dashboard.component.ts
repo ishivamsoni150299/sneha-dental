@@ -51,6 +51,24 @@ export class AdminDashboardComponent implements OnInit {
     completed:  this.appointments().filter(a => a.status === 'completed').length,
   }));
 
+  // ── Subscription helpers ──────────────────────────────────────────────────
+  get plan()   { return this.clinicConfig.subscriptionPlan   ?? 'trial'; }
+  get status() { return this.clinicConfig.subscriptionStatus ?? 'trial'; }
+
+  get trialDaysLeft(): number {
+    if (!this.clinicConfig.trialEndDate) return 30;
+    const end  = new Date(this.clinicConfig.trialEndDate).getTime();
+    const now  = Date.now();
+    return Math.max(0, Math.ceil((end - now) / 86_400_000));
+  }
+
+  get isExpired()     { return this.status === 'expired'   || (this.status === 'trial' && this.trialDaysLeft <= 0); }
+  get isTrialUrgent() { return this.status === 'trial'     && this.trialDaysLeft > 0 && this.trialDaysLeft <= 7; }
+  get isTrial()       { return this.status === 'trial'     && this.trialDaysLeft > 0; }
+  get isStarter()     { return this.plan   === 'starter'   && this.status === 'active'; }
+  get isPro()         { return this.plan   === 'pro'        && this.status === 'active'; }
+  get showUpgradeBanner() { return !this.isPro; }
+
   async ngOnInit() {
     await this.loadAppointments();
   }

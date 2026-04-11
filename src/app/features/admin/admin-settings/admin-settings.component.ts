@@ -1,11 +1,11 @@
 import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 import { Testimonial, ClinicHours, ClinicConfig } from '../../../core/config/clinic.config';
 
-type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme';
+type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'subscription';
 
 export interface ThemeOption {
   value: ClinicConfig['theme'];
@@ -27,6 +27,7 @@ export class AdminSettingsComponent implements OnInit {
   private clinicCfg = inject(ClinicConfigService);
   private store     = inject(ClinicFirestoreService);
   private fb        = inject(FormBuilder);
+  private route     = inject(ActivatedRoute);
 
   // ── State signals ─────────────────────────────────────────────────────────
   loading            = signal(true);
@@ -46,7 +47,43 @@ export class AdminSettingsComponent implements OnInit {
     { id: 'testimonials', label: 'Testimonials' },
     { id: 'social',       label: 'Social' },
     { id: 'theme',        label: 'Theme' },
+    { id: 'subscription', label: '⚡ Plan' },
   ];
+
+  // ── Subscription helpers ──────────────────────────────────────────────────
+  get cfg() { return this.clinicCfg.config; }
+  get plan()   { return this.cfg.subscriptionPlan   ?? 'trial'; }
+  get planStatus() { return this.cfg.subscriptionStatus ?? 'trial'; }
+  get trialDaysLeft(): number {
+    if (!this.cfg.trialEndDate) return 30;
+    const end = new Date(this.cfg.trialEndDate).getTime();
+    return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+  }
+  get isExpired()  { return this.planStatus === 'expired' || (this.planStatus === 'trial' && this.trialDaysLeft <= 0); }
+  get isTrial()    { return this.planStatus === 'trial' && this.trialDaysLeft > 0; }
+  get isStarter()  { return this.plan === 'starter' && this.planStatus === 'active'; }
+  get isPro()      { return this.plan === 'pro' && this.planStatus === 'active'; }
+
+  readonly PLANS = [
+    {
+      id: 'trial', label: 'Free Trial', price: '₹0', period: '30 days',
+      color: 'gray',
+      features: ['Clinic website', 'Online booking', 'WhatsApp integration', 'Patient admin dashboard', 'Free subdomain'],
+      locked: ['Custom domain', 'AI Voice Receptionist', 'Google Reviews sync', 'SEO-optimised pages'],
+    },
+    {
+      id: 'starter', label: 'Starter', price: '₹399', period: '/month',
+      color: 'blue',
+      features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate', 'Services catalogue', 'Priority WhatsApp support', '1 content update/month'],
+      locked: ['AI Voice Receptionist', 'Google Reviews sync', 'SEO-optimised pages', 'Unlimited updates'],
+    },
+    {
+      id: 'pro', label: 'Pro', price: '₹699', period: '/month',
+      color: 'purple',
+      features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English voice', 'Google Reviews sync', 'Testimonials management', 'SEO-optimised pages', 'Google Analytics setup', 'Unlimited content updates', 'Priority support'],
+      locked: [],
+    },
+  ] as const;
 
   readonly themeOptions: ThemeOption[] = [
     { value: 'blue',    label: 'Ocean Blue',    primary: '#2563eb', dark: '#1d4ed8', light: '#dbeafe', gradient: 'linear-gradient(135deg,#2563eb,#3b82f6)' },
@@ -98,6 +135,11 @@ export class AdminSettingsComponent implements OnInit {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngOnInit() {
+    const tab = this.route.snapshot.queryParamMap.get('tab') as TabId | null;
+    if (tab && this.tabs.some(t => t.id === tab)) {
+      this.activeTab.set(tab);
+    }
+
     const cfg = this.clinicCfg.config;
 
     this.infoForm.patchValue({
