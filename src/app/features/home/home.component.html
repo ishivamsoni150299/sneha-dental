@@ -1,79 +1,84 @@
 <!-- ===== HERO ===== -->
-<section class="relative overflow-hidden bg-white">
-  <!-- Background blobs -->
-  <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-[500px] h-[500px] bg-blue-100 rounded-full opacity-50 blur-3xl"></div>
-    <div class="absolute top-20 -left-20 w-80 h-80 bg-indigo-50 rounded-full opacity-70 blur-2xl"></div>
-    <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-sky-50 rounded-full opacity-60 blur-2xl"></div>
+<section class="relative overflow-hidden bg-white min-h-[88vh] flex items-center">
+
+  <!-- Animated blob background -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-48 -right-48 w-[600px] h-[600px] bg-blue-100 rounded-full opacity-40 blur-3xl animate-blob"></div>
+    <div class="absolute top-32 -left-24 w-96 h-96 bg-indigo-50 rounded-full opacity-60 blur-2xl animate-blob-delay-2"></div>
+    <div class="absolute bottom-10 right-1/3 w-72 h-72 bg-sky-50 rounded-full opacity-50 blur-2xl animate-blob-delay-4"></div>
+    <!-- Decorative grid -->
+    <div class="absolute inset-0 opacity-[0.025]" style="background-image:radial-gradient(circle,#2563eb 1px,transparent 1px);background-size:32px 32px;"></div>
   </div>
 
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+  <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-20">
     <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
-      <!-- Text -->
+      <!-- Text side -->
       <div class="flex-1 text-center lg:text-left">
-        <span class="anim-fade-up inline-flex items-center gap-2 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-6 border border-blue-100">
-          <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+
+        <!-- Badge -->
+        <div class="anim-fade-up inline-flex items-center gap-2 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-7 border border-blue-100 shadow-sm">
+          <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
           Same-Day Appointments Available
-        </span>
-        <h1 class="anim-fade-up anim-d1 font-display text-4xl sm:text-5xl lg:text-6xl text-gray-900 leading-tight mb-6">
+        </div>
+
+        <!-- Headline -->
+        <h1 class="anim-fade-up anim-d1 font-display text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl text-gray-900 leading-[1.1] mb-6">
           Pain-Free Dental<br>
-          <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Care You Can</span><br>
+          <span class="text-shimmer">Care You Can</span><br>
           Trust
         </h1>
-        <p class="anim-fade-up anim-d2 text-lg text-gray-500 leading-relaxed mb-8 max-w-lg mx-auto lg:mx-0">
+
+        <p class="anim-fade-up anim-d2 text-lg text-gray-500 leading-relaxed mb-9 max-w-lg mx-auto lg:mx-0">
           Advanced treatment with a gentle approach for all ages. Modern equipment, sterilized tools, and honest pricing — always.
         </p>
+
+        <!-- CTAs -->
         <div class="anim-fade-up anim-d3 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
           <a routerLink="/appointment"
-             class="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-xl font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-200 transition-all duration-200 hover:-translate-y-px text-center">
+             class="group relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold shadow-xl shadow-blue-200/60 hover:shadow-2xl hover:shadow-blue-300/50 transition-all duration-300 hover:-translate-y-1 text-center">
             Book Appointment
+            <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 pointer-events-none"></span>
           </a>
           <a [href]="'tel:+' + config.phoneE164"
-             class="border-2 border-gray-200 hover:border-blue-300 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-7 py-3.5 rounded-xl font-semibold transition-all duration-200 text-center flex items-center justify-center gap-2">
+             class="border-2 border-gray-200 hover:border-blue-300 text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-xl font-bold transition-all duration-300 text-center flex items-center justify-center gap-2 hover:-translate-y-1">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
             </svg>
             Call Now
           </a>
         </div>
-        <!-- Mini trust indicators -->
-        <div class="anim-fade-up anim-d4 flex flex-wrap gap-5 justify-center lg:justify-start mt-8">
-          <span class="flex items-center gap-1.5 text-sm text-gray-500">
-            <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-            No waiting · scheduled visits
-          </span>
-          <span class="flex items-center gap-1.5 text-sm text-gray-500">
-            <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-            Book in 60 seconds
-          </span>
-          <span class="flex items-center gap-1.5 text-sm text-gray-500">
-            <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-            No hidden charges
-          </span>
+
+        <!-- Trust pills -->
+        <div class="anim-fade-up anim-d4 flex flex-wrap gap-4 justify-center lg:justify-start mt-9">
+          @for (t of ['No waiting · scheduled visits','Book in 60 seconds','No hidden charges']; track t) {
+            <span class="flex items-center gap-1.5 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+              <svg class="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              {{ t }}
+            </span>
+          }
         </div>
       </div>
 
-      <!-- Clinic preview card (hero visual) -->
+      <!-- Hero card (floating) -->
       <div class="anim-scale-in flex-1 flex justify-center lg:justify-end w-full max-w-md lg:max-w-none">
-        <div class="relative w-full max-w-sm">
-          <!-- Glow -->
-          <div class="absolute -inset-3 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-3xl blur-2xl opacity-40"></div>
+        <div class="relative w-full max-w-sm animate-float-gentle">
+
+          <!-- Glow ring -->
+          <div class="absolute -inset-4 bg-gradient-to-br from-blue-300/30 to-indigo-300/30 rounded-[2.5rem] blur-2xl"></div>
+
+          <!-- Spinning decorative ring -->
+          <div class="absolute -inset-6 border border-blue-200/40 rounded-[3rem] animate-spin-slow pointer-events-none"></div>
 
           <!-- Main card -->
-          <div class="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-            <!-- Top accent bar -->
-            <div class="h-1.5 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600"></div>
+          <div class="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100/80">
+            <div class="h-1.5 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 animate-gradient-shift"></div>
 
-            <!-- Doctor header -->
+            <!-- Doctor row -->
             <div class="px-5 py-4 flex items-center gap-3.5 border-b border-gray-50">
-              <div class="w-13 h-13 w-[52px] h-[52px] bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shrink-0 shadow-md shadow-blue-200">
+              <div class="w-[52px] h-[52px] bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
                 <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z"/>
                 </svg>
@@ -87,7 +92,7 @@
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   }
-                  <span class="text-[11px] text-gray-400 ml-1">4.9 · {{ config.patientCount || '1000+' }} patients</span>
+                  <span class="text-[11px] text-gray-400 ml-1">4.9 · {{ config.patientCount || '0' }} patients</span>
                 </div>
               </div>
               <div class="flex items-center gap-1.5 bg-green-50 text-green-700 text-[11px] font-bold px-2.5 py-1.5 rounded-full border border-green-100 shrink-0">
@@ -96,33 +101,34 @@
               </div>
             </div>
 
-            <!-- Available slots -->
+            <!-- Slots -->
             <div class="px-5 pt-4 pb-3">
               <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Next Available Slots</p>
               <div class="grid grid-cols-3 gap-2 mb-4">
-                <button class="bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:border-blue-600 hover:text-white rounded-xl p-2.5 text-center transition-all duration-200 group">
-                  <p class="text-[10px] text-gray-400 group-hover:text-blue-100 transition-colors">Today</p>
-                  <p class="text-sm font-bold text-blue-600 group-hover:text-white transition-colors">11:00 AM</p>
+                <button class="bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:border-blue-600 hover:text-white rounded-xl p-2.5 text-center transition-all duration-200 group cursor-pointer">
+                  <p class="text-[10px] text-gray-400 group-hover:text-blue-100">Today</p>
+                  <p class="text-sm font-bold text-blue-600 group-hover:text-white">11:00 AM</p>
                 </button>
-                <button class="bg-blue-600 border border-blue-600 rounded-xl p-2.5 text-center shadow-sm">
+                <button class="bg-blue-600 border border-blue-600 rounded-xl p-2.5 text-center shadow-sm shadow-blue-200">
                   <p class="text-[10px] text-blue-200">Today</p>
                   <p class="text-sm font-bold text-white">3:30 PM</p>
                 </button>
-                <button class="bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:border-blue-600 hover:text-white rounded-xl p-2.5 text-center transition-all duration-200 group">
-                  <p class="text-[10px] text-gray-400 group-hover:text-blue-100 transition-colors">Tomorrow</p>
-                  <p class="text-sm font-bold text-blue-600 group-hover:text-white transition-colors">10:00 AM</p>
+                <button class="bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:border-blue-600 hover:text-white rounded-xl p-2.5 text-center transition-all duration-200 group cursor-pointer">
+                  <p class="text-[10px] text-gray-400 group-hover:text-blue-100">Tomorrow</p>
+                  <p class="text-sm font-bold text-blue-600 group-hover:text-white">10:00 AM</p>
                 </button>
               </div>
               <a routerLink="/appointment"
-                 class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md">
+                 class="group block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-lg hover:shadow-blue-200 relative overflow-hidden">
                 Book Appointment Now
+                <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-500"></span>
               </a>
             </div>
 
             <!-- Stats row -->
             <div class="px-5 pb-5 pt-4 border-t border-gray-50 grid grid-cols-3 gap-2 text-center">
               <div>
-                <p class="text-base font-extrabold text-gray-900">{{ config.patientCount || '1000+' }}</p>
+                <p class="text-base font-extrabold text-gray-900">{{ config.patientCount || '0' }}</p>
                 <p class="text-[11px] text-gray-400">Patients</p>
               </div>
               <div class="border-x border-gray-100">
@@ -141,8 +147,8 @@
             </div>
           </div>
 
-          <!-- Floating badge — cert -->
-          <div class="absolute -top-3 -right-3 bg-blue-600 text-white rounded-2xl shadow-lg px-3.5 py-2.5 text-center">
+          <!-- Floating badge -->
+          <div class="absolute -top-3 -right-3 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-300/50 px-3.5 py-2.5 text-center animate-bounce-in">
             <p class="text-xl font-extrabold leading-none">{{ config.doctorQualification || 'BDS' }}</p>
             <p class="text-[10px] opacity-80 mt-0.5">Certified</p>
           </div>
@@ -159,37 +165,32 @@
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3 text-white">
-        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0 animate-pulse">
           <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
           </svg>
         </div>
-        <div>
-          <p class="font-bold text-sm">Dental Emergency? <span class="font-normal opacity-90">Severe pain, broken tooth, swelling — we see you same day.</span></p>
-        </div>
+        <p class="font-bold text-sm">Dental Emergency? <span class="font-normal opacity-90">Severe pain, broken tooth, swelling — we see you same day.</span></p>
       </div>
-      <div class="flex items-center gap-3 shrink-0">
-        <a [href]="'tel:+' + config.phoneE164"
-           class="inline-flex items-center gap-2 bg-white text-red-600 hover:bg-red-50 font-bold text-sm px-5 py-2.5 rounded-xl transition-all hover:-translate-y-px shadow-sm">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-          </svg>
-          Call Now — {{ config.phone || 'Emergency Line' }}
-        </a>
-      </div>
+      <a [href]="'tel:+' + config.phoneE164"
+         class="inline-flex items-center gap-2 bg-white text-red-600 hover:bg-red-50 font-bold text-sm px-5 py-2.5 rounded-xl transition-all hover:-translate-y-px shadow-sm shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+        </svg>
+        Call Now — {{ config.phone || 'Emergency Line' }}
+      </a>
     </div>
   </div>
 </section>
 
 <!-- ===== TRUST BAR ===== -->
-<section class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600">
-  <!-- Subtle dot pattern -->
+<section class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 animate-gradient-shift">
   <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:24px 24px;"></div>
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-0 text-center text-white divide-x divide-white/10">
-      @for (stat of trustStats; track stat.label) {
-        <div class="flex flex-col items-center gap-2 px-4 py-2">
-          <div class="w-11 h-11 bg-white/15 rounded-xl flex items-center justify-center mb-1">
+      @for (stat of trustStats; track stat.label; let i = $index) {
+        <div reveal [revealDelay]="i * 80" revealDir="up" class="flex flex-col items-center gap-2 px-4 py-2">
+          <div class="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center mb-1 hover:bg-white/25 transition-colors duration-200">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="stat.icon"/>
             </svg>
@@ -203,26 +204,27 @@
 </section>
 
 <!-- ===== HOW IT WORKS ===== -->
-<section class="bg-white py-20 md:py-24">
+<section class="bg-white py-20 md:py-24 overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-14">
-      <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-blue-100">
+    <div reveal revealDir="up" class="text-center mb-14">
+      <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-5 border border-blue-100">
         <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
         Simple & Fast
       </span>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3 leading-tight">Book Your Visit in<br><span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">3 Easy Steps</span></h2>
+      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3 leading-tight">
+        Book Your Visit in<br>
+        <span class="text-shimmer">3 Easy Steps</span>
+      </h2>
       <p class="text-gray-500 text-lg max-w-lg mx-auto">No long forms. No phone tag. Just pick a time and show up.</p>
     </div>
 
     <div class="relative">
-      <!-- Connector line (desktop only) -->
       <div class="hidden md:block absolute top-10 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 mx-16 z-0"></div>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-        @for (step of howItWorks; track step.num) {
-          <div class="text-center group">
+        @for (step of howItWorks; track step.num; let i = $index) {
+          <div reveal [revealDelay]="i * 150" revealDir="up" class="text-center group">
             <div class="relative inline-flex mb-6">
-              <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:shadow-xl group-hover:shadow-blue-300 transition-all duration-300 group-hover:-translate-y-1">
+              <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:shadow-xl group-hover:shadow-blue-300 transition-all duration-400 group-hover:-translate-y-2 group-hover:scale-105">
                 <svg class="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="step.icon"/>
                 </svg>
@@ -236,41 +238,46 @@
       </div>
     </div>
 
-    <div class="text-center mt-12">
+    <div reveal revealDir="up" [revealDelay]="300" class="text-center mt-12">
       <a routerLink="/appointment"
-         class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all duration-200 shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-px">
+         class="group relative overflow-hidden inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1">
         Book Appointment Now — 60 Seconds
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
         </svg>
+        <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500"></span>
       </a>
     </div>
   </div>
 </section>
 
 <!-- ===== SERVICES PREVIEW ===== -->
-<section class="bg-gray-50 py-20 md:py-24">
+<section class="bg-gray-50 py-20 md:py-24 overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <app-section-header
-      label="Our Services"
-      title="What We Treat"
-      subtitle="From routine cleanings to complex procedures — all under one roof, with zero compromise on care."
-    />
+    <div reveal revealDir="up">
+      <app-section-header
+        label="Our Services"
+        title="What We Treat"
+        subtitle="From routine cleanings to complex procedures — all under one roof, with zero compromise on care."
+      />
+    </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-12">
-      @for (service of previewServices; track service.name) {
-        <app-service-card
-          [iconPath]="service.iconPath"
-          [name]="service.name"
-          [description]="service.description"
-          [benefit]="service.benefit"
-        />
+      @for (service of previewServices; track service.name; let i = $index) {
+        <div reveal [revealDelay]="i * 80" revealDir="up">
+          <app-service-card
+            [iconPath]="service.iconPath"
+            [name]="service.name"
+            [description]="service.description"
+            [benefit]="service.benefit"
+          />
+        </div>
       }
     </div>
-    <div class="text-center mt-10">
+    <div reveal revealDir="up" [revealDelay]="200" class="text-center mt-10">
       <a routerLink="/services"
-         class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-px">
+         class="group inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 rounded-xl font-semibold transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:-translate-y-px">
         View All Services
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
         </svg>
       </a>
@@ -282,19 +289,19 @@
 <app-treatment-finder />
 
 <!-- ===== WHY CHOOSE US ===== -->
-<section class="bg-white py-20 md:py-24">
+<section class="bg-white py-20 md:py-24 overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-      <!-- Left: visual -->
-      <div class="relative">
+      <!-- Left visual -->
+      <div reveal revealDir="left" class="relative">
         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl overflow-hidden aspect-[4/3]">
           <img src="https://placehold.co/600x450/EFF6FF/2563EB?text=Modern+Dental+Clinic"
                [attr.alt]="'Modern ' + config.name"
-               class="w-full h-full object-cover">
+               class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
         </div>
-        <!-- Rating card -->
-        <div class="absolute bottom-4 right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100">
+        <!-- Floating rating card -->
+        <div class="absolute bottom-4 right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100 animate-float-slow">
           <p class="text-3xl font-extrabold text-blue-600">4.9</p>
           <div class="flex gap-0.5 my-1.5">
             @for (s of [1,2,3,4,5]; track s) {
@@ -319,23 +326,23 @@
         </div>
       </div>
 
-      <!-- Right: feature points -->
-      <div>
-        <span class="inline-block bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-blue-100">
+      <!-- Right features -->
+      <div reveal revealDir="right">
+        <span class="inline-block bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5 border border-blue-100">
           Why Choose Us
         </span>
         <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-6 leading-tight">
           Dental Care That Puts<br>
-          <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">You First</span>
+          <span class="text-shimmer">You First</span>
         </h2>
         <p class="text-gray-500 leading-relaxed mb-10">
           We built {{ config.name || 'our clinic' }} around one belief: every patient deserves honest, gentle care with no surprises.
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           @for (feature of features; track feature.title) {
-            <div class="flex gap-4 group">
-              <div class="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center shrink-0 group-hover:from-blue-600 group-hover:to-indigo-600 transition-all duration-300 shadow-sm">
-                <svg class="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <div class="flex gap-4 group p-3 rounded-2xl hover:bg-blue-50/50 transition-colors duration-200">
+              <div class="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center shrink-0 group-hover:from-blue-600 group-hover:to-indigo-600 transition-all duration-300 shadow-sm group-hover:shadow-md group-hover:shadow-blue-200">
+                <svg class="w-5 h-5 text-blue-600 group-hover:text-white transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="feature.icon"/>
                 </svg>
               </div>
@@ -347,80 +354,99 @@
           }
         </div>
         <a routerLink="/about"
-           class="inline-flex items-center gap-2 mt-10 text-blue-600 font-semibold hover:underline underline-offset-4">
+           class="group inline-flex items-center gap-2 mt-10 text-blue-600 font-semibold hover:underline underline-offset-4">
           Learn more about us
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
           </svg>
         </a>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ===== TESTIMONIALS ===== -->
-<section class="bg-gray-50 py-20 md:py-24">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <app-section-header
-      label="Patient Stories"
-      title="What Our Patients Say"
-      subtitle="Real experiences from real patients who trusted us with their smiles."
-    />
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-      @for (t of config.testimonials; track t.name) {
-        <app-testimonial-card
-          [name]="t.name"
-          [location]="t.location"
-          [rating]="t.rating"
-          [review]="t.review"
+<!-- ===== TESTIMONIALS MARQUEE ===== -->
+@if (hasTestimonials) {
+  <section class="bg-gray-50 py-20 md:py-24 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div reveal revealDir="up">
+        <app-section-header
+          label="Patient Stories"
+          title="What Our Patients Say"
+          subtitle="Real experiences from real patients who trusted us with their smiles."
         />
-      }
+      </div>
     </div>
-    <div class="text-center mt-10">
+
+    <!-- Infinite scroll strip -->
+    <div class="mt-12 relative">
+      <!-- Edge fades -->
+      <div class="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none"></div>
+      <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none"></div>
+
+      <div class="flex gap-6 animate-marquee" style="width: max-content">
+        @for (t of duplicatedTestimonials; track $index) {
+          <div class="w-80 flex-shrink-0">
+            <app-testimonial-card
+              [name]="t.name"
+              [location]="t.location"
+              [rating]="t.rating"
+              [review]="t.review"
+            />
+          </div>
+        }
+      </div>
+    </div>
+
+    <div reveal revealDir="up" [revealDelay]="200" class="text-center mt-10">
       <a routerLink="/testimonials"
-         class="inline-flex items-center gap-2 text-blue-600 font-semibold hover:underline underline-offset-4">
+         class="group inline-flex items-center gap-2 text-blue-600 font-semibold hover:underline underline-offset-4">
         Read more patient stories
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
         </svg>
       </a>
     </div>
-  </div>
-</section>
+  </section>
+}
 
 <!-- ===== CTA BANNER ===== -->
-<section class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 py-16 md:py-20">
-  <!-- Decorative circles -->
-  <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/5 rounded-full pointer-events-none"></div>
-  <div class="absolute -bottom-24 -left-12 w-80 h-80 bg-white/5 rounded-full pointer-events-none"></div>
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.03] rounded-full pointer-events-none"></div>
+<section class="relative overflow-hidden py-20 md:py-24">
+  <!-- Animated gradient background -->
+  <div class="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 animate-gradient-shift"></div>
+  <!-- Decorative orbs -->
+  <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full pointer-events-none animate-float-slow"></div>
+  <div class="absolute -bottom-32 -left-16 w-96 h-96 bg-white/5 rounded-full pointer-events-none animate-float"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-white/[0.03] rounded-full pointer-events-none animate-spin-slow"></div>
   <!-- Dot pattern -->
-  <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px;"></div>
+  <div class="absolute inset-0 opacity-[0.06] pointer-events-none" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px;"></div>
 
   <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <div class="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border border-white/20">
-      <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-      Accepting new patients
-    </div>
-    <h2 class="font-display text-3xl md:text-4xl text-white mb-5 leading-tight">
-      Ready for a Healthier Smile?
-    </h2>
-    <p class="text-blue-100 text-lg mb-8 leading-relaxed">
-      Same-day slots available. Book in 60 seconds — no waiting, just care.
-    </p>
-    <div class="flex flex-col sm:flex-row gap-3 justify-center">
-      <a routerLink="/appointment"
-         class="bg-white hover:bg-blue-50 text-blue-600 px-8 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px text-center">
-        Book Appointment Now
-      </a>
-      <a [href]="clinic.bookingWhatsappUrl"
-         class="border-2 border-white/30 hover:border-white/70 hover:bg-white/10 text-white px-8 py-3.5 rounded-xl font-semibold transition-all text-center flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
-        </svg>
-        WhatsApp Us
-      </a>
+    <div reveal revealDir="scale">
+      <div class="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-semibold px-4 py-2 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        Accepting new patients
+      </div>
+      <h2 class="font-display text-3xl md:text-5xl text-white mb-5 leading-tight">
+        Ready for a Healthier Smile?
+      </h2>
+      <p class="text-blue-100 text-lg mb-10 leading-relaxed">
+        Same-day slots available. Book in 60 seconds — no waiting, just care.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a routerLink="/appointment"
+           class="group relative overflow-hidden bg-white hover:bg-blue-50 text-blue-600 px-9 py-4 rounded-xl font-bold shadow-xl transition-all hover:-translate-y-1 text-center">
+          Book Appointment Now
+          <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-blue-100/40 to-transparent transition-transform duration-500"></span>
+        </a>
+        <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
+           class="group border-2 border-white/30 hover:border-white/70 hover:bg-white/10 text-white px-9 py-4 rounded-xl font-semibold transition-all hover:-translate-y-1 text-center flex items-center justify-center gap-2 backdrop-blur-sm">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
+          </svg>
+          WhatsApp Us
+        </a>
+      </div>
     </div>
   </div>
 </section>

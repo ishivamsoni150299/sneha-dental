@@ -1,4 +1,4 @@
-import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, inject, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
@@ -12,6 +12,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 export class NavbarComponent {
   readonly config = inject(ClinicConfigService).config;
   menuOpen = signal(false);
+  scrolled  = signal(false);
 
   navLinks = [
     { label: 'Home',     route: '/',             exact: true  },
@@ -21,6 +22,9 @@ export class NavbarComponent {
     { label: 'Reviews',  route: '/testimonials', exact: false },
     { label: 'Contact',  route: '/contact',      exact: false },
   ];
+
+  @HostListener('window:scroll')
+  onScroll() { this.scrolled.set(window.scrollY > 24); }
 
   toggle() { this.menuOpen.update(v => !v); }
   close()  { this.menuOpen.set(false); }
