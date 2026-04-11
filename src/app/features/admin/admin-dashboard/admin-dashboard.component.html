@@ -138,7 +138,10 @@
           </thead>
           <tbody class="divide-y divide-gray-50">
             @for (appt of filteredAppointments(); track appt.id) {
-              <tr class="hover:bg-gray-50 transition-colors" [class.opacity-60]="appt.status === 'cancelled'">
+              <tr class="hover:bg-gray-50 transition-colors"
+                  [class.opacity-50]="appt.status === 'cancelled' || appt.status === 'completed' || appt.status === 'no_show'"
+                  [class.border-l-4]="appt.status === 'pending'"
+                  [class.border-l-yellow-400]="appt.status === 'pending'">
                 <td class="px-5 py-4">
                   <p class="font-semibold text-gray-900">{{ appt.name }}</p>
                   <a [href]="'tel:+91' + appt.phone" class="text-blue-600 hover:underline text-xs">{{ appt.phone }}</a>
@@ -222,7 +225,11 @@
       <!-- Mobile cards -->
       <div class="md:hidden space-y-4">
         @for (appt of filteredAppointments(); track appt.id) {
-          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5" [class.opacity-60]="appt.status === 'cancelled'">
+          <div class="bg-white rounded-2xl shadow-sm p-5 border"
+               [class.border-yellow-300]="appt.status === 'pending'"
+               [class.border-l-4]="appt.status === 'pending'"
+               [class.border-gray-100]="appt.status !== 'pending'"
+               [class.opacity-50]="appt.status === 'cancelled' || appt.status === 'completed' || appt.status === 'no_show'">
             <div class="flex items-start justify-between mb-3">
               <div>
                 <p class="font-bold text-gray-900">{{ appt.name }}</p>
