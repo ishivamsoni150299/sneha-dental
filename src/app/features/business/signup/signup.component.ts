@@ -52,17 +52,19 @@ async function resizeImage(file: File, maxSize = 200): Promise<string> {
 
 // ── Theme definitions ─────────────────────────────────────────────────────────
 export interface Theme {
-  id: 'blue' | 'teal' | 'violet' | 'rose';
+  id: 'blue' | 'teal' | 'emerald' | 'purple' | 'rose' | 'caramel';
   name: string;
   hex: string;   // primary
   hexTo: string; // gradient end
 }
 
 export const THEMES: Theme[] = [
-  { id: 'blue',   name: 'Ocean Blue',   hex: '#2563eb', hexTo: '#1e3a8a' },
-  { id: 'teal',   name: 'Teal Green',   hex: '#0d9488', hexTo: '#134e4a' },
-  { id: 'violet', name: 'Royal Purple', hex: '#7c3aed', hexTo: '#4c1d95' },
-  { id: 'rose',   name: 'Rose Red',     hex: '#e11d48', hexTo: '#881337' },
+  { id: 'blue',    name: 'Ocean Blue',   hex: '#2563eb', hexTo: '#1e3a8a' },
+  { id: 'teal',    name: 'Teal Green',   hex: '#0d9488', hexTo: '#134e4a' },
+  { id: 'emerald', name: 'Emerald',      hex: '#059669', hexTo: '#064e3b' },
+  { id: 'purple',  name: 'Royal Purple', hex: '#7c3aed', hexTo: '#4c1d95' },
+  { id: 'rose',    name: 'Rose Red',     hex: '#e11d48', hexTo: '#881337' },
+  { id: 'caramel', name: 'Caramel Gold', hex: '#b45309', hexTo: '#78350f' },
 ];
 
 // ── Services ──────────────────────────────────────────────────────────────────
