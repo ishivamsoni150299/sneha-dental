@@ -4,7 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
-type FilterTab = 'all' | 'pending' | 'confirmed' | 'today';
+type FilterTab = 'all' | 'pending' | 'confirmed' | 'today' | 'checked_in' | 'completed';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -34,17 +34,21 @@ export class AdminDashboardComponent implements OnInit {
   filteredAppointments = computed(() => {
     const all = this.appointments();
     const tab = this.activeTab();
-    if (tab === 'today')     return all.filter(a => a.date === this.today);
-    if (tab === 'pending')   return all.filter(a => a.status === 'pending');
-    if (tab === 'confirmed') return all.filter(a => a.status === 'confirmed');
+    if (tab === 'today')      return all.filter(a => a.date === this.today);
+    if (tab === 'pending')    return all.filter(a => a.status === 'pending');
+    if (tab === 'confirmed')  return all.filter(a => a.status === 'confirmed');
+    if (tab === 'checked_in') return all.filter(a => a.status === 'checked_in');
+    if (tab === 'completed')  return all.filter(a => a.status === 'completed');
     return all;
   });
 
   counts = computed(() => ({
-    all:       this.appointments().length,
-    today:     this.appointments().filter(a => a.date === this.today).length,
-    pending:   this.appointments().filter(a => a.status === 'pending').length,
-    confirmed: this.appointments().filter(a => a.status === 'confirmed').length,
+    all:        this.appointments().length,
+    today:      this.appointments().filter(a => a.date === this.today).length,
+    pending:    this.appointments().filter(a => a.status === 'pending').length,
+    confirmed:  this.appointments().filter(a => a.status === 'confirmed').length,
+    checked_in: this.appointments().filter(a => a.status === 'checked_in').length,
+    completed:  this.appointments().filter(a => a.status === 'completed').length,
   }));
 
   async ngOnInit() {
@@ -105,6 +109,51 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
+  async markArrived(appt: Appointment) {
+    this.updatingId.set(appt.id!);
+    this.actionError.set(null);
+    try {
+      await this.appointmentService.setStatus(appt.id!, 'checked_in');
+      this.appointments.update(list =>
+        list.map(a => a.id === appt.id ? { ...a, status: 'checked_in' } : a)
+      );
+    } catch (e) {
+      this.actionError.set('Could not update status.');
+    } finally {
+      this.updatingId.set(null);
+    }
+  }
+
+  async markCompleted(appt: Appointment) {
+    this.updatingId.set(appt.id!);
+    this.actionError.set(null);
+    try {
+      await this.appointmentService.setStatus(appt.id!, 'completed');
+      this.appointments.update(list =>
+        list.map(a => a.id === appt.id ? { ...a, status: 'completed' } : a)
+      );
+    } catch (e) {
+      this.actionError.set('Could not update status.');
+    } finally {
+      this.updatingId.set(null);
+    }
+  }
+
+  async markNoShow(appt: Appointment) {
+    this.updatingId.set(appt.id!);
+    this.actionError.set(null);
+    try {
+      await this.appointmentService.setStatus(appt.id!, 'no_show');
+      this.appointments.update(list =>
+        list.map(a => a.id === appt.id ? { ...a, status: 'no_show' } : a)
+      );
+    } catch (e) {
+      this.actionError.set('Could not update status.');
+    } finally {
+      this.updatingId.set(null);
+    }
+  }
+
   async logout() {
     await this.auth.logout();
     this.router.navigate(['/admin/login']);
@@ -122,7 +171,42 @@ export class AdminDashboardComponent implements OnInit {
 
   statusColor(status: string): string {
     if (status === 'confirmed')  return 'bg-green-100 text-green-700';
+    if (status === 'checked_in') return 'bg-blue-100 text-blue-700';
+    if (status === 'completed')  return 'bg-indigo-100 text-indigo-700';
+    if (status === 'no_show')    return 'bg-gray-100 text-gray-500';
     if (status === 'cancelled')  return 'bg-red-100 text-red-600';
-    return 'bg-yellow-100 text-yellow-700';
+    return 'bg-yellow-100 text-yellow-700';  // pending
+  }
+
+  exportCsv() {
+    const rows = this.filteredAppointments();
+    if (!rows.length) return;
+
+    const headers = ['Booking Ref', 'Name', 'Phone', 'Email', 'Service', 'Date', 'Time', 'Status', 'Message'];
+    const escape  = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines   = [
+      headers.join(','),
+      ...rows.map(a => [
+        a.bookingRef, a.name, a.phone, a.email ?? '',
+        a.service, a.date, a.time, a.status, a.message ?? '',
+      ].map(escape).join(',')),
+    ];
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `appointments-${this.activeTab()}-${this.today}.csv`,
+    });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  statusLabel(status: string): string {
+    if (status === 'checked_in') return 'Arrived';
+    if (status === 'no_show')    return 'No Show';
+    return status.charAt(0).toUpperCase() + status.slice(1);
   }
 }

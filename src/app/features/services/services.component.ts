@@ -1,10 +1,24 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
 import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 interface Faq { q: string; a: string }
+
+type ServiceCategory = 'All' | 'Preventive' | 'Restorative' | 'Cosmetic' | 'Surgical';
+
+const CATEGORY_MAP: Record<string, ServiceCategory> = {
+  'General Dentistry':  'Preventive',
+  'Cleaning & Scaling': 'Preventive',
+  'Tooth Fillings':     'Restorative',
+  'Root Canal':         'Restorative',
+  'Cosmetic Dentistry': 'Cosmetic',
+  'Teeth Whitening':    'Cosmetic',
+  'Orthodontics':       'Cosmetic',
+  'Dental Implants':    'Surgical',
+  'Extraction':         'Surgical',
+};
 
 @Component({
   selector: 'app-services',
@@ -16,6 +30,15 @@ interface Faq { q: string; a: string }
 export class ServicesComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
+
+  readonly categories: ServiceCategory[] = ['All', 'Preventive', 'Restorative', 'Cosmetic', 'Surgical'];
+  activeCategory = signal<ServiceCategory>('All');
+
+  filteredServices = computed(() => {
+    const cat = this.activeCategory();
+    if (cat === 'All') return this.config.services;
+    return this.config.services.filter(s => (CATEGORY_MAP[s.name] ?? 'Preventive') === cat);
+  });
 
   openFaq = signal<number | null>(null);
   toggleFaq(i: number) { this.openFaq.set(this.openFaq() === i ? null : i); }

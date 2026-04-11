@@ -38,9 +38,21 @@
       <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Browse Every Treatment</h2>
       <p class="text-gray-500 max-w-lg mx-auto">Every price you see is what you pay. No surprise bills — confirmed before we begin.</p>
     </div>
+    <!-- Category filter tabs -->
+    @if (config.services.length > 0) {
+      <div class="flex gap-2 flex-wrap justify-center mb-10">
+        @for (cat of categories; track cat) {
+          <button (click)="activeCategory.set(cat)"
+                  class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                  [class]="activeCategory() === cat ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'">
+            {{ cat }}
+          </button>
+        }
+      </div>
+    }
     @if (config.services.length > 0) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (service of config.services; track service.name) {
+        @for (service of filteredServices(); track service.name) {
           <app-service-card
             [iconPath]="service.iconPath"
             [name]="service.name"
@@ -48,6 +60,9 @@
             [benefit]="service.benefit"
             [price]="service.price"
           />
+        }
+        @if (filteredServices().length === 0) {
+          <div class="col-span-full text-center text-sm text-gray-400 py-8">No services in this category yet.</div>
         }
       </div>
     } @else {

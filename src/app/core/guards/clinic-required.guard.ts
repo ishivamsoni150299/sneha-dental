@@ -12,7 +12,15 @@ export const clinicRequiredGuard: CanActivateFn = () => {
   const clinic = inject(ClinicConfigService);
   const router = inject(Router);
 
-  if (clinic.isLoaded) return true;
-  router.navigate(['/business']);
-  return false;
+  if (!clinic.isLoaded) {
+    router.navigate(['/business']);
+    return false;
+  }
+
+  if (clinic.config.comingSoon) {
+    router.navigate(['/coming-soon']);
+    return false;
+  }
+
+  return true;
 };

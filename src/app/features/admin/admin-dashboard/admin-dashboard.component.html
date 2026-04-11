@@ -64,18 +64,30 @@
       </div>
     </div>
 
-    <!-- Filter tabs -->
-    <div class="flex gap-2 mb-6 flex-wrap">
-      @for (tab of ([{id:'all',label:'All'},{id:'today',label:'Today'},{id:'pending',label:'Pending'},{id:'confirmed',label:'Confirmed'}]); track tab.id) {
-        <button (click)="activeTab.set($any(tab.id))"
-                class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-                [class]="activeTab() === tab.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">
-          {{ tab.label }}
-          @if (tab.id === 'pending' && counts().pending > 0) {
-            <span class="ml-1.5 bg-yellow-400 text-yellow-900 text-xs px-1.5 py-0.5 rounded-full">{{ counts().pending }}</span>
-          }
-        </button>
-      }
+    <!-- Filter tabs + Export -->
+    <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
+      <div class="flex gap-2 flex-wrap">
+        @for (tab of ([{id:'all',label:'All'},{id:'today',label:'Today'},{id:'pending',label:'Pending'},{id:'confirmed',label:'Confirmed'},{id:'checked_in',label:'Arrived'},{id:'completed',label:'Completed'}]); track tab.id) {
+          <button (click)="activeTab.set($any(tab.id))"
+                  class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                  [class]="activeTab() === tab.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">
+            {{ tab.label }}
+            @if (tab.id === 'pending' && counts().pending > 0) {
+              <span class="ml-1.5 bg-yellow-400 text-yellow-900 text-xs px-1.5 py-0.5 rounded-full">{{ counts().pending }}</span>
+            }
+            @if (tab.id === 'checked_in' && counts().checked_in > 0) {
+              <span class="ml-1.5 bg-blue-400 text-white text-xs px-1.5 py-0.5 rounded-full">{{ counts().checked_in }}</span>
+            }
+          </button>
+        }
+      </div>
+      <button (click)="exportCsv()" [disabled]="!filteredAppointments().length"
+              class="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-300 bg-white px-4 py-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Export CSV
+      </button>
     </div>
 
     <!-- Error banner -->
@@ -145,8 +157,8 @@
                   <span class="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">{{ appt.bookingRef }}</span>
                 </td>
                 <td class="px-5 py-4">
-                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full capitalize" [class]="statusColor(appt.status)">
-                    {{ appt.status }}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full" [class]="statusColor(appt.status)">
+                    {{ statusLabel(appt.status) }}
                   </span>
                 </td>
                 <td class="px-5 py-4">
@@ -157,7 +169,23 @@
                         Confirm
                       </button>
                     }
-                    @if (appt.status !== 'cancelled') {
+                    @if (appt.status === 'confirmed') {
+                      <button (click)="markArrived(appt)" [disabled]="updatingId() === appt.id"
+                              class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                        Arrived
+                      </button>
+                    }
+                    @if (appt.status === 'checked_in') {
+                      <button (click)="markCompleted(appt)" [disabled]="updatingId() === appt.id"
+                              class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                        Done
+                      </button>
+                      <button (click)="markNoShow(appt)" [disabled]="updatingId() === appt.id"
+                              class="border border-gray-300 hover:bg-gray-50 text-gray-500 disabled:opacity-50 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                        No Show
+                      </button>
+                    }
+                    @if (appt.status !== 'cancelled' && appt.status !== 'completed' && appt.status !== 'no_show') {
                       @if (confirmCancelId() === appt.id) {
                         <span class="text-xs text-gray-600">Cancel?</span>
                         <button (click)="cancel(appt)"
@@ -217,7 +245,23 @@
                   Confirm
                 </button>
               }
-              @if (appt.status !== 'cancelled') {
+              @if (appt.status === 'confirmed') {
+                <button (click)="markArrived(appt)" [disabled]="updatingId() === appt.id"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50">
+                  Arrived
+                </button>
+              }
+              @if (appt.status === 'checked_in') {
+                <button (click)="markCompleted(appt)" [disabled]="updatingId() === appt.id"
+                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50">
+                  Done
+                </button>
+                <button (click)="markNoShow(appt)" [disabled]="updatingId() === appt.id"
+                        class="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-500 text-sm py-2.5 rounded-xl font-semibold transition-colors disabled:opacity-50">
+                  No Show
+                </button>
+              }
+              @if (appt.status !== 'cancelled' && appt.status !== 'completed' && appt.status !== 'no_show') {
                 @if (confirmCancelId() === appt.id) {
                   <div class="flex-1 flex gap-2 items-center">
                     <span class="text-xs text-gray-600">Cancel?</span>

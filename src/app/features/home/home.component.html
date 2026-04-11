@@ -101,28 +101,31 @@
               </div>
             </div>
 
-            <!-- Slots -->
+            <!-- Hours + CTA -->
             <div class="px-5 pt-4 pb-3">
-              <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Next Available Slots</p>
-              <div class="grid grid-cols-3 gap-2 mb-4">
-                <button class="bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:border-blue-600 hover:text-white rounded-xl p-2.5 text-center transition-all duration-200 group cursor-pointer">
-                  <p class="text-[10px] text-gray-400 group-hover:text-blue-100">Today</p>
-                  <p class="text-sm font-bold text-blue-600 group-hover:text-white">11:00 AM</p>
-                </button>
-                <button class="bg-blue-600 border border-blue-600 rounded-xl p-2.5 text-center shadow-sm shadow-blue-200">
-                  <p class="text-[10px] text-blue-200">Today</p>
-                  <p class="text-sm font-bold text-white">3:30 PM</p>
-                </button>
-                <button class="bg-blue-50 border border-blue-100 hover:bg-blue-600 hover:border-blue-600 hover:text-white rounded-xl p-2.5 text-center transition-all duration-200 group cursor-pointer">
-                  <p class="text-[10px] text-gray-400 group-hover:text-blue-100">Tomorrow</p>
-                  <p class="text-sm font-bold text-blue-600 group-hover:text-white">10:00 AM</p>
-                </button>
+              <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Clinic Hours</p>
+              <div class="space-y-1.5 mb-4">
+                @for (h of config.hours; track h.days) {
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-500 font-medium">{{ h.days }}</span>
+                    <span class="font-semibold text-gray-800">{{ h.time }}</span>
+                  </div>
+                }
+                @if (!config.hours.length) {
+                  <p class="text-xs text-gray-400 italic">Mon – Sat &nbsp;·&nbsp; 9:00 AM – 7:00 PM</p>
+                }
               </div>
               <a routerLink="/appointment"
                  class="group block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-lg hover:shadow-blue-200 relative overflow-hidden">
                 Book Appointment Now
                 <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-500"></span>
               </a>
+              <p class="text-center text-[11px] text-gray-400 mt-2.5 flex items-center justify-center gap-1">
+                <svg class="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                Same-day slots available · No hidden charges
+              </p>
             </div>
 
             <!-- Stats row -->

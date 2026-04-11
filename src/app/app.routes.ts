@@ -142,6 +142,18 @@ export const routes: Routes = [
     },
   },
 
+  // ── Coming Soon (full-page, no clinic navbar) ─────────────────────────────
+  {
+    path: 'coming-soon',
+    loadComponent: () =>
+      import('./features/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent),
+    data: {
+      title: 'Launching Soon',
+      description: 'Our dental clinic website is launching very soon. Get notified on WhatsApp.',
+      noIndex: true,
+    },
+  },
+
   // ── 404 ───────────────────────────────────────────────────────────────────
   {
     path: '**',

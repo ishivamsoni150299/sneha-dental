@@ -28,7 +28,7 @@ export interface Appointment {
   date: string;          // "YYYY-MM-DD"
   time: string;
   message?: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
   createdAt?: Timestamp;
 }
 
@@ -113,7 +113,7 @@ export class AppointmentService {
   }
 
   /** Set status directly (admin use). */
-  async setStatus(id: string, status: 'confirmed' | 'cancelled'): Promise<void> {
+  async setStatus(id: string, status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled'): Promise<void> {
     await updateDoc(doc(db, this.COLLECTION, id), { status });
   }
 
