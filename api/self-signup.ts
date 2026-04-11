@@ -63,6 +63,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     email, password,
     // Plan
     plan = 'trial',
+    // Customization
+    theme = 'blue',
     // Optional
     slug: preferredSlug,
   } = req.body ?? {};
@@ -121,7 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     city:                city?.trim() ?? '',
     mapEmbedUrl:         '',
     mapDirectionsUrl:    '',
-    theme:               'blue',
+    theme:               ['blue','teal','emerald','purple','rose','caramel'].includes(theme) ? theme : 'blue',
     bookingRefPrefix:    slug.slice(0, 2).toUpperCase() || 'BK',
     social:              {},
     hours:               [],
