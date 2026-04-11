@@ -382,7 +382,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         domain:       v.domain,
         vercelDomain: v.vercelDomain,
         active:       v.active,
-        theme: v.theme as 'blue' | 'teal' | 'caramel',
+        theme: v.theme as 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose',
         bookingRefPrefix: v.bookingRefPrefix,
         social: {
           ...(v.facebook  ? { facebook:  v.facebook  } : {}),

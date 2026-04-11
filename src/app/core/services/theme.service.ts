@@ -1,10 +1,17 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, effect } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
+
+const ALL_THEMES = ['theme-blue', 'theme-teal', 'theme-caramel', 'theme-emerald', 'theme-purple', 'theme-rose'];
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   constructor() {
-    const theme = inject(ClinicConfigService).config.theme;
-    document.documentElement.classList.add(`theme-${theme}`);
+    const clinic = inject(ClinicConfigService);
+    effect(() => {
+      const theme = clinic.config.theme;
+      const html  = document.documentElement;
+      html.classList.remove(...ALL_THEMES);
+      if (theme) html.classList.add(`theme-${theme}`);
+    });
   }
 }

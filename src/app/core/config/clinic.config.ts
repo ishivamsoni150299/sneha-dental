@@ -56,7 +56,7 @@ export interface ClinicConfig {
   billingNotes?:       string;     // free-text notes for manual tracking
 
   // ── Brand ─────────────────────────────────────────────────────────────────
-  theme: 'blue' | 'teal' | 'caramel'; // default color theme for this deployment
+  theme: 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose'; // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"
 
   // ── Social ────────────────────────────────────────────────────────────────

@@ -3,9 +3,18 @@ import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup } from '@angular
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
-import { Testimonial, ClinicHours } from '../../../core/config/clinic.config';
+import { Testimonial, ClinicHours, ClinicConfig } from '../../../core/config/clinic.config';
 
-type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social';
+type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme';
+
+export interface ThemeOption {
+  value: ClinicConfig['theme'];
+  label: string;
+  primary: string;
+  dark: string;
+  light: string;
+  gradient: string;
+}
 
 @Component({
   selector: 'app-admin-settings',
@@ -36,7 +45,20 @@ export class AdminSettingsComponent implements OnInit {
     { id: 'hours',        label: 'Hours' },
     { id: 'testimonials', label: 'Testimonials' },
     { id: 'social',       label: 'Social' },
+    { id: 'theme',        label: 'Theme' },
   ];
+
+  readonly themeOptions: ThemeOption[] = [
+    { value: 'blue',    label: 'Ocean Blue',    primary: '#2563eb', dark: '#1d4ed8', light: '#dbeafe', gradient: 'linear-gradient(135deg,#2563eb,#3b82f6)' },
+    { value: 'teal',    label: 'Teal Green',    primary: '#0d9488', dark: '#0f766e', light: '#ccfbf1', gradient: 'linear-gradient(135deg,#0d9488,#14b8a6)' },
+    { value: 'emerald', label: 'Emerald',       primary: '#059669', dark: '#047857', light: '#d1fae5', gradient: 'linear-gradient(135deg,#059669,#10b981)' },
+    { value: 'purple',  label: 'Royal Purple',  primary: '#7c3aed', dark: '#6d28d9', light: '#ede9fe', gradient: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
+    { value: 'rose',    label: 'Rose Red',      primary: '#e11d48', dark: '#be123c', light: '#ffe4e6', gradient: 'linear-gradient(135deg,#e11d48,#f43f5e)' },
+    { value: 'caramel', label: 'Caramel Gold',  primary: '#b45309', dark: '#92400e', light: '#fef3c7', gradient: 'linear-gradient(135deg,#b45309,#d97706)' },
+  ];
+
+  selectedTheme = signal<ClinicConfig['theme']>('blue');
+  savingTheme   = signal(false);
 
   // ── Forms (one per tab) ───────────────────────────────────────────────────
   infoForm = this.fb.nonNullable.group({
@@ -94,6 +116,8 @@ export class AdminSettingsComponent implements OnInit {
       mapEmbedUrl:      cfg.mapEmbedUrl ?? '',
       mapDirectionsUrl: cfg.mapDirectionsUrl ?? '',
     });
+
+    this.selectedTheme.set(cfg.theme ?? 'blue');
 
     (cfg.hours ?? []).forEach(h => this.addHour(h.days, h.time));
     (cfg.testimonials ?? []).forEach(t => this.addTestimonial(t));
@@ -215,6 +239,21 @@ export class AdminSettingsComponent implements OnInit {
       this.showToast('Social links saved.', 'success');
     } catch { this.showToast('Failed to save. Please try again.', 'error'); }
     finally   { this.savingSocial.set(false); }
+  }
+
+  pickTheme(theme: ClinicConfig['theme']) {
+    this.selectedTheme.set(theme);
+    this.clinicCfg.updateConfig({ theme }); // live preview
+  }
+
+  async saveTheme() {
+    if (!this.guardClinicId()) return;
+    this.savingTheme.set(true);
+    try {
+      await this.store.updateClinicSettings(this.clinicId, { theme: this.selectedTheme() });
+      this.showToast('Theme saved.', 'success');
+    } catch { this.showToast('Failed to save theme.', 'error'); }
+    finally   { this.savingTheme.set(false); }
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────

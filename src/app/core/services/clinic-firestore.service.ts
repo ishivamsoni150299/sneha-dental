@@ -29,6 +29,9 @@ export interface ClinicSettingsPayload {
   hours?:               ClinicHours[];
   testimonials?:        Testimonial[];
   social?:              { facebook?: string; instagram?: string; linkedin?: string };
+  theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
+  comingSoon?:          boolean;
+  launchDate?:          string;
 }
 
 export interface AppointmentDoc {

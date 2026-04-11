@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { clinicConfig, ClinicConfig } from '../config/clinic.config';
+export type { ClinicConfig };
 import { environment } from '../../../environments/environment';
 
 const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
@@ -95,6 +96,11 @@ export class ClinicConfigService {
     end.setDate(end.getDate() + graceDays);
     end.setHours(23, 59, 59, 999);
     return end < new Date();
+  }
+
+  /** Merge partial fields into the in-memory config (does NOT write to Firestore). */
+  updateConfig(partial: Partial<ClinicConfig>): void {
+    this._config.update(c => ({ ...c, ...partial }));
   }
 
   /** Full single-line address derived from the two address lines. */
