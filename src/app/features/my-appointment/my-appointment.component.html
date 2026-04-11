@@ -1,23 +1,35 @@
 <!-- Hero -->
-<section class="bg-gradient-to-br from-blue-50 to-white py-16 md:py-20 border-b border-gray-100">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <span class="inline-block bg-blue-100 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5">My Booking</span>
-    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">Manage Your <span class="text-blue-600">Appointment</span></h1>
-    <p class="text-gray-500 text-lg max-w-lg mx-auto">View, edit, or cancel your booking using your reference number and phone number.</p>
+<section class="border-b border-gray-100 bg-gradient-to-br from-blue-50 to-white py-16 md:py-20">
+  <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+    <span class="mb-5 inline-block rounded-full bg-blue-100 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-600">My Booking</span>
+    <h1 class="mb-4 font-display text-4xl leading-tight text-gray-900 md:text-5xl">Manage Your <span class="text-blue-600">Appointment</span></h1>
+    <p class="mx-auto max-w-lg text-lg text-gray-500">View, edit, or cancel your booking using your reference number and phone number.</p>
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-gray-600">
+      <span class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-2 shadow-sm">
+        <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+        No login required
+      </span>
+      <span class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-2 shadow-sm">
+        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+        Edit in a few taps
+      </span>
+      <span class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-2 shadow-sm">
+        <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+        Call us for urgent changes
+      </span>
+    </div>
   </div>
 </section>
 
 <section class="bg-white py-16 md:py-20">
-  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    <!-- Progress breadcrumb -->
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
     @if (view() !== 'cancelled') {
-      <div class="flex items-center gap-2 text-xs mb-8 justify-center">
+      <div class="mb-8 flex items-center justify-center gap-2 text-xs">
         @for (step of [{id:'lookup',label:'Find'},{id:'detail',label:'Review'},{id:'edit',label:'Edit'}]; track step.id; let i = $index) {
           <span class="flex items-center gap-1.5 font-semibold"
                 [class.text-blue-600]="view() === step.id"
                 [class.text-gray-300]="view() !== step.id && !(['lookup','detail','edit'].indexOf(view()) > ['lookup','detail','edit'].indexOf(step.id))">
-            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] border"
+            <span class="flex h-5 w-5 items-center justify-center rounded-full border text-[10px]"
                   [class.bg-blue-600]="view() === step.id"
                   [class.text-white]="view() === step.id"
                   [class.border-blue-600]="view() === step.id"
@@ -26,271 +38,332 @@
             {{ step.label }}
           </span>
           @if (i < 2) {
-            <span class="text-gray-200 select-none">—</span>
+            <span class="select-none text-gray-200">&mdash;</span>
           }
         }
       </div>
     }
 
-    <!-- ===== LOOKUP FORM ===== -->
-    @if (view() === 'lookup') {
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-        <h2 class="font-display text-2xl text-gray-900 mb-2">Find Your Appointment</h2>
-        <p class="text-gray-500 text-sm mb-6">Enter the booking reference from your confirmation and the phone number you used.</p>
-
-        <form [formGroup]="lookupForm" (ngSubmit)="onLookup()" class="space-y-5">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Booking Reference <span class="text-red-500">*</span>
-            </label>
-            <input formControlName="bookingRef" type="text" placeholder="e.g. SD-A3F7KQ2M"
-                   class="w-full px-4 py-3 rounded-xl border font-mono text-sm uppercase tracking-wider outline-none transition-colors"
-                   [class]="isLookupInvalid('bookingRef') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
-            @if (isLookupInvalid('bookingRef')) {
-              <p class="text-red-500 text-xs mt-1">Enter a valid reference (e.g. SD-A3F7KQ2M).</p>
-            }
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Phone Number <span class="text-red-500">*</span>
-            </label>
-            <input formControlName="phone" type="tel" placeholder="10-digit mobile number you booked with"
-                   class="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors"
-                   [class]="isLookupInvalid('phone') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
-            @if (isLookupInvalid('phone')) {
-              <p class="text-red-500 text-xs mt-1">Enter the 10-digit number you used when booking.</p>
-            }
-          </div>
-
-          @if (lookupError()) {
-            <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 flex items-start gap-2">
-              <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-              </svg>
-              {{ lookupError() }}
-            </div>
-          }
-
-          <button type="submit" [disabled]="loading()"
-                  class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-4 rounded-xl font-bold transition-all">
-            @if (loading()) {
-              <span class="flex items-center justify-center gap-2">
-                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                </svg>
-                Looking up...
-              </span>
-            } @else {
-              Find My Appointment
-            }
-          </button>
-        </form>
-
-        <p class="text-xs text-gray-400 text-center mt-6">
-          Don't have a booking yet?
-          <a routerLink="/appointment" class="text-blue-600 font-medium hover:underline">Book now</a>
-        </p>
-      </div>
-    }
-
-    <!-- ===== APPOINTMENT DETAIL ===== -->
-    @if (view() === 'detail') {
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
       <div class="space-y-5">
+        @if (view() === 'lookup') {
+          <div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <h2 class="mb-2 font-display text-2xl text-gray-900">Find Your Appointment</h2>
+            <p class="mb-6 text-sm text-gray-500">Enter the booking reference from your confirmation and the phone number you used.</p>
 
-        <!-- Detail card -->
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <!-- Status header -->
-          <div class="bg-blue-600 px-6 py-4 flex items-center justify-between">
-            <div>
-              <p class="text-blue-100 text-xs uppercase tracking-widest mb-0.5">Booking Reference</p>
-              <p class="font-mono text-lg font-bold text-white tracking-widest">{{ appointment()?.bookingRef }}</p>
-            </div>
-            <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wide">
-              {{ appointment()?.status }}
-            </span>
-          </div>
+            <form [formGroup]="lookupForm" (ngSubmit)="onLookup()" class="space-y-5">
+              <div>
+                <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                  Booking Reference <span class="text-red-500">*</span>
+                </label>
+                <input formControlName="bookingRef" type="text" placeholder="e.g. SD-A3F7KQ2M"
+                       class="w-full rounded-xl border px-4 py-3 font-mono text-sm uppercase tracking-wider outline-none transition-colors"
+                       [class]="isLookupInvalid('bookingRef') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
+                @if (isLookupInvalid('bookingRef')) {
+                  <p class="mt-1 text-xs text-red-500">Enter a valid reference (e.g. SD-A3F7KQ2M).</p>
+                }
+              </div>
 
-          <!-- Details -->
-          <div class="p-6 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
               <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Patient</p>
-                <p class="font-semibold text-gray-900">{{ appointment()?.name }}</p>
+                <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                  Phone Number <span class="text-red-500">*</span>
+                </label>
+                <input formControlName="phone" type="tel" placeholder="10-digit mobile number you booked with"
+                       class="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                       [class]="isLookupInvalid('phone') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
+                @if (isLookupInvalid('phone')) {
+                  <p class="mt-1 text-xs text-red-500">Enter the 10-digit number you used when booking.</p>
+                }
               </div>
-              <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Phone</p>
-                <p class="font-semibold text-gray-900">{{ appointment()?.phone }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Service</p>
-                <p class="font-semibold text-gray-900">{{ appointment()?.service }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Time Slot</p>
-                <p class="font-semibold text-gray-900">{{ appointment()?.time }}</p>
-              </div>
-              <div class="col-span-2">
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Date</p>
-                <p class="font-semibold text-gray-900">{{ formatDate(appointment()!.date) }}</p>
-              </div>
-              @if (appointment()?.message) {
-                <div class="col-span-2">
-                  <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Notes</p>
-                  <p class="text-gray-600 text-sm">{{ appointment()?.message }}</p>
+
+              @if (lookupError()) {
+                <div class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  <svg class="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  </svg>
+                  {{ lookupError() }}
                 </div>
               }
-            </div>
-          </div>
-        </div>
 
-        <!-- Error banner -->
-        @if (saveError()) {
-          <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 flex items-start gap-2">
-            <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            {{ saveError() }}
-          </div>
-        }
-
-        <!-- Action buttons — Edit is primary, Cancel is clearly secondary -->
-        <div class="space-y-3">
-          <button (click)="openEdit()"
-                  class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            Edit Appointment
-          </button>
-
-          @if (canCancel()) {
-            <button (click)="showConfirm.set(true)" [disabled]="cancelling()"
-                    class="w-full text-sm text-red-500 hover:text-red-700 disabled:opacity-50 py-2 transition-colors flex items-center justify-center gap-1.5 font-medium">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-              Cancel this appointment
-            </button>
-          } @else {
-            <p class="text-center text-xs text-orange-600 bg-orange-50 border border-orange-100 rounded-xl px-4 py-2.5 font-medium">
-              Cannot cancel within 24 hours &mdash;
-              <a [href]="'tel:+' + config.phoneE164" class="font-bold hover:underline">call us</a>
-            </p>
-          }
-        </div>
-
-        <!-- Confirm cancellation dialog -->
-        @if (showConfirm()) {
-          <div class="bg-red-50 border border-red-200 rounded-2xl p-6">
-            <h3 class="font-bold text-gray-900 mb-2">Confirm Cancellation</h3>
-            <p class="text-sm text-gray-500 mb-5">Are you sure you want to cancel your appointment on <strong>{{ formatDate(appointment()!.date) }}</strong>? This cannot be undone.</p>
-            <div class="flex gap-3">
-              <button (click)="onCancelConfirmed()" [disabled]="cancelling()"
-                      class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-sm transition-colors">
-                @if (cancelling()) { Cancelling... } @else { Yes, Cancel It }
-              </button>
-              <button (click)="showConfirm.set(false)"
-                      class="flex-1 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 py-3 rounded-xl font-semibold text-sm transition-colors">
-                Keep My Appointment
-              </button>
-            </div>
-          </div>
-        }
-
-        <button (click)="backToLookup()" class="w-full text-sm text-gray-400 hover:text-gray-600 py-2 transition-colors">
-          ← Look up a different appointment
-        </button>
-      </div>
-    }
-
-    <!-- ===== EDIT FORM ===== -->
-    @if (view() === 'edit') {
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-        <h2 class="font-display text-2xl text-gray-900 mb-1">Edit Appointment</h2>
-        <p class="text-gray-500 text-sm mb-6">Ref: <span class="font-mono font-semibold text-blue-600">{{ appointment()?.bookingRef }}</span></p>
-
-        <form [formGroup]="editForm" (ngSubmit)="onSave()" class="space-y-5">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Service <span class="text-red-500">*</span></label>
-            <select formControlName="service"
-                    class="w-full px-4 py-3 rounded-xl border text-sm outline-none appearance-none cursor-pointer transition-colors"
-                    [class]="isEditInvalid('service') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
-              @for (s of services; track s) {
-                <option [value]="s">{{ s }}</option>
-              }
-            </select>
-            @if (isEditInvalid('service')) { <p class="text-red-500 text-xs mt-1">Please select a service.</p> }
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Date <span class="text-red-500">*</span></label>
-              <input formControlName="date" type="date" [min]="minDate"
-                     class="w-full px-4 py-3 rounded-xl border text-sm outline-none cursor-pointer transition-colors"
-                     [class]="isEditInvalid('date') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
-              @if (isEditInvalid('date')) { <p class="text-red-500 text-xs mt-1">Please select a date.</p> }
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Time Slot <span class="text-red-500">*</span></label>
-              <select formControlName="time"
-                      class="w-full px-4 py-3 rounded-xl border text-sm outline-none appearance-none cursor-pointer transition-colors"
-                      [class]="isEditInvalid('time') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
-                @for (t of timeSlots; track t) {
-                  <option [value]="t">{{ t }}</option>
+              <button type="submit" [disabled]="loading()"
+                      class="w-full rounded-xl bg-blue-600 py-4 font-bold text-white transition-all hover:bg-blue-700 disabled:opacity-60">
+                @if (loading()) {
+                  <span class="flex items-center justify-center gap-2">
+                    <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    Looking up...
+                  </span>
+                } @else {
+                  Find My Appointment
                 }
-              </select>
-              @if (isEditInvalid('time')) { <p class="text-red-500 text-xs mt-1">Please select a time.</p> }
+              </button>
+            </form>
+
+            <p class="mt-6 text-center text-xs text-gray-400">
+              Don't have a booking yet?
+              <a routerLink="/appointment" class="font-medium text-blue-600 hover:underline">Book now</a>
+            </p>
+          </div>
+        }
+
+        @if (view() === 'detail') {
+          <div class="space-y-5">
+            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div class="flex items-center justify-between bg-blue-600 px-6 py-4">
+                <div>
+                  <p class="mb-0.5 text-xs uppercase tracking-widest text-blue-100">Booking Reference</p>
+                  <p class="font-mono text-lg font-bold tracking-widest text-white">{{ appointment()?.bookingRef }}</p>
+                </div>
+                <span class="rounded-full bg-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+                  {{ appointment()?.status }}
+                </span>
+              </div>
+
+              <div class="space-y-4 p-6">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="mb-1 text-xs uppercase tracking-wider text-gray-400">Patient</p>
+                    <p class="font-semibold text-gray-900">{{ appointment()?.name }}</p>
+                  </div>
+                  <div>
+                    <p class="mb-1 text-xs uppercase tracking-wider text-gray-400">Phone</p>
+                    <p class="font-semibold text-gray-900">{{ appointment()?.phone }}</p>
+                  </div>
+                  <div>
+                    <p class="mb-1 text-xs uppercase tracking-wider text-gray-400">Service</p>
+                    <p class="font-semibold text-gray-900">{{ appointment()?.service }}</p>
+                  </div>
+                  <div>
+                    <p class="mb-1 text-xs uppercase tracking-wider text-gray-400">Time Slot</p>
+                    <p class="font-semibold text-gray-900">{{ appointment()?.time }}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <p class="mb-1 text-xs uppercase tracking-wider text-gray-400">Date</p>
+                    <p class="font-semibold text-gray-900">{{ formatDate(appointment()!.date) }}</p>
+                  </div>
+                  <div class="col-span-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                    <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-600">Clinic Support</p>
+                    <p class="font-semibold text-gray-900">{{ config.name }}</p>
+                    <p class="text-sm text-gray-600">{{ config.addressLine1 }}, {{ config.addressLine2 }}</p>
+                    <div class="mt-3 flex flex-wrap gap-3 text-sm">
+                      <a [href]="supportPhoneHref" class="font-semibold text-blue-700 hover:underline">Call {{ config.phone }}</a>
+                      @if (supportWhatsappUrl) {
+                        <a [href]="supportWhatsappUrl" target="_blank" rel="noopener noreferrer" class="font-semibold text-emerald-700 hover:underline">WhatsApp support</a>
+                      }
+                    </div>
+                  </div>
+                  @if (appointment()?.message) {
+                    <div class="col-span-2">
+                      <p class="mb-1 text-xs uppercase tracking-wider text-gray-400">Notes</p>
+                      <p class="text-sm text-gray-600">{{ appointment()?.message }}</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            @if (saveError()) {
+              <div class="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <svg class="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                {{ saveError() }}
+              </div>
+            }
+
+            <div class="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Need a same-day change? Call the clinic directly for faster help.
+            </div>
+
+            <div class="space-y-3">
+              <button (click)="openEdit()"
+                      class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white transition-colors hover:bg-blue-700">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Edit Appointment
+              </button>
+
+              @if (canCancel()) {
+                <button (click)="showConfirm.set(true)" [disabled]="cancelling()"
+                        class="flex w-full items-center justify-center gap-1.5 py-2 text-sm font-medium text-red-500 transition-colors hover:text-red-700 disabled:opacity-50">
+                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                  Cancel this appointment
+                </button>
+              } @else {
+                <p class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-2.5 text-center text-xs font-medium text-orange-600">
+                  Cannot cancel within 24 hours &mdash;
+                  <a [href]="supportPhoneHref" class="font-bold hover:underline">call us</a>
+                </p>
+              }
+            </div>
+
+            @if (showConfirm()) {
+              <div class="rounded-2xl border border-red-200 bg-red-50 p-6">
+                <h3 class="mb-2 font-bold text-gray-900">Confirm Cancellation</h3>
+                <p class="mb-5 text-sm text-gray-500">Are you sure you want to cancel your appointment on <strong>{{ formatDate(appointment()!.date) }}</strong>? This cannot be undone.</p>
+                <div class="flex gap-3">
+                  <button (click)="onCancelConfirmed()" [disabled]="cancelling()"
+                          class="flex-1 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60">
+                    @if (cancelling()) { Cancelling... } @else { Yes, Cancel It }
+                  </button>
+                  <button (click)="showConfirm.set(false)"
+                          class="flex-1 rounded-xl border-2 border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50">
+                    Keep My Appointment
+                  </button>
+                </div>
+              </div>
+            }
+
+            <button (click)="backToLookup()" class="w-full py-2 text-sm text-gray-400 transition-colors hover:text-gray-600">
+              &larr; Look up a different appointment
+            </button>
+          </div>
+        }
+
+        @if (view() === 'edit') {
+          <div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <h2 class="mb-1 font-display text-2xl text-gray-900">Edit Appointment</h2>
+            <p class="mb-6 text-sm text-gray-500">Ref: <span class="font-mono font-semibold text-blue-600">{{ appointment()?.bookingRef }}</span></p>
+
+            <form [formGroup]="editForm" (ngSubmit)="onSave()" class="space-y-5">
+              <div>
+                <label class="mb-1.5 block text-sm font-semibold text-gray-700">Service <span class="text-red-500">*</span></label>
+                <select formControlName="service"
+                        class="w-full cursor-pointer appearance-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                        [class]="isEditInvalid('service') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
+                  @for (s of services; track s) {
+                    <option [value]="s">{{ s }}</option>
+                  }
+                </select>
+                @if (isEditInvalid('service')) { <p class="mt-1 text-xs text-red-500">Please select a service.</p> }
+              </div>
+
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label class="mb-1.5 block text-sm font-semibold text-gray-700">Date <span class="text-red-500">*</span></label>
+                  <input formControlName="date" type="date" [min]="minDate"
+                         class="w-full cursor-pointer rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                         [class]="isEditInvalid('date') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
+                  @if (isEditInvalid('date')) { <p class="mt-1 text-xs text-red-500">Please select a date.</p> }
+                </div>
+                <div>
+                  <label class="mb-1.5 block text-sm font-semibold text-gray-700">Time Slot <span class="text-red-500">*</span></label>
+                  <select formControlName="time"
+                          class="w-full cursor-pointer appearance-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+                          [class]="isEditInvalid('time') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-blue-400'">
+                    @for (t of timeSlots; track t) {
+                      <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                  @if (isEditInvalid('time')) { <p class="mt-1 text-xs text-red-500">Please select a time.</p> }
+                </div>
+              </div>
+
+              <div>
+                <label class="mb-1.5 block text-sm font-semibold text-gray-700">Notes <span class="font-normal text-gray-400">(optional)</span></label>
+                <textarea formControlName="message" rows="3" placeholder="Any additional notes..."
+                          class="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-blue-400"></textarea>
+                <p class="mt-1.5 text-xs text-gray-400">If your timing is flexible, mention it here and the clinic can help with nearby slots.</p>
+              </div>
+
+              @if (saveError()) {
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{{ saveError() }}</div>
+              }
+
+              <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                The clinic will review the updated request and confirm any time changes by call or WhatsApp.
+              </div>
+
+              <div class="flex gap-3">
+                <button type="submit" [disabled]="saving()"
+                        class="flex-1 rounded-xl bg-blue-600 py-3.5 font-bold text-white transition-all hover:bg-blue-700 disabled:opacity-60">
+                  @if (saving()) { Saving... } @else { Save Changes }
+                </button>
+                <button type="button" (click)="view.set('detail')"
+                        class="flex-1 rounded-xl border-2 border-gray-200 py-3.5 font-semibold text-gray-700 transition-colors hover:bg-gray-50">
+                  Back
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        @if (view() === 'cancelled') {
+          <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+            <h2 class="mb-2 font-display text-2xl text-gray-900">Appointment Cancelled</h2>
+            <p class="mb-8 text-gray-500">Your appointment has been successfully cancelled. We hope to see you again soon.</p>
+            <div class="flex flex-col justify-center gap-3 sm:flex-row">
+              <a routerLink="/appointment"
+                 class="rounded-xl bg-blue-600 px-7 py-3 font-semibold text-white transition-colors hover:bg-blue-700">
+                Book New Appointment
+              </a>
+              <button (click)="backToLookup()"
+                      class="rounded-xl border-2 border-gray-200 px-7 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50">
+                Back to Lookup
+              </button>
+            </div>
+            <p class="mt-5 text-sm text-gray-500">
+              Need help rebooking? <a [href]="supportPhoneHref" class="font-semibold text-blue-600 hover:underline">Call {{ config.phone }}</a>
+            </p>
+          </div>
+        }
+      </div>
+
+      @if (view() === 'lookup') {
+        <aside class="space-y-4">
+          <div class="rounded-2xl border border-gray-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Need help?</p>
+            <h3 class="mt-2 font-display text-2xl text-gray-900">Clinic Support</h3>
+            <p class="mt-2 text-sm leading-6 text-gray-600">
+              If you booked by phone or need an urgent change, contact the clinic directly.
+            </p>
+            <div class="mt-5 space-y-3">
+              <a [href]="supportPhoneHref" class="flex items-center justify-between rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-blue-300 hover:bg-blue-50">
+                <span>Call clinic</span>
+                <span class="text-blue-600">{{ config.phone }}</span>
+              </a>
+              @if (supportWhatsappUrl) {
+                <a [href]="supportWhatsappUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-emerald-300 hover:bg-emerald-50">
+                  <span>WhatsApp help</span>
+                  <span class="text-emerald-600">Open chat</span>
+                </a>
+              }
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Notes <span class="text-gray-400 font-normal">(optional)</span></label>
-            <textarea formControlName="message" rows="3" placeholder="Any additional notes..."
-                      class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-blue-400 outline-none resize-none bg-white transition-colors"></textarea>
+          <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Before you start</p>
+            <ul class="mt-4 space-y-3 text-sm text-gray-600">
+              <li class="flex gap-3">
+                <span class="mt-1 h-2 w-2 rounded-full bg-blue-500"></span>
+                Keep the booking reference exactly as shown in your confirmation.
+              </li>
+              <li class="flex gap-3">
+                <span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                Use the same mobile number you booked with.
+              </li>
+              <li class="flex gap-3">
+                <span class="mt-1 h-2 w-2 rounded-full bg-amber-500"></span>
+                For changes within 24 hours, call the clinic instead of cancelling online.
+              </li>
+            </ul>
+            <div class="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-gray-600">
+              <p class="font-semibold text-gray-900">Clinic hours</p>
+              <p class="mt-1">{{ clinicHoursPreview }}</p>
+            </div>
           </div>
-
-          @if (saveError()) {
-            <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">{{ saveError() }}</div>
-          }
-
-          <div class="flex gap-3">
-            <button type="submit" [disabled]="saving()"
-                    class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-3.5 rounded-xl font-bold transition-all">
-              @if (saving()) { Saving... } @else { Save Changes }
-            </button>
-            <button type="button" (click)="view.set('detail')"
-                    class="flex-1 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 py-3.5 rounded-xl font-semibold transition-colors">
-              Back
-            </button>
-          </div>
-        </form>
-      </div>
-    }
-
-    <!-- ===== CANCELLED CONFIRMATION ===== -->
-    @if (view() === 'cancelled') {
-      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-8 text-center">
-        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </div>
-        <h2 class="font-display text-2xl text-gray-900 mb-2">Appointment Cancelled</h2>
-        <p class="text-gray-500 mb-8">Your appointment has been successfully cancelled. We hope to see you again soon.</p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a routerLink="/appointment"
-             class="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 rounded-xl font-semibold transition-colors">
-            Book New Appointment
-          </a>
-          <button (click)="backToLookup()"
-                  class="border-2 border-gray-200 hover:bg-gray-50 text-gray-700 px-7 py-3 rounded-xl font-semibold transition-colors">
-            Back to Lookup
-          </button>
-        </div>
-      </div>
-    }
-
+        </aside>
+      }
+    </div>
   </div>
 </section>

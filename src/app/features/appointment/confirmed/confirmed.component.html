@@ -1,122 +1,166 @@
-<div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 py-16">
-  <div class="w-full max-w-lg">
-
-    <!-- Success Icon -->
-    <div class="text-center mb-8">
-      <div class="relative inline-flex">
-        <!-- Pulse ring -->
-        <span class="absolute inset-0 rounded-full bg-green-300 animate-ping opacity-30"></span>
-        <div class="relative w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-green-200">
-          <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-          </svg>
-        </div>
-      </div>
-      <h1 class="font-display text-3xl text-gray-900 mt-5 mb-2">Booking Confirmed!</h1>
-      <p class="text-gray-500 text-sm leading-relaxed max-w-sm mx-auto">
-        We've received your request@if (name()) {, <strong class="text-gray-700">{{ name() }}</strong>}. The clinic will call you within 2 hours to confirm your slot.
-      </p>
-    </div>
-
-    <!-- Booking Reference Card -->
-    <div class="bg-white rounded-2xl border-2 border-green-200 shadow-sm p-6 mb-4 text-center">
-      <p class="text-xs text-gray-400 uppercase tracking-widest mb-2">Your Booking Reference</p>
-      <p class="font-mono text-3xl font-bold text-green-600 tracking-widest mb-1">{{ bookingRef() }}</p>
-      <p class="text-xs text-gray-400">Save this — you'll need it to manage your appointment</p>
-    </div>
-
-    <!-- Appointment Details -->
-    @if (date() || service()) {
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4 space-y-3">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Appointment Details</p>
-        @if (service()) {
-          <div class="flex items-center gap-3 text-sm">
-            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 px-4 py-16">
+  <div class="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div class="w-full">
+      <div class="rounded-[2rem] border border-white/70 bg-white/90 p-8 shadow-xl shadow-blue-100/60 backdrop-blur">
+        <div class="text-center">
+          <div class="relative inline-flex">
+            <span class="absolute inset-0 rounded-full bg-green-300 opacity-30 animate-ping"></span>
+            <div class="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-600 shadow-xl shadow-green-200">
+              <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
               </svg>
             </div>
-            <div>
-              <p class="text-xs text-gray-400">Service</p>
-              <p class="font-semibold text-gray-900">{{ service() }}</p>
+          </div>
+          <h1 class="mt-5 mb-2 font-display text-3xl text-gray-900">Booking Confirmed</h1>
+          <p class="mx-auto max-w-sm text-sm leading-relaxed text-gray-500">
+            We've received your request@if (name()) {, <strong class="text-gray-700">{{ name() }}</strong>}. The clinic will call you within 2 hours to confirm your slot.
+          </p>
+        </div>
+
+        <div class="mt-8 rounded-2xl border-2 border-green-200 bg-white p-6 text-center shadow-sm">
+          <p class="mb-2 text-xs uppercase tracking-widest text-gray-400">Your Booking Reference</p>
+          <p class="mb-1 font-mono text-3xl font-bold tracking-widest text-green-600">{{ bookingRef() }}</p>
+          <p class="text-xs text-gray-400">Save this - you'll need it to manage your appointment</p>
+        </div>
+
+        @if (date() || service()) {
+          <div class="mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-gray-400">Appointment Details</p>
+              @if (date()) {
+                <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{{ formattedDate }}</span>
+              }
+            </div>
+
+            <div class="space-y-3">
+              @if (service()) {
+                <div class="flex items-center gap-3 text-sm">
+                  <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                    <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-400">Service</p>
+                    <p class="font-semibold text-gray-900">{{ service() }}</p>
+                  </div>
+                </div>
+              }
+
+              @if (date()) {
+                <div class="flex items-center gap-3 text-sm">
+                  <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                    <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-400">Preferred Date</p>
+                    <p class="font-semibold text-gray-900">{{ formattedDate }}</p>
+                  </div>
+                </div>
+              }
+
+              <div class="flex items-center gap-3 text-sm">
+                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                  <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Clinic</p>
+                  <p class="font-semibold text-gray-900">{{ clinic.config.name }}</p>
+                  <p class="text-xs text-gray-500">{{ clinic.address }}</p>
+                </div>
+              </div>
             </div>
           </div>
         }
-        @if (date()) {
-          <div class="flex items-center gap-3 text-sm">
-            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+        <div class="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">What happens next</p>
+          <ul class="mt-4 space-y-3 text-sm text-blue-950">
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-blue-500"></span>
+              The clinic reviews your preferred date and service.
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+              You receive a call or WhatsApp confirmation for the final slot.
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-amber-500"></span>
+              Use the booking reference if you need to edit or cancel later.
+            </li>
+          </ul>
+        </div>
+
+        <div class="mt-6 space-y-3">
+          <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer"
+             class="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 hover:-translate-y-px hover:bg-green-700 hover:shadow-lg">
+            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Send details on WhatsApp
+          </a>
+
+          @if (date()) {
+            <a [href]="calendarUrl" target="_blank" rel="noopener noreferrer"
+               class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3.5 text-sm font-semibold text-gray-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400">Preferred Date</p>
-              <p class="font-semibold text-gray-900">{{ formattedDate }}</p>
-            </div>
-          </div>
-        }
-        <div class="flex items-center gap-3 text-sm">
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-xs text-gray-400">Clinic</p>
-            <p class="font-semibold text-gray-900">{{ clinic.config.name }}</p>
-            <p class="text-xs text-gray-500">{{ clinic.address }}</p>
+              Add to Google Calendar
+            </a>
+          }
+
+          <div class="flex gap-3">
+            <a routerLink="/my-appointment"
+               class="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900">
+              Manage Booking
+            </a>
+            <a routerLink="/"
+               class="flex flex-1 items-center justify-center rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-500 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800">
+              Back to Home
+            </a>
           </div>
         </div>
-      </div>
-    }
 
-    <!-- Actions -->
-    <div class="space-y-3">
-      <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer"
-         class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700
-                text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-px">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-        Send details on WhatsApp
-      </a>
-
-      @if (date()) {
-        <a [href]="calendarUrl" target="_blank" rel="noopener noreferrer"
-           class="flex items-center justify-center gap-2 w-full border border-gray-200 hover:border-blue-300
-                  text-gray-700 hover:text-blue-600 hover:bg-blue-50 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          Add to Google Calendar
-        </a>
-      }
-
-      <div class="flex gap-3">
-        <a routerLink="/my-appointment"
-           class="flex-1 flex items-center justify-center gap-1.5 border border-gray-200
-                  hover:border-gray-300 hover:bg-gray-50 text-gray-600 hover:text-gray-900 py-3 rounded-xl
-                  font-medium text-sm transition-all duration-200">
-          Manage Booking
-        </a>
-        <a routerLink="/"
-           class="flex-1 flex items-center justify-center text-gray-500 hover:text-gray-800
-                  border border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-3 rounded-xl
-                  font-medium text-sm transition-all duration-200">
-          Back to Home
-        </a>
+        <p class="mt-6 text-center text-xs leading-relaxed text-gray-400">
+          Clinic will call you at the number you provided to confirm the slot.<br>
+          Questions? Call
+          <a [href]="phoneHref" class="font-medium text-blue-600 hover:underline">
+            {{ clinic.config.phone }}
+          </a>
+        </p>
       </div>
     </div>
 
-    <!-- Phone reminder -->
-    <p class="text-center text-xs text-gray-400 mt-6 leading-relaxed">
-      Clinic will call you at the number you provided to confirm the slot.<br>
-      Questions? Call
-      <a [href]="'tel:' + clinic.config.phoneE164" class="text-blue-600 hover:underline font-medium">
-        {{ clinic.config.phone }}
-      </a>
-    </p>
-
+    <aside class="space-y-4">
+      <div class="rounded-[1.75rem] border border-blue-100 bg-white/90 p-6 shadow-lg shadow-blue-100/50">
+        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">Quick Support</p>
+        <h2 class="mt-2 font-display text-2xl text-gray-900">Need anything else?</h2>
+        <p class="mt-2 text-sm leading-6 text-gray-600">
+          Keep this reference handy. You can manage, reschedule, or cancel the request anytime from your booking page.
+        </p>
+        <div class="mt-5 space-y-3">
+          <a routerLink="/my-appointment" class="flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900 transition hover:border-blue-300">
+            <span>Open booking manager</span>
+            <span class="text-blue-600">&rarr;</span>
+          </a>
+          <a [href]="phoneHref" class="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-gray-300 hover:bg-gray-50">
+            <span>Call clinic</span>
+            <span class="text-blue-600">{{ clinic.config.phone }}</span>
+          </a>
+          @if (clinic.config.mapDirectionsUrl) {
+            <a [href]="clinic.config.mapDirectionsUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-gray-300 hover:bg-gray-50">
+              <span>Get directions</span>
+              <span class="text-blue-600">Maps</span>
+            </a>
+          }
+        </div>
+      </div>
+    </aside>
   </div>
 </div>

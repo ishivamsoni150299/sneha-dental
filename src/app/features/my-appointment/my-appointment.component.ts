@@ -48,6 +48,21 @@ export class MyAppointmentComponent {
     return new Date().toISOString().split('T')[0];
   }
 
+  get supportWhatsappUrl(): string {
+    return this.config.whatsappNumber
+      ? `https://wa.me/${this.config.whatsappNumber}?text=${encodeURIComponent('Hi! I need help with my appointment booking.')}`
+      : '';
+  }
+
+  get supportPhoneHref(): string {
+    return this.config.phoneE164 ? `tel:+${this.config.phoneE164}` : '';
+  }
+
+  get clinicHoursPreview(): string {
+    const firstHours = this.config.hours[0];
+    return firstHours ? `${firstHours.days}: ${firstHours.time}` : 'Call us for the latest clinic hours.';
+  }
+
   isLookupInvalid(field: string) {
     const ctrl = this.lookupForm.get(field);
     return ctrl?.invalid && ctrl?.touched;

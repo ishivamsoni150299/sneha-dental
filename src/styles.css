@@ -112,12 +112,12 @@ body {
   100% { background-position:  200% center; }
 }
 .text-shimmer {
-  background: linear-gradient(90deg, #2563eb 0%, #818cf8 40%, #2563eb 100%);
+  background: linear-gradient(90deg, #2563eb 0%, #818cf8 45%, #2563eb 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer-text 3s linear infinite;
+  animation: shimmer-text 5s linear infinite;
 }
 
 /* Infinite testimonial marquee */
@@ -236,6 +236,11 @@ body {
   background: linear-gradient(90deg, rgba(37, 99, 235, 0), rgba(59, 130, 246, 0.45), rgba(14, 165, 233, 0.45), rgba(37, 99, 235, 0));
 }
 
+/* ── DOT GRID TEXTURES ────────────────────────────────────────────────────── */
+/* Use as: <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-sm"> */
+.dot-grid-sm { background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 20px 20px; }
+.dot-grid-md { background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 28px 28px; }
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -268,13 +273,18 @@ body {
 .theme-teal .hover\:border-blue-300:hover { border-color: #5eead4 !important; }
 
 /* Gradients — bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 */
-.theme-teal .from-blue-600 { --tw-gradient-from: #0d9488 !important; }
-.theme-teal .via-blue-600  { --tw-gradient-via:  #0d9488 !important; }
-.theme-teal .to-sky-500    { --tw-gradient-to:   #06b6d4 !important; }
+.theme-teal .from-blue-600  { --tw-gradient-from: #0d9488 !important; }
+.theme-teal .via-blue-600   { --tw-gradient-via:  #0d9488 !important; }
+.theme-teal .to-sky-500     { --tw-gradient-to:   #06b6d4 !important; }
+.theme-teal .to-indigo-600  { --tw-gradient-to:   #0f766e !important; }
+.theme-teal .to-indigo-700  { --tw-gradient-to:   #0d9488 !important; }
+.theme-teal .from-indigo-600 { --tw-gradient-from: #0f766e !important; }
 
 /* bg-gradient-to-br from-blue-50 to-white */
 .theme-teal .from-blue-50  { --tw-gradient-from: #f0fdfa !important; }
 .theme-teal .from-blue-100 { --tw-gradient-from: #ccfbf1 !important; }
+.theme-teal .to-indigo-50  { --tw-gradient-to:   #f0fdfa !important; }
+.theme-teal .to-indigo-100 { --tw-gradient-to:   #ccfbf1 !important; }
 
 /* Ring / focus */
 .theme-teal .ring-blue-500  { --tw-ring-color: #14b8a6 !important; }
@@ -322,13 +332,18 @@ body {
 .theme-caramel .hover\:border-blue-300:hover { border-color: #fcd34d !important; }
 
 /* Gradients — bg-gradient-to-r from-blue-600 via-blue-600 to-sky-500 */
-.theme-caramel .from-blue-600 { --tw-gradient-from: #b45309 !important; }
-.theme-caramel .via-blue-600  { --tw-gradient-via:  #b45309 !important; }
-.theme-caramel .to-sky-500    { --tw-gradient-to:   #d97706 !important; }
+.theme-caramel .from-blue-600  { --tw-gradient-from: #b45309 !important; }
+.theme-caramel .via-blue-600   { --tw-gradient-via:  #b45309 !important; }
+.theme-caramel .to-sky-500     { --tw-gradient-to:   #d97706 !important; }
+.theme-caramel .to-indigo-600  { --tw-gradient-to:   #92400e !important; }
+.theme-caramel .to-indigo-700  { --tw-gradient-to:   #b45309 !important; }
+.theme-caramel .from-indigo-600 { --tw-gradient-from: #92400e !important; }
 
 /* bg-gradient-to-br from-blue-50/100 to-white */
 .theme-caramel .from-blue-50  { --tw-gradient-from: #fffbeb !important; }
 .theme-caramel .from-blue-100 { --tw-gradient-from: #fef3c7 !important; }
+.theme-caramel .to-indigo-50  { --tw-gradient-to:   #fffbeb !important; }
+.theme-caramel .to-indigo-100 { --tw-gradient-to:   #fef3c7 !important; }
 
 /* Ring / focus */
 .theme-caramel .ring-blue-500  { --tw-ring-color: #d97706 !important; }
@@ -367,11 +382,16 @@ body {
 .theme-emerald .hover\:bg-blue-50:hover   { background-color: #ecfdf5 !important; }
 .theme-emerald .hover\:text-blue-600:hover { color: #059669 !important; }
 .theme-emerald .hover\:border-blue-300:hover { border-color: #6ee7b7 !important; }
-.theme-emerald .from-blue-600 { --tw-gradient-from: #059669 !important; }
-.theme-emerald .via-blue-600  { --tw-gradient-via:  #059669 !important; }
-.theme-emerald .to-sky-500    { --tw-gradient-to:   #10b981 !important; }
+.theme-emerald .from-blue-600  { --tw-gradient-from: #059669 !important; }
+.theme-emerald .via-blue-600   { --tw-gradient-via:  #059669 !important; }
+.theme-emerald .to-sky-500     { --tw-gradient-to:   #10b981 !important; }
+.theme-emerald .to-indigo-600  { --tw-gradient-to:   #047857 !important; }
+.theme-emerald .to-indigo-700  { --tw-gradient-to:   #059669 !important; }
+.theme-emerald .from-indigo-600 { --tw-gradient-from: #047857 !important; }
 .theme-emerald .from-blue-50  { --tw-gradient-from: #ecfdf5 !important; }
 .theme-emerald .from-blue-100 { --tw-gradient-from: #d1fae5 !important; }
+.theme-emerald .to-indigo-50  { --tw-gradient-to:   #ecfdf5 !important; }
+.theme-emerald .to-indigo-100 { --tw-gradient-to:   #d1fae5 !important; }
 .theme-emerald .ring-blue-500  { --tw-ring-color: #10b981 !important; }
 .theme-emerald .focus\:ring-blue-500:focus   { --tw-ring-color: #10b981 !important; }
 .theme-emerald .focus\:border-blue-500:focus { border-color: #10b981 !important; }
@@ -400,11 +420,16 @@ body {
 .theme-purple .hover\:bg-blue-50:hover   { background-color: #f5f3ff !important; }
 .theme-purple .hover\:text-blue-600:hover { color: #7c3aed !important; }
 .theme-purple .hover\:border-blue-300:hover { border-color: #c4b5fd !important; }
-.theme-purple .from-blue-600 { --tw-gradient-from: #7c3aed !important; }
-.theme-purple .via-blue-600  { --tw-gradient-via:  #7c3aed !important; }
-.theme-purple .to-sky-500    { --tw-gradient-to:   #8b5cf6 !important; }
+.theme-purple .from-blue-600  { --tw-gradient-from: #7c3aed !important; }
+.theme-purple .via-blue-600   { --tw-gradient-via:  #7c3aed !important; }
+.theme-purple .to-sky-500     { --tw-gradient-to:   #8b5cf6 !important; }
+.theme-purple .to-indigo-600  { --tw-gradient-to:   #6d28d9 !important; }
+.theme-purple .to-indigo-700  { --tw-gradient-to:   #7c3aed !important; }
+.theme-purple .from-indigo-600 { --tw-gradient-from: #6d28d9 !important; }
 .theme-purple .from-blue-50  { --tw-gradient-from: #f5f3ff !important; }
 .theme-purple .from-blue-100 { --tw-gradient-from: #ede9fe !important; }
+.theme-purple .to-indigo-50  { --tw-gradient-to:   #f5f3ff !important; }
+.theme-purple .to-indigo-100 { --tw-gradient-to:   #ede9fe !important; }
 .theme-purple .ring-blue-500  { --tw-ring-color: #8b5cf6 !important; }
 .theme-purple .focus\:ring-blue-500:focus   { --tw-ring-color: #8b5cf6 !important; }
 .theme-purple .focus\:border-blue-500:focus { border-color: #8b5cf6 !important; }
@@ -433,11 +458,16 @@ body {
 .theme-rose .hover\:bg-blue-50:hover   { background-color: #fff1f2 !important; }
 .theme-rose .hover\:text-blue-600:hover { color: #e11d48 !important; }
 .theme-rose .hover\:border-blue-300:hover { border-color: #fda4af !important; }
-.theme-rose .from-blue-600 { --tw-gradient-from: #e11d48 !important; }
-.theme-rose .via-blue-600  { --tw-gradient-via:  #e11d48 !important; }
-.theme-rose .to-sky-500    { --tw-gradient-to:   #f43f5e !important; }
+.theme-rose .from-blue-600  { --tw-gradient-from: #e11d48 !important; }
+.theme-rose .via-blue-600   { --tw-gradient-via:  #e11d48 !important; }
+.theme-rose .to-sky-500     { --tw-gradient-to:   #f43f5e !important; }
+.theme-rose .to-indigo-600  { --tw-gradient-to:   #be123c !important; }
+.theme-rose .to-indigo-700  { --tw-gradient-to:   #e11d48 !important; }
+.theme-rose .from-indigo-600 { --tw-gradient-from: #be123c !important; }
 .theme-rose .from-blue-50  { --tw-gradient-from: #fff1f2 !important; }
 .theme-rose .from-blue-100 { --tw-gradient-from: #ffe4e6 !important; }
+.theme-rose .to-indigo-50  { --tw-gradient-to:   #fff1f2 !important; }
+.theme-rose .to-indigo-100 { --tw-gradient-to:   #ffe4e6 !important; }
 .theme-rose .ring-blue-500  { --tw-ring-color: #f43f5e !important; }
 .theme-rose .focus\:ring-blue-500:focus   { --tw-ring-color: #f43f5e !important; }
 .theme-rose .focus\:border-blue-500:focus { border-color: #f43f5e !important; }

@@ -1,7 +1,11 @@
-﻿module.exports = {
+module.exports = {
   content: ["./src/**/*.{html,ts}"],
   theme: {
-    extend: {},
+    extend: {
+      transitionDuration: {
+        '400': '400ms',
+      },
+    },
   },
   plugins: [],
 };

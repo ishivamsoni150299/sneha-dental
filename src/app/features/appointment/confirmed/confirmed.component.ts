@@ -10,20 +10,20 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmedComponent implements OnInit {
-  private route  = inject(ActivatedRoute);
+  private route = inject(ActivatedRoute);
   readonly clinic = inject(ClinicConfigService);
 
   bookingRef = signal('');
-  name       = signal('');
-  date       = signal('');
-  service    = signal('');
+  name = signal('');
+  date = signal('');
+  service = signal('');
 
   ngOnInit() {
     const p = this.route.snapshot.queryParamMap;
-    this.bookingRef.set(p.get('ref')      ?? '');
-    this.name.set(p.get('name')           ?? '');
-    this.date.set(p.get('date')           ?? '');
-    this.service.set(p.get('service')     ?? '');
+    this.bookingRef.set(p.get('ref') ?? '');
+    this.name.set(p.get('name') ?? '');
+    this.date.set(p.get('date') ?? '');
+    this.service.set(p.get('service') ?? '');
   }
 
   get formattedDate(): string {
@@ -40,9 +40,13 @@ export class ConfirmedComponent implements OnInit {
   get calendarUrl(): string {
     if (!this.date()) return '';
     const d = this.date().replace(/-/g, '');
-    const title = encodeURIComponent(`Dental Appointment — ${this.clinic.config.name}`);
+    const title = encodeURIComponent(`Dental Appointment - ${this.clinic.config.name}`);
     const details = encodeURIComponent(`Booking Ref: ${this.bookingRef()}\nService: ${this.service()}\nAddress: ${this.clinic.address}`);
     const location = encodeURIComponent(this.clinic.address);
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${d}/${d}&details=${details}&location=${location}`;
+  }
+
+  get phoneHref(): string {
+    return this.clinic.config.phoneE164 ? `tel:+${this.clinic.config.phoneE164}` : '';
   }
 }
