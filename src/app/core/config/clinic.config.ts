@@ -17,6 +17,7 @@ export interface ClinicConfig {
   doctorUniversity: string;
   doctorBio: string[];            // paragraphs shown on About page
   patientCount: string;           // e.g. "1000+"  — used in trust bar & hero
+  rating: string;                 // e.g. "4.9"   — shown on hero, about, testimonials
 
   // ── Contact ───────────────────────────────────────────────────────────────
   phone: string;                  // display  e.g. "+91 91402 10648"
@@ -84,6 +85,7 @@ export const clinicConfig: ClinicConfig = {
   doctorUniversity: '',
   doctorBio:    [],
   patientCount: '',
+  rating: '',
 
   phone:           '',
   phoneE164:       '',
