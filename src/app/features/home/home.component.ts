@@ -3,12 +3,13 @@ import { RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
 import { TestimonialCardComponent } from '../../shared/components/testimonial-card/testimonial-card.component';
+import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, SectionHeaderComponent, ServiceCardComponent, TestimonialCardComponent],
+  imports: [RouterLink, SectionHeaderComponent, ServiceCardComponent, TestimonialCardComponent, TreatmentFinderComponent],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,6 +29,12 @@ export class HomeComponent {
     { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                   title: 'Honest Advice',      desc: 'We recommend only what you truly need — no upselling, ever.' },
     { icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', title: 'Transparent Pricing', desc: 'Know the full cost before we start. No hidden charges, ever.' },
     { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', title: 'Modern & Hygienic',   desc: 'Latest equipment with fully sterilized tools in a spotless clinic.' },
+  ];
+
+  readonly howItWorks = [
+    { num: 1, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', title: 'Choose Your Service', desc: 'Browse our treatments or use the symptom finder. Pick what you need — no guesswork.' },
+    { num: 2, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',        title: 'Pick a Slot',         desc: 'Select a date and time that works for you. Same-day slots available on most days.'  },
+    { num: 3, icon: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',          title: 'Smile Confidently', desc: 'Arrive, get treated by an expert, and leave with a healthier smile. Zero surprises.'  },
   ];
 
   get previewServices() { return this.config.services.slice(0, 6); }

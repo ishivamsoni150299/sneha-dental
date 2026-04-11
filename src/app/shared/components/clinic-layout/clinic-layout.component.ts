@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
@@ -36,6 +36,35 @@ import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.c
       </a>
     </div>
 
+    <!-- WhatsApp nudge popup (appears after 15s, dismissable) -->
+    @if (showWaPopup()) {
+      <div class="fixed bottom-36 md:bottom-24 right-6 z-50 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-slide-up">
+        <div class="bg-green-500 px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+            </svg>
+            <span class="text-white font-bold text-sm">{{ clinic.config.name || 'Clinic' }} on WhatsApp</span>
+          </div>
+          <button (click)="dismissPopup()" class="text-white/70 hover:text-white transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="p-4">
+          <div class="bg-green-50 rounded-xl px-3 py-2.5 mb-3">
+            <p class="text-xs text-gray-600 leading-relaxed">👋 Hi! Ready to book your appointment or have a question? Chat with us — we usually reply in minutes.</p>
+          </div>
+          <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
+             (click)="dismissPopup()"
+             class="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition-all">
+            Start Chat
+          </a>
+        </div>
+      </div>
+    }
+
     <!-- Mobile sticky booking bar -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 px-4 py-3 safe-bottom shadow-lg">
       <a href="/appointment"
@@ -52,13 +81,28 @@ import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.c
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 12px); }
   `]
 })
-export class ClinicLayoutComponent implements OnInit {
+export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly clinic = inject(ClinicConfigService);
+  readonly showWaPopup = signal(false);
+  private popupTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
     const cfg = this.clinic.config;
     if (cfg.vapiAssistantId && cfg.vapiPublicKey) {
       startVapiWidget(cfg.vapiPublicKey, cfg.vapiAssistantId);
     }
+    // Show WhatsApp nudge after 15s if not dismissed before
+    if (!sessionStorage.getItem('wa_popup_dismissed')) {
+      this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.popupTimer) clearTimeout(this.popupTimer);
+  }
+
+  dismissPopup() {
+    this.showWaPopup.set(false);
+    sessionStorage.setItem('wa_popup_dismissed', '1');
   }
 }
