@@ -24,6 +24,14 @@ export class AppointmentComponent {
   services  = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
   timeSlots = ['Morning (9am - 12pm)', 'Afternoon (12pm - 4pm)', 'Evening (4pm - 8pm)'];
 
+  readonly nextSteps = [
+    { text: 'Submit the form — takes under 60 seconds' },
+    { text: 'We call you within 2 hours to confirm your slot' },
+    { text: 'Save the booking reference sent to you' },
+    { text: 'Arrive at your scheduled time — we\'ll be ready' },
+    { text: 'Leave with a healthier, happier smile' },
+  ];
+
   form = this.fb.group({
     name:    ['', [Validators.required, Validators.minLength(2)]],
     phone:   ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],

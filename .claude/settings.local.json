@@ -27,7 +27,12 @@
       "Bash(\\\\[WARN\\\\]\" | head -30)",
       "Bash(xargs grep:*)",
       "Bash(ls *.json *.md)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:onewebcare.com)",
+      "WebFetch(domain:www.beusocialmediamktg.com)",
+      "WebFetch(domain:www.proimpressionsmarketing.com)",
+      "WebFetch(domain:delmain.co)",
+      "WebFetch(domain:carestack.com)"
     ]
   }
 }

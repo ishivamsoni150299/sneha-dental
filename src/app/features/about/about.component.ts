@@ -1,17 +1,25 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [RouterLink, SectionHeaderComponent],
+  imports: [RouterLink],
   templateUrl: './about.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutComponent {
   readonly config = inject(ClinicConfigService).config;
+
+  readonly promises = [
+    { text: 'We tell you the exact cost before starting any treatment' },
+    { text: 'Sterilised instruments — every patient, every time' },
+    { text: 'No unnecessary procedures recommended — ever' },
+    { text: 'Same-day emergency appointments available' },
+    { text: 'Gentle techniques so treatment is pain-free' },
+    { text: 'Full explanation before every procedure' },
+  ];
 
   readonly values = [
     { icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',   title: 'Patient First',     desc: 'Every decision we make is centred around what is best for the patient.' },
