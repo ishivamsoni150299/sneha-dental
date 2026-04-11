@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
@@ -36,6 +36,18 @@ export class HomeComponent {
     { num: 1, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', title: 'Choose Your Service', desc: 'Browse our treatments or use the symptom finder. Pick what you need — no guesswork.' },
     { num: 2, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',        title: 'Pick a Slot',         desc: 'Select a date and time that works for you. Same-day slots available on most days.'  },
     { num: 3, icon: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',          title: 'Smile Confidently', desc: 'Arrive, get treated by an expert, and leave with a healthier smile. Zero surprises.'  },
+  ];
+
+  readonly openFaq = signal<number | null>(null);
+  toggleFaq(i: number) { this.openFaq.update(v => v === i ? null : i); }
+
+  readonly faqs = [
+    { q: 'Will the treatment be painful?',            a: 'We use modern anaesthesia and gentle techniques so the vast majority of treatments are completely painless. For anxious patients we take extra time to make you comfortable before we begin.' },
+    { q: 'How much does a typical treatment cost?',   a: 'Costs vary by treatment — a cleaning starts around ₹500, fillings from ₹800, and root canals from ₹3,000. We always tell you the exact price before starting. No hidden charges, ever.' },
+    { q: 'Do you see children?',                      a: 'Yes! We welcome patients of all ages. We have a child-friendly approach and can treat kids from age 3 onwards for check-ups, cleanings, and early orthodontic guidance.' },
+    { q: 'How do I manage or cancel my booking?',     a: 'Visit the "Manage Booking" page with your booking reference and phone number. You can view your details and contact us to reschedule any time before your appointment.' },
+    { q: 'Are same-day appointments available?',      a: 'Yes — we keep emergency and same-day slots open most days. Book online and mention "urgent" in the notes, or call us directly for the fastest response.' },
+    { q: 'How do I know my booking went through?',    a: 'You\'ll receive a booking reference number on screen immediately. The clinic will call or WhatsApp you within 2 hours to confirm the exact time slot.' },
   ];
 
   get previewServices()       { return this.config.services.slice(0, 6); }

@@ -1,6 +1,6 @@
-import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
@@ -11,10 +11,11 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppointmentComponent {
+export class AppointmentComponent implements OnInit {
   private fb                 = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
   private router             = inject(Router);
+  private route              = inject(ActivatedRoute);
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
 
@@ -41,6 +42,15 @@ export class AppointmentComponent {
     time:    ['', Validators.required],
     message: [''],
   });
+
+  ngOnInit() {
+    // Pre-fill service from ?service= query param (e.g. from service cards)
+    const preService = this.route.snapshot.queryParamMap.get('service');
+    if (preService) {
+      const match = this.services.find(s => s.toLowerCase() === preService.toLowerCase()) ?? preService;
+      this.form.patchValue({ service: match });
+    }
+  }
 
   get minDate() {
     return new Date().toISOString().split('T')[0];
