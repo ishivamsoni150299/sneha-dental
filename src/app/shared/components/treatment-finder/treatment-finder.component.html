@@ -1,6 +1,7 @@
-<section class="bg-white py-20 md:py-24 border-t border-gray-100">
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="bg-white py-20 md:py-24 border-t border-gray-100" [class.!py-0]="compact()" [class.!border-0]="compact()">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8" [class.!px-0]="compact()" [class.!max-w-none]="compact()">
 
+    @if (!compact()) {
     <div class="text-center mb-12">
       <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-blue-100">
         <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
@@ -13,6 +14,7 @@
         Tap your concern and we'll tell you exactly what treatment you need.
       </p>
     </div>
+    }
 
     @if (!selected()) {
       <!-- Symptom grid -->

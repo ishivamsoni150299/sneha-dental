@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
@@ -17,7 +17,9 @@ interface Symptom {
   templateUrl: './treatment-finder.component.html',
 })
 export class TreatmentFinderComponent {
-  readonly clinic = inject(ClinicConfigService);
+  readonly clinic   = inject(ClinicConfigService);
+  /** When true: hides the title/subtitle header and removes outer padding (used on Services hero) */
+  readonly compact  = input(false);
 
   readonly symptoms: Symptom[] = [
     { icon: 'M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z', label: 'Tooth Pain',        services: ['Root Canal', 'Tooth Fillings', 'Extraction'],           urgency: 'urgent'  },

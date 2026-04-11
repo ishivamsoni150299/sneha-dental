@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
+import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 interface Faq { q: string; a: string }
@@ -8,7 +9,7 @@ interface Faq { q: string; a: string }
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [RouterLink, ServiceCardComponent],
+  imports: [RouterLink, ServiceCardComponent, TreatmentFinderComponent],
   templateUrl: './services.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

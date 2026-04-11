@@ -15,6 +15,27 @@ import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.c
       <app-coming-soon />
     } @else {
     <app-navbar />
+
+    <!-- ── Mobile call nudge banner (first-visit only) ── -->
+    @if (showCallBanner()) {
+      <div class="md:hidden bg-blue-600 text-white flex items-center justify-between gap-2 px-4 py-2.5 shadow-md animate-slide-up">
+        <a [href]="'tel:+' + clinic.config.phoneE164"
+           class="flex items-center gap-2 flex-1 text-sm font-semibold truncate">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          <span>Same-day slots · Tap to call <strong>{{ clinic.config.phone }}</strong></span>
+        </a>
+        <button (click)="dismissCallBanner()"
+                aria-label="Dismiss"
+                class="text-blue-200 hover:text-white p-1 shrink-0 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    }
+
     <main class="min-h-[60vh]">
       <router-outlet />
     </main>
@@ -148,6 +169,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly showWaPopup    = signal(false);
   readonly speedDialOpen  = signal(false);
   readonly showBackToTop  = signal(false);
+  readonly showCallBanner = signal(!sessionStorage.getItem('call_banner_dismissed'));
   private popupTimer: ReturnType<typeof setTimeout> | null = null;
 
   @HostListener('window:scroll')
@@ -172,6 +194,11 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   dismissPopup() {
     this.showWaPopup.set(false);
     sessionStorage.setItem('wa_popup_dismissed', '1');
+  }
+
+  dismissCallBanner() {
+    this.showCallBanner.set(false);
+    sessionStorage.setItem('call_banner_dismissed', '1');
   }
 
   scrollToTop() {
