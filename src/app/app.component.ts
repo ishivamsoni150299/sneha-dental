@@ -2,6 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { SeoService } from './core/services/seo.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,7 @@ export class AppComponent {
 
   constructor() {
     inject(SeoService);
+    inject(ThemeService);
     inject(Router).events.subscribe(e => {
       if (e instanceof NavigationStart)                                                              this.navigating.set(true);
       if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.navigating.set(false);

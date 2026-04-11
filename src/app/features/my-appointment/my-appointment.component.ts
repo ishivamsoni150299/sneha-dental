@@ -79,7 +79,8 @@ export class MyAppointmentComponent {
       }
       this.appointment.set(appt);
       this.view.set('detail');
-    } catch {
+    } catch (e) {
+      console.error('[MyAppointment] Lookup failed:', e);
       this.lookupError.set('Something went wrong. Please try again.');
     } finally {
       this.loading.set(false);
@@ -116,7 +117,8 @@ export class MyAppointmentComponent {
       });
       this.appointment.set({ ...appt, service: val.service!, date: val.date!, time: val.time!, message: val.message || undefined });
       this.view.set('detail');
-    } catch {
+    } catch (e) {
+      console.error('[MyAppointment] Update failed:', e);
       this.saveError.set('Could not update appointment. Please try again.');
     } finally {
       this.saving.set(false);

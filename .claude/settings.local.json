@@ -32,7 +32,8 @@
       "WebFetch(domain:www.beusocialmediamktg.com)",
       "WebFetch(domain:www.proimpressionsmarketing.com)",
       "WebFetch(domain:delmain.co)",
-      "WebFetch(domain:carestack.com)"
+      "WebFetch(domain:carestack.com)",
+      "Bash(firebase --version)"
     ]
   }
 }

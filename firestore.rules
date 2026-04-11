@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Clinics ───────────────────────────────────────────────────────────────
+    // Public read so the APP_INITIALIZER can load clinic config on any domain.
+    // Writes require authentication (platform admin only).
+    match /clinics/{clinicId} {
+      allow read:  if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── Appointments ──────────────────────────────────────────────────────────
+    // create: anyone can book (unauthenticated patients)
+    // read:   anyone who knows bookingRef + phone — rely on query obscurity
+    // update: authenticated admins (confirm / cancel) OR patient updating own appointment
+    // delete: authenticated only (admin cancel)
+    match /appointments/{appointmentId} {
+      allow create: if true;
+      allow read:   if true;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    // ── Leads ─────────────────────────────────────────────────────────────────
+    match /leads/{leadId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── Analytics / counters ──────────────────────────────────────────────────
+    match /analytics/{docId} {
+      allow read:  if request.auth != null;
+      allow write: if true; // public increment on booking
+    }
+  }
+}

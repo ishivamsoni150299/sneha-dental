@@ -87,7 +87,8 @@ export class AppointmentComponent {
           service: val.service,
         },
       });
-    } catch {
+    } catch (e) {
+      console.error('[Appointment] Booking failed:', e);
       this.error.set('Something went wrong. Please try again or WhatsApp us.');
     } finally {
       this.submitting.set(false);

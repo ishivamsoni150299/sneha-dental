@@ -56,7 +56,8 @@ export class AdminDashboardComponent implements OnInit {
     try {
       const list = await this.appointmentService.getAllAppointments();
       this.appointments.set(list);
-    } catch {
+    } catch (e) {
+      console.error('[Admin] Failed to load appointments:', e);
       this.actionError.set('Failed to load appointments.');
     } finally {
       this.loading.set(false);
@@ -71,7 +72,8 @@ export class AdminDashboardComponent implements OnInit {
       this.appointments.update(list =>
         list.map(a => a.id === appt.id ? { ...a, status: 'confirmed' } : a)
       );
-    } catch {
+    } catch (e) {
+      console.error('[Admin] Could not confirm appointment:', e);
       this.actionError.set('Could not confirm appointment.');
     } finally {
       this.updatingId.set(null);
@@ -95,7 +97,8 @@ export class AdminDashboardComponent implements OnInit {
       this.appointments.update(list =>
         list.map(a => a.id === appt.id ? { ...a, status: 'cancelled' } : a)
       );
-    } catch {
+    } catch (e) {
+      console.error('[Admin] Could not cancel appointment:', e);
       this.actionError.set('Could not cancel appointment.');
     } finally {
       this.updatingId.set(null);

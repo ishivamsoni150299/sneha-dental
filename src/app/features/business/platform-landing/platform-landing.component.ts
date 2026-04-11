@@ -180,7 +180,7 @@ export class PlatformLandingComponent implements OnInit {
 
   // ── Replace with your real details ───────────────────────────────────────
   readonly devWhatsapp = '919140210648';
-  readonly devEmail    = 'ishivamsoni150299@gmail.com';
+  readonly devEmail    = 'mydentalplatform@zohomail.in';
   // ─────────────────────────────────────────────────────────────────────────
 
   clinicUrl(clinic: StoredClinic): string {
