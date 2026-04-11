@@ -175,13 +175,23 @@
         </div>
         <p class="font-bold text-sm">Dental Emergency? <span class="font-normal opacity-90">Severe pain, broken tooth, swelling — we see you same day.</span></p>
       </div>
-      <a [href]="'tel:+' + config.phoneE164"
-         class="inline-flex items-center gap-2 bg-white text-red-600 hover:bg-red-50 font-bold text-sm px-5 py-2.5 rounded-xl transition-all hover:-translate-y-px shadow-sm shrink-0">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-        </svg>
-        Call Now — {{ config.phone || 'Emergency Line' }}
-      </a>
+      <div class="flex items-center gap-2 shrink-0">
+        <a [href]="'tel:+' + config.phoneE164"
+           class="inline-flex items-center gap-2 bg-white text-red-600 hover:bg-red-50 font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:-translate-y-px shadow-sm">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          Call Now
+        </a>
+        <a [href]="clinic.whatsappUrl('EMERGENCY: I need urgent dental help. Can you see me today?')"
+           target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all hover:-translate-y-px">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+          </svg>
+          WhatsApp
+        </a>
+      </div>
     </div>
   </div>
 </section>
@@ -271,53 +281,6 @@
   </div>
 </section>
 
-<!-- ===== HOW IT WORKS ===== -->
-<section class="bg-white py-20 md:py-24 overflow-hidden">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div reveal revealDir="up" class="text-center mb-14">
-      <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-5 border border-blue-100">
-        <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
-        Simple & Fast
-      </span>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3 leading-tight">
-        Book Your Visit in<br>
-        <span class="text-shimmer">3 Easy Steps</span>
-      </h2>
-      <p class="text-gray-500 text-lg max-w-lg mx-auto">No long forms. No phone tag. Just pick a time and show up.</p>
-    </div>
-
-    <div class="relative">
-      <div class="hidden md:block absolute top-10 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 mx-16 z-0"></div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-        @for (step of howItWorks; track step.num; let i = $index) {
-          <div reveal [revealDelay]="i * 150" revealDir="up" class="text-center group">
-            <div class="relative inline-flex mb-6">
-              <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:shadow-xl group-hover:shadow-blue-300 transition-all duration-400 group-hover:-translate-y-2 group-hover:scale-105">
-                <svg class="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="step.icon"/>
-                </svg>
-              </div>
-              <span class="absolute -top-2 -right-2 w-7 h-7 bg-white border-2 border-blue-500 rounded-full text-xs font-extrabold text-blue-600 flex items-center justify-center shadow-sm">{{ step.num }}</span>
-            </div>
-            <h3 class="font-bold text-gray-900 text-lg mb-2">{{ step.title }}</h3>
-            <p class="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">{{ step.desc }}</p>
-          </div>
-        }
-      </div>
-    </div>
-
-    <div reveal revealDir="up" [revealDelay]="300" class="text-center mt-12">
-      <a routerLink="/appointment"
-         class="group relative overflow-hidden inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all duration-300 shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1">
-        Book Appointment Now — 60 Seconds
-        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-        </svg>
-        <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500"></span>
-      </a>
-    </div>
-  </div>
-</section>
 
 <!-- ===== SERVICES PREVIEW ===== -->
 <section class="bg-gray-50 py-20 md:py-24 overflow-hidden">
@@ -530,37 +493,23 @@
 }
 
 <!-- ===== CTA BANNER ===== -->
-<section class="relative overflow-hidden py-20 md:py-24">
-  <!-- Animated gradient background -->
-  <div class="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 animate-gradient-shift"></div>
-  <!-- Decorative orbs -->
-  <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full pointer-events-none animate-float-slow"></div>
-  <div class="absolute -bottom-32 -left-16 w-96 h-96 bg-white/5 rounded-full pointer-events-none animate-float"></div>
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-white/[0.03] rounded-full pointer-events-none animate-spin-slow"></div>
-  <!-- Dot pattern -->
-  <div class="absolute inset-0 opacity-[0.06] pointer-events-none" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px;"></div>
-
-  <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <div reveal revealDir="scale">
-      <div class="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-semibold px-4 py-2 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
-        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-        Accepting new patients
-      </div>
-      <h2 class="font-display text-3xl md:text-5xl text-white mb-5 leading-tight">
+<section class="bg-blue-700 py-16 md:py-20">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div reveal revealDir="up">
+      <h2 class="font-display text-3xl md:text-4xl text-white mb-4 leading-tight">
         Ready for a Healthier Smile?
       </h2>
-      <p class="text-blue-100 text-lg mb-10 leading-relaxed">
-        Same-day slots available. Book in 60 seconds — no waiting, just care.
+      <p class="text-blue-200 text-base mb-8">
+        Same-day slots available. Confirmed within 2 hours. No hidden charges.
       </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a routerLink="/appointment"
-           class="group relative overflow-hidden bg-white hover:bg-blue-50 text-blue-600 px-9 py-4 rounded-xl font-bold shadow-xl transition-all hover:-translate-y-1 text-center">
-          Book Appointment Now
-          <span class="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-blue-100/40 to-transparent transition-transform duration-500"></span>
+           class="bg-white hover:bg-blue-50 text-blue-700 px-8 py-3.5 rounded-xl font-bold shadow transition-colors text-center">
+          Book Appointment
         </a>
         <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
-           class="group border-2 border-white/30 hover:border-white/70 hover:bg-white/10 text-white px-9 py-4 rounded-xl font-semibold transition-all hover:-translate-y-1 text-center flex items-center justify-center gap-2 backdrop-blur-sm">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+           class="border border-white/40 hover:border-white hover:bg-white/10 text-white px-8 py-3.5 rounded-xl font-semibold transition-all text-center flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
           </svg>
           WhatsApp Us
