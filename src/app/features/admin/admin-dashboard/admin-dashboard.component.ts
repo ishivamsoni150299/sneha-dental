@@ -4,6 +4,15 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
+const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
+  blue:    { hex: '#2563eb', hexLight: '#dbeafe', textClass: 'text-blue-600',    bgClass: 'bg-blue-600'    },
+  teal:    { hex: '#0d9488', hexLight: '#ccfbf1', textClass: 'text-teal-600',    bgClass: 'bg-teal-600'    },
+  emerald: { hex: '#059669', hexLight: '#d1fae5', textClass: 'text-emerald-600', bgClass: 'bg-emerald-600' },
+  purple:  { hex: '#7c3aed', hexLight: '#ede9fe', textClass: 'text-purple-600',  bgClass: 'bg-purple-600'  },
+  rose:    { hex: '#e11d48', hexLight: '#ffe4e6', textClass: 'text-rose-600',    bgClass: 'bg-rose-600'    },
+  caramel: { hex: '#b45309', hexLight: '#fef3c7', textClass: 'text-amber-700',   bgClass: 'bg-amber-700'   },
+};
+
 type FilterTab = 'all' | 'pending' | 'confirmed' | 'today' | 'checked_in' | 'completed';
 
 @Component({
@@ -26,10 +35,35 @@ export class AdminDashboardComponent implements OnInit {
   actionError     = signal<string | null>(null);
   updatingId      = signal<string | null>(null);
   confirmCancelId = signal<string | null>(null);   // inline confirm instead of browser confirm()
+  sidebarOpen     = signal(false);
 
   today = new Date().toISOString().split('T')[0];
 
   adminEmail = computed(() => this.auth.currentUser()?.email ?? '');
+
+  get themeColor() {
+    return THEME_COLORS[this.clinicConfig.theme ?? 'blue'] ?? THEME_COLORS['blue'];
+  }
+
+  get greeting(): string {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  get todayFormatted(): string {
+    return new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  get doctorFirstName(): string {
+    const parts = this.clinicConfig.doctorName?.split(' ') ?? [];
+    return parts[parts.length - 1] ?? this.clinicConfig.doctorName ?? 'Doctor';
+  }
+
+  patientInitials(name: string): string {
+    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  }
 
   filteredAppointments = computed(() => {
     const all = this.appointments();
