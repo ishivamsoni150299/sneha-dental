@@ -422,8 +422,8 @@
               <p class="font-bold text-gray-900 text-lg leading-tight">
                 @if (isExpired)  { Trial Expired }
                 @else if (isTrial)   { Free Trial — {{ trialDaysLeft }} days left }
-                @else if (isStarter) { Starter · ₹399/month }
-                @else if (isPro)     { Pro · ₹699/month }
+                @else if (isStarter) { Starter · ₹499/month }
+                @else if (isPro)     { Pro · ₹999/month }
                 @else { Trial }
               </p>
               @if (isTrial && !isExpired) {
@@ -512,8 +512,8 @@
                      class="block w-full text-center text-sm font-bold py-2.5 rounded-xl transition-colors"
                      [class]="p.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700 text-white' : p.id === 'starter' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-100 text-gray-400 cursor-default pointer-events-none'">
                     @if (p.id === 'trial') { Downgrade }
-                    @else if (p.id === 'starter') { Upgrade to Starter · ₹399/mo }
-                    @else { Upgrade to Pro · ₹699/mo }
+                    @else if (p.id === 'starter') { Upgrade to Starter · ₹499/mo }
+                    @else { Upgrade to Pro · ₹999/mo }
                   </a>
                 }
               </div>
@@ -524,7 +524,7 @@
           <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <p class="text-sm font-bold text-gray-900 mb-1">Is it worth it?</p>
             <p class="text-xs text-gray-500 leading-relaxed">
-              One extra patient booking per week = ~₹1,500–₹3,000 revenue. Pro costs ₹699/month.
+              One extra patient booking per week = ~₹1,500–₹3,000 revenue. Pro costs ₹999/month.
               The AI Voice Receptionist alone pays for itself if it books even <strong class="text-gray-700">one missed call</strong> a month.
             </p>
           </div>

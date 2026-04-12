@@ -72,13 +72,13 @@ export class AdminSettingsComponent implements OnInit {
       locked: ['Custom domain', 'AI Voice Receptionist', 'Google Reviews sync', 'SEO-optimised pages'],
     },
     {
-      id: 'starter', label: 'Starter', price: '₹399', period: '/month',
+      id: 'starter', label: 'Starter', price: '₹499', period: '/month',
       color: 'blue',
       features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate', 'Services catalogue', 'Priority WhatsApp support', '1 content update/month'],
       locked: ['AI Voice Receptionist', 'Google Reviews sync', 'SEO-optimised pages', 'Unlimited updates'],
     },
     {
-      id: 'pro', label: 'Pro', price: '₹699', period: '/month',
+      id: 'pro', label: 'Pro', price: '₹999', period: '/month',
       color: 'purple',
       features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English voice', 'Google Reviews sync', 'Testimonials management', 'SEO-optimised pages', 'Google Analytics setup', 'Unlimited content updates', 'Priority support'],
       locked: [],

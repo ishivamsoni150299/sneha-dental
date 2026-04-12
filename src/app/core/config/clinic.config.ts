@@ -51,7 +51,7 @@ export interface ClinicConfig {
   subscriptionEndDate?: string;    // ISO date — next renewal / expiry date
   billingCycle?:       'monthly' | 'yearly';
   lastPaymentDate?:    string;     // ISO date
-  lastPaymentAmount?:  number;     // e.g. 399
+  lastPaymentAmount?:  number;     // e.g. 499
   lastPaymentRef?:     string;     // Razorpay payment ID or "UPI-xxxx"
   billingEmail?:       string;
   billingNotes?:       string;     // free-text notes for manual tracking
@@ -115,6 +115,6 @@ export const clinicConfig: ClinicConfig = {
 // ─────────────────────────────────────────────────────────────────────────────
 export const PLATFORM_PLANS = {
   trial:   { label: 'Free Trial', monthly: 0,   yearly: 0    },
-  starter: { label: 'Starter',    monthly: 399, yearly: 3999 },
-  pro:     { label: 'Pro',        monthly: 699, yearly: 6999 },
+  starter: { label: 'Starter',    monthly: 499, yearly: 4999 },
+  pro:     { label: 'Pro',        monthly: 999, yearly: 9999 },
 } as const;

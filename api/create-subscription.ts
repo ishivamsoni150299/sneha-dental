@@ -4,8 +4,8 @@ import Razorpay from 'razorpay';
 // ── Env vars to set in Vercel dashboard ──────────────────────────────────────
 // RAZORPAY_KEY_ID      → rzp_live_xxx   (from Razorpay → Settings → API Keys)
 // RAZORPAY_KEY_SECRET  → your secret
-// RAZORPAY_PLAN_STARTER → plan_xxx      (create ₹399/mo plan in Razorpay dashboard)
-// RAZORPAY_PLAN_PRO     → plan_xxx      (create ₹699/mo plan in Razorpay dashboard)
+// RAZORPAY_PLAN_STARTER → plan_xxx      (create ₹499/mo plan in Razorpay dashboard)
+// RAZORPAY_PLAN_PRO     → plan_xxx      (create ₹999/mo plan in Razorpay dashboard)
 
 const PLAN_IDS: Record<string, string | undefined> = {
   starter: process.env['RAZORPAY_PLAN_STARTER'],

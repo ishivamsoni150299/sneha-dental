@@ -186,7 +186,7 @@ export class SignupComponent implements OnInit {
     {
       id: 'starter' as const,
       name: 'Starter',
-      price: '₹399',
+      price: '₹499',
       period: '/month',
       desc: 'For solo clinics',
       features: [
@@ -201,7 +201,7 @@ export class SignupComponent implements OnInit {
     {
       id: 'pro' as const,
       name: 'Pro',
-      price: '₹699',
+      price: '₹999',
       period: '/month',
       desc: 'Most popular',
       features: [

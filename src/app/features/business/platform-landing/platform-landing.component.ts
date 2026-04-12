@@ -50,8 +50,8 @@ export class PlatformLandingComponent implements OnInit {
     {
       name: 'Starter',
       tag: 'For solo clinics',
-      monthly: 399,
-      yearly: 3999,
+      monthly: 499,
+      yearly: 4999,
       trialDays: null,
       highlighted: false,
       features: [
@@ -66,8 +66,8 @@ export class PlatformLandingComponent implements OnInit {
     {
       name: 'Pro',
       tag: 'Most popular',
-      monthly: 699,
-      yearly: 6999,
+      monthly: 999,
+      yearly: 9999,
       trialDays: null,
       highlighted: true,
       features: [
@@ -146,7 +146,7 @@ export class PlatformLandingComponent implements OnInit {
 
   readonly testimonials = [
     {
-      text: 'We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ₹399 we spend every month.',
+      text: 'We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ₹499 we spend every month.',
       name: 'Dr. Ramesh Kumar',
       clinic: 'Indram Dental, Jhansi',
       location: 'Uttar Pradesh',

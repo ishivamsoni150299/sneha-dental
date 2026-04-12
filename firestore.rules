@@ -27,6 +27,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // ── Super Admins ──────────────────────────────────────────────────────────
+    // A user can only read their own document — used to verify platform admin role.
+    match /superAdmins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+    }
+
     // ── Analytics / counters ──────────────────────────────────────────────────
     match /analytics/{docId} {
       allow read:  if request.auth != null;
