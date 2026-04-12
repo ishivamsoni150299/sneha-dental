@@ -59,8 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     name, doctorName, doctorQualification, city,
     addressLine1, addressLine2,
     phone, phoneE164, whatsappNumber,
-    // Account
-    email, password,
+    // Auth — client sends a Firebase ID token (user already authenticated)
+    idToken,
     // Plan
     plan = 'trial',
     // Customization
@@ -70,14 +70,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } = req.body ?? {};
 
   // ── Basic validation ───────────────────────────────────────────────────────
-  if (!name || !email || !password || !phone) {
-    return res.status(400).json({ error: 'name, email, password, and phone are required.' });
+  if (!idToken) {
+    return res.status(401).json({ error: 'Authentication required. Please sign in first.' });
   }
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  if (!name || !phone) {
+    return res.status(400).json({ error: 'name and phone are required.' });
   }
   if (!['trial', 'starter', 'pro'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan.' });
+  }
+
+  // ── Verify Firebase ID token ───────────────────────────────────────────────
+  let uid: string;
+  let email: string;
+  try {
+    const decoded = await auth.verifyIdToken(idToken);
+    uid   = decoded.uid;
+    email = decoded.email ?? '';
+  } catch (err) {
+    console.error('[self-signup] Token verification failed:', err);
+    return res.status(401).json({ error: 'Invalid or expired session. Please sign in again.' });
+  }
+
+  // Check if this user already has a clinic
+  const existing = await db.collection('clinics').where('adminUid', '==', uid).limit(1).get();
+  if (!existing.empty) {
+    return res.status(409).json({ error: 'You already have a clinic. Please sign in to your admin panel.' });
   }
 
   // ── Generate unique subdomain ──────────────────────────────────────────────
@@ -92,20 +110,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const trialEnd = new Date();
   trialEnd.setDate(trialEnd.getDate() + 30);
   const trialEndDate = trialEnd.toISOString().slice(0, 10); // "YYYY-MM-DD"
-
-  // ── Create Firebase Auth user ──────────────────────────────────────────────
-  let uid: string;
-  try {
-    const user = await auth.createUser({ email, password, displayName: name });
-    uid = user.uid;
-  } catch (err: unknown) {
-    const msg = (err as { code?: string; message?: string });
-    if (msg.code === 'auth/email-already-exists') {
-      return res.status(409).json({ error: 'An account with this email already exists. Please log in.' });
-    }
-    console.error('[self-signup] Auth create user failed:', err);
-    return res.status(500).json({ error: 'Failed to create account.' });
-  }
 
   // ── Create Firestore clinic doc ────────────────────────────────────────────
   const clinicData: Record<string, unknown> = {
@@ -151,8 +155,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     clinicId = ref.id;
   } catch (err) {
     console.error('[self-signup] Firestore create clinic failed:', err);
-    // Cleanup: delete the auth user we just created
-    await auth.deleteUser(uid).catch(() => null);
     return res.status(500).json({ error: 'Failed to save clinic. Please try again.' });
   }
 

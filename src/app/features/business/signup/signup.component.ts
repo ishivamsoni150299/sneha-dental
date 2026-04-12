@@ -3,18 +3,23 @@ import {
   inject, DestroyRef, OnInit,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import {
   getFirestore, collection, query, where, limit, getDocs,
 } from 'firebase/firestore';
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signInWithPopup, GoogleAuthProvider, getIdToken, User,
+} from 'firebase/auth';
 import { initializeApp, getApps } from 'firebase/app';
 import { environment } from '../../../../environments/environment';
 
-// ── Firebase client (for slug availability check) ────────────────────────────
-const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const db  = getFirestore(app);
+// ── Firebase client ───────────────────────────────────────────────────────────
+const app  = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
+const db   = getFirestore(app);
+const auth = getAuth(app);
 
 async function isSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false;
@@ -30,7 +35,6 @@ function toSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
 }
 
-// Resize image to max dimension and return base64 data URL
 async function resizeImage(file: File, maxSize = 200): Promise<string> {
   return new Promise(resolve => {
     const reader = new FileReader();
@@ -54,8 +58,8 @@ async function resizeImage(file: File, maxSize = 200): Promise<string> {
 export interface Theme {
   id: 'blue' | 'teal' | 'emerald' | 'purple' | 'rose' | 'caramel';
   name: string;
-  hex: string;   // primary
-  hexTo: string; // gradient end
+  hex: string;
+  hexTo: string;
 }
 
 export const THEMES: Theme[] = [
@@ -67,7 +71,6 @@ export const THEMES: Theme[] = [
   { id: 'caramel', name: 'Caramel Gold', hex: '#b45309', hexTo: '#78350f' },
 ];
 
-// ── Services ──────────────────────────────────────────────────────────────────
 export const ALL_SERVICES = [
   'General Dentistry', 'Dental Cleaning', 'Tooth Filling',
   'Tooth Extraction', 'Root Canal Treatment', 'Dental Implants',
@@ -76,7 +79,6 @@ export const ALL_SERVICES = [
   'Dentures', 'Crown & Bridge', 'Gum Treatment',
 ];
 
-// ── Default hours ─────────────────────────────────────────────────────────────
 export interface DayHour { day: string; open: string; close: string; closed: boolean }
 
 function defaultHours(): DayHour[] {
@@ -103,14 +105,85 @@ export class SignupComponent implements OnInit {
   private readonly fb         = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
-  // ── Step ────────────────────────────────────────────────────────────────
-  readonly step       = signal<1 | 2 | 3 | 4 | 5>(1);
+  // ── Step (0 = auth gate, 1-4 = clinic setup, 5 = success) ───────────────
+  readonly step       = signal<0 | 1 | 2 | 3 | 4 | 5>(0);
   readonly submitting = signal(false);
   readonly error      = signal<string | null>(null);
   readonly result     = signal<{
     siteUrl: string; adminUrl: string; email: string;
     plan: string; paymentUrl: string | null; trialEndDate: string | null;
   } | null>(null);
+
+  // ── Auth step ────────────────────────────────────────────────────────────
+  readonly authMode      = signal<'signup' | 'signin'>('signup');
+  readonly authLoading   = signal(false);
+  readonly googleLoading = signal(false);
+  readonly authError     = signal<string | null>(null);
+  readonly showPassword  = signal(false);
+  private  authUser      = signal<User | null>(null);
+
+  /** Email of the authenticated user (shown in later steps) */
+  readonly authEmail = computed(() => this.authUser()?.email ?? '');
+
+  readonly step0 = this.fb.nonNullable.group({
+    email:    ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
+
+  async authenticateAndContinue(): Promise<void> {
+    this.step0.markAllAsTouched();
+    if (this.step0.invalid) return;
+    this.authLoading.set(true);
+    this.authError.set(null);
+    const { email, password } = this.step0.getRawValue();
+    try {
+      let user: User;
+      if (this.authMode() === 'signup') {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        user = cred.user;
+      } else {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        user = cred.user;
+      }
+      this.authUser.set(user);
+      this.step.set(1);
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code ?? '';
+      if (code === 'auth/email-already-in-use') {
+        this.authError.set('Account already exists. Switch to Sign in below.');
+        this.authMode.set('signin');
+      } else if (
+        code === 'auth/user-not-found' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/invalid-credential'
+      ) {
+        this.authError.set('Invalid email or password.');
+      } else if (code === 'auth/weak-password') {
+        this.authError.set('Password must be at least 6 characters.');
+      } else {
+        this.authError.set('Something went wrong. Please try again.');
+      }
+    } finally {
+      this.authLoading.set(false);
+    }
+  }
+
+  async loginWithGoogle(): Promise<void> {
+    this.googleLoading.set(true);
+    this.authError.set(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      const cred = await signInWithPopup(auth, provider);
+      this.authUser.set(cred.user);
+      this.step.set(1);
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code ?? '';
+      if (code.includes('popup-closed') || code.includes('cancelled')) return;
+      this.authError.set('Google sign-in failed. Please try again.');
+    } finally {
+      this.googleLoading.set(false);
+    }
+  }
 
   // ── Theme ────────────────────────────────────────────────────────────────
   readonly themes        = THEMES;
@@ -123,23 +196,21 @@ export class SignupComponent implements OnInit {
   }
 
   // ── Logo upload ──────────────────────────────────────────────────────────
-  readonly logoDataUrl  = signal<string | null>(null);
+  readonly logoDataUrl   = signal<string | null>(null);
   readonly logoUploading = signal(false);
 
   async onLogoUpload(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return;
+    if (!file || !file.type.startsWith('image/')) return;
     this.logoUploading.set(true);
-    const dataUrl = await resizeImage(file, 200);
-    this.logoDataUrl.set(dataUrl);
+    this.logoDataUrl.set(await resizeImage(file, 200));
     this.logoUploading.set(false);
   }
 
   removeLogo() { this.logoDataUrl.set(null); }
 
   // ── Services ─────────────────────────────────────────────────────────────
-  readonly allServices     = ALL_SERVICES;
+  readonly allServices      = ALL_SERVICES;
   readonly selectedServices = signal<Set<string>>(
     new Set(['General Dentistry', 'Dental Cleaning', 'Root Canal Treatment', 'Dental Implants'])
   );
@@ -158,10 +229,9 @@ export class SignupComponent implements OnInit {
   readonly clinicHours = signal<DayHour[]>(defaultHours());
 
   updateHour(index: number, field: keyof DayHour, value: string | boolean): void {
-    const updated = this.clinicHours().map((h, i) =>
-      i === index ? { ...h, [field]: value } : h
+    this.clinicHours.set(
+      this.clinicHours().map((h, i) => i === index ? { ...h, [field]: value } : h)
     );
-    this.clinicHours.set(updated);
   }
 
   // ── Plan ─────────────────────────────────────────────────────────────────
@@ -218,7 +288,6 @@ export class SignupComponent implements OnInit {
   // ── Slug availability ────────────────────────────────────────────────────
   readonly slugChecking  = signal(false);
   readonly slugAvailable = signal<boolean | null>(null);
-  readonly showPassword  = signal(false);
 
   readonly slugStatus = computed<'idle' | 'checking' | 'available' | 'taken'>(() => {
     if (this.slugChecking())            return 'checking';
@@ -236,18 +305,16 @@ export class SignupComponent implements OnInit {
     phone:               ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
   });
 
-  // ── Step 3 form (account) ────────────────────────────────────────────────
+  // ── Step 3 form — just slug (user is already authenticated) ─────────────
   readonly step3 = this.fb.nonNullable.group({
-    slug:     ['', [Validators.required, Validators.pattern(/^[a-z0-9]{3,30}$/)]],
-    email:    ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]{3,30}$/)]],
   });
 
-  // ── Live preview data ────────────────────────────────────────────────────
-  readonly previewName    = computed(() => this.step1.controls.name.value    || 'Your Clinic Name');
-  readonly previewDoctor  = computed(() => this.step1.controls.doctorName.value || 'Dr. Your Name');
-  readonly previewDegree  = computed(() => this.step1.controls.doctorQualification.value || 'BDS');
-  readonly previewCity    = computed(() => this.step1.controls.city.value    || 'Your City');
+  // ── Live preview ─────────────────────────────────────────────────────────
+  readonly previewName     = computed(() => this.step1.controls.name.value    || 'Your Clinic Name');
+  readonly previewDoctor   = computed(() => this.step1.controls.doctorName.value || 'Dr. Your Name');
+  readonly previewDegree   = computed(() => this.step1.controls.doctorQualification.value || 'BDS');
+  readonly previewCity     = computed(() => this.step1.controls.city.value    || 'Your City');
   readonly previewServices = computed(() => Array.from(this.selectedServices()).slice(0, 4));
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -259,7 +326,7 @@ export class SignupComponent implements OnInit {
       this.step3.controls.slug.setValue(toSlug(name), { emitEvent: true });
     });
 
-    // Real-time slug availability
+    // Real-time slug availability check
     this.step3.controls.slug.valueChanges.pipe(
       debounceTime(450),
       distinctUntilChanged(),
@@ -297,7 +364,12 @@ export class SignupComponent implements OnInit {
 
   back(): void {
     const s = this.step();
-    if (s > 1) this.step.set((s - 1) as 1 | 2 | 3 | 4 | 5);
+    if (s === 1) {
+      // Go back to auth step — user is still authenticated but can switch accounts
+      this.step.set(0);
+    } else if (s > 1) {
+      this.step.set((s - 1) as 1 | 2 | 3 | 4);
+    }
   }
 
   selectPlan(plan: 'trial' | 'starter' | 'pro') { this.selectedPlan.set(plan); }
@@ -312,33 +384,37 @@ export class SignupComponent implements OnInit {
   // ── Submit ───────────────────────────────────────────────────────────────
   async submit(): Promise<void> {
     if (this.submitting()) return;
+
+    const user = this.authUser();
+    if (!user) {
+      this.error.set('Session expired. Please go back and sign in again.');
+      return;
+    }
+
     this.error.set(null);
     this.submitting.set(true);
 
-    const s1 = this.step1.getRawValue();
-    const s3 = this.step3.getRawValue();
+    const s1       = this.step1.getRawValue();
+    const slug     = this.step3.controls.slug.value;
     const phoneE164 = `91${s1.phone.replace(/\D/g, '')}`;
 
-    // Format hours for Firestore
     const hours = this.clinicHours()
       .filter(h => !h.closed)
       .map(h => ({ days: h.day, time: `${h.open} – ${h.close}` }));
 
-    // Format services
     const services = Array.from(this.selectedServices()).map(name => ({
-      name,
-      iconPath: '',
-      description: '',
-      benefit: '',
-      price: 'On consultation',
+      name, iconPath: '', description: '', benefit: '', price: 'On consultation',
     }));
 
     try {
+      // Get a fresh Firebase ID token to prove identity to our backend
+      const idToken = await getIdToken(user, /* forceRefresh */ true);
+
       const resp = await fetch('/api/self-signup', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Clinic
+          idToken,                              // replaces email + password
           name:                s1.name.trim(),
           doctorName:          s1.doctorName.trim(),
           doctorQualification: s1.doctorQualification.trim(),
@@ -346,13 +422,8 @@ export class SignupComponent implements OnInit {
           phone:               s1.phone.trim(),
           phoneE164,
           whatsappNumber:      phoneE164,
-          // Account
-          email:               s3.email.trim(),
-          password:            s3.password,
-          slug:                s3.slug,
-          // Plan
+          slug,
           plan:                this.selectedPlan(),
-          // Customization
           theme:               this.selectedTheme().id,
           logoDataUrl:         this.logoDataUrl() ?? null,
           hours,
@@ -373,7 +444,7 @@ export class SignupComponent implements OnInit {
         adminUrl:     data.adminUrl,
         email:        data.email,
         plan:         data.plan,
-        paymentUrl:   data.paymentUrl ?? null,
+        paymentUrl:   data.paymentUrl   ?? null,
         trialEndDate: data.trialEndDate ?? null,
       });
       this.step.set(5);
@@ -386,6 +457,6 @@ export class SignupComponent implements OnInit {
 
   // ── Step label helper ────────────────────────────────────────────────────
   stepLabel(s: number): string {
-    return ['', 'Clinic', 'Customize', 'Account', 'Plan'][s] ?? '';
+    return ['', 'Clinic', 'Customize', 'Website', 'Plan'][s] ?? '';
   }
 }
