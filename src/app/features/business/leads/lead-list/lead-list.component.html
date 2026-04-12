@@ -1,19 +1,43 @@
-<div class="space-y-6">
+<div class="space-y-5">
 
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex items-start justify-between gap-3 flex-wrap">
     <div>
       <h1 class="text-xl font-bold text-gray-900">Leads</h1>
       <p class="text-sm text-gray-500 mt-0.5">Track prospects through your sales pipeline</p>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap">
+
+      <!-- CSV Import -->
+      <label class="inline-flex items-center gap-1.5 border border-gray-200 hover:border-gray-300
+                    text-gray-600 font-semibold text-xs px-3 py-2.5 rounded-xl transition-colors cursor-pointer"
+             [class.opacity-50]="importingCsv()">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        {{ importingCsv() ? 'Importing…' : 'Import CSV' }}
+        <input type="file" accept=".csv" class="hidden"
+               (change)="handleCsvImport($event)" [disabled]="importingCsv()"/>
+      </label>
+
+      <!-- Export CSV -->
+      <button (click)="exportCsv()" [disabled]="sortedLeads().length === 0"
+              class="inline-flex items-center gap-1.5 border border-gray-200 hover:border-gray-300
+                     text-gray-600 font-semibold text-xs px-3 py-2.5 rounded-xl transition-colors
+                     disabled:opacity-40 disabled:cursor-not-allowed">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Export
+      </button>
+
       <a routerLink="/business/leads/discover"
          class="inline-flex items-center gap-1.5 border border-gray-200 hover:border-gray-300
-                text-gray-600 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors">
+                text-gray-600 font-semibold text-xs px-3 py-2.5 rounded-xl transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
         </svg>
-        Discover Clinics
+        Discover
       </a>
       <a routerLink="/business/leads/new"
          class="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white
@@ -26,6 +50,25 @@
     </div>
   </div>
 
+  <!-- Import result banner -->
+  @if (importResult()) {
+    <div class="px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2"
+         [class]="importResult()!.ok
+           ? 'bg-green-50 border border-green-200 text-green-700'
+           : 'bg-red-50 border border-red-200 text-red-700'">
+      @if (importResult()!.ok) {
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      } @else {
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+      }
+      {{ importResult()!.msg }}
+    </div>
+  }
+
   @if (loading()) {
     <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
       <p class="text-sm text-gray-400">Loading leads…</p>
@@ -33,6 +76,28 @@
   }
 
   @if (!loading()) {
+
+    <!-- Summary stats -->
+    @if (leads().length > 0) {
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
+          <p class="text-2xl font-bold text-gray-900">{{ summaryStats().total }}</p>
+          <p class="text-xs text-gray-400 mt-0.5">Total Leads</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
+          <p class="text-2xl font-bold text-blue-600">{{ summaryStats().active }}</p>
+          <p class="text-xs text-gray-400 mt-0.5">Active Pipeline</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
+          <p class="text-2xl font-bold text-green-600">{{ summaryStats().converted }}</p>
+          <p class="text-xs text-gray-400 mt-0.5">Converted</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
+          <p class="text-2xl font-bold text-purple-600">{{ summaryStats().rate }}%</p>
+          <p class="text-xs text-gray-400 mt-0.5">Conversion Rate</p>
+        </div>
+      </div>
+    }
 
     <!-- Overdue follow-up alert -->
     @if (overdueLeads().length > 0) {
@@ -44,10 +109,14 @@
           {{ overdueLeads().length }} follow-up{{ overdueLeads().length > 1 ? 's' : '' }} overdue —
           <span class="font-normal">{{ overdueLeads()[0].clinicName }}{{ overdueLeads().length > 1 ? ' and others' : '' }}</span>
         </p>
+        <button (click)="activeTab.set('all'); sortBy.set('followup')"
+                class="ml-auto text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2">
+          Sort by follow-up
+        </button>
       </div>
     }
 
-    <!-- Pipeline stats -->
+    <!-- Pipeline stat cards -->
     <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
       @for (stat of pipelineStats(); track stat.status) {
         <button (click)="activeTab.set(stat.status)"
@@ -61,7 +130,7 @@
       }
     </div>
 
-    <!-- Tab filter + search -->
+    <!-- Tab filter + search + sort -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="flex gap-1 overflow-x-auto pb-1 flex-1">
         @for (tab of tabs; track tab.key) {
@@ -74,24 +143,32 @@
           </button>
         }
       </div>
-      <input type="search" placeholder="Search clinic, doctor, city…"
-             [ngModel]="search()" (ngModelChange)="search.set($event)"
-             class="w-full sm:w-56 text-sm border border-gray-200 rounded-xl px-3 py-2
-                    focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+      <div class="flex gap-2">
+        <input type="search" placeholder="Search clinic, doctor, city…"
+               [ngModel]="search()" (ngModelChange)="search.set($event)"
+               class="w-full sm:w-48 text-sm border border-gray-200 rounded-xl px-3 py-2
+                      focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+        <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)"
+                class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white
+                       focus:outline-none focus:border-blue-400 text-gray-600">
+          <option value="newest">Newest first</option>
+          <option value="followup">By follow-up</option>
+        </select>
+      </div>
     </div>
 
     <!-- Lead list -->
-    @if (filteredLeads().length === 0) {
+    @if (sortedLeads().length === 0) {
       <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
         <p class="text-sm text-gray-400">
-          @if (leads().length === 0) { No leads yet. Add your first prospect. }
+          @if (leads().length === 0) { No leads yet. Add your first prospect or import a CSV. }
           @else { No leads match the current filter. }
         </p>
       </div>
     }
 
     <div class="space-y-2">
-      @for (lead of filteredLeads(); track lead.id) {
+      @for (lead of sortedLeads(); track lead.id) {
         <div class="bg-white rounded-2xl border border-gray-200 px-5 py-4
                     flex flex-col sm:flex-row sm:items-center gap-3 hover:border-gray-300 transition-colors"
              [class.border-amber-300]="isOverdue(lead)"
@@ -101,26 +178,40 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <p class="font-semibold text-gray-900 text-sm">{{ lead.clinicName }}</p>
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClasses(lead.status)">
-                {{ statusLabel(lead.status) }}
-              </span>
+
+              <!-- Inline status select -->
+              <select [value]="lead.status"
+                      (change)="quickStatus(lead, $any($event.target).value)"
+                      [disabled]="updatingStatus() === lead.id"
+                      class="text-xs font-medium px-2 py-0.5 rounded-full border-0 cursor-pointer
+                             focus:outline-none focus:ring-1 focus:ring-offset-0 transition-opacity"
+                      [class]="statusClasses(lead.status)"
+                      [class.opacity-50]="updatingStatus() === lead.id">
+                @for (s of statuses; track s.value) {
+                  <option [value]="s.value">{{ s.label }}</option>
+                }
+              </select>
+
               @if (isOverdue(lead)) {
                 <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-                  Follow-up overdue
+                  Overdue
                 </span>
               }
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
               {{ lead.doctorName }} · {{ lead.city }} ·
               <span class="text-gray-500">{{ sourceLabel(lead.source) }}</span>
+              @if (lead.referredBy) {
+                · <span class="text-gray-500">via {{ lead.referredBy }}</span>
+              }
               @if (lead.followUpDate) {
-                · <span [class]="isOverdue(lead) ? 'text-red-600 font-medium' : 'text-gray-400'">
+                · <span [class]="isOverdue(lead) ? 'text-red-600 font-semibold' : 'text-gray-400'">
                     Follow up {{ followUpLabel(lead) }}
                   </span>
               }
             </p>
             @if (lead.notes) {
-              <p class="text-xs text-gray-400 mt-1 truncate max-w-sm italic">{{ lead.notes }}</p>
+              <p class="text-xs text-gray-400 mt-1 truncate max-w-md italic">{{ lead.notes }}</p>
             }
           </div>
 
