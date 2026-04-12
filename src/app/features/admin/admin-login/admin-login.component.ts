@@ -17,8 +17,10 @@ export class AdminLoginComponent {
   private router = inject(Router);
   readonly clinic = inject(ClinicConfigService);
 
-  loading = signal(false);
-  error   = signal<string | null>(null);
+  loading      = signal(false);
+  googleLoading = signal(false);
+  error        = signal<string | null>(null);
+  showPassword = signal(false);
 
   form = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -28,10 +30,8 @@ export class AdminLoginComponent {
   async onSubmit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-
     this.loading.set(true);
     this.error.set(null);
-
     try {
       await this.auth.login(this.form.value.email!, this.form.value.password!);
       this.router.navigate(['/admin']);
@@ -39,6 +39,21 @@ export class AdminLoginComponent {
       this.error.set('Invalid email or password. Please try again.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  async loginWithGoogle() {
+    this.googleLoading.set(true);
+    this.error.set(null);
+    try {
+      await this.auth.loginWithGoogle();
+      this.router.navigate(['/admin']);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg.includes('popup-closed') || msg.includes('cancelled')) return;
+      this.error.set('Google sign-in failed. Please try again.');
+    } finally {
+      this.googleLoading.set(false);
     }
   }
 }

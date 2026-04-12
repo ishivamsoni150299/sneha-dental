@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { initializeApp, getApps } from 'firebase/app';
 import {
-  getAuth, signInWithEmailAndPassword, signOut,
-  onAuthStateChanged, User,
+  getAuth, signInWithEmailAndPassword, signInWithPopup,
+  GoogleAuthProvider, signOut, onAuthStateChanged, User,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { environment } from '../../../environments/environment';
@@ -41,6 +41,16 @@ export class SuperAuthService {
 
   async login(email: string, password: string): Promise<void> {
     const { user } = await signInWithEmailAndPassword(auth, email, password);
+    await this._verifySuperAdmin(user);
+  }
+
+  async loginWithGoogle(): Promise<void> {
+    const provider = new GoogleAuthProvider();
+    const { user } = await signInWithPopup(auth, provider);
+    await this._verifySuperAdmin(user);
+  }
+
+  private async _verifySuperAdmin(user: User): Promise<void> {
     const snap = await getDoc(doc(db, 'superAdmins', user.uid));
     if (!snap.exists()) {
       await signOut(auth);

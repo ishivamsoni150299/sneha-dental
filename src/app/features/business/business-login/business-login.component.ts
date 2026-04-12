@@ -15,8 +15,10 @@ export class BusinessLoginComponent {
   private auth   = inject(SuperAuthService);
   private router = inject(Router);
 
-  loading = signal(false);
-  error   = signal<string | null>(null);
+  loading       = signal(false);
+  googleLoading = signal(false);
+  error         = signal<string | null>(null);
+  showPassword  = signal(false);
 
   form = this.fb.nonNullable.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -31,10 +33,8 @@ export class BusinessLoginComponent {
   async onSubmit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-
     this.loading.set(true);
     this.error.set(null);
-
     try {
       const { email, password } = this.form.getRawValue();
       await this.auth.login(email, password);
@@ -44,6 +44,21 @@ export class BusinessLoginComponent {
       this.error.set(raw.includes('super admin') ? raw : 'Invalid email or password.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  async loginWithGoogle() {
+    this.googleLoading.set(true);
+    this.error.set(null);
+    try {
+      await this.auth.loginWithGoogle();
+      this.router.navigate(['/business/clinics']);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg.includes('popup-closed') || msg.includes('cancelled')) return;
+      this.error.set(msg.includes('super admin') ? msg : 'Google sign-in failed. Please try again.');
+    } finally {
+      this.googleLoading.set(false);
     }
   }
 }
