@@ -208,7 +208,7 @@ export class AdminDashboardComponent implements OnInit {
 
   async logout() {
     await this.auth.logout();
-    this.router.navigate(['/admin/login']);
+    this.router.navigate(['/business/login']);
   }
 
   formatDate(dateStr: string): string {

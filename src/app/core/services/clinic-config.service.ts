@@ -98,6 +98,34 @@ export class ClinicConfigService {
     return end < new Date();
   }
 
+  /**
+   * Load clinic config by the Firebase Auth UID of the clinic owner.
+   * Used when the platform admin area loads at mydentalplatform.com (no hostname to match).
+   * Returns true if a clinic was found and loaded.
+   */
+  async loadByUid(uid: string): Promise<boolean> {
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'clinics'),
+        where('adminUid', '==', uid),
+        where('active',   '==', true),
+        limit(1),
+      ));
+      if (!snap.empty) {
+        const docRef = snap.docs[0];
+        const { domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
+          docRef.data() as Record<string, unknown>;
+        const config = { ...(rest as unknown as ClinicConfig), clinicId: docRef.id };
+        this._config.set(config);
+        this._isLoaded.set(true);
+        return true;
+      }
+    } catch (e) {
+      console.error('[ClinicConfig] loadByUid failed:', e);
+    }
+    return false;
+  }
+
   /** Merge partial fields into the in-memory config (does NOT write to Firestore). */
   updateConfig(partial: Partial<ClinicConfig>): void {
     this._config.update(c => ({ ...c, ...partial }));

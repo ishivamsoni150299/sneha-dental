@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { superAdminGuard } from '../../core/guards/super-admin.guard';
+import { clinicAdminGuard } from '../../core/guards/clinic-admin.guard';
 
 export const businessRoutes: Routes = [
   // ── Public landing page (no auth required) ────────────────────────────────
@@ -22,6 +23,27 @@ export const businessRoutes: Routes = [
     path: 'login',
     loadComponent: () =>
       import('./business-login/business-login.component').then(m => m.BusinessLoginComponent),
+  },
+
+  // ── Clinic-owner admin portal (appointments + settings) ──────────────────
+  {
+    path: 'clinic',
+    canActivate: [clinicAdminGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('../admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
+        data: { title: 'Admin Dashboard', noIndex: true },
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('../admin/admin-settings/admin-settings.component').then(m => m.AdminSettingsComponent),
+        data: { title: 'Clinic Settings', noIndex: true },
+      },
+    ],
   },
 
   // ── Protected admin shell (clinics CRUD) ──────────────────────────────────

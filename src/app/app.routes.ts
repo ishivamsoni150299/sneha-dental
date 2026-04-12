@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from './core/guards/admin.guard';
 import { clinicRequiredGuard } from './core/guards/clinic-required.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
 
@@ -95,38 +94,11 @@ export const routes: Routes = [
           description: 'Call, WhatsApp, or message us. We respond quickly during clinic hours.',
         },
       },
-      {
-        path: 'admin/login',
-        loadComponent: () =>
-          import('./features/admin/admin-login/admin-login.component').then(m => m.AdminLoginComponent),
-        data: {
-          title: 'Admin Login',
-          description: 'Restricted access. Admin login for clinic staff.',
-          noIndex: true,
-        },
-      },
-      {
-        path: 'admin',
-        loadComponent: () =>
-          import('./features/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
-        canActivate: [adminGuard],
-        data: {
-          title: 'Admin Dashboard',
-          description: 'Clinic admin dashboard.',
-          noIndex: true,
-        },
-      },
-      {
-        path: 'admin/settings',
-        loadComponent: () =>
-          import('./features/admin/admin-settings/admin-settings.component').then(m => m.AdminSettingsComponent),
-        canActivate: [adminGuard],
-        data: {
-          title: 'Clinic Settings',
-          description: 'Edit your clinic information, hours, and contact details.',
-          noIndex: true,
-        },
-      },
+      // ── Admin has moved to mydentalplatform.com/business/login ──────────
+      // These redirects preserve old bookmarks gracefully.
+      { path: 'admin/login',    redirectTo: '/business/login' },
+      { path: 'admin/settings', redirectTo: '/business/clinic/settings' },
+      { path: 'admin',          redirectTo: '/business/clinic/dashboard' },
     ],
   },
 
