@@ -1,5 +1,11 @@
-import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormArray, FormGroup } from '@angular/forms';
+import {
+  Component, signal, ChangeDetectionStrategy,
+  inject, OnInit, DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators,
+} from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
@@ -24,10 +30,11 @@ export interface ThemeOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminSettingsComponent implements OnInit {
-  private clinicCfg = inject(ClinicConfigService);
-  private store     = inject(ClinicFirestoreService);
-  private fb        = inject(FormBuilder);
-  private route     = inject(ActivatedRoute);
+  private clinicCfg  = inject(ClinicConfigService);
+  private store      = inject(ClinicFirestoreService);
+  private fb         = inject(FormBuilder);
+  private route      = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
   // ── State signals ─────────────────────────────────────────────────────────
   loading            = signal(true);
@@ -37,6 +44,7 @@ export class AdminSettingsComponent implements OnInit {
   savingHours        = signal(false);
   savingTestimonials = signal(false);
   savingSocial       = signal(false);
+  dirtyTabs          = signal<Set<TabId>>(new Set());
   toast = signal<{ msg: string; type: 'success' | 'error' } | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -49,6 +57,11 @@ export class AdminSettingsComponent implements OnInit {
     { id: 'theme',        label: 'Theme' },
     { id: 'subscription', label: '⚡ Plan' },
   ];
+
+  // ── Dirty tracking helpers ────────────────────────────────────────────────
+  markDirty(tab: TabId)  { this.dirtyTabs.update(s => new Set([...s, tab])); }
+  clearDirty(tab: TabId) { this.dirtyTabs.update(s => { const n = new Set(s); n.delete(tab); return n; }); }
+  isTabDirty(tab: TabId) { return this.dirtyTabs().has(tab); }
 
   // ── Subscription helpers ──────────────────────────────────────────────────
   get cfg() { return this.clinicCfg.config; }
@@ -97,21 +110,23 @@ export class AdminSettingsComponent implements OnInit {
   selectedTheme = signal<ClinicConfig['theme']>('blue');
   savingTheme   = signal(false);
 
-  // ── Forms (one per tab) ───────────────────────────────────────────────────
+  readonly STARS = [1, 2, 3, 4, 5] as const;
+
+  // ── Forms ─────────────────────────────────────────────────────────────────
   infoForm = this.fb.nonNullable.group({
-    doctorName:          [''],
+    doctorName:          ['', Validators.required],
     doctorQualification: [''],
     doctorUniversity:    [''],
     patientCount:        [''],
-    doctorBio:           [''],   // textarea — joined/split on load/save
+    doctorBio:           [''],
   });
 
   contactForm = this.fb.nonNullable.group({
-    phone:           [''],
-    addressLine1:    [''],
-    addressLine2:    [''],
-    city:            [''],
-    mapEmbedUrl:     [''],
+    phone:            ['', [Validators.required, Validators.pattern(/^[\d\s+\-()\u0966-\u096F]{7,15}$/)]],
+    addressLine1:     ['', Validators.required],
+    addressLine2:     [''],
+    city:             ['', Validators.required],
+    mapEmbedUrl:      [''],
     mapDirectionsUrl: [''],
   });
 
@@ -133,35 +148,43 @@ export class AdminSettingsComponent implements OnInit {
   get hoursArr()        { return this.hoursForm.controls.hours as FormArray; }
   get testimonialsArr() { return this.testimonialsForm.controls.testimonials as FormArray; }
 
+  // ── Star rating helpers ───────────────────────────────────────────────────
+  getStars(i: number): number {
+    return (this.testimonialsArr.at(i) as FormGroup).get('rating')?.value as number ?? 5;
+  }
+
+  setStars(i: number, stars: number) {
+    (this.testimonialsArr.at(i) as FormGroup).get('rating')!.setValue(stars);
+    this.markDirty('testimonials');
+  }
+
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngOnInit() {
     const tab = this.route.snapshot.queryParamMap.get('tab') as TabId | null;
-    if (tab && this.tabs.some(t => t.id === tab)) {
-      this.activeTab.set(tab);
-    }
+    if (tab && this.tabs.some(t => t.id === tab)) this.activeTab.set(tab);
 
     const cfg = this.clinicCfg.config;
 
     this.infoForm.patchValue({
-      doctorName:          cfg.doctorName ?? '',
+      doctorName:          cfg.doctorName          ?? '',
       doctorQualification: cfg.doctorQualification ?? '',
-      doctorUniversity:    cfg.doctorUniversity ?? '',
-      patientCount:        cfg.patientCount ?? '',
+      doctorUniversity:    cfg.doctorUniversity    ?? '',
+      patientCount:        cfg.patientCount        ?? '',
       doctorBio:           (cfg.doctorBio ?? []).join('\n'),
     });
 
     this.contactForm.patchValue({
-      phone:            cfg.phone ?? '',
-      addressLine1:     cfg.addressLine1 ?? '',
-      addressLine2:     cfg.addressLine2 ?? '',
-      city:             cfg.city ?? '',
-      mapEmbedUrl:      cfg.mapEmbedUrl ?? '',
+      phone:            cfg.phone            ?? '',
+      addressLine1:     cfg.addressLine1     ?? '',
+      addressLine2:     cfg.addressLine2     ?? '',
+      city:             cfg.city             ?? '',
+      mapEmbedUrl:      cfg.mapEmbedUrl      ?? '',
       mapDirectionsUrl: cfg.mapDirectionsUrl ?? '',
     });
 
     this.selectedTheme.set(cfg.theme ?? 'blue');
 
-    (cfg.hours ?? []).forEach(h => this.addHour(h.days, h.time));
+    (cfg.hours        ?? []).forEach(h => this.addHour(h.days, h.time));
     (cfg.testimonials ?? []).forEach(t => this.addTestimonial(t));
 
     this.socialForm.patchValue({
@@ -171,6 +194,23 @@ export class AdminSettingsComponent implements OnInit {
     });
 
     this.loading.set(false);
+
+    // Subscribe to valueChanges AFTER patchValue so initial load doesn't dirty tabs
+    this.infoForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('info'));
+    this.contactForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('contact'));
+    this.hoursForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('hours'));
+    this.testimonialsForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('testimonials'));
+    this.socialForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('social'));
   }
 
   // ── FormArray helpers ─────────────────────────────────────────────────────
@@ -181,18 +221,22 @@ export class AdminSettingsComponent implements OnInit {
 
   addTestimonial(t?: Partial<Testimonial>) {
     this.testimonialsArr.push(this.fb.nonNullable.group({
-      name:     [t?.name     ?? ''],
+      name:     [t?.name     ?? '', Validators.required],
       location: [t?.location ?? ''],
       rating:   [t?.rating   ?? 5],
-      review:   [t?.review   ?? ''],
+      review:   [t?.review   ?? '', Validators.required],
     }));
   }
   removeTestimonial(i: number) { this.testimonialsArr.removeAt(i); }
 
-  // ── clinicId (safe resolution) ────────────────────────────────────────────
-  private get clinicId(): string {
-    return this.clinicCfg.config.clinicId ?? '';
+  // ── Control error helper for template ────────────────────────────────────
+  hasError(form: FormGroup, name: string, error = 'required'): boolean {
+    const c = form.get(name);
+    return !!(c?.hasError(error) && (c.dirty || c.touched));
   }
+
+  // ── clinicId (safe resolution) ────────────────────────────────────────────
+  private get clinicId(): string { return this.clinicCfg.config.clinicId ?? ''; }
 
   private guardClinicId(): boolean {
     if (!this.clinicId || this.clinicId === 'default') {
@@ -204,7 +248,8 @@ export class AdminSettingsComponent implements OnInit {
 
   // ── Save methods ──────────────────────────────────────────────────────────
   async saveInfo() {
-    if (!this.guardClinicId()) return;
+    this.infoForm.markAllAsTouched();
+    if (this.infoForm.invalid || !this.guardClinicId()) return;
     this.savingInfo.set(true);
     try {
       const v = this.infoForm.getRawValue();
@@ -215,28 +260,31 @@ export class AdminSettingsComponent implements OnInit {
         patientCount:        v.patientCount,
         doctorBio:           v.doctorBio.split('\n').map(s => s.trim()).filter(Boolean),
       });
+      this.clearDirty('info');
       this.showToast('Clinic info saved.', 'success');
     } catch { this.showToast('Failed to save. Please try again.', 'error'); }
     finally   { this.savingInfo.set(false); }
   }
 
   async saveContact() {
-    if (!this.guardClinicId()) return;
+    this.contactForm.markAllAsTouched();
+    if (this.contactForm.invalid || !this.guardClinicId()) return;
     this.savingContact.set(true);
     try {
       const v      = this.contactForm.getRawValue();
       const digits = v.phone.replace(/\D/g, '');
       const e164   = digits.startsWith('91') ? digits : `91${digits}`;
       await this.store.updateClinicSettings(this.clinicId, {
-        phone:           v.phone,
-        phoneE164:       e164,
-        whatsappNumber:  e164,
-        addressLine1:    v.addressLine1,
-        addressLine2:    v.addressLine2,
-        city:            v.city,
-        mapEmbedUrl:     v.mapEmbedUrl    || undefined,
+        phone:            v.phone,
+        phoneE164:        e164,
+        whatsappNumber:   e164,
+        addressLine1:     v.addressLine1,
+        addressLine2:     v.addressLine2,
+        city:             v.city,
+        mapEmbedUrl:      v.mapEmbedUrl     || undefined,
         mapDirectionsUrl: v.mapDirectionsUrl || undefined,
       });
+      this.clearDirty('contact');
       this.showToast('Contact details saved.', 'success');
     } catch { this.showToast('Failed to save. Please try again.', 'error'); }
     finally   { this.savingContact.set(false); }
@@ -249,18 +297,21 @@ export class AdminSettingsComponent implements OnInit {
       await this.store.updateClinicSettings(this.clinicId, {
         hours: this.hoursForm.getRawValue().hours as ClinicHours[],
       });
+      this.clearDirty('hours');
       this.showToast('Clinic hours saved.', 'success');
     } catch { this.showToast('Failed to save. Please try again.', 'error'); }
     finally   { this.savingHours.set(false); }
   }
 
   async saveTestimonials() {
-    if (!this.guardClinicId()) return;
+    this.testimonialsForm.markAllAsTouched();
+    if (this.testimonialsForm.invalid || !this.guardClinicId()) return;
     this.savingTestimonials.set(true);
     try {
       await this.store.updateClinicSettings(this.clinicId, {
         testimonials: this.testimonialsForm.getRawValue().testimonials as Testimonial[],
       });
+      this.clearDirty('testimonials');
       this.showToast('Testimonials saved.', 'success');
     } catch { this.showToast('Failed to save. Please try again.', 'error'); }
     finally   { this.savingTestimonials.set(false); }
@@ -278,6 +329,7 @@ export class AdminSettingsComponent implements OnInit {
           ...(v.linkedin  ? { linkedin:  v.linkedin  } : {}),
         },
       });
+      this.clearDirty('social');
       this.showToast('Social links saved.', 'success');
     } catch { this.showToast('Failed to save. Please try again.', 'error'); }
     finally   { this.savingSocial.set(false); }
@@ -302,6 +354,6 @@ export class AdminSettingsComponent implements OnInit {
   private showToast(msg: string, type: 'success' | 'error') {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toast.set({ msg, type });
-    this.toastTimer = setTimeout(() => this.toast.set(null), 2000);
+    this.toastTimer = setTimeout(() => this.toast.set(null), 2500);
   }
 }
