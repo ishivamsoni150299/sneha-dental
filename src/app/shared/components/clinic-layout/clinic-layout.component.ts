@@ -3,13 +3,13 @@ import { RouterOutlet, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { startElevenLabsWidget } from '../../../core/utils/elevenlabs-widget';
 import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.component';
+import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
 @Component({
   selector: 'app-clinic-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NavbarComponent, FooterComponent, ComingSoonComponent],
+  imports: [RouterOutlet, RouterLink, NavbarComponent, FooterComponent, ComingSoonComponent, VoiceAgentComponent],
   template: `
     @if (clinic.config.comingSoon) {
       <app-coming-soon />
@@ -129,6 +129,11 @@ import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.c
       </div>
     }
 
+    <!-- ── ElevenLabs AI Voice Agent ── -->
+    @if (clinic.config.elevenLabsAgentId) {
+      <app-voice-agent [agentId]="clinic.config.elevenLabsAgentId" />
+    }
+
     <!-- ── Mobile 3-tab sticky bottom bar ── -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 safe-bottom shadow-lg">
       <div class="grid grid-cols-3">
@@ -179,9 +184,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const cfg = this.clinic.config;
-    if (cfg.elevenLabsAgentId) {
-      startElevenLabsWidget(cfg.elevenLabsAgentId);
-    }
     if (!sessionStorage.getItem('wa_popup_dismissed')) {
       this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
     }
