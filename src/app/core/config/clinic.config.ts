@@ -42,6 +42,9 @@ export interface ClinicConfig {
 
   // ── Voice Agent (ElevenLabs Conversational AI) ───────────────────────────
   elevenLabsAgentId?: string;      // ElevenLabs Convai agent ID for this clinic
+  voiceAgentGreeting?: string;     // First message spoken by the agent
+  voiceAgentLanguage?: 'hindi' | 'english' | 'bilingual'; // Conversation language
+  voiceAgentPersona?: string;      // Extra system prompt instructions for the agent
 
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';

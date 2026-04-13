@@ -129,8 +129,10 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       </div>
     }
 
-    <!-- ── ElevenLabs AI Voice Agent ── -->
-    @if (clinic.config.elevenLabsAgentId) {
+    <!-- ── ElevenLabs AI Voice Agent (Pro plan only) ── -->
+    @if (clinic.config.elevenLabsAgentId &&
+         clinic.config.subscriptionPlan === 'pro' &&
+         clinic.config.subscriptionStatus === 'active') {
       <app-voice-agent [agentId]="clinic.config.elevenLabsAgentId" />
     }
 

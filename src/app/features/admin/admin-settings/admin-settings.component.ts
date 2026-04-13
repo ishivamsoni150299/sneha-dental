@@ -11,7 +11,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 import { Testimonial, ClinicHours, ClinicConfig } from '../../../core/config/clinic.config';
 
-type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'subscription';
+type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'subscription' | 'voice';
 
 export interface ThemeOption {
   value: ClinicConfig['theme'];
@@ -56,6 +56,7 @@ export class AdminSettingsComponent implements OnInit {
     { id: 'social',       label: 'Social' },
     { id: 'theme',        label: 'Theme' },
     { id: 'subscription', label: '⚡ Plan' },
+    { id: 'voice',        label: '🎙 Voice Agent' },
   ];
 
   // ── Dirty tracking helpers ────────────────────────────────────────────────
@@ -144,6 +145,15 @@ export class AdminSettingsComponent implements OnInit {
     linkedin:  [''],
   });
 
+  voiceForm = this.fb.nonNullable.group({
+    greeting: [''],
+    language: ['bilingual' as 'hindi' | 'english' | 'bilingual'],
+    persona:  [''],
+  });
+
+  savingVoice       = signal(false);
+  creatingVoiceAgent = signal(false);
+
   // ── FormArray getters ─────────────────────────────────────────────────────
   get hoursArr()        { return this.hoursForm.controls.hours as FormArray; }
   get testimonialsArr() { return this.testimonialsForm.controls.testimonials as FormArray; }
@@ -193,6 +203,12 @@ export class AdminSettingsComponent implements OnInit {
       linkedin:  cfg.social?.linkedin  ?? '',
     });
 
+    this.voiceForm.patchValue({
+      greeting: cfg.voiceAgentGreeting ?? '',
+      language: cfg.voiceAgentLanguage ?? 'bilingual',
+      persona:  cfg.voiceAgentPersona  ?? '',
+    });
+
     this.loading.set(false);
 
     // Subscribe to valueChanges AFTER patchValue so initial load doesn't dirty tabs
@@ -211,6 +227,9 @@ export class AdminSettingsComponent implements OnInit {
     this.socialForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.markDirty('social'));
+    this.voiceForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('voice'));
   }
 
   // ── FormArray helpers ─────────────────────────────────────────────────────
@@ -348,6 +367,69 @@ export class AdminSettingsComponent implements OnInit {
       this.showToast('Theme saved.', 'success');
     } catch { this.showToast('Failed to save theme.', 'error'); }
     finally   { this.savingTheme.set(false); }
+  }
+
+  // ── Voice Agent ───────────────────────────────────────────────────────────
+  async createVoiceAgent() {
+    if (!this.guardClinicId()) return;
+    this.creatingVoiceAgent.set(true);
+    try {
+      const cfg = this.clinicCfg.config;
+      const res = await fetch('/api/elevenlabs-create-agent', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clinicId:            this.clinicId,
+          name:                cfg.name,
+          city:                cfg.city,
+          addressLine1:        cfg.addressLine1,
+          phone:               cfg.phone,
+          doctorName:          cfg.doctorName,
+          doctorQualification: cfg.doctorQualification,
+          hours:               cfg.hours    ?? [],
+          services:            cfg.services ?? [],
+        }),
+      });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json() as { agentId: string };
+      this.clinicCfg.updateConfig({ elevenLabsAgentId: data.agentId });
+      this.showToast('Voice agent created! Your AI receptionist is live.', 'success');
+    } catch {
+      this.showToast('Failed to create voice agent. Check ELEVENLABS_API_KEY in Vercel.', 'error');
+    } finally {
+      this.creatingVoiceAgent.set(false);
+    }
+  }
+
+  async saveVoice() {
+    if (!this.guardClinicId()) return;
+    this.savingVoice.set(true);
+    try {
+      const v = this.voiceForm.getRawValue();
+      const res = await fetch('/api/elevenlabs-update-agent', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clinicId: this.clinicId,
+          greeting: v.greeting || undefined,
+          language: v.language,
+          persona:  v.persona  || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error('API error');
+      // Optimistically update local config
+      this.clinicCfg.updateConfig({
+        voiceAgentGreeting: v.greeting || undefined,
+        voiceAgentLanguage: v.language,
+        voiceAgentPersona:  v.persona  || undefined,
+      });
+      this.clearDirty('voice');
+      this.showToast('Voice agent updated.', 'success');
+    } catch {
+      this.showToast('Failed to update voice agent.', 'error');
+    } finally {
+      this.savingVoice.set(false);
+    }
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
