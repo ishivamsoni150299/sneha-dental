@@ -65,8 +65,8 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
     // Contact
     phone:            ['', Validators.required],
-    phoneE164:        ['', Validators.required],
-    whatsappNumber:   ['', Validators.required],
+    phoneE164:        [''],   // auto-filled from phone — not shown to user
+    whatsappNumber:   [''],   // auto-filled from phone — not shown to user
     addressLine1:     ['', Validators.required],
     addressLine2:     [''],
     city:             ['', Validators.required],
@@ -117,6 +117,20 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   planFeaturesArr(planIndex: number): FormArray {
     return (this.plansArr.at(planIndex) as FormGroup).controls['features'] as FormArray;
+  }
+
+  // ── Star rating helpers (testimonials) ────────────────────────────────────
+  readonly STARS = [1, 2, 3, 4, 5] as const;
+  getStars(i: number): number {
+    return (this.testimonialsArr.at(i) as FormGroup).get('rating')?.value as number ?? 5;
+  }
+  setStars(i: number, stars: number) {
+    (this.testimonialsArr.at(i) as FormGroup).get('rating')!.setValue(stars);
+  }
+
+  // ── Field error helper ────────────────────────────────────────────────────
+  hasErr(ctrl: { invalid: boolean; touched: boolean }): boolean {
+    return ctrl.invalid && ctrl.touched;
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
