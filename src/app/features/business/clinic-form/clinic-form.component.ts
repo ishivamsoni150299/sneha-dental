@@ -360,7 +360,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   // ── Submit ────────────────────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.error.set('Fix the highlighted required fields before saving.');
+      return;
+    }
 
     this.saving.set(true);
     this.error.set(null);
@@ -368,40 +371,42 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     try {
       const v = this.form.getRawValue();
 
+      // Firestore rejects `undefined` — use null for optional fields so
+      // existing values are cleared when the admin empties them.
       const payload = {
-        name: v.name,
-        doctorName: v.doctorName,
+        name:                v.name,
+        doctorName:          v.doctorName,
         doctorQualification: v.doctorQualification,
-        doctorUniversity: v.doctorUniversity,
-        patientCount: v.patientCount,
-        phone: v.phone,
-        phoneE164: v.phoneE164,
-        whatsappNumber: v.whatsappNumber,
-        addressLine1: v.addressLine1,
-        addressLine2: v.addressLine2,
-        city: v.city,
-        mapEmbedUrl: v.mapEmbedUrl,
-        mapDirectionsUrl: v.mapDirectionsUrl,
-        googlePlaceId:      v.googlePlaceId || undefined,
-        subscriptionPlan:   v.subscriptionPlan   as 'trial' | 'starter' | 'pro',
-        subscriptionStatus: v.subscriptionStatus as 'trial' | 'active' | 'expired' | 'cancelled',
-        billingCycle:       v.billingCycle        as 'monthly' | 'yearly',
-        trialEndDate:       v.trialEndDate        || undefined,
-        subscriptionEndDate: v.subscriptionEndDate || undefined,
-        lastPaymentDate:    v.lastPaymentDate     || undefined,
-        lastPaymentAmount:  v.lastPaymentAmount   || undefined,
-        lastPaymentRef:     v.lastPaymentRef      || undefined,
-        billingEmail:       v.billingEmail        || undefined,
-        billingNotes:       v.billingNotes        || undefined,
-        domain:       v.domain,
-        vercelDomain: v.vercelDomain,
-        active:       v.active,
-        theme: v.theme as 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose',
-        bookingRefPrefix: v.bookingRefPrefix,
+        doctorUniversity:    v.doctorUniversity    || null,
+        patientCount:        v.patientCount        || null,
+        phone:               v.phone,
+        phoneE164:           v.phoneE164           || null,
+        whatsappNumber:      v.whatsappNumber      || null,
+        addressLine1:        v.addressLine1,
+        addressLine2:        v.addressLine2        || null,
+        city:                v.city,
+        mapEmbedUrl:         v.mapEmbedUrl         || null,
+        mapDirectionsUrl:    v.mapDirectionsUrl    || null,
+        googlePlaceId:       v.googlePlaceId       || null,
+        subscriptionPlan:    v.subscriptionPlan    as 'trial' | 'starter' | 'pro',
+        subscriptionStatus:  v.subscriptionStatus  as 'trial' | 'active' | 'expired' | 'cancelled',
+        billingCycle:        v.billingCycle         as 'monthly' | 'yearly',
+        trialEndDate:        v.trialEndDate         || null,
+        subscriptionEndDate: v.subscriptionEndDate  || null,
+        lastPaymentDate:     v.lastPaymentDate      || null,
+        lastPaymentAmount:   v.lastPaymentAmount    ?? null,   // ?? keeps 0 as valid
+        lastPaymentRef:      v.lastPaymentRef       || null,
+        billingEmail:        v.billingEmail         || null,
+        billingNotes:        v.billingNotes         || null,
+        domain:              v.domain               || null,
+        vercelDomain:        v.vercelDomain         || null,
+        active:              v.active,
+        theme:               v.theme as 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose',
+        bookingRefPrefix:    v.bookingRefPrefix,
         social: {
-          ...(v.facebook  ? { facebook:  v.facebook  } : {}),
-          ...(v.instagram ? { instagram: v.instagram } : {}),
-          ...(v.linkedin  ? { linkedin:  v.linkedin  } : {}),
+          facebook:  v.facebook  || null,
+          instagram: v.instagram || null,
+          linkedin:  v.linkedin  || null,
         },
         doctorBio:    v.doctorBio as string[],
         hours:        v.hours    as { days: string; time: string }[],
@@ -413,16 +418,20 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         testimonials: v.testimonials as StoredClinic['testimonials'],
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const firestorePayload = payload as any;
       if (this.isEdit) {
-        await this.clinicStore.update(this.clinicId!, payload);
+        await this.clinicStore.update(this.clinicId!, firestorePayload);
       } else {
-        await this.clinicStore.create(payload as Omit<StoredClinic, 'id' | 'createdAt'>);
+        await this.clinicStore.create(firestorePayload);
       }
 
       this.success.set(true);
       setTimeout(() => this.router.navigate(['/business/clinics']), 1200);
-    } catch {
-      this.error.set('Failed to save. Please try again.');
+    } catch (err) {
+      console.error('[ClinicForm] save failed:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      this.error.set(`Failed to save: ${msg.slice(0, 120)}`);
     } finally {
       this.saving.set(false);
     }
