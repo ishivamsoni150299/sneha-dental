@@ -40,9 +40,8 @@ export interface ClinicConfig {
   comingSoon?: boolean;            // true = show "Launching Soon" page instead of full site
   launchDate?: string;             // ISO date e.g. "2026-05-01" — drives countdown timer
 
-  // ── Voice Agent (Vapi.ai) ─────────────────────────────────────────────────
-  vapiAssistantId?: string;        // Vapi assistant ID for this clinic
-  vapiPublicKey?: string;          // Vapi public key (safe to expose in browser)
+  // ── Voice Agent (ElevenLabs Conversational AI) ───────────────────────────
+  elevenLabsAgentId?: string;      // ElevenLabs Convai agent ID for this clinic
 
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';

@@ -186,11 +186,11 @@ export class ClinicListComponent implements OnInit {
     }
   }
 
-  // ── Voice Agent ───────────────────────────────────────────────────────────
+  // ── Voice Agent (ElevenLabs) ─────────────────────────────────────────────
   async createVoiceAgent(clinic: StoredClinic) {
     this.creatingVoiceAgent.set(clinic.id);
     try {
-      const res = await fetch('/api/vapi-create-assistant', {
+      const res = await fetch('/api/elevenlabs-create-agent', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -201,18 +201,18 @@ export class ClinicListComponent implements OnInit {
           phone:               clinic.phone,
           doctorName:          clinic.doctorName,
           doctorQualification: clinic.doctorQualification,
-          hours:               clinic.hours ?? [],
+          hours:               clinic.hours    ?? [],
           services:            clinic.services ?? [],
         }),
       });
       if (!res.ok) throw new Error('API error');
-      const data = await res.json() as { assistantId: string };
+      const data = await res.json() as { agentId: string };
       this.clinics.update(list =>
-        list.map(c => c.id === clinic.id ? { ...c, vapiAssistantId: data.assistantId } : c)
+        list.map(c => c.id === clinic.id ? { ...c, elevenLabsAgentId: data.agentId } : c)
       );
-      this.showToast('Voice agent created! Mic button will appear on the clinic site.', 'success');
+      this.showToast('ElevenLabs voice agent created! Mic button will appear on the clinic site.', 'success');
     } catch {
-      this.showToast('Failed to create voice agent. Check VAPI_API_KEY in Vercel.', 'error');
+      this.showToast('Failed to create voice agent. Check ELEVENLABS_API_KEY in Vercel.', 'error');
     } finally {
       this.creatingVoiceAgent.set(null);
     }

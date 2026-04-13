@@ -3,7 +3,7 @@ import { RouterOutlet, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { startVapiWidget } from '../../../core/utils/vapi-widget';
+import { startElevenLabsWidget } from '../../../core/utils/elevenlabs-widget';
 import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.component';
 
 @Component({
@@ -179,8 +179,8 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const cfg = this.clinic.config;
-    if (cfg.vapiAssistantId && cfg.vapiPublicKey) {
-      startVapiWidget(cfg.vapiPublicKey, cfg.vapiAssistantId);
+    if (cfg.elevenLabsAgentId) {
+      startElevenLabsWidget(cfg.elevenLabsAgentId);
     }
     if (!sessionStorage.getItem('wa_popup_dismissed')) {
       this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
