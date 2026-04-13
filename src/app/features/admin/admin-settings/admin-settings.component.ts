@@ -146,17 +146,34 @@ export class AdminSettingsComponent implements OnInit {
   });
 
   voiceForm = this.fb.nonNullable.group({
-    greeting: [''],
-    language: ['bilingual' as 'hindi' | 'english' | 'bilingual'],
-    persona:  [''],
+    greeting:  [''],
+    language:  ['bilingual' as 'hindi' | 'english' | 'bilingual'],
+    persona:   [''],
+    voiceId:   ['9BWtsMINqrJLrRacOk9x'],  // default: Aria
+    whatsapp:  [''],
   });
 
-  savingVoice       = signal(false);
+  savingVoice        = signal(false);
   creatingVoiceAgent = signal(false);
+  voiceUsage         = signal<{ conversations: number; minutesUsed: number; minutesLimit: number } | null>(null);
+  loadingUsage       = signal(false);
+
+  // Curated voices — all support eleven_multilingual_v2 (Hindi + English)
+  readonly VOICE_OPTIONS = [
+    { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria',      gender: 'Female', style: 'Warm & professional' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',     gender: 'Female', style: 'Soft & reassuring' },
+    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',     gender: 'Female', style: 'Upbeat & friendly' },
+    { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', gender: 'Female', style: 'Confident & clear' },
+    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',     gender: 'Male',   style: 'Deep & trustworthy' },
+    { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River',     gender: 'Neutral', style: 'Calm & balanced' },
+  ] as const;
 
   // ── FormArray getters ─────────────────────────────────────────────────────
   get hoursArr()        { return this.hoursForm.controls.hours as FormArray; }
   get testimonialsArr() { return this.testimonialsForm.controls.testimonials as FormArray; }
+
+  // Expose Math to templates
+  readonly Math = Math;
 
   // ── Star rating helpers ───────────────────────────────────────────────────
   getStars(i: number): number {
@@ -207,7 +224,13 @@ export class AdminSettingsComponent implements OnInit {
       greeting: cfg.voiceAgentGreeting ?? '',
       language: cfg.voiceAgentLanguage ?? 'bilingual',
       persona:  cfg.voiceAgentPersona  ?? '',
+      voiceId:  cfg.voiceAgentVoiceId  ?? '9BWtsMINqrJLrRacOk9x',
+      whatsapp: cfg.voiceAgentWhatsapp ?? '',
     });
+    // Load usage stats if agent exists
+    if (cfg.elevenLabsAgentId && cfg.clinicId && cfg.clinicId !== 'default') {
+      this.fetchUsage();
+    }
 
     this.loading.set(false);
 
@@ -390,15 +413,29 @@ export class AdminSettingsComponent implements OnInit {
           services:            cfg.services ?? [],
         }),
       });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json() as { agentId: string };
+      const data = await res.json() as { agentId?: string; error?: string; details?: string };
+      if (!res.ok) {
+        const msg = data.details ?? data.error ?? 'API error';
+        console.error('[createVoiceAgent]', msg);
+        throw new Error(msg);
+      }
       this.clinicCfg.updateConfig({ elevenLabsAgentId: data.agentId });
       this.showToast('Voice agent created! Your AI receptionist is live.', 'success');
-    } catch {
-      this.showToast('Failed to create voice agent. Check ELEVENLABS_API_KEY in Vercel.', 'error');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      this.showToast(`Failed: ${msg.slice(0, 120)}`, 'error');
     } finally {
       this.creatingVoiceAgent.set(false);
     }
+  }
+
+  async fetchUsage() {
+    this.loadingUsage.set(true);
+    try {
+      const res = await fetch(`/api/elevenlabs-usage?clinicId=${this.clinicId}`);
+      if (res.ok) this.voiceUsage.set(await res.json());
+    } catch { /* silent — usage is non-critical */ }
+    finally { this.loadingUsage.set(false); }
   }
 
   async saveVoice() {
@@ -414,14 +451,17 @@ export class AdminSettingsComponent implements OnInit {
           greeting: v.greeting || undefined,
           language: v.language,
           persona:  v.persona  || undefined,
+          voiceId:  v.voiceId  || undefined,
+          whatsapp: v.whatsapp || undefined,
         }),
       });
       if (!res.ok) throw new Error('API error');
-      // Optimistically update local config
       this.clinicCfg.updateConfig({
         voiceAgentGreeting: v.greeting || undefined,
         voiceAgentLanguage: v.language,
         voiceAgentPersona:  v.persona  || undefined,
+        voiceAgentVoiceId:  v.voiceId  || undefined,
+        voiceAgentWhatsapp: v.whatsapp || undefined,
       });
       this.clearDirty('voice');
       this.showToast('Voice agent updated.', 'success');

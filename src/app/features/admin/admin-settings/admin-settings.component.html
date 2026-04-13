@@ -777,6 +777,37 @@
               <span class="shrink-0 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-200 px-2 py-0.5 rounded-full">Active</span>
             </div>
 
+            <!-- Usage meter -->
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+              <div class="flex items-center justify-between mb-2">
+                <p class="text-sm font-bold text-gray-800">This month's usage</p>
+                <button type="button" (click)="fetchUsage()"
+                        [disabled]="loadingUsage()"
+                        class="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40">
+                  @if (loadingUsage()) { Refreshing… } @else { Refresh ↻ }
+                </button>
+              </div>
+              @if (voiceUsage(); as u) {
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between text-xs text-gray-600">
+                    <span>{{ u.minutesUsed }} / {{ u.minutesLimit }} min used</span>
+                    <span class="font-bold" [class]="u.minutesUsed >= u.minutesLimit ? 'text-red-600' : 'text-gray-700'">
+                      {{ u.minutesLimit - u.minutesUsed > 0 ? (u.minutesLimit - u.minutesUsed) + ' min left' : 'Limit reached' }}
+                    </span>
+                  </div>
+                  <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500"
+                         [style.width.%]="Math.min(100, (u.minutesUsed / u.minutesLimit) * 100)"
+                         [class]="u.minutesUsed >= u.minutesLimit ? 'bg-red-500' : u.minutesUsed / u.minutesLimit > 0.8 ? 'bg-amber-500' : 'bg-purple-500'">
+                    </div>
+                  </div>
+                  <p class="text-[11px] text-gray-400">{{ u.conversations }} conversations · Pro plan includes 60 min/mo free</p>
+                </div>
+              } @else {
+                <p class="text-xs text-gray-400 italic">Usage data not loaded yet. Click Refresh.</p>
+              }
+            </div>
+
             <form [formGroup]="voiceForm" (ngSubmit)="saveVoice()" class="space-y-5">
 
               <!-- Language -->
@@ -796,7 +827,30 @@
                 </div>
               </div>
 
-              <!-- Greeting / First Message -->
+              <!-- Voice picker -->
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Agent Voice</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  @for (v of VOICE_OPTIONS; track v.id) {
+                    <label class="relative cursor-pointer">
+                      <input type="radio" formControlName="voiceId" [value]="v.id" class="sr-only peer">
+                      <div class="rounded-xl border-2 p-3 transition-all text-left
+                                  border-gray-200 bg-white peer-checked:border-purple-500 peer-checked:bg-purple-50">
+                        <div class="flex items-center justify-between mb-0.5">
+                          <p class="text-sm font-bold text-gray-800">{{ v.name }}</p>
+                          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
+                                [class]="v.gender === 'Female' ? 'bg-pink-100 text-pink-700' : v.gender === 'Male' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'">
+                            {{ v.gender }}
+                          </span>
+                        </div>
+                        <p class="text-[11px] text-gray-400">{{ v.style }}</p>
+                      </div>
+                    </label>
+                  }
+                </div>
+              </div>
+
+              <!-- Opening Greeting -->
               <div>
                 <label class="block text-sm font-bold text-gray-800 mb-1.5">
                   Opening Greeting
@@ -811,19 +865,39 @@
                 <p class="text-xs text-gray-400 mt-1">Leave blank to use the default greeting.</p>
               </div>
 
-              <!-- Persona / Extra Instructions -->
+              <!-- Persona Notes -->
               <div>
                 <label class="block text-sm font-bold text-gray-800 mb-1.5">
                   Persona Notes
-                  <span class="font-normal text-gray-400 ml-1">(optional extra instructions)</span>
+                  <span class="font-normal text-gray-400 ml-1">(optional clinic-specific knowledge)</span>
                 </label>
                 <textarea formControlName="persona" rows="3"
-                          placeholder="e.g. Always mention that we offer free X-ray with first consultation. If patient asks about parking, say free parking is available behind the building."
+                          placeholder="e.g. We offer free X-ray with the first consultation. Parking is available behind the building."
                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400
                                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                                  resize-none leading-relaxed">
                 </textarea>
-                <p class="text-xs text-gray-400 mt-1">These notes are added to the agent's knowledge. Keep them short and specific.</p>
+                <p class="text-xs text-gray-400 mt-1">The agent will only discuss this clinic. These notes add extra specific facts.</p>
+              </div>
+
+              <!-- WhatsApp AI channel -->
+              <div class="rounded-xl border border-green-200 bg-green-50 p-4 space-y-3">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+                  </svg>
+                  <p class="text-sm font-bold text-green-800">WhatsApp AI Channel</p>
+                  <span class="text-[10px] font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded-full">New</span>
+                </div>
+                <p class="text-xs text-green-700">Patients can chat with the AI receptionist directly on WhatsApp. Requires a Twilio WhatsApp number connected to your ElevenLabs workspace.</p>
+                <div>
+                  <label class="block text-xs font-bold text-green-800 mb-1">Twilio WhatsApp Number <span class="font-normal">(E164 format, no +)</span></label>
+                  <input formControlName="whatsapp" type="text"
+                         placeholder="919876543210"
+                         class="w-full px-3 py-2 rounded-lg border border-green-200 bg-white text-sm text-gray-900 placeholder-gray-400
+                                focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono">
+                  <p class="text-[11px] text-green-600 mt-1">Leave blank to disable WhatsApp AI. Setup guide: elevenlabs.io → Conversational AI → Phone Numbers.</p>
+                </div>
               </div>
 
               <!-- Save -->

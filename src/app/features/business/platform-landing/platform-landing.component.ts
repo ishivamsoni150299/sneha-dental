@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
+import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 
 @Component({
   selector: 'app-platform-landing',
@@ -11,23 +11,42 @@ import { ClinicFirestoreService, StoredClinic } from '../../../core/services/cli
 })
 export class PlatformLandingComponent implements OnInit {
   private readonly firestoreService = inject(ClinicFirestoreService);
-  readonly liveClinics = signal<StoredClinic[]>([]);
-  readonly clinicsLoaded = signal(false);
 
-  // First active clinic URL used as the live demo link
-  readonly demoUrl = computed(() => {
-    const first = this.liveClinics()[0];
-    if (!first) return null;
-    if (first.domain)       return `https://${first.domain}`;
-    if (first.vercelDomain) return `https://${first.vercelDomain}`;
-    return null;
-  });
+  ngOnInit() { /* no-op — portfolio uses curated showcase data, not live Firestore */ }
 
-  ngOnInit() {
-    this.firestoreService.getActive()
-      .then(clinics => { this.liveClinics.set(clinics); this.clinicsLoaded.set(true); })
-      .catch(() => this.clinicsLoaded.set(true));
-  }
+  // ── Curated showcase clinics (fictional — protects real client privacy) ────
+  readonly showcaseClinics = [
+    {
+      name: 'Sunrise Dental Care',
+      city: 'Bengaluru',
+      doctor: 'Dr. Kavitha Reddy',
+      qual: 'BDS, MDS',
+      services: ['Dental Implants', 'Aligners', 'Root Canal', 'Smile Makeover'],
+      gradient: 'linear-gradient(135deg, #1E56DC, #3B7BF8)',
+      badge: 'blue',
+      domain: '',
+    },
+    {
+      name: 'Pearl Smile Clinic',
+      city: 'Pune',
+      doctor: 'Dr. Rohan Mehta',
+      qual: 'BDS, FAGE',
+      services: ['Braces', 'Whitening', 'Scaling', 'Extraction'],
+      gradient: 'linear-gradient(135deg, #0B7285, #0EA5C4)',
+      badge: 'teal',
+      domain: '',
+    },
+    {
+      name: 'DentCare Plus',
+      city: 'Hyderabad',
+      doctor: 'Dr. Swati Rao',
+      qual: 'MDS (Orthodontics)',
+      services: ['Invisalign', 'Implants', 'Veneers', 'Kids Dentistry'],
+      gradient: 'linear-gradient(135deg, #4338CA, #6366F1)',
+      badge: 'purple',
+      domain: '',
+    },
+  ];
 
   readonly plans = [
     {
@@ -72,12 +91,11 @@ export class PlatformLandingComponent implements OnInit {
       highlighted: true,
       features: [
         'Everything in Starter',
-        'AI Voice Receptionist (Hindi + English)',
-        'Website voice mic widget',
+        'AI Voice Receptionist 24/7',
+        'Hindi + English, WhatsApp AI',
+        '60 min/mo voice calls included',
         'Google Reviews integration',
-        'Testimonials management',
         'SEO optimised pages',
-        'Google Analytics setup',
         'Unlimited content updates',
         'Priority support',
       ],
@@ -115,10 +133,10 @@ export class PlatformLandingComponent implements OnInit {
   readonly guarantees = [
     { emoji: '🔐', text: 'Free SSL certificate on every site' },
     { emoji: '🌍', text: 'Custom domain or free subdomain' },
-    { emoji: '⚡', text: 'Lightning-fast hosting on Vercel' },
+    { emoji: '⚡', text: 'Lightning-fast, always-online hosting' },
     { emoji: '📱', text: '100% mobile responsive design' },
     { emoji: '🔔', text: 'Instant WhatsApp booking notifications' },
-    { emoji: '🛡️', text: 'Secure patient data with Firebase' },
+    { emoji: '🛡️', text: 'Secure, encrypted patient data' },
     { emoji: '♾️', text: 'Unlimited patient bookings' },
     { emoji: '📊', text: 'Appointment tracking dashboard' },
   ];
@@ -183,10 +201,8 @@ export class PlatformLandingComponent implements OnInit {
   readonly devEmail    = 'mydentalplatform@zohomail.in';
   // ─────────────────────────────────────────────────────────────────────────
 
-  clinicUrl(clinic: StoredClinic): string {
-    if (clinic.domain)       return `https://${clinic.domain}`;
-    if (clinic.vercelDomain) return `https://${clinic.vercelDomain}`;
-    return '#';
+  initials(name: string): string {
+    return name.split(' ').map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase();
   }
 
   scrollTo(sectionId: string): void {

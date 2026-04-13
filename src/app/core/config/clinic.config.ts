@@ -45,6 +45,9 @@ export interface ClinicConfig {
   voiceAgentGreeting?: string;     // First message spoken by the agent
   voiceAgentLanguage?: 'hindi' | 'english' | 'bilingual'; // Conversation language
   voiceAgentPersona?: string;      // Extra system prompt instructions for the agent
+  voiceAgentVoiceId?: string;      // ElevenLabs voice ID override
+  voiceAgentWhatsapp?: string;     // WhatsApp number for AI channel (E164, no +)
+  voiceMinutesUsed?: number;       // Current month minutes consumed (fetched from ElevenLabs)
 
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';
