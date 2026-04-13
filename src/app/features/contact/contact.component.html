@@ -1,18 +1,18 @@
 <!-- Hero -->
 <section class="relative overflow-hidden bg-white py-14 md:py-18 border-b border-gray-100">
   <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-100 opacity-40 rounded-full blur-3xl"></div>
-    <div class="absolute top-10 -left-16 w-72 h-72 bg-indigo-50 opacity-60 rounded-full blur-2xl"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-[var(--accent-lt)] opacity-40 rounded-full blur-3xl"></div>
+    <div class="absolute top-10 -left-16 w-72 h-72 bg-[var(--accent-lt)] opacity-60 rounded-full blur-2xl"></div>
   </div>
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-10">
-      <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5 border border-blue-100">
-        <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
+      <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5 border border-[var(--accent-lt)]">
+        <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
         Get in Touch
       </span>
       <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">
         We're Here to Help<br>
-        <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Reach Out Anytime</span>
+        <span class="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-dk)] bg-clip-text text-transparent">Reach Out Anytime</span>
       </h1>
       <p class="text-gray-500 text-lg max-w-xl mx-auto">
         Appointments, emergencies, billing questions — call, WhatsApp, or send us a message. We reply fast.
@@ -22,15 +22,15 @@
     <!-- Quick-action cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
       <a [href]="'tel:+' + config.phoneE164"
-         class="group flex items-center gap-3 bg-white hover:bg-blue-600 border border-gray-200 hover:border-blue-600 rounded-2xl px-5 py-4 transition-all duration-200 hover:shadow-lg hover:shadow-blue-200/50 hover:-translate-y-0.5">
-        <div class="w-10 h-10 bg-blue-50 group-hover:bg-white/20 rounded-xl flex items-center justify-center shrink-0 transition-colors">
-          <svg class="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+         class="group flex items-center gap-3 bg-white hover:bg-[var(--accent)] border border-gray-200 hover:border-[var(--accent)] rounded-2xl px-5 py-4 transition-all duration-200 hover:shadow-lg hover:shadow-[var(--accent-bd)] hover:-translate-y-0.5">
+        <div class="w-10 h-10 bg-[var(--accent-lt)] group-hover:bg-white/20 rounded-xl flex items-center justify-center shrink-0 transition-colors">
+          <svg class="w-5 h-5 text-[var(--accent)] group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
           </svg>
         </div>
         <div>
           <p class="font-bold text-sm text-gray-900 group-hover:text-white transition-colors">Call Now</p>
-          <p class="text-xs text-gray-500 group-hover:text-blue-100 transition-colors">{{ config.phone || 'Available now' }}</p>
+          <p class="text-xs text-gray-500 group-hover:text-[var(--accent-lt)] transition-colors">{{ config.phone || 'Available now' }}</p>
         </div>
       </a>
       <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
@@ -46,7 +46,7 @@
         </div>
       </a>
       <a routerLink="/appointment"
-         class="group flex items-center gap-3 bg-blue-600 hover:bg-blue-700 border border-blue-600 rounded-2xl px-5 py-4 transition-all duration-200 hover:shadow-lg hover:shadow-blue-300/50 hover:-translate-y-0.5">
+         class="group flex items-center gap-3 bg-[var(--accent)] hover:bg-[var(--accent-dk)] border border-[var(--accent)] rounded-2xl px-5 py-4 transition-all duration-200 hover:shadow-lg hover:shadow-[var(--accent-bd)] hover:-translate-y-0.5">
         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
           <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -54,7 +54,7 @@
         </div>
         <div>
           <p class="font-bold text-sm text-white">Book Online</p>
-          <p class="text-xs text-blue-200">60-second booking</p>
+          <p class="text-xs text-[var(--accent-bd)]">60-second booking</p>
         </div>
       </a>
     </div>
@@ -67,8 +67,8 @@
 
       <!-- Contact Info (2/5) -->
       <div class="lg:col-span-2 space-y-5">
-        <div class="bg-blue-50 rounded-2xl p-6 flex gap-4">
-          <div class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center shrink-0">
+        <div class="bg-[var(--accent-lt)] rounded-2xl p-6 flex gap-4">
+          <div class="w-11 h-11 bg-[var(--accent)] rounded-xl flex items-center justify-center shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -79,15 +79,15 @@
             <p class="text-sm text-gray-500">{{ config.addressLine1 }},<br>{{ config.addressLine2 }}</p>
           </div>
         </div>
-        <div class="bg-blue-50 rounded-2xl p-6 flex gap-4">
-          <div class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center shrink-0">
+        <div class="bg-[var(--accent-lt)] rounded-2xl p-6 flex gap-4">
+          <div class="w-11 h-11 bg-[var(--accent)] rounded-xl flex items-center justify-center shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
             </svg>
           </div>
           <div>
             <h3 class="font-bold text-gray-900 mb-1">Call Us</h3>
-            <a [href]="'tel:+' + config.phoneE164" class="text-sm text-blue-600 font-semibold hover:underline">{{ config.phone }}</a>
+            <a [href]="'tel:+' + config.phoneE164" class="text-sm text-[var(--accent)] font-semibold hover:underline">{{ config.phone }}</a>
             @if (config.hours.length > 0) {
               <p class="text-xs text-gray-400 mt-0.5">{{ config.hours[0].days }}: {{ config.hours[0].time }}</p>
             }
@@ -109,8 +109,8 @@
         @if (config.hours.length > 0) {
           <div class="bg-white border border-gray-200 rounded-2xl p-6">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <div class="w-10 h-10 bg-[var(--accent-lt)] rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
@@ -145,7 +145,7 @@
         </div>
         <a [href]="config.mapDirectionsUrl"
            target="_blank" rel="noopener noreferrer"
-           class="flex items-center justify-center gap-2 text-sm text-blue-600 font-semibold hover:underline mt-2">
+           class="flex items-center justify-center gap-2 text-sm text-[var(--accent)] font-semibold hover:underline mt-2">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -179,7 +179,7 @@
                        [attr.aria-invalid]="isInvalid('name')" [attr.aria-describedby]="isInvalid('name') ? 'name-error' : null"
                        placeholder="Your full name"
                        class="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors"
-                       [class]="isInvalid('name') ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-blue-400'">
+                       [class]="isInvalid('name') ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[var(--accent-md)]'">
                 @if (isInvalid('name')) { <p id="name-error" class="text-red-500 text-xs mt-1">Name is required.</p> }
               </div>
               <div>
@@ -188,14 +188,14 @@
                        [attr.aria-invalid]="isInvalid('phone')" [attr.aria-describedby]="isInvalid('phone') ? 'phone-error' : null"
                        placeholder="10-digit mobile number"
                        class="w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors"
-                       [class]="isInvalid('phone') ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-blue-400'">
+                       [class]="isInvalid('phone') ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[var(--accent-md)]'">
                 @if (isInvalid('phone')) { <p id="phone-error" class="text-red-500 text-xs mt-1">Valid phone number required.</p> }
               </div>
             </div>
             <div>
               <label for="contact-email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email <span class="text-gray-400 font-normal">(optional)</span></label>
               <input id="contact-email" formControlName="email" type="email" autocomplete="email" placeholder="you@example.com"
-                     class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-400 transition-colors">
+                     class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] transition-colors">
             </div>
             <div>
               <label for="contact-message" class="block text-sm font-semibold text-gray-700 mb-1.5">Message <span class="text-red-500">*</span></label>
@@ -203,11 +203,11 @@
                         [attr.aria-invalid]="isInvalid('message')" [attr.aria-describedby]="isInvalid('message') ? 'message-error' : null"
                         placeholder="How can we help you?"
                         class="w-full px-4 py-3 rounded-xl border text-sm outline-none resize-none transition-colors"
-                        [class]="isInvalid('message') ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-blue-400'"></textarea>
+                        [class]="isInvalid('message') ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-[var(--accent-md)]'"></textarea>
               @if (isInvalid('message')) { <p id="message-error" class="text-red-500 text-xs mt-1">Please enter your message (min 10 characters).</p> }
             </div>
             <button type="submit" [disabled]="submitting()"
-                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white py-4 rounded-xl font-bold transition-all">
+                    class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] disabled:opacity-60 text-white py-4 rounded-xl font-bold transition-all">
               @if (submitting()) { Sending... } @else { Send Message }
             </button>
             <p class="text-xs text-gray-400 text-center">

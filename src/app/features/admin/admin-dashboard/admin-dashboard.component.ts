@@ -9,12 +9,12 @@ import { AppointmentService, Appointment } from '../../../core/services/appointm
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
-  blue:    { hex: '#2563eb', hexLight: '#dbeafe', textClass: 'text-blue-600',    bgClass: 'bg-blue-600'    },
-  teal:    { hex: '#0d9488', hexLight: '#ccfbf1', textClass: 'text-teal-600',    bgClass: 'bg-teal-600'    },
-  emerald: { hex: '#059669', hexLight: '#d1fae5', textClass: 'text-emerald-600', bgClass: 'bg-emerald-600' },
-  purple:  { hex: '#7c3aed', hexLight: '#ede9fe', textClass: 'text-purple-600',  bgClass: 'bg-purple-600'  },
-  rose:    { hex: '#e11d48', hexLight: '#ffe4e6', textClass: 'text-rose-600',    bgClass: 'bg-rose-600'    },
-  caramel: { hex: '#b45309', hexLight: '#fef3c7', textClass: 'text-amber-700',   bgClass: 'bg-amber-700'   },
+  blue:    { hex: '#1E56DC', hexLight: '#EBF2FF', textClass: 'text-blue-700',    bgClass: 'bg-blue-700'    },
+  teal:    { hex: '#0B7285', hexLight: '#ECFEFF', textClass: 'text-cyan-700',    bgClass: 'bg-cyan-700'    },
+  emerald: { hex: '#047857', hexLight: '#ECFDF5', textClass: 'text-emerald-700', bgClass: 'bg-emerald-700' },
+  purple:  { hex: '#4338CA', hexLight: '#EEF2FF', textClass: 'text-indigo-700',  bgClass: 'bg-indigo-700'  },
+  rose:    { hex: '#BE123C', hexLight: '#FFF1F2', textClass: 'text-rose-700',    bgClass: 'bg-rose-700'    },
+  caramel: { hex: '#B45309', hexLight: '#FFFBEB', textClass: 'text-amber-700',   bgClass: 'bg-amber-700'   },
 };
 
 export type FilterTab = 'all' | 'pending' | 'confirmed' | 'today' | 'checked_in' | 'completed';

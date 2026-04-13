@@ -8,6 +8,66 @@ import { environment } from '../../../environments/environment';
 const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
 const db  = getFirestore(app);
 
+// ── Premium theme palettes ────────────────────────────────────────────────────
+// Each palette maps CSS variable names → hex/rgba values.
+// Applied to document.documentElement so the entire clinic site picks them up.
+const THEME_PALETTES: Record<string, Record<string, string>> = {
+  blue: {
+    '--accent':    '#1E56DC',
+    '--accent-dk': '#1235A9',
+    '--accent-md': '#3B7BF8',
+    '--accent-lt': '#EBF2FF',
+    '--accent-bd': '#93C5FD',
+    '--accent-sh': 'rgba(30, 86, 220, 0.20)',
+  },
+  teal: {
+    '--accent':    '#0B7285',
+    '--accent-dk': '#085E6F',
+    '--accent-md': '#0EA5C4',
+    '--accent-lt': '#ECFEFF',
+    '--accent-bd': '#67E8F9',
+    '--accent-sh': 'rgba(11, 114, 133, 0.20)',
+  },
+  emerald: {
+    '--accent':    '#047857',
+    '--accent-dk': '#065F46',
+    '--accent-md': '#059669',
+    '--accent-lt': '#ECFDF5',
+    '--accent-bd': '#6EE7B7',
+    '--accent-sh': 'rgba(4, 120, 87, 0.20)',
+  },
+  purple: {
+    '--accent':    '#4338CA',
+    '--accent-dk': '#3730A3',
+    '--accent-md': '#6366F1',
+    '--accent-lt': '#EEF2FF',
+    '--accent-bd': '#A5B4FC',
+    '--accent-sh': 'rgba(67, 56, 202, 0.20)',
+  },
+  rose: {
+    '--accent':    '#BE123C',
+    '--accent-dk': '#9F1239',
+    '--accent-md': '#E11D48',
+    '--accent-lt': '#FFF1F2',
+    '--accent-bd': '#FDA4AF',
+    '--accent-sh': 'rgba(190, 18, 60, 0.20)',
+  },
+  caramel: {
+    '--accent':    '#B45309',
+    '--accent-dk': '#92400E',
+    '--accent-md': '#D97706',
+    '--accent-lt': '#FFFBEB',
+    '--accent-bd': '#FCD34D',
+    '--accent-sh': 'rgba(180, 83, 9, 0.20)',
+  },
+};
+
+function applyTheme(theme: string | undefined) {
+  const palette = THEME_PALETTES[theme ?? 'blue'] ?? THEME_PALETTES['blue'];
+  const root = document.documentElement;
+  Object.entries(palette).forEach(([prop, val]) => root.style.setProperty(prop, val));
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClinicConfigService {
   private readonly _config   = signal<ClinicConfig>(clinicConfig);
@@ -31,7 +91,8 @@ export class ClinicConfigService {
   async loadFromFirestore(): Promise<void> {
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') {
-      this._isLoaded.set(true); // dev mode — always treat as loaded
+      applyTheme(this._config().theme); // apply default/static config theme in dev
+      this._isLoaded.set(true);
       return;
     }
     try {
@@ -58,6 +119,7 @@ export class ClinicConfigService {
         const { id: _id, domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
           snap.docs[0].data() as Record<string, unknown>;
         const config = { ...(rest as unknown as ClinicConfig), clinicId: docId };
+        applyTheme(config.theme);
 
         // Enforce subscription — block site if explicitly expired/cancelled,
         // OR if dates show the trial/subscription has ended (with 3-day grace period).
@@ -116,6 +178,7 @@ export class ClinicConfigService {
         const { domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
           docRef.data() as Record<string, unknown>;
         const config = { ...(rest as unknown as ClinicConfig), clinicId: docRef.id };
+        applyTheme(config.theme);
         this._config.set(config);
         this._isLoaded.set(true);
         return true;
@@ -129,6 +192,7 @@ export class ClinicConfigService {
   /** Merge partial fields into the in-memory config (does NOT write to Firestore). */
   updateConfig(partial: Partial<ClinicConfig>): void {
     this._config.update(c => ({ ...c, ...partial }));
+    if (partial.theme) applyTheme(partial.theme);
   }
 
   /** Full single-line address derived from the two address lines. */

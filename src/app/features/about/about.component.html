@@ -2,8 +2,8 @@
 <section class="relative overflow-hidden bg-white pt-16 pb-0 md:pt-20">
   <!-- Background mesh -->
   <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute -top-32 -right-32 w-[500px] h-[500px] bg-blue-100 rounded-full opacity-40 blur-3xl"></div>
-    <div class="absolute top-40 -left-20 w-72 h-72 bg-indigo-50 rounded-full opacity-60 blur-2xl"></div>
+    <div class="absolute -top-32 -right-32 w-[500px] h-[500px] bg-[var(--accent-lt)] rounded-full opacity-40 blur-3xl"></div>
+    <div class="absolute top-40 -left-20 w-72 h-72 bg-[var(--accent-lt)] rounded-full opacity-60 blur-2xl"></div>
   </div>
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,13 +11,13 @@
 
       <!-- Text side -->
       <div class="pb-16 md:pb-20">
-        <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-6 border border-blue-100">
-          <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
+        <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-6 border border-[var(--accent-lt)]">
+          <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
           Our Story
         </span>
         <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-gray-900 mb-6 leading-tight">
           The Clinic That<br>
-          <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Puts You First</span>
+          <span class="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-dk)] bg-clip-text text-transparent">Puts You First</span>
         </h1>
         <p class="text-gray-500 text-lg leading-relaxed mb-6 max-w-lg">
           Founded on one belief: every patient deserves honest, gentle care with no surprises. Since opening our doors in {{ config.city }}, we have built trust one smile at a time.
@@ -37,7 +37,7 @@
             </svg>
             {{ config.rating || '4.9' }} / 5 patient rating
           </span>
-          <span class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 text-sm font-semibold px-3.5 py-2 rounded-xl">
+          <span class="inline-flex items-center gap-2 bg-[var(--accent-lt)] text-[var(--accent-dk)] border border-[var(--accent-bd)] text-sm font-semibold px-3.5 py-2 rounded-xl">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
             </svg>
@@ -46,7 +46,7 @@
         </div>
 
         <a routerLink="/appointment"
-           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:-translate-y-px hover:shadow-xl">
+           class="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-7 py-3.5 rounded-xl font-bold shadow-lg shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:shadow-xl">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
@@ -58,15 +58,15 @@
       <div class="relative flex justify-end items-end">
         <div class="relative w-full max-w-md">
           <!-- Glow -->
-          <div class="absolute -inset-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl blur-2xl opacity-60"></div>
-          <div class="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl overflow-hidden aspect-[3/4]">
+          <div class="absolute -inset-4 bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] rounded-3xl blur-2xl opacity-60"></div>
+          <div class="relative bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] rounded-3xl overflow-hidden aspect-[3/4]">
             <img src="https://placehold.co/480x640/EFF6FF/2563EB?text=Our+Clinic"
                  [alt]="config.name + ' clinic interior'"
                  class="w-full h-full object-cover">
           </div>
           <!-- Floating trust card -->
           <div class="absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0">
+            <div class="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
               </svg>
@@ -91,13 +91,13 @@
       <!-- Photo + credential cards -->
       <div class="relative flex justify-center lg:justify-start">
         <div class="relative">
-          <div class="w-72 h-80 md:w-80 md:h-96 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl overflow-hidden shadow-xl">
+          <div class="w-72 h-80 md:w-80 md:h-96 bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] rounded-3xl overflow-hidden shadow-xl">
             <img src="https://placehold.co/320x384/EFF6FF/2563EB?text=Dr.+Photo"
                  [alt]="config.doctorName"
                  class="w-full h-full object-cover">
           </div>
           <!-- Credential badge -->
-          <div class="absolute -top-4 -right-4 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl shadow-lg px-4 py-3 text-center">
+          <div class="absolute -top-4 -right-4 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dk)] text-white rounded-2xl shadow-lg px-4 py-3 text-center">
             <p class="text-2xl font-extrabold leading-none">{{ config.doctorQualification || 'BDS' }}</p>
             <p class="text-[10px] opacity-80 mt-0.5 uppercase tracking-wider">Certified</p>
           </div>
@@ -125,12 +125,12 @@
 
       <!-- Bio -->
       <div class="pt-8 lg:pt-0">
-        <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-blue-100">
-          <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
+        <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
+          <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
           Your Dentist
         </span>
         <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-1 leading-tight">{{ config.doctorName }}</h2>
-        <p class="text-blue-600 font-semibold mb-6">{{ config.doctorQualification }}{{ config.doctorUniversity ? ' · ' + config.doctorUniversity : '' }}</p>
+        <p class="text-[var(--accent)] font-semibold mb-6">{{ config.doctorQualification }}{{ config.doctorUniversity ? ' · ' + config.doctorUniversity : '' }}</p>
 
         <div class="space-y-4 text-gray-500 leading-relaxed mb-8">
           @for (para of config.doctorBio; track $index) {
@@ -144,15 +144,15 @@
         <!-- Stat grid -->
         <div class="grid grid-cols-3 gap-3">
           <div class="bg-white rounded-2xl p-4 text-center border border-gray-100 shadow-sm">
-            <p class="text-2xl font-extrabold text-blue-600 leading-none">{{ config.patientCount || '1000+' }}</p>
+            <p class="text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.patientCount || '1000+' }}</p>
             <p class="text-xs text-gray-500 mt-1.5">Patients Treated</p>
           </div>
           <div class="bg-white rounded-2xl p-4 text-center border border-gray-100 shadow-sm">
-            <p class="text-2xl font-extrabold text-blue-600 leading-none">{{ config.rating || '4.9' }}</p>
+            <p class="text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.rating || '4.9' }}</p>
             <p class="text-xs text-gray-500 mt-1.5">Avg. Rating</p>
           </div>
           <div class="bg-white rounded-2xl p-4 text-center border border-gray-100 shadow-sm">
-            <p class="text-2xl font-extrabold text-blue-600 leading-none">{{ config.doctorQualification || 'BDS' }}</p>
+            <p class="text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.doctorQualification || 'BDS' }}</p>
             <p class="text-xs text-gray-500 mt-1.5">Qualification</p>
           </div>
         </div>
@@ -166,8 +166,8 @@
 <section class="bg-white py-20 md:py-24">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-14">
-      <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-blue-100">
-        <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
+      <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
+        <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
         Our Values
       </span>
       <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">What We Stand For</h2>
@@ -175,13 +175,13 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       @for (v of values; track v.title; let i = $index) {
-        <div class="relative rounded-2xl p-6 border border-gray-100 bg-white hover:border-blue-200 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-center group overflow-hidden">
+        <div class="relative rounded-2xl p-6 border border-gray-100 bg-white hover:border-[var(--accent-bd)] hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-center group overflow-hidden">
           <!-- Top accent -->
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-t-2xl"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--accent-md)] to-[var(--accent-md)] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-t-2xl"></div>
           <!-- Step number -->
-          <span class="absolute top-4 right-4 text-6xl font-black text-gray-50 leading-none select-none group-hover:text-blue-50 transition-colors">{{ i + 1 }}</span>
-          <div class="w-14 h-14 bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-600 group-hover:to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-blue-200 relative">
-            <svg class="w-7 h-7 text-blue-600 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <span class="absolute top-4 right-4 text-6xl font-black text-gray-50 leading-none select-none group-hover:text-[var(--accent-lt)] transition-colors">{{ i + 1 }}</span>
+          <div class="w-14 h-14 bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] group-hover:from-[var(--accent)] group-hover:to-[var(--accent-dk)] rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-[var(--accent-bd)] relative">
+            <svg class="w-7 h-7 text-[var(--accent)] group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="v.icon"/>
             </svg>
           </div>
@@ -194,7 +194,7 @@
 </section>
 
 <!-- ===== WHY PATIENTS CHOOSE US — trust checklist ===== -->
-<section class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 py-16 md:py-20 relative overflow-hidden">
+<section class="bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-16 md:py-20 relative overflow-hidden">
   <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-md"></div>
   <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full pointer-events-none"></div>
   <div class="absolute -bottom-24 -left-16 w-96 h-96 bg-white/5 rounded-full pointer-events-none"></div>
@@ -206,9 +206,9 @@
           Why {{ config.patientCount || '1000+' }} patients chose us
         </span>
         <h2 class="font-display text-3xl md:text-4xl text-white mb-6 leading-tight">A Clinic That<br>Earns Your Trust</h2>
-        <p class="text-blue-100 leading-relaxed mb-8">We don't ask you to trust us — we show you every visit. Here's the promise we make to every patient who walks through our door.</p>
+        <p class="text-[var(--accent-lt)] leading-relaxed mb-8">We don't ask you to trust us — we show you every visit. Here's the promise we make to every patient who walks through our door.</p>
         <a routerLink="/appointment"
-           class="inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-600 px-7 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px">
+           class="inline-flex items-center gap-2 bg-white hover:bg-[var(--accent-lt)] text-[var(--accent)] px-7 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px">
           Book Your Visit Today
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>

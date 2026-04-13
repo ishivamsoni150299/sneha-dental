@@ -1,7 +1,7 @@
 <div [class]="centered() ? 'text-center' : ''">
   @if (label()) {
-    <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-blue-100">
-      <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
+    <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
+      <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
       {{ label() }}
     </span>
   }

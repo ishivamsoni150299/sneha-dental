@@ -99,12 +99,12 @@ export class AdminSettingsComponent implements OnInit {
   ] as const;
 
   readonly themeOptions: ThemeOption[] = [
-    { value: 'blue',    label: 'Ocean Blue',    primary: '#2563eb', dark: '#1d4ed8', light: '#dbeafe', gradient: 'linear-gradient(135deg,#2563eb,#3b82f6)' },
-    { value: 'teal',    label: 'Teal Green',    primary: '#0d9488', dark: '#0f766e', light: '#ccfbf1', gradient: 'linear-gradient(135deg,#0d9488,#14b8a6)' },
-    { value: 'emerald', label: 'Emerald',       primary: '#059669', dark: '#047857', light: '#d1fae5', gradient: 'linear-gradient(135deg,#059669,#10b981)' },
-    { value: 'purple',  label: 'Royal Purple',  primary: '#7c3aed', dark: '#6d28d9', light: '#ede9fe', gradient: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
-    { value: 'rose',    label: 'Rose Red',      primary: '#e11d48', dark: '#be123c', light: '#ffe4e6', gradient: 'linear-gradient(135deg,#e11d48,#f43f5e)' },
-    { value: 'caramel', label: 'Caramel Gold',  primary: '#b45309', dark: '#92400e', light: '#fef3c7', gradient: 'linear-gradient(135deg,#b45309,#d97706)' },
+    { value: 'blue',    label: 'Sapphire',      primary: '#1E56DC', dark: '#1235A9', light: '#EBF2FF', gradient: 'linear-gradient(135deg,#1E56DC,#3B7BF8)' },
+    { value: 'teal',    label: 'Teal Precision', primary: '#0B7285', dark: '#085E6F', light: '#ECFEFF', gradient: 'linear-gradient(135deg,#0B7285,#0EA5C4)' },
+    { value: 'emerald', label: 'Forest',         primary: '#047857', dark: '#065F46', light: '#ECFDF5', gradient: 'linear-gradient(135deg,#047857,#059669)' },
+    { value: 'purple',  label: 'Royal Indigo',   primary: '#4338CA', dark: '#3730A3', light: '#EEF2FF', gradient: 'linear-gradient(135deg,#4338CA,#6366F1)' },
+    { value: 'rose',    label: 'Crimson',        primary: '#BE123C', dark: '#9F1239', light: '#FFF1F2', gradient: 'linear-gradient(135deg,#BE123C,#E11D48)' },
+    { value: 'caramel', label: 'Amber Gold',     primary: '#B45309', dark: '#92400E', light: '#FFFBEB', gradient: 'linear-gradient(135deg,#B45309,#D97706)' },
   ];
 
   selectedTheme = signal<ClinicConfig['theme']>('blue');

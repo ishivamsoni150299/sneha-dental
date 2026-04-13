@@ -17,22 +17,27 @@
   }
 }
 
+/* ── Design tokens ────────────────────────────────────────────────────────── */
 :root {
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-light: #dbeafe;
+  /* Typography */
   --font-display: 'DM Serif Display', serif;
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-}
 
-:root {
-  --ink: #0b1220;
-  --ink-soft: #334155;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --accent: #2563eb;
-  --accent-soft: #dbeafe;
+  /* Ink / surface */
+  --ink:        #0b1220;
+  --ink-soft:   #334155;
+  --surface:    #ffffff;
+  --surface-2:  #f8fafc;
   --shadow-card: 0 16px 40px rgba(2, 6, 23, 0.12);
+
+  /* ── Theme accent palette — overridden by ClinicConfigService per clinic ── */
+  /* Sapphire Blue (default) */
+  --accent:    #1E56DC;   /* primary CTA / buttons */
+  --accent-dk: #1235A9;   /* hover / dark variant   */
+  --accent-md: #3B7BF8;   /* medium (gradient blends) */
+  --accent-lt: #EBF2FF;   /* light tinted bg        */
+  --accent-bd: #93C5FD;   /* border / divider       */
+  --accent-sh: rgba(30, 86, 220, 0.20);  /* tinted shadow */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -43,8 +48,8 @@ body {
   font-family: var(--font-sans);
   color: var(--ink);
   background:
-    radial-gradient(800px circle at 8% -10%, #dbeafe 0, transparent 55%),
-    radial-gradient(900px circle at 92% -20%, #e0f2fe 0, transparent 55%),
+    radial-gradient(800px circle at 8% -10%, var(--accent-lt) 0, transparent 55%),
+    radial-gradient(900px circle at 92% -20%, var(--accent-lt) 0, transparent 55%),
     var(--surface-2);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
