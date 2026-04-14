@@ -3,7 +3,7 @@ import {
   OnDestroy, inject, NgZone,
 } from '@angular/core';
 
-type CallStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended';
+type CallStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended' | 'error';
 
 interface ConversationInstance {
   endSession(): Promise<void>;
@@ -25,8 +25,22 @@ const WAVE_BARS = [
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <!-- ── Error toast ───────────────────────────────────────────────────── -->
+    @if (status() === 'error' && errorMsg()) {
+      <div class="fixed z-[70] bottom-[108px] right-6 md:bottom-28
+                  max-w-[260px] bg-gray-950 border border-red-500/40 text-white
+                  rounded-2xl px-4 py-3 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        <div class="flex items-start gap-2.5">
+          <svg class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+          <p class="text-xs leading-relaxed text-white/90">{{ errorMsg() }}</p>
+        </div>
+      </div>
+    }
+
     <!-- ── Idle / Connecting button ─────────────────────────────────────── -->
-    @if (status() === 'idle' || status() === 'connecting') {
+    @if (status() === 'idle' || status() === 'connecting' || status() === 'error') {
       <div class="fixed z-[60] bottom-[108px] right-6 flex flex-col items-center gap-2 group
                   md:bottom-28">
 
@@ -58,14 +72,12 @@ const WAVE_BARS = [
                 style="background: linear-gradient(145deg, #7c3aed, #9333ea)"></span>
 
           <!-- Icon -->
-          @if (status() === 'idle') {
-            <!-- Waveform icon — distinctive for voice AI -->
+          @if (status() === 'connecting') {
+            <span class="relative w-5 h-5 border-2 rounded-full border-white/30 border-t-white animate-spin"></span>
+          } @else {
             <svg class="relative w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <path d="M2 12h2"/><path d="M6 8v8"/><path d="M10 5v14"/><path d="M14 9v6"/><path d="M18 7v10"/><path d="M22 12h-2"/>
             </svg>
-          } @else {
-            <!-- Spinner -->
-            <span class="relative w-5 h-5 border-2 rounded-full border-white/30 border-t-white animate-spin"></span>
           }
         </button>
       </div>
@@ -194,29 +206,52 @@ const WAVE_BARS = [
   `],
 })
 export class VoiceAgentComponent implements OnDestroy {
-  readonly agentId  = input.required<string>();
+  readonly agentId   = input.required<string>();
   readonly WAVE_BARS = WAVE_BARS;
 
-  status   = signal<CallStatus>('idle');
-  duration = signal(0);
+  status    = signal<CallStatus>('idle');
+  duration  = signal(0);
+  errorMsg  = signal<string | null>(null);
 
-  private conv:       ConversationInstance | null = null;
-  private timerRef:   ReturnType<typeof setInterval> | null = null;
-  private zone        = inject(NgZone);
+  private conv:     ConversationInstance | null = null;
+  private timerRef: ReturnType<typeof setInterval> | null = null;
+  private zone      = inject(NgZone);
 
   formattedTime = () => {
     const s = this.duration();
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   };
 
+  private showError(msg: string) {
+    this.errorMsg.set(msg);
+    this.status.set('error');
+    setTimeout(() => this.zone.run(() => {
+      this.errorMsg.set(null);
+      this.status.set('idle');
+    }), 4000);
+  }
+
   async startCall() {
     if (this.status() !== 'idle') return;
     this.status.set('connecting');
+    this.errorMsg.set(null);
+
+    // 1. Request mic permission explicitly so the user sees the browser prompt
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop tracks immediately — the SDK will open its own stream
+      stream.getTracks().forEach(t => t.stop());
+    } catch (permErr) {
+      console.warn('[VoiceAgent] Mic permission denied:', permErr);
+      this.zone.run(() => this.showError('Microphone access denied. Please allow mic and try again.'));
+      return;
+    }
+
     try {
       const { Conversation } = await import('@11labs/client');
       const conv = await Conversation.startSession({
         agentId: this.agentId(),
-        connectionType: 'webrtc',
+        connectionType: 'websocket',
         onConnect: (_props: { conversationId: string }) => this.zone.run(() => {
           this.status.set('listening');
           this.startTimer();
@@ -224,18 +259,27 @@ export class VoiceAgentComponent implements OnDestroy {
         onDisconnect: () => this.zone.run(() => {
           this.status.set('ended');
           this.stopTimer();
-          setTimeout(() => this.status.set('idle'), 2500);
+          setTimeout(() => this.zone.run(() => this.status.set('idle')), 2500);
         }),
         onModeChange: (prop: { mode: string }) => this.zone.run(() => {
           if (this.status() === 'ended') return;
           this.status.set(prop.mode === 'speaking' ? 'speaking' : 'listening');
         }),
-        onError: (_message: string) => this.zone.run(() => this.status.set('idle')),
+        onError: (message: string) => {
+          console.error('[VoiceAgent] Session error:', message);
+          this.zone.run(() => this.showError('Connection error. Please try again.'));
+          this.stopTimer();
+        },
       });
       this.conv = conv as ConversationInstance;
     } catch (e) {
       console.error('[VoiceAgent] Failed to start session:', e);
-      this.zone.run(() => this.status.set('idle'));
+      const msg = e instanceof Error ? e.message : String(e);
+      this.zone.run(() => this.showError(
+        msg.toLowerCase().includes('agent') ? 'Agent not found. Check your ElevenLabs agent ID.' :
+        msg.toLowerCase().includes('network') ? 'Network error. Check your internet connection.' :
+        'Could not connect. Please try again.'
+      ));
     }
   }
 
