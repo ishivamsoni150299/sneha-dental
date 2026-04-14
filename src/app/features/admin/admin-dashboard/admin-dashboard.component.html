@@ -537,14 +537,16 @@
               </div>
 
               <!-- Date range -->
-              <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div class="flex items-center gap-2 flex-1 min-w-0">
-                  <span class="text-xs text-gray-500 font-medium flex-shrink-0">From</span>
+                  <span class="text-xs text-gray-500 font-medium flex-shrink-0 w-8">From</span>
                   <input type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)"
-                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:ring-2 focus:ring-blue-100 bg-white">
-                  <span class="text-xs text-gray-500 font-medium flex-shrink-0">To</span>
+                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-100 bg-white">
+                </div>
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <span class="text-xs text-gray-500 font-medium flex-shrink-0 w-8">To</span>
                   <input type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)"
-                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:ring-2 focus:ring-blue-100 bg-white">
+                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-100 bg-white">
                 </div>
 
                 <!-- Quick presets -->

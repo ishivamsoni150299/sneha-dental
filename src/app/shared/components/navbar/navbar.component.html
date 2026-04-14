@@ -58,7 +58,7 @@
 
       <!-- Mobile Toggle -->
       <button (click)="toggle()"
-              class="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+              class="md:hidden w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 transition-colors -mr-1"
               aria-label="Toggle navigation menu">
         @if (menuOpen()) {
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -74,7 +74,7 @@
 
     <!-- Mobile Menu -->
     @if (menuOpen()) {
-      <div class="md:hidden border-t border-gray-100 py-3 space-y-0.5 animate-slide-up">
+      <div class="md:hidden border-t border-gray-100 py-3 space-y-1 animate-slide-up">
         <!-- Quick-action shortcuts -->
         @if (config.phoneE164 || config.whatsappNumber) {
           <div class="flex gap-2 px-1 pb-3 mb-1 border-b border-gray-100">
@@ -104,7 +104,7 @@
              routerLinkActive="!text-[var(--accent-dk)] !font-bold bg-[var(--accent-lt)]"
              [routerLinkActiveOptions]="{exact: link.exact}"
              (click)="close()"
-             class="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-[var(--accent)] hover:bg-gray-50 rounded-lg transition-colors">
+             class="block px-4 py-3 text-sm font-medium text-gray-700 hover:text-[var(--accent)] hover:bg-gray-50 rounded-lg transition-colors">
             {{ link.label }}
           </a>
         }
