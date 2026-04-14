@@ -90,8 +90,22 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   get doctorFirstName(): string {
-    const parts = this.clinicConfig.doctorName?.split(' ') ?? [];
-    return parts[parts.length - 1] ?? this.clinicConfig.doctorName ?? 'Doctor';
+    const name = this.clinicConfig.doctorName?.trim();
+    if (!name) return '';
+    const parts = name.split(' ');
+    return parts[parts.length - 1] || name;
+  }
+
+  /** Returns "Dr. Smith" when doctor name is set, or just the clinic name otherwise */
+  get greetingLine(): string {
+    return this.doctorFirstName
+      ? `Dr. ${this.doctorFirstName}`
+      : (this.clinicConfig.name || 'there');
+  }
+
+  get websiteUrl(): string {
+    const domain = this.clinicConfig.domain?.trim() || this.clinicConfig.vercelDomain?.trim();
+    return domain ? `https://${domain}` : '';
   }
 
   patientInitials(name: string): string {

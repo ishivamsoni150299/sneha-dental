@@ -248,13 +248,15 @@
         Settings
       </a>
 
-      <a [href]="'https://' + clinicConfig.vercelDomain" target="_blank" rel="noopener"
-         class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-        </svg>
-        View website
-      </a>
+      @if (websiteUrl) {
+        <a [href]="websiteUrl" target="_blank" rel="noopener"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+          View website
+        </a>
+      }
     </nav>
 
     <div class="px-4 py-3 mx-3 mb-3 rounded-xl bg-slate-800">
@@ -303,7 +305,7 @@
         </button>
         <p class="font-bold text-gray-900 text-sm lg:hidden truncate">{{ clinicConfig.name }}</p>
         <div class="hidden lg:flex items-center gap-2">
-          <p class="text-sm font-semibold text-gray-900">{{ greeting }}, Dr. {{ doctorFirstName }}</p>
+          <p class="text-sm font-semibold text-gray-900">{{ greeting }}, {{ greetingLine }}</p>
           <span class="text-gray-300">·</span>
           <p class="text-xs text-gray-400">{{ todayFormatted }}</p>
         </div>
@@ -359,6 +361,30 @@
           <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
              class="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors">
             Upgrade — ₹499/mo →
+          </a>
+        </div>
+      }
+
+      <!-- ── Website live banner ─────────────────────────────────────── -->
+      @if (websiteUrl) {
+        <div class="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="font-bold text-emerald-800 text-sm">Your professional dental website is ready!</p>
+              <p class="text-emerald-700 text-xs mt-0.5">Share your unique link with patients and start receiving online bookings.</p>
+            </div>
+          </div>
+          <a [href]="websiteUrl" target="_blank" rel="noopener"
+             class="shrink-0 inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            View Website
           </a>
         </div>
       }

@@ -437,6 +437,11 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Scrolls to a section by id — avoids Angular router intercepting hash links */
+  scrollToSection(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   ngOnDestroy() {
     this._subs.unsubscribe();
   }

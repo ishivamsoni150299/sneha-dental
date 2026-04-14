@@ -10,6 +10,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 import { Testimonial, ClinicHours, ClinicConfig } from '../../../core/config/clinic.config';
+import { BillingService, BillingPlan } from '../../../core/services/billing.service';
 
 type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'subscription' | 'voice';
 
@@ -32,12 +33,15 @@ export interface ThemeOption {
 export class AdminSettingsComponent implements OnInit {
   private clinicCfg  = inject(ClinicConfigService);
   private store      = inject(ClinicFirestoreService);
+  private billing    = inject(BillingService);
   private fb         = inject(FormBuilder);
   private route      = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
 
   // ── State signals ─────────────────────────────────────────────────────────
   loading            = signal(true);
+  upgrading          = signal(false);
+  upgradeError       = signal<string | null>(null);
   activeTab          = signal<TabId>('info');
   savingInfo         = signal(false);
   savingContact      = signal(false);
@@ -469,6 +473,28 @@ export class AdminSettingsComponent implements OnInit {
       this.showToast('Failed to update voice agent.', 'error');
     } finally {
       this.savingVoice.set(false);
+    }
+  }
+
+  // ── Subscription / Billing ───────────────────────────────────────────────
+  async upgradePlan(plan: BillingPlan) {
+    if (this.upgrading()) return;
+    this.upgrading.set(true);
+    this.upgradeError.set(null);
+    try {
+      const { shortUrl } = await this.billing.createSubscription(
+        this.cfg.clinicId ?? '',
+        plan,
+        this.cfg.name,
+        this.cfg.phone,
+      );
+      // Redirect the clinic owner to the Razorpay hosted payment page
+      window.open(shortUrl, '_blank', 'noopener');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Could not initiate payment. Try again.';
+      this.upgradeError.set(msg);
+    } finally {
+      this.upgrading.set(false);
     }
   }
 

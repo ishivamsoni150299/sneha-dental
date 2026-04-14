@@ -30,11 +30,11 @@
           {id:'testimonials',  label:'Testimonials'},
           {id:'billing',       label:'Billing'}
         ]; track sec.id) {
-          <a [href]="'#' + sec.id"
-             class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors
-                    text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm">
+          <button type="button" (click)="scrollToSection(sec.id)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors
+                         text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm">
             {{ sec.label }}
-          </a>
+          </button>
         }
       </div>
     </div>
