@@ -1,5 +1,5 @@
 import {
-  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy,
+  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy, NgZone,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import {
@@ -44,10 +44,17 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   readonly platformPlans = PLATFORM_PLANS;
 
-  loading   = signal(false);
-  saving    = signal(false);
-  error     = signal<string | null>(null);
-  success   = signal(false);
+  private zone = inject(NgZone);
+
+  loading        = signal(false);
+  saving         = signal(false);
+  error          = signal<string | null>(null);
+  success        = signal(false);
+  activeSection  = signal<string>('identity');
+
+  readonly SECTIONS = ['identity', 'contact', 'hours', 'brand', 'services', 'plans', 'testimonials', 'billing'];
+
+  private intersectionObserver: IntersectionObserver | null = null;
   // syncing   = signal(false);   // TODO: Uncomment with Google Maps API
   // syncError = signal<string | null>(null);
 
@@ -59,7 +66,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     // Identity
     name:                ['', Validators.required],
     doctorName:          ['', Validators.required],
-    doctorQualification: ['', Validators.required],
+    doctorQualification: [''],
     doctorUniversity:    [''],
     patientCount:        [''],
 
@@ -166,6 +173,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     }
 
     this.setupAutoFills();
+    setTimeout(() => this.setupSectionObserver(), 300);
   }
 
   // ── Auto-fill helpers ─────────────────────────────────────────────────────
@@ -442,7 +450,48 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  /** Uses IntersectionObserver to track which section is currently in view */
+  private setupSectionObserver() {
+    this.intersectionObserver?.disconnect();
+    this.intersectionObserver = new IntersectionObserver(
+      entries => {
+        const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length) {
+          this.zone.run(() => this.activeSection.set(visible[0].target.id));
+        }
+      },
+      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
+    );
+    this.SECTIONS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) this.intersectionObserver!.observe(el);
+    });
+  }
+
+  /** Quick-fill: populate standard dental services in one click */
+  fillDentalServices() {
+    this.servicesArr.clear();
+    [
+      { name: 'Dental Check-up & Cleaning', description: 'Comprehensive oral exam, scaling, polishing', benefit: 'Pain-free in 30 mins', price: '₹500 – ₹1,000' },
+      { name: 'Tooth Filling', description: 'Composite resin fillings — tooth-colored, durable', benefit: 'Looks completely natural', price: '₹800 – ₹2,000' },
+      { name: 'Root Canal Treatment', description: 'Single-sitting RCT with advanced rotary files', benefit: 'Save your natural tooth', price: '₹3,000 – ₹8,000' },
+      { name: 'Tooth Extraction', description: 'Simple and surgical extractions with local anaesthesia', benefit: 'Minimal pain, quick healing', price: '₹500 – ₹3,000' },
+      { name: 'Teeth Whitening', description: 'Professional laser whitening — 4–8 shades brighter', benefit: 'Instant visible results', price: '₹4,000 – ₹8,000' },
+      { name: 'Dental Implants', description: 'Titanium implants — permanent, looks & feels like real teeth', benefit: 'Lifetime solution', price: '₹25,000 – ₹50,000' },
+    ].forEach(s => this.addService(s));
+  }
+
+  /** Quick-fill: standard clinic hours */
+  fillStandardHours() {
+    this.hoursArr.clear();
+    [
+      { days: 'Monday – Saturday', time: '9:00 AM – 8:00 PM' },
+      { days: 'Sunday', time: '10:00 AM – 2:00 PM' },
+    ].forEach(h => this.addHour(h.days, h.time));
+  }
+
   ngOnDestroy() {
+    this.intersectionObserver?.disconnect();
     this._subs.unsubscribe();
   }
 }
