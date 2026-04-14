@@ -1,6 +1,6 @@
 import {
   Component, ChangeDetectionStrategy, signal, computed,
-  inject, DestroyRef, OnInit,
+  inject, DestroyRef, OnInit, NgZone,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -33,25 +33,6 @@ async function isSlugAvailable(slug: string): Promise<boolean> {
 
 function toSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
-}
-
-async function resizeImage(file: File, maxSize = 200): Promise<string> {
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ratio   = Math.min(maxSize / img.width, maxSize / img.height, 1);
-        canvas.width  = Math.round(img.width  * ratio);
-        canvas.height = Math.round(img.height * ratio);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.82));
-      };
-      img.src = e.target!.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
 }
 
 // ── Theme definitions ─────────────────────────────────────────────────────────
@@ -93,6 +74,15 @@ function defaultHours(): DayHour[] {
   ];
 }
 
+// ── Minimal Places type stubs (avoids @types/google.maps install) ─────────────
+interface PlacePrediction {
+  place_id:              string;
+  description:           string;
+  structured_formatting: { main_text: string; secondary_text: string };
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const google: any;
+
 // ── Component ─────────────────────────────────────────────────────────────────
 @Component({
   selector: 'app-signup',
@@ -104,9 +94,10 @@ function defaultHours(): DayHour[] {
 export class SignupComponent implements OnInit {
   private readonly fb         = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly zone       = inject(NgZone);
 
-  // ── Step (0 = auth gate, 1-4 = clinic setup, 5 = success) ───────────────
-  readonly step       = signal<0 | 1 | 2 | 3 | 4 | 5>(0);
+  // ── Step: 0=auth, 1=clinic, 2=services, 4=plan, 5=success ───────────────
+  readonly step       = signal<0 | 1 | 2 | 4 | 5>(0);
   readonly submitting = signal(false);
   readonly error      = signal<string | null>(null);
   readonly result     = signal<{
@@ -114,16 +105,23 @@ export class SignupComponent implements OnInit {
     plan: string; paymentUrl: string | null; trialEndDate: string | null;
   } | null>(null);
 
-  // ── Auth step ────────────────────────────────────────────────────────────
+  // Visual step 1/2/3 for the progress stepper
+  readonly visualStep = computed(() => {
+    const s = this.step();
+    if (s === 1) return 1;
+    if (s === 2) return 2;
+    if (s >= 4)  return 3;
+    return 0;
+  });
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
   readonly authMode      = signal<'signup' | 'signin'>('signup');
   readonly authLoading   = signal(false);
   readonly googleLoading = signal(false);
   readonly authError     = signal<string | null>(null);
   readonly showPassword  = signal(false);
   private  authUser      = signal<User | null>(null);
-
-  /** Email of the authenticated user (shown in later steps) */
-  readonly authEmail = computed(() => this.authUser()?.email ?? '');
+  readonly authEmail     = computed(() => this.authUser()?.email ?? '');
 
   readonly step0 = this.fb.nonNullable.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -139,11 +137,9 @@ export class SignupComponent implements OnInit {
     try {
       let user: User;
       if (this.authMode() === 'signup') {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        user = cred.user;
+        user = (await createUserWithEmailAndPassword(auth, email, password)).user;
       } else {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        user = cred.user;
+        user = (await signInWithEmailAndPassword(auth, email, password)).user;
       }
       this.authUser.set(user);
       this.step.set(1);
@@ -152,11 +148,7 @@ export class SignupComponent implements OnInit {
       if (code === 'auth/email-already-in-use') {
         this.authError.set('Account already exists. Switch to Sign in below.');
         this.authMode.set('signin');
-      } else if (
-        code === 'auth/user-not-found' ||
-        code === 'auth/wrong-password' ||
-        code === 'auth/invalid-credential'
-      ) {
+      } else if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(code)) {
         this.authError.set('Invalid email or password.');
       } else if (code === 'auth/weak-password') {
         this.authError.set('Password must be at least 6 characters.');
@@ -172,14 +164,14 @@ export class SignupComponent implements OnInit {
     this.googleLoading.set(true);
     this.authError.set(null);
     try {
-      const provider = new GoogleAuthProvider();
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await signInWithPopup(auth, new GoogleAuthProvider());
       this.authUser.set(cred.user);
       this.step.set(1);
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? '';
-      if (code.includes('popup-closed') || code.includes('cancelled')) return;
-      this.authError.set('Google sign-in failed. Please try again.');
+      if (!code.includes('popup-closed') && !code.includes('cancelled')) {
+        this.authError.set('Google sign-in failed. Please try again.');
+      }
     } finally {
       this.googleLoading.set(false);
     }
@@ -188,50 +180,133 @@ export class SignupComponent implements OnInit {
   // ── Theme ────────────────────────────────────────────────────────────────
   readonly themes        = THEMES;
   readonly selectedTheme = signal<Theme>(THEMES[0]);
-
   selectTheme(t: Theme) { this.selectedTheme.set(t); }
-
   themeGradient(t: Theme = this.selectedTheme()) {
     return `linear-gradient(135deg, ${t.hex}, ${t.hexTo})`;
   }
 
-  // ── Logo upload ──────────────────────────────────────────────────────────
-  readonly logoDataUrl   = signal<string | null>(null);
-  readonly logoUploading = signal(false);
+  // ── Google Places Autocomplete ───────────────────────────────────────────
+  readonly placesReady      = signal(false);
+  readonly suggestions      = signal<PlacePrediction[]>([]);
+  readonly showDropdown     = signal(false);
+  readonly manualMode       = signal(false);  // user chose "Enter manually"
+  readonly loadingSuggestions = signal(false);
+  private  placeCity        = '';
+  private  autocompleteService: unknown = null;
+  private  placesService:       unknown = null;
 
-  async onLogoUpload(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    this.logoUploading.set(true);
-    this.logoDataUrl.set(await resizeImage(file, 200));
-    this.logoUploading.set(false);
+  private loadPlacesApi(): void {
+    if (typeof window === 'undefined') { this.manualMode.set(true); return; }
+    const key = environment.googleMapsApiKey;
+    if (!key) { this.manualMode.set(true); return; }
+
+    // Already loaded?
+    if (typeof google !== 'undefined' && google?.maps?.places) {
+      this.initPlaces(); return;
+    }
+
+    const cbName = '__gmpSignupCallback';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any)[cbName] = () => this.zone.run(() => this.initPlaces());
+
+    const s = document.createElement('script');
+    s.src   = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&callback=${cbName}`;
+    s.async = true;
+    s.onerror = () => this.zone.run(() => this.manualMode.set(true));
+    document.head.appendChild(s);
   }
 
-  removeLogo() { this.logoDataUrl.set(null); }
+  private initPlaces(): void {
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    this.autocompleteService = new google.maps.places.AutocompleteService();
+    this.placesService       = new google.maps.places.PlacesService(div);
+    this.placesReady.set(true);
+  }
+
+  onNameInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.step1.controls.name.setValue(val, { emitEvent: true });
+
+    if (!val || val.length < 2 || this.manualMode() || !this.autocompleteService) {
+      this.suggestions.set([]);
+      this.showDropdown.set(false);
+      return;
+    }
+
+    this.loadingSuggestions.set(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.autocompleteService as any).getPlacePredictions(
+      { input: val, types: ['establishment'] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (predictions: PlacePrediction[] | null, status: any) => {
+        this.zone.run(() => {
+          this.loadingSuggestions.set(false);
+          if (status === 'OK' && predictions?.length) {
+            this.suggestions.set(predictions.slice(0, 5));
+            this.showDropdown.set(true);
+          } else {
+            this.suggestions.set([]);
+            this.showDropdown.set(false);
+          }
+        });
+      }
+    );
+  }
+
+  selectSuggestion(p: PlacePrediction): void {
+    this.showDropdown.set(false);
+    this.suggestions.set([]);
+    const clinicName = p.structured_formatting.main_text;
+    this.step1.controls.name.setValue(clinicName, { emitEvent: true });
+
+    if (!this.placesService) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.placesService as any).getDetails(
+      { placeId: p.place_id, fields: ['address_components', 'formatted_phone_number', 'international_phone_number'] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (place: any, status: any) => {
+        this.zone.run(() => {
+          if (status !== 'OK' || !place) return;
+          // Auto-fill phone (prefer international format)
+          const phone = (place.international_phone_number ?? place.formatted_phone_number ?? '').replace(/\s/g, '');
+          if (phone) this.step1.controls.phone.setValue(phone);
+          // Extract city
+          const cityComp = (place.address_components as Array<{ long_name: string; types: string[] }> ?? [])
+            .find(c => c.types.includes('locality') || c.types.includes('administrative_area_level_2'));
+          this.placeCity = cityComp?.long_name ?? '';
+        });
+      }
+    );
+  }
+
+  dismissDropdown(): void {
+    // Small delay so click on suggestion registers before blur hides it
+    setTimeout(() => this.zone.run(() => this.showDropdown.set(false)), 180);
+  }
+
+  enterManually(): void {
+    this.manualMode.set(true);
+    this.showDropdown.set(false);
+    this.suggestions.set([]);
+  }
 
   // ── Services ─────────────────────────────────────────────────────────────
   readonly allServices      = ALL_SERVICES;
   readonly selectedServices = signal<Set<string>>(
     new Set(['General Dentistry', 'Dental Cleaning', 'Root Canal Treatment', 'Dental Implants'])
   );
-
   toggleService(s: string): void {
-    const current = new Set(this.selectedServices());
-    current.has(s) ? current.delete(s) : current.add(s);
-    this.selectedServices.set(current);
+    const cur = new Set(this.selectedServices());
+    cur.has(s) ? cur.delete(s) : cur.add(s);
+    this.selectedServices.set(cur);
   }
-
-  isServiceSelected(s: string): boolean {
-    return this.selectedServices().has(s);
-  }
+  isServiceSelected(s: string) { return this.selectedServices().has(s); }
 
   // ── Hours ────────────────────────────────────────────────────────────────
   readonly clinicHours = signal<DayHour[]>(defaultHours());
-
-  updateHour(index: number, field: keyof DayHour, value: string | boolean): void {
-    this.clinicHours.set(
-      this.clinicHours().map((h, i) => i === index ? { ...h, [field]: value } : h)
-    );
+  updateHour(i: number, field: keyof DayHour, val: string | boolean): void {
+    this.clinicHours.set(this.clinicHours().map((h, idx) => idx === i ? { ...h, [field]: val } : h));
   }
 
   // ── Plan ─────────────────────────────────────────────────────────────────
@@ -239,49 +314,22 @@ export class SignupComponent implements OnInit {
 
   readonly plans = [
     {
-      id: 'trial' as const,
-      name: 'Free Trial',
-      price: '₹0',
-      period: '30 days',
+      id: 'trial' as const, name: 'Free Trial', price: '₹0', period: '30 days',
       desc: 'Full website, no card needed',
-      features: [
-        'Responsive clinic website',
-        'Online appointment booking',
-        'WhatsApp notifications',
-        'Patient admin dashboard',
-        'Free subdomain included',
-        '30-day free trial',
-      ],
+      features: ['Responsive clinic website', 'Online appointment booking', 'WhatsApp notifications',
+                 'Patient admin dashboard', 'Free subdomain included', '30-day free trial'],
     },
     {
-      id: 'starter' as const,
-      name: 'Starter',
-      price: '₹499',
-      period: '/month',
+      id: 'starter' as const, name: 'Starter', price: '₹499', period: '/month',
       desc: 'For solo clinics',
-      features: [
-        'Everything in Trial',
-        'Custom domain setup',
-        'Free SSL certificate',
-        'Services catalogue',
-        'Priority WhatsApp support',
-        '1 content update / month',
-      ],
+      features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate',
+                 'Services catalogue', 'Priority WhatsApp support', '1 content update / month'],
     },
     {
-      id: 'pro' as const,
-      name: 'Pro',
-      price: '₹999',
-      period: '/month',
+      id: 'pro' as const, name: 'Pro', price: '₹999', period: '/month',
       desc: 'Most popular',
-      features: [
-        'Everything in Starter',
-        'AI Voice Receptionist 24/7',
-        'Google Reviews integration',
-        'SEO optimised pages',
-        'Unlimited content updates',
-        'Priority support',
-      ],
+      features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Google Reviews integration',
+                 'SEO optimised pages', 'Unlimited content updates', 'Priority support'],
     },
   ];
 
@@ -296,38 +344,29 @@ export class SignupComponent implements OnInit {
     return 'idle';
   });
 
-  // ── Step 1 form ──────────────────────────────────────────────────────────
+  // ── Step 1 form — name, slug, phone ──────────────────────────────────────
   readonly step1 = this.fb.nonNullable.group({
-    name:                ['', [Validators.required, Validators.minLength(3)]],
-    doctorName:          ['', Validators.required],
-    doctorQualification: ['BDS', Validators.required],
-    city:                ['', Validators.required],
-    phone:               ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
+    name:  ['', [Validators.required, Validators.minLength(3)]],
+    slug:  ['', [Validators.required, Validators.pattern(/^[a-z0-9]{3,30}$/)]],
+    phone: ['', [Validators.required, Validators.minLength(7)]],
   });
 
-  // ── Step 3 form — just slug (user is already authenticated) ─────────────
-  readonly step3 = this.fb.nonNullable.group({
-    slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]{3,30}$/)]],
-  });
-
-  // ── Live preview ─────────────────────────────────────────────────────────
-  readonly previewName     = computed(() => this.step1.controls.name.value    || 'Your Clinic Name');
-  readonly previewDoctor   = computed(() => this.step1.controls.doctorName.value || 'Dr. Your Name');
-  readonly previewDegree   = computed(() => this.step1.controls.doctorQualification.value || 'BDS');
-  readonly previewCity     = computed(() => this.step1.controls.city.value    || 'Your City');
+  readonly previewName     = computed(() => this.step1.controls.name.value  || 'Your Clinic Name');
   readonly previewServices = computed(() => Array.from(this.selectedServices()).slice(0, 4));
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit(): void {
+    this.loadPlacesApi();
+
     // Auto-fill slug from clinic name
-    this.step1.controls.name.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(name => {
-      this.step3.controls.slug.setValue(toSlug(name), { emitEvent: true });
-    });
+    this.step1.controls.name.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(name => {
+        this.step1.controls.slug.setValue(toSlug(name), { emitEvent: true });
+      });
 
     // Real-time slug availability check
-    this.step3.controls.slug.valueChanges.pipe(
+    this.step1.controls.slug.valueChanges.pipe(
       debounceTime(450),
       distinctUntilChanged(),
       switchMap(slug => {
@@ -349,34 +388,25 @@ export class SignupComponent implements OnInit {
     if (s === 1) {
       this.step1.markAllAsTouched();
       if (this.step1.invalid) return;
+      if (this.slugStatus() === 'taken' || this.slugStatus() === 'checking') return;
       this.step.set(2);
     } else if (s === 2) {
-      this.step.set(3);
-    } else if (s === 3) {
-      this.step3.markAllAsTouched();
-      if (this.step3.invalid) return;
-      if (this.slugStatus() === 'taken') return;
       this.step.set(4);
-    } else if (s === 4) {
-      this.step.set(5);
     }
   }
 
   back(): void {
     const s = this.step();
-    if (s === 1) {
-      // Go back to auth step — user is still authenticated but can switch accounts
-      this.step.set(0);
-    } else if (s > 1) {
-      this.step.set((s - 1) as 1 | 2 | 3 | 4);
-    }
+    if (s === 1) this.step.set(0);
+    else if (s === 2) this.step.set(1);
+    else if (s === 4) this.step.set(2);
   }
 
   selectPlan(plan: 'trial' | 'starter' | 'pro') { this.selectedPlan.set(plan); }
 
   onSlugInput(event: Event): void {
     const v = toSlug((event.target as HTMLInputElement).value);
-    this.step3.controls.slug.setValue(v, { emitEvent: true });
+    this.step1.controls.slug.setValue(v, { emitEvent: true });
   }
 
   isInvalid(ctrl: AbstractControl): boolean { return ctrl.invalid && ctrl.touched; }
@@ -384,19 +414,14 @@ export class SignupComponent implements OnInit {
   // ── Submit ───────────────────────────────────────────────────────────────
   async submit(): Promise<void> {
     if (this.submitting()) return;
-
     const user = this.authUser();
-    if (!user) {
-      this.error.set('Session expired. Please go back and sign in again.');
-      return;
-    }
+    if (!user) { this.error.set('Session expired. Please go back and sign in again.'); return; }
 
     this.error.set(null);
     this.submitting.set(true);
 
-    const s1       = this.step1.getRawValue();
-    const slug     = this.step3.controls.slug.value;
-    const phoneE164 = `91${s1.phone.replace(/\D/g, '')}`;
+    const s1   = this.step1.getRawValue();
+    const slug = s1.slug;
 
     const hours = this.clinicHours()
       .filter(h => !h.closed)
@@ -407,32 +432,29 @@ export class SignupComponent implements OnInit {
     }));
 
     try {
-      // Get a fresh Firebase ID token to prove identity to our backend
-      const idToken = await getIdToken(user, /* forceRefresh */ true);
-
+      const idToken = await getIdToken(user, true);
       const resp = await fetch('/api/self-signup', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idToken,                              // replaces email + password
+          idToken,
           name:                s1.name.trim(),
-          doctorName:          s1.doctorName.trim(),
-          doctorQualification: s1.doctorQualification.trim(),
-          city:                s1.city.trim(),
+          doctorName:          '',
+          doctorQualification: '',
+          city:                this.placeCity,
           phone:               s1.phone.trim(),
-          phoneE164,
-          whatsappNumber:      phoneE164,
+          phoneE164:           s1.phone.replace(/\D/g, ''),
+          whatsappNumber:      s1.phone.replace(/\D/g, ''),
           slug,
-          plan:                this.selectedPlan(),
-          theme:               this.selectedTheme().id,
-          logoDataUrl:         this.logoDataUrl() ?? null,
+          plan:  this.selectedPlan(),
+          theme: this.selectedTheme().id,
+          logoDataUrl: null,
           hours,
           services,
         }),
       });
 
       const data = await resp.json();
-
       if (!resp.ok) {
         this.error.set(data.error ?? 'Something went wrong. Please try again.');
         this.submitting.set(false);
@@ -451,12 +473,11 @@ export class SignupComponent implements OnInit {
     } catch {
       this.error.set('Network error. Please check your connection and try again.');
     }
-
     this.submitting.set(false);
   }
 
-  // ── Step label helper ────────────────────────────────────────────────────
-  stepLabel(s: number): string {
-    return ['', 'Clinic', 'Customize', 'Website', 'Plan'][s] ?? '';
+  // ── Step label helper (visual steps 1–3) ─────────────────────────────────
+  stepLabel(vs: number): string {
+    return ['', 'Clinic', 'Services', 'Plan'][vs] ?? '';
   }
 }
