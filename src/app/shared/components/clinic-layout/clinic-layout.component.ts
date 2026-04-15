@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, HostListener, computed } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
@@ -129,11 +129,12 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       </div>
     }
 
-    <!-- ── ElevenLabs AI Voice Agent (Pro plan only) ── -->
-    @if (clinic.config.elevenLabsAgentId &&
-         clinic.config.subscriptionPlan === 'pro' &&
-         clinic.config.subscriptionStatus === 'active') {
-      <app-voice-agent [agentId]="clinic.config.elevenLabsAgentId" />
+    <!-- ── AI Receptionist (voice for Pro, text chat for all active clinics) ── -->
+    @if (clinic.isLoaded) {
+      <app-voice-agent
+        [agentId]="voiceAgentId()"
+        [clinicName]="clinic.config.name"
+        [services]="serviceNames()" />
     }
 
     <!-- ── Mobile 3-tab sticky bottom bar ── -->
@@ -177,6 +178,19 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly speedDialOpen  = signal(false);
   readonly showBackToTop  = signal(false);
   readonly showCallBanner = signal(!sessionStorage.getItem('call_banner_dismissed'));
+
+  /** ElevenLabs agent ID — only passed through for Pro active clinics. */
+  readonly voiceAgentId = computed(() => {
+    const cfg = this.clinic.config;
+    return (cfg.subscriptionPlan === 'pro' && cfg.subscriptionStatus === 'active')
+      ? (cfg.elevenLabsAgentId ?? '')
+      : '';
+  });
+
+  /** Service names passed to the AI chat context. */
+  readonly serviceNames = computed(() =>
+    this.clinic.config.services?.map(s => s.name) ?? []
+  );
   private popupTimer: ReturnType<typeof setTimeout> | null = null;
 
   @HostListener('window:scroll')
