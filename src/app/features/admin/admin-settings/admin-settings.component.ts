@@ -121,7 +121,6 @@ export class AdminSettingsComponent implements OnInit {
   infoForm = this.fb.nonNullable.group({
     doctorName:          ['', Validators.required],
     doctorQualification: [''],
-    doctorUniversity:    [''],
     patientCount:        [''],
     doctorBio:           [''],
   });
@@ -199,7 +198,6 @@ export class AdminSettingsComponent implements OnInit {
     this.infoForm.patchValue({
       doctorName:          cfg.doctorName          ?? '',
       doctorQualification: cfg.doctorQualification ?? '',
-      doctorUniversity:    cfg.doctorUniversity    ?? '',
       patientCount:        cfg.patientCount        ?? '',
       doctorBio:           (cfg.doctorBio ?? []).join('\n'),
     });
@@ -302,7 +300,6 @@ export class AdminSettingsComponent implements OnInit {
       await this.store.updateClinicSettings(this.clinicId, {
         doctorName:          v.doctorName,
         doctorQualification: v.doctorQualification,
-        doctorUniversity:    v.doctorUniversity,
         patientCount:        v.patientCount,
         doctorBio:           v.doctorBio.split('\n').map(s => s.trim()).filter(Boolean),
       });

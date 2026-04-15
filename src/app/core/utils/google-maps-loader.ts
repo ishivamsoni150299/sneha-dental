@@ -1,5 +1,16 @@
 import { environment } from '../../../environments/environment';
 
+// Minimal typing for the Google Maps global — avoids importing the full @types/google.maps package.
+declare global {
+  interface Window {
+    google?: {
+      maps?: {
+        places?: unknown;
+      };
+    };
+  }
+}
+
 let _mapsApiPromise: Promise<void> | null = null;
 
 export function hasGoogleMapsKey(): boolean {
@@ -12,12 +23,11 @@ export function loadGoogleMapsScript(): Promise<void> {
   }
   if (_mapsApiPromise) return _mapsApiPromise;
   _mapsApiPromise = new Promise((resolve, reject) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((window as any).google?.maps?.places) { resolve(); return; }
+    if (window.google?.maps?.places) { resolve(); return; }
     const s = document.createElement('script');
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places`;
-    s.onload  = () => resolve();
-    s.onerror = () => { _mapsApiPromise = null; reject(new Error('Maps API load failed')); };
+    s.src     = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&libraries=places`;
+    s.onload  = (): void => resolve();
+    s.onerror = (): void => { _mapsApiPromise = null; reject(new Error('Maps API load failed')); };
     document.head.appendChild(s);
   });
   return _mapsApiPromise;

@@ -1,15 +1,10 @@
 import { Injectable, signal } from '@angular/core';
-import { initializeApp, getApps } from 'firebase/app';
 import {
-  getAuth, signInWithEmailAndPassword, signInWithPopup,
-  GoogleAuthProvider, signOut, onAuthStateChanged, User,
+  signInWithEmailAndPassword, signInWithPopup,
+  GoogleAuthProvider, signOut, onAuthStateChanged, type User,
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { environment } from '../../../environments/environment';
-
-const app  = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 @Injectable({ providedIn: 'root' })
 export class SuperAuthService {

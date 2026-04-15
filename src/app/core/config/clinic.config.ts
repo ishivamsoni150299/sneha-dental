@@ -13,8 +13,9 @@ export interface ClinicConfig {
   // ── Identity ──────────────────────────────────────────────────────────────
   name: string;
   doctorName: string;
-  doctorQualification: string;    // e.g. "BDS"
-  doctorUniversity: string;
+  doctorQualification?: string;   // e.g. "BDS" — optional
+  /** @deprecated Removed from UI. Kept optional for backwards-compat with existing Firestore docs. */
+  doctorUniversity?: string;
   doctorBio: string[];            // paragraphs shown on About page
   patientCount: string;           // e.g. "1000+"  — used in trust bar & hero
   rating: string;                 // e.g. "4.9"   — shown on hero, about, testimonials
@@ -86,8 +87,6 @@ export const clinicConfig: ClinicConfig = {
 
   name: '',
   doctorName: '',
-  doctorQualification: '',
-  doctorUniversity: '',
   doctorBio:    [],
   patientCount: '',
   rating: '',

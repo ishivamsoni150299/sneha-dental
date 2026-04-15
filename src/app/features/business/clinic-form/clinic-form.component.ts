@@ -67,7 +67,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     name:                ['', Validators.required],
     doctorName:          ['', Validators.required],
     doctorQualification: [''],
-    doctorUniversity:    [''],
     patientCount:        [''],
 
     // Contact
@@ -277,8 +276,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   private patchForm(c: StoredClinic) {
     this.form.patchValue({
       name: c.name, doctorName: c.doctorName,
-      doctorQualification: c.doctorQualification,
-      doctorUniversity: c.doctorUniversity ?? '',
+      doctorQualification: c.doctorQualification ?? '',
       patientCount: c.patientCount ?? '',
       phone: c.phone, phoneE164: c.phoneE164,
       whatsappNumber: c.whatsappNumber,
@@ -384,8 +382,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       const payload = {
         name:                v.name,
         doctorName:          v.doctorName,
-        doctorQualification: v.doctorQualification,
-        doctorUniversity:    v.doctorUniversity    || null,
+        doctorQualification: v.doctorQualification || null,
         patientCount:        v.patientCount        || null,
         phone:               v.phone,
         phoneE164:           v.phoneE164           || null,

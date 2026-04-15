@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
-import { initializeApp, getApps } from 'firebase/app';
 import {
-  getFirestore,
   collection,
   addDoc,
   query,
@@ -13,9 +11,9 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  Timestamp,
+  type Timestamp,
 } from 'firebase/firestore';
-import { environment } from '../../../environments/environment';
+import { db } from '../firebase';
 
 export interface Appointment {
   id?: string;
@@ -32,9 +30,6 @@ export interface Appointment {
   createdAt?: Timestamp;
 }
 
-const firebaseApp = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const db = getFirestore(firebaseApp);
-
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
   private readonly clinic = inject(ClinicConfigService);
@@ -49,11 +44,9 @@ export class AppointmentService {
   }
 
   private generateBookingRef(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let suffix = '';
-    for (let i = 0; i < 8; i++) {
-      suffix += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const random = crypto.getRandomValues(new Uint8Array(8));
+    const suffix = Array.from(random, b => chars[b % chars.length]).join('');
     return `${this.prefix}-${suffix}`;
   }
 

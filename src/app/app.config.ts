@@ -1,17 +1,26 @@
-import { ApplicationConfig, APP_INITIALIZER, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  provideAppInitializer,
+  inject,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 import { ClinicConfigService } from './core/services/clinic-config.service';
+import { GlobalErrorHandler } from './core/error-handler';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'top' })),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (svc: ClinicConfigService) => () => svc.loadFromFirestore(),
-      deps: [ClinicConfigService],
-      multi: true,
-    },
+    provideRouter(routes, withInMemoryScrolling({
+      anchorScrolling: 'enabled',
+      scrollPositionRestoration: 'top',
+    })),
+    // Load clinic config from Firestore before the first component renders.
+    // provideAppInitializer is the Angular 19 replacement for APP_INITIALIZER factory.
+    provideAppInitializer(() => inject(ClinicConfigService).loadFromFirestore()),
+    // Replace Angular's default ErrorHandler with our global one.
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
 };

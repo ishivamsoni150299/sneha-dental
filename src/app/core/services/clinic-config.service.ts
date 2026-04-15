@@ -1,12 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { clinicConfig, ClinicConfig } from '../config/clinic.config';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { clinicConfig, type ClinicConfig } from '../config/clinic.config';
 export type { ClinicConfig };
-import { environment } from '../../../environments/environment';
-
-const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const db  = getFirestore(app);
+import { db } from '../firebase';
 
 // ── Premium theme palettes ────────────────────────────────────────────────────
 // Each palette maps CSS variable names → hex/rgba values.
