@@ -50,7 +50,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:180ms">
           <span class="bg-gray-900/80 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow backdrop-blur-sm whitespace-nowrap">Book Appointment</span>
           <a routerLink="/appointment" (click)="speedDialOpen.set(false)"
-             class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110">
+             class="w-12 h-12 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
@@ -81,8 +81,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <!-- Main FAB toggle -->
       <button (click)="speedDialOpen.set(!speedDialOpen())"
               aria-label="Quick actions"
-              class="relative w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl hover:shadow-2xl hover:shadow-blue-300 flex items-center justify-center transition-all duration-300 hover:scale-110">
-        <span class="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-20 pointer-events-none"></span>
+              class="relative w-14 h-14 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white rounded-full shadow-xl hover:shadow-2xl hover:shadow-[var(--accent-sh)] flex items-center justify-center transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-dk)] focus-visible:ring-offset-2">
+        <span class="absolute inset-0 rounded-full bg-[var(--accent-md)] animate-ping opacity-20 pointer-events-none"></span>
         <svg class="w-6 h-6 transition-transform duration-300" [class.rotate-45]="speedDialOpen()" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
         </svg>
@@ -141,15 +141,15 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <div class="grid grid-cols-3">
         <!-- Call -->
         <a [href]="'tel:+' + clinic.config.phoneE164"
-           class="flex flex-col items-center justify-center py-3 gap-1 text-gray-500 hover:text-blue-600 active:bg-gray-50 transition-colors">
+           class="flex flex-col items-center justify-center py-3 gap-1 text-gray-500 hover:text-[var(--accent)] active:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
           </svg>
           <span class="text-[11px] font-semibold">Call</span>
         </a>
-        <!-- Book Now (primary) -->
+        <!-- Book Now (primary — theme-aware) -->
         <a routerLink="/appointment"
-           class="flex flex-col items-center justify-center py-3 gap-1 bg-blue-600 text-white active:bg-blue-700 transition-colors">
+           class="flex flex-col items-center justify-center py-3 gap-1 bg-[var(--accent)] text-white active:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
@@ -157,7 +157,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         </a>
         <!-- WhatsApp -->
         <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
-           class="flex flex-col items-center justify-center py-3 gap-1 text-gray-500 hover:text-green-600 active:bg-gray-50 transition-colors">
+           class="flex flex-col items-center justify-center py-3 gap-1 text-gray-500 hover:text-green-600 active:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-inset">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
           </svg>

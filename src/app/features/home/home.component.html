@@ -76,10 +76,17 @@
                 <p class="font-bold text-gray-900 text-sm truncate">{{ config.doctorName || 'Dr. Your Name' }}</p>
                 <p class="text-xs text-[var(--accent)] font-medium">{{ config.doctorQualification || 'BDS' }} · Dental Surgeon</p>
               </div>
-              <div class="flex items-center gap-1.5 bg-green-50 text-green-700 text-[11px] font-bold px-2.5 py-1.5 rounded-full border border-green-100 shrink-0">
-                <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                Open Now
-              </div>
+              @if (clinic.isOpenNow) {
+                <div class="flex items-center gap-1.5 bg-green-50 text-green-700 text-[11px] font-bold px-2.5 py-1.5 rounded-full border border-green-100 shrink-0">
+                  <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                  Open Now
+                </div>
+              } @else {
+                <div class="flex items-center gap-1.5 bg-red-50 text-red-600 text-[11px] font-bold px-2.5 py-1.5 rounded-full border border-red-100 shrink-0">
+                  <span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span>
+                  Closed
+                </div>
+              }
             </div>
 
             <!-- Hours + CTA -->

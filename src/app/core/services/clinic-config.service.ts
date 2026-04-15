@@ -207,4 +207,91 @@ export class ClinicConfigService {
       `Hi ${this.config.name}! I would like to book an appointment. Please confirm an available slot.`
     );
   }
+
+  /**
+   * Returns true if the clinic is currently open based on `config.hours`.
+   *
+   * Each `ClinicHours` entry has a `days` string like "Mon – Fri" or "Sunday"
+   * and a `time` string like "9:00 AM – 7:00 PM". We parse both to determine
+   * whether the current day + time falls within any open window.
+   *
+   * Falls back to `true` when hours are not configured (don't show false info).
+   */
+  get isOpenNow(): boolean {
+    const hours = this.config.hours;
+    if (!hours.length) return true; // no hours data → don't show "Closed"
+
+    const now    = new Date();
+    const today  = now.getDay(); // 0 = Sun, 1 = Mon … 6 = Sat
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    const DAY_MAP: Record<string, number> = {
+      sun: 0, sunday: 0,
+      mon: 1, monday: 1,
+      tue: 2, tuesday: 2,
+      wed: 3, wednesday: 3,
+      thu: 4, thursday: 4,
+      fri: 5, friday: 5,
+      sat: 6, saturday: 6,
+    };
+
+    /** Parse "9:00 AM" or "9 AM" → minutes since midnight */
+    function parseTime(t: string): number {
+      const m = /(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/i.exec(t.trim());
+      if (!m) return -1;
+      let h = parseInt(m[1], 10);
+      const min = m[2] ? parseInt(m[2], 10) : 0;
+      const isPm = m[3].toUpperCase() === 'PM';
+      if (isPm && h !== 12) h += 12;
+      if (!isPm && h === 12) h = 0;
+      return h * 60 + min;
+    }
+
+    /** Resolve a day name abbreviation → day index (0–6) */
+    function dayIndex(name: string): number {
+      return DAY_MAP[name.toLowerCase().slice(0, 3)] ?? -1;
+    }
+
+    for (const slot of hours) {
+      // ── Determine day range ────────────────────────────────────────────────
+      // "days" is e.g. "Mon – Sat", "Monday – Saturday", "Sunday", "Mon, Wed, Fri"
+      const daysPart = slot.days.replace(/–|-/g, '-');
+      let coversToday = false;
+
+      if (daysPart.includes('-')) {
+        // Range: "Mon - Sat"
+        const [from, to] = daysPart.split('-').map(s => dayIndex(s.trim()));
+        if (from !== -1 && to !== -1) {
+          coversToday = from <= to
+            ? today >= from && today <= to
+            : today >= from || today <= to; // wraps past Sat (e.g. Sat - Mon)
+        }
+      } else if (daysPart.includes(',')) {
+        // List: "Mon, Wed, Fri"
+        coversToday = daysPart.split(',').some(d => dayIndex(d.trim()) === today);
+      } else {
+        // Single day
+        coversToday = dayIndex(daysPart.trim()) === today;
+      }
+
+      if (!coversToday) continue;
+
+      // ── Determine time range ───────────────────────────────────────────────
+      // "time" is e.g. "9:00 AM – 7:00 PM" or "10 AM - 2 PM"
+      const timePart = slot.time.replace(/–/g, '-');
+      const timeSplit = timePart.split('-');
+      if (timeSplit.length < 2) continue;
+
+      // handle "10 AM - 2 PM" where AM/PM may not repeat on the open side
+      const openStr  = timeSplit[0].trim();
+      const closeStr = timeSplit.slice(1).join('-').trim();
+      const openMin  = parseTime(openStr);
+      const closeMin = parseTime(closeStr);
+
+      if (openMin === -1 || closeMin === -1) continue;
+      if (nowMin >= openMin && nowMin < closeMin) return true;
+    }
+
+    return false;
+  }
 }
