@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query, where, orderBy, serverTimestamp, type Timestamp,
+  doc, query, where, serverTimestamp, type Timestamp,
   type UpdateData, type DocumentData,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -84,10 +84,11 @@ export class DoctorService {
     return collection(db, 'clinics', clinicId, 'doctors');
   }
 
-  /** Load all doctors for a clinic, ordered by name. */
+  /** Load all doctors for a clinic, sorted by name client-side. */
   async getDoctors(clinicId: string): Promise<Doctor[]> {
-    const snap = await getDocs(query(this.doctorsCol(clinicId), orderBy('name')));
-    return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Doctor, 'id'>) }));
+    const snap = await getDocs(this.doctorsCol(clinicId));
+    const docs = snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Doctor, 'id'>) }));
+    return docs.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /** Add a new doctor, returns the new doc ID. */

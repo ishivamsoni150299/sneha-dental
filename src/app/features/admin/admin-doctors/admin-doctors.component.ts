@@ -391,9 +391,10 @@ export class AdminDoctorsComponent implements OnInit {
     try {
       const docs = await this.doctorSvc.getDoctors(this.clinicId);
       this.doctors.set(docs);
-    } catch (e) {
-      console.error(e);
-      this.errorMsg.set('Could not load doctors. Please refresh.');
+    } catch (e: unknown) {
+      const code = (e as { code?: string })?.code ?? 'unknown';
+      console.error('[AdminDoctors] getDoctors failed:', e);
+      this.errorMsg.set(`Could not load doctors (${code}). Please refresh.`);
     } finally {
       this.loading.set(false);
     }
