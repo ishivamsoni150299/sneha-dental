@@ -62,8 +62,8 @@ const QUICK_REPLIES = [
          IDLE PILL — glass, bottom-center
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'idle') {
-      <div class="fixed z-[60]
-                  bottom-[92px] md:bottom-8
+      <div class="hidden md:block fixed z-[60]
+                  bottom-8
                   left-1/2 -translate-x-1/2
                   group cursor-pointer select-none"
            style="filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4))">
@@ -140,7 +140,7 @@ const QUICK_REPLIES = [
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'voice') {
       <div class="fixed z-[60]
-                  bottom-[92px] md:bottom-8
+                  bottom-[106px] md:bottom-8
                   left-1/2 -translate-x-1/2
                   flex items-center gap-3 rounded-full px-4 py-3
                   transition-all duration-500"
