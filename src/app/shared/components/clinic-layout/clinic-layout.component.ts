@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, OnDestroy, signal, HostListener, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, HostListener, computed, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
@@ -137,6 +138,54 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         [services]="serviceNames()" />
     }
 
+    <!-- ── PWA Install Banner (mobile only, dismissed once) ── -->
+    @if (showInstallBanner()) {
+      <div class="md:hidden fixed bottom-16 left-3 right-3 z-50 animate-slide-up">
+        <div class="bg-gray-900 text-white rounded-2xl shadow-2xl flex items-center gap-3 px-4 py-3.5">
+          <!-- App icon -->
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-lg">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z"/>
+            </svg>
+          </div>
+          <!-- Text -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold leading-tight">Add to Home Screen</p>
+            @if (isIos) {
+              <p class="text-xs text-gray-400 mt-0.5 leading-tight">Tap <strong class="text-gray-300">Share</strong> then <strong class="text-gray-300">Add to Home Screen</strong> for the full app</p>
+            } @else {
+              <p class="text-xs text-gray-400 mt-0.5 leading-tight">Get the full-screen app — no URL bar</p>
+            }
+          </div>
+          <!-- Action -->
+          @if (isIos) {
+            <button (click)="dismissInstallBanner()"
+                    class="text-gray-400 hover:text-white p-1 shrink-0 transition-colors">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          } @else {
+            <button (click)="triggerInstall()"
+                    class="bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white text-xs font-bold px-3 py-2 rounded-xl shrink-0 transition-colors">
+              Install
+            </button>
+          }
+        </div>
+        <!-- iOS arrow pointing to share button -->
+        @if (isIos) {
+          <div class="flex justify-center mt-1.5">
+            <div class="bg-gray-900 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              Tap Share below, then "Add to Home Screen"
+            </div>
+          </div>
+        }
+      </div>
+    }
+
     <!-- ── Mobile 3-tab sticky bottom bar ── -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 safe-bottom shadow-lg">
       <div class="grid grid-cols-3">
@@ -174,10 +223,22 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 })
 export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly clinic = inject(ClinicConfigService);
-  readonly showWaPopup    = signal(false);
-  readonly speedDialOpen  = signal(false);
-  readonly showBackToTop  = signal(false);
-  readonly showCallBanner = signal(!sessionStorage.getItem('call_banner_dismissed'));
+  private readonly platformId = inject(PLATFORM_ID);
+
+  readonly showWaPopup      = signal(false);
+  readonly speedDialOpen    = signal(false);
+  readonly showBackToTop    = signal(false);
+  readonly showCallBanner   = signal(!sessionStorage.getItem('call_banner_dismissed'));
+  readonly showInstallBanner = signal(false);
+
+  /** true when running on iOS Safari */
+  readonly isIos = (() => {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  })();
+
+  /** Native Android install prompt event — captured on beforeinstallprompt */
+  private deferredInstallPrompt: Event & { prompt?: () => Promise<void> } | null = null;
 
   /** ElevenLabs agent ID — only passed through for Pro active clinics. */
   readonly voiceAgentId = computed(() => {
@@ -191,7 +252,9 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly serviceNames = computed(() =>
     this.clinic.config.services?.map(s => s.name) ?? []
   );
-  private popupTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private popupTimer:   ReturnType<typeof setTimeout> | null = null;
+  private installTimer: ReturnType<typeof setTimeout> | null = null;
 
   @HostListener('window:scroll')
   onScroll() {
@@ -199,14 +262,33 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    const cfg = this.clinic.config;
     if (!sessionStorage.getItem('wa_popup_dismissed')) {
       this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
+    }
+
+    // Show install banner after 4s if not already installed and not dismissed
+    const alreadyInstalled =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+    if (!alreadyInstalled && !localStorage.getItem('pwa_install_dismissed')) {
+      // Android: wait for browser's beforeinstallprompt event
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.deferredInstallPrompt = e as Event & { prompt?: () => Promise<void> };
+        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 4_000);
+      });
+
+      // iOS Safari: show our custom instructions banner after 4s
+      if (this.isIos) {
+        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 4_000);
+      }
     }
   }
 
   ngOnDestroy() {
-    if (this.popupTimer) clearTimeout(this.popupTimer);
+    if (this.popupTimer)   clearTimeout(this.popupTimer);
+    if (this.installTimer) clearTimeout(this.installTimer);
   }
 
   dismissPopup() {
@@ -217,6 +299,17 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   dismissCallBanner() {
     this.showCallBanner.set(false);
     sessionStorage.setItem('call_banner_dismissed', '1');
+  }
+
+  dismissInstallBanner() {
+    this.showInstallBanner.set(false);
+    localStorage.setItem('pwa_install_dismissed', '1');
+  }
+
+  async triggerInstall() {
+    if (!this.deferredInstallPrompt?.prompt) return;
+    await this.deferredInstallPrompt.prompt();
+    this.dismissInstallBanner();
   }
 
   scrollToTop() {
