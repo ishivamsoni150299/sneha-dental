@@ -5,15 +5,33 @@ import {
 import { FormsModule } from '@angular/forms';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type UIMode    = 'idle' | 'voice' | 'text';
+type UIMode     = 'idle' | 'voice' | 'text';
 type VoicePhase = 'connecting' | 'listening' | 'speaking' | 'ended';
 
 interface ChatMessage { role: 'user' | 'assistant'; text: string }
-
 interface ConversationInstance { endSession(): Promise<void> }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-const DOT_DELAYS = ['0ms', '150ms', '300ms'] as const;
+// ── Waveform bars — 9 bars with individual height + delay for organic look ────
+const BARS = [
+  { delay: '0ms',   min: 4,  max: 22 },
+  { delay: '70ms',  min: 6,  max: 32 },
+  { delay: '140ms', min: 3,  max: 28 },
+  { delay: '30ms',  min: 8,  max: 36 },
+  { delay: '200ms', min: 4,  max: 30 },
+  { delay: '110ms', min: 7,  max: 34 },
+  { delay: '60ms',  min: 5,  max: 26 },
+  { delay: '170ms', min: 6,  max: 32 },
+  { delay: '90ms',  min: 3,  max: 20 },
+] as const;
+
+const DOT_DELAYS = ['0ms', '160ms', '320ms'] as const;
+
+const QUICK_REPLIES = [
+  'Book an appointment',
+  'What are your hours?',
+  'What services do you offer?',
+  'How do I reach the clinic?',
+] as const;
 
 @Component({
   selector: 'app-voice-agent',
@@ -26,133 +44,202 @@ const DOT_DELAYS = ['0ms', '150ms', '300ms'] as const;
       <div class="fixed z-[70] left-1/2 -translate-x-1/2
                   bottom-[160px] md:bottom-36
                   w-[calc(100%-2rem)] max-w-sm
-                  bg-gray-950 border border-red-500/40 text-white
-                  rounded-2xl px-4 py-3 shadow-2xl
-                  animate-in slide-in-from-bottom-4 duration-300">
-        <div class="flex items-start gap-2.5">
-          <svg class="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          </svg>
-          <p class="text-xs leading-relaxed text-white/90">{{ errorMsg() }}</p>
+                  rounded-2xl px-4 py-3.5 shadow-2xl
+                  animate-in slide-in-from-bottom-4 duration-300"
+           style="background: rgba(20,6,6,0.97); border: 1px solid rgba(248,113,113,0.35);">
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </div>
+          <p class="text-xs leading-relaxed text-white/85 pt-0.5">{{ errorMsg() }}</p>
         </div>
       </div>
     }
 
     <!-- ══════════════════════════════════════════════════════════════════════
-         IDLE PILL — bottom-center, always visible
+         IDLE PILL — glass, bottom-center
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'idle') {
       <div class="fixed z-[60]
-                  bottom-[88px] md:bottom-8
+                  bottom-[92px] md:bottom-8
                   left-1/2 -translate-x-1/2
-                  flex items-center gap-2
-                  bg-[#1a1a1a] rounded-full shadow-2xl
-                  px-2 py-2
-                  border border-white/10
-                  transition-all duration-300 hover:border-white/20"
-           style="box-shadow: 0 8px 32px rgba(0,0,0,0.5)">
+                  group cursor-pointer select-none"
+           style="filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4))">
 
-        <!-- Mic button → start voice -->
-        @if (agentId()) {
-          <button (click)="startVoice()"
-                  aria-label="Start voice conversation"
-                  class="w-10 h-10 rounded-full bg-[#2a2a2a] hover:bg-[#333]
-                         flex items-center justify-center
-                         transition-all duration-200 hover:scale-105
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-            <svg class="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+        <div class="flex items-center gap-2.5 rounded-full px-3 py-2
+                    transition-all duration-300 group-hover:scale-105"
+             style="background: rgba(12,12,16,0.88);
+                    backdrop-filter: blur(20px) saturate(180%);
+                    border: 1px solid rgba(255,255,255,0.12);
+                    box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset,
+                                0 8px 32px rgba(0,0,0,0.5);">
+
+          <!-- Mic button (voice mode) -->
+          @if (agentId()) {
+            <button (click)="startVoice()"
+                    aria-label="Start voice conversation"
+                    class="relative w-9 h-9 rounded-full flex items-center justify-center
+                           transition-all duration-200
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                    style="background: rgba(255,255,255,0.08);">
+              <!-- Subtle pulse ring -->
+              <span class="absolute inset-0 rounded-full animate-ping"
+                    style="background: rgba(255,255,255,0.06); animation-duration: 3s;"></span>
+              <svg class="relative w-4 h-4" style="color: rgba(255,255,255,0.7)"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+              </svg>
+            </button>
+          }
+
+          <!-- AI sparkle icon + label -->
+          <button (click)="startText()"
+                  class="flex items-center gap-2 pr-1 focus-visible:outline-none">
+            <!-- Sparkle icon -->
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 style="color: var(--accent-md, #3B7BF8)">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.5-8.5-.7.7M7.2 16.8l-.7.7m0-10 .7.7M16.8 16.8l.7.7"/>
+              <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="text-sm font-semibold whitespace-nowrap"
+                  style="color: rgba(255,255,255,0.75);">
+              {{ agentId() ? 'Ask AI' : 'Chat with AI' }}
+            </span>
+            <!-- Live indicator -->
+            <span class="flex items-center gap-1 ml-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+              <span class="text-[10px] font-semibold text-green-400">Live</span>
+            </span>
+          </button>
+
+          <!-- Divider -->
+          <div class="w-px h-5" style="background: rgba(255,255,255,0.1)"></div>
+
+          <!-- Chat bubble icon -->
+          <button (click)="startText()"
+                  aria-label="Open text chat"
+                  class="w-9 h-9 rounded-full flex items-center justify-center
+                         transition-all duration-200
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                  style="background: linear-gradient(135deg, var(--accent, #1E56DC), var(--accent-dk, #1235A9))">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
           </button>
-        }
-
-        <!-- Label -->
-        <button (click)="startText()"
-                class="px-3 text-white/60 text-sm font-medium whitespace-nowrap
-                       hover:text-white/90 transition-colors duration-200
-                       focus-visible:outline-none">
-          {{ agentId() ? 'Ask AI' : 'Chat with AI' }}
-        </button>
-
-        <!-- Text / keyboard button → open chat -->
-        <button (click)="startText()"
-                aria-label="Open text chat"
-                class="w-10 h-10 rounded-full bg-[#2a2a2a] hover:bg-[#333]
-                       flex items-center justify-center
-                       transition-all duration-200 hover:scale-105
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-          <svg class="w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-          </svg>
-        </button>
+        </div>
       </div>
     }
 
     <!-- ══════════════════════════════════════════════════════════════════════
-         VOICE ACTIVE PILL — expanded, bottom-center
+         VOICE ACTIVE PILL
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'voice') {
       <div class="fixed z-[60]
-                  bottom-[88px] md:bottom-8
+                  bottom-[92px] md:bottom-8
                   left-1/2 -translate-x-1/2
-                  flex items-center gap-3
-                  bg-[#1a1a1a] rounded-full shadow-2xl
-                  px-3 py-2.5
-                  border border-white/10
+                  flex items-center gap-3 rounded-full px-4 py-3
                   transition-all duration-500"
-           style="box-shadow: 0 8px 40px rgba(0,0,0,0.6)">
+           [style.box-shadow]="voicePhase() === 'speaking'
+             ? '0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(59,123,248,0.25)'
+             : '0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 40px rgba(0,0,0,0.6)'"
+           style="background: rgba(12,12,16,0.95);
+                  backdrop-filter: blur(20px);
+                  border: 1px solid rgba(255,255,255,0.1);">
 
-        <!-- Mic status circle -->
-        <div class="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-             [style.background]="voicePhase() === 'listening' ? '#fff' : '#2a2a2a'">
-          <!-- Pulse ring when listening -->
+        <!-- Mic / status orb -->
+        <div class="relative w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+             [style.background]="voicePhase() === 'listening'
+               ? 'linear-gradient(135deg, #fff 0%, #e5e7eb 100%)'
+               : 'rgba(255,255,255,0.08)'">
+
           @if (voicePhase() === 'listening') {
-            <span class="absolute inset-0 rounded-full bg-white animate-ping opacity-30"></span>
+            <span class="absolute inset-0 rounded-full animate-ping"
+                  style="background: rgba(255,255,255,0.3); animation-duration: 1.5s;"></span>
           }
-          <svg class="w-5 h-5 transition-colors duration-300"
-               [style.color]="voicePhase() === 'listening' ? '#111' : 'rgba(255,255,255,0.5)'"
+          @if (voicePhase() === 'speaking') {
+            <span class="absolute inset-0 rounded-full animate-ping"
+                  style="background: rgba(59,123,248,0.3); animation-duration: 1s;"></span>
+          }
+
+          <svg class="relative w-4 h-4"
+               [style.color]="voicePhase() === 'listening' ? '#111827' : 'rgba(255,255,255,0.6)'"
                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
           </svg>
         </div>
 
-        <!-- Animated dots / status -->
-        <div class="flex items-center gap-1 px-1 min-w-[60px] justify-center">
+        <!-- Waveform / status -->
+        <div class="flex items-center justify-center"
+             style="min-width: 80px; height: 36px;">
+
           @if (voicePhase() === 'connecting') {
-            <span class="text-white/40 text-xs">Connecting…</span>
+            <div class="flex items-center gap-1.5">
+              @for (d of DOT_DELAYS; track $index) {
+                <span class="w-1.5 h-1.5 rounded-full"
+                      style="background: rgba(255,255,255,0.4)"
+                      [style.animation-name]="'vaDot'"
+                      [style.animation-duration]="'1s'"
+                      [style.animation-timing-function]="'ease-in-out'"
+                      [style.animation-iteration-count]="'infinite'"
+                      [style.animation-delay]="d"></span>
+              }
+            </div>
           } @else if (voicePhase() === 'ended') {
-            <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
+            <div class="flex items-center gap-1.5">
+              <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                <svg class="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <span class="text-xs text-green-400 font-semibold">Done</span>
+            </div>
           } @else {
-            @for (delay of DOT_DELAYS; track $index) {
-              <span class="w-2 h-2 rounded-full"
-                    [style.background]="voicePhase() === 'speaking' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)'"
-                    [style.animation-name]="'voiceDot'"
-                    [style.animation-duration]="'1.2s'"
-                    [style.animation-timing-function]="'ease-in-out'"
-                    [style.animation-iteration-count]="'infinite'"
-                    [style.animation-delay]="delay"></span>
-            }
+            <!-- Waveform bars -->
+            <div class="flex items-end gap-[3px]" style="height: 28px;">
+              @for (bar of BARS; track $index) {
+                <div class="rounded-full"
+                     style="width: 3px;"
+                     [style.background]="voicePhase() === 'speaking'
+                       ? 'linear-gradient(to top, var(--accent, #1E56DC), var(--accent-md, #3B7BF8))'
+                       : 'rgba(255,255,255,0.25)'"
+                     [style.animation-name]="'vaBar'"
+                     [style.animation-duration]="(voicePhase() === 'speaking' ? '600' : '1400') + 'ms'"
+                     [style.animation-timing-function]="'ease-in-out'"
+                     [style.animation-iteration-count]="'infinite'"
+                     [style.animation-delay]="bar.delay"
+                     [style.min-height]="bar.min + 'px'"
+                     [style.max-height]="bar.max + 'px'"></div>
+              }
+            </div>
           }
         </div>
 
-        <!-- Duration timer -->
+        <!-- Timer -->
         @if (voicePhase() === 'listening' || voicePhase() === 'speaking') {
-          <span class="text-white/30 text-xs font-mono tabular-nums tracking-wider">
+          <span class="text-xs font-mono tabular-nums"
+                style="color: rgba(255,255,255,0.3); letter-spacing: 0.05em;">
             {{ formattedTime() }}
           </span>
         }
 
-        <!-- End button (blue pill) -->
+        <!-- End button -->
         @if (voicePhase() !== 'ended') {
           <button (click)="endVoice()"
                   aria-label="End voice call"
-                  class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold
-                         px-4 py-2 rounded-full
-                         transition-all duration-200 hover:scale-105
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
-                         shrink-0">
+                  class="flex items-center gap-1.5 text-sm font-semibold text-white
+                         px-4 py-2 rounded-full shrink-0
+                         transition-all duration-200 hover:opacity-90 hover:scale-105
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
             End
           </button>
         }
@@ -160,111 +247,149 @@ const DOT_DELAYS = ['0ms', '150ms', '300ms'] as const;
     }
 
     <!-- ══════════════════════════════════════════════════════════════════════
-         TEXT CHAT PANEL — slides up from bottom
+         TEXT CHAT PANEL
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'text') {
       <div class="fixed z-[60]
                   bottom-0 left-0 right-0
-                  md:bottom-6 md:left-auto md:right-6 md:w-[380px]
-                  flex flex-col
-                  rounded-t-3xl md:rounded-2xl
-                  overflow-hidden
-                  border border-white/10
-                  animate-slide-up"
-           style="background: #111114;
-                  box-shadow: 0 -4px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
-                  height: min(560px, 72vh);">
+                  md:bottom-6 md:left-auto md:right-6 md:w-[400px]
+                  flex flex-col rounded-t-[28px] md:rounded-[24px]
+                  overflow-hidden animate-slide-up"
+           style="background: #0d0d12;
+                  border: 1px solid rgba(255,255,255,0.09);
+                  box-shadow: 0 -8px 80px rgba(0,0,0,0.7),
+                              0 0 0 1px rgba(255,255,255,0.04) inset;
+                  height: min(580px, 78vh);">
 
-        <!-- Handle (mobile) -->
-        <div class="md:hidden w-10 h-1 bg-white/20 rounded-full mx-auto mt-3 shrink-0"></div>
+        <!-- Pull handle (mobile only) -->
+        <div class="md:hidden flex justify-center pt-3 pb-1 shrink-0">
+          <div class="w-9 h-1 rounded-full" style="background: rgba(255,255,255,0.15)"></div>
+        </div>
 
-        <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-3.5 shrink-0"
-             style="border-bottom: 1px solid rgba(255,255,255,0.07)">
-          <div class="flex items-center gap-3">
-            <!-- AI avatar -->
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-800
-                        flex items-center justify-center shrink-0">
-              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15M14.25 3.104c.251.023.501.05.75.082M19.8 15a2.25 2.25 0 01.1 2.3L17.7 21H6.3l-2.2-3.7A2.25 2.25 0 014.2 15m15.6 0H4.2"/>
-              </svg>
+        <!-- ── Header ──────────────────────────────────────────────────────── -->
+        <div class="shrink-0 px-5 pt-4 pb-4"
+             style="background: linear-gradient(135deg, var(--accent, #1E56DC) 0%, var(--accent-dk, #1235A9) 100%);
+                    border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <!-- AI avatar with glow -->
+              <div class="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                   style="background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15M14.25 3.104c.251.023.501.05.75.082M19.8 15a2.25 2.25 0 01.1 2.3L17.7 21H6.3l-2.2-3.7A2.25 2.25 0 014.2 15m15.6 0H4.2"/>
+                </svg>
+                <!-- Online dot -->
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-white/20"
+                      style="box-shadow: 0 0 8px rgba(74,222,128,0.6)"></span>
+              </div>
+              <div>
+                <p class="text-white font-bold text-sm leading-none">AI Receptionist</p>
+                <p class="text-white/60 text-[11px] mt-0.5 font-medium">
+                  {{ clinicName() || 'Dental Clinic' }}
+                  <span class="ml-1.5 text-green-300 font-semibold">● Online</span>
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-white text-sm font-bold leading-none">AI Receptionist</p>
-              <p class="text-white/40 text-[11px] mt-0.5">
-                {{ clinicName() || 'Dental Clinic' }}
-              </p>
-            </div>
-          </div>
-          <!-- Switch to voice (if available) + close -->
-          <div class="flex items-center gap-2">
-            @if (agentId()) {
-              <button (click)="switchToVoice()"
-                      aria-label="Switch to voice"
-                      title="Switch to voice"
-                      class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10
-                             flex items-center justify-center
-                             transition-colors duration-200
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-                <svg class="w-4 h-4 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            <!-- Actions -->
+            <div class="flex items-center gap-1.5">
+              @if (agentId()) {
+                <button (click)="switchToVoice()"
+                        aria-label="Switch to voice"
+                        title="Switch to voice call"
+                        class="w-8 h-8 rounded-full flex items-center justify-center
+                               transition-all duration-200 hover:scale-110
+                               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                        style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);">
+                  <svg class="w-4 h-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                  </svg>
+                </button>
+              }
+              <button (click)="closeChat()"
+                      aria-label="Close"
+                      class="w-8 h-8 rounded-full flex items-center justify-center
+                             transition-all duration-200 hover:scale-110
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                      style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);">
+                <svg class="w-4 h-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
               </button>
-            }
-            <button (click)="closeChat()"
-                    aria-label="Close chat"
-                    class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10
-                           flex items-center justify-center
-                           transition-colors duration-200
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-              <svg class="w-4 h-4 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+            </div>
           </div>
         </div>
 
-        <!-- Messages list -->
+        <!-- ── Messages ────────────────────────────────────────────────────── -->
         <div #messagesContainer
              class="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
-             style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;">
+             style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent;">
 
-          <!-- Welcome message (no history yet) -->
+          <!-- Welcome message -->
           @if (messages().length === 0) {
-            <div class="flex items-start gap-2.5">
-              <div class="w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            <div class="flex items-end gap-2.5 animate-in fade-in duration-500">
+              <!-- Avatar -->
+              <div class="w-7 h-7 rounded-full shrink-0 mb-0.5 flex items-center justify-center"
+                   style="background: linear-gradient(135deg, var(--accent, #1E56DC), var(--accent-dk, #1235A9));">
+                <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5"/>
                 </svg>
               </div>
-              <div class="bg-white/8 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"
-                   style="background: rgba(255,255,255,0.07)">
-                <p class="text-white/80 text-sm leading-relaxed">
-                  Hi! I'm the AI receptionist for {{ clinicName() || 'the clinic' }}.
-                  How can I help you today? 😊
-                </p>
+              <div class="max-w-[82%]">
+                <div class="rounded-2xl rounded-bl-md px-4 py-3"
+                     style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.06);">
+                  <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.82);">
+                    Hi there! 👋 I'm your AI receptionist for
+                    <strong class="text-white">{{ clinicName() || 'the clinic' }}</strong>.
+                    How can I help you today?
+                  </p>
+                </div>
+                <p class="text-[10px] mt-1 ml-1" style="color: rgba(255,255,255,0.25);">Just now</p>
               </div>
+            </div>
+
+            <!-- Quick reply chips -->
+            <div class="flex flex-wrap gap-2 mt-1 pl-9">
+              @for (q of QUICK_REPLIES; track q) {
+                <button (click)="sendQuickReply(q)"
+                        class="text-xs font-medium px-3 py-1.5 rounded-full
+                               transition-all duration-200 hover:scale-105 active:scale-95"
+                        style="background: rgba(255,255,255,0.06);
+                               border: 1px solid rgba(255,255,255,0.1);
+                               color: rgba(255,255,255,0.65);">
+                  {{ q }}
+                </button>
+              }
             </div>
           }
 
           <!-- Chat messages -->
           @for (msg of messages(); track $index) {
             @if (msg.role === 'assistant') {
-              <div class="flex items-start gap-2.5">
-                <div class="w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5"/>
+              <div class="flex items-end gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div class="w-7 h-7 rounded-full shrink-0 mb-0.5 flex items-center justify-center"
+                     style="background: linear-gradient(135deg, var(--accent, #1E56DC), var(--accent-dk, #1235A9));">
+                  <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5"/>
                   </svg>
                 </div>
-                <div class="rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"
-                     style="background: rgba(255,255,255,0.07)">
-                  <p class="text-white/80 text-sm leading-relaxed">{{ msg.text }}</p>
+                <div class="max-w-[82%]">
+                  <div class="rounded-2xl rounded-bl-md px-4 py-3"
+                       style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.06);">
+                    <p class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.82);">{{ msg.text }}</p>
+                  </div>
                 </div>
               </div>
             } @else {
-              <div class="flex justify-end">
-                <div class="bg-blue-600 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%]">
-                  <p class="text-white text-sm leading-relaxed">{{ msg.text }}</p>
+              <div class="flex justify-end animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div class="max-w-[82%]">
+                  <div class="rounded-2xl rounded-br-md px-4 py-3"
+                       style="background: linear-gradient(135deg, var(--accent, #1E56DC) 0%, var(--accent-dk, #1235A9) 100%);">
+                    <p class="text-sm leading-relaxed text-white">{{ msg.text }}</p>
+                  </div>
                 </div>
               </div>
             }
@@ -272,23 +397,25 @@ const DOT_DELAYS = ['0ms', '150ms', '300ms'] as const;
 
           <!-- Typing indicator -->
           @if (isTyping()) {
-            <div class="flex items-start gap-2.5">
-              <div class="w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5"/>
+            <div class="flex items-end gap-2.5 animate-in fade-in duration-300">
+              <div class="w-7 h-7 rounded-full shrink-0 mb-0.5 flex items-center justify-center"
+                   style="background: linear-gradient(135deg, var(--accent, #1E56DC), var(--accent-dk, #1235A9));">
+                <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5"/>
                 </svg>
               </div>
-              <div class="rounded-2xl rounded-tl-sm px-4 py-3.5"
-                   style="background: rgba(255,255,255,0.07)">
-                <div class="flex items-center gap-1">
-                  @for (delay of DOT_DELAYS; track $index) {
-                    <span class="w-1.5 h-1.5 rounded-full"
+              <div class="rounded-2xl rounded-bl-md px-4 py-3.5"
+                   style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.06);">
+                <div class="flex items-center gap-1.5">
+                  @for (d of DOT_DELAYS; track $index) {
+                    <span class="w-2 h-2 rounded-full"
                           style="background: rgba(255,255,255,0.4)"
-                          [style.animation-name]="'voiceDot'"
-                          [style.animation-duration]="'1.2s'"
+                          [style.animation-name]="'vaDot'"
+                          [style.animation-duration]="'1s'"
                           [style.animation-timing-function]="'ease-in-out'"
                           [style.animation-iteration-count]="'infinite'"
-                          [style.animation-delay]="delay"></span>
+                          [style.animation-delay]="d"></span>
                   }
                 </div>
               </div>
@@ -296,43 +423,55 @@ const DOT_DELAYS = ['0ms', '150ms', '300ms'] as const;
           }
         </div>
 
-        <!-- Input row -->
-        <div class="shrink-0 px-4 py-3"
-             style="border-top: 1px solid rgba(255,255,255,0.07)">
-          <form (ngSubmit)="sendMessage()" class="flex items-end gap-2">
-            <textarea #inputField
-                      [(ngModel)]="inputText"
-                      name="message"
-                      placeholder="Type a message…"
-                      rows="1"
-                      (keydown.enter)="onEnterKey($event)"
-                      (input)="autoResize($event)"
-                      class="flex-1 bg-white/5 border border-white/10 rounded-2xl
-                             px-4 py-3 text-white text-sm placeholder-white/30
-                             resize-none overflow-hidden leading-5
-                             focus:outline-none focus:border-blue-500/50 focus:bg-white/8
-                             transition-all duration-200"
-                      style="min-height: 44px; max-height: 120px;"></textarea>
+        <!-- ── Input row ───────────────────────────────────────────────────── -->
+        <div class="shrink-0 px-4 pb-4 pt-3"
+             style="border-top: 1px solid rgba(255,255,255,0.07);">
+          <form (ngSubmit)="sendMessage()" class="flex items-end gap-2.5">
+            <div class="flex-1 relative">
+              <textarea #inputField
+                        [(ngModel)]="inputText"
+                        name="message"
+                        placeholder="Ask anything about the clinic…"
+                        rows="1"
+                        (keydown.enter)="onEnterKey($event)"
+                        (input)="autoResize($event)"
+                        class="w-full px-4 py-3 text-sm text-white placeholder-white/25
+                               resize-none overflow-hidden leading-5 rounded-2xl
+                               outline-none transition-all duration-200"
+                        style="background: rgba(255,255,255,0.06);
+                               border: 1px solid rgba(255,255,255,0.1);
+                               min-height: 44px; max-height: 112px;"></textarea>
+            </div>
+            <!-- Send button -->
             <button type="submit"
                     [disabled]="!inputText.trim() || isTyping()"
-                    aria-label="Send message"
-                    class="w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700
-                           flex items-center justify-center shrink-0
-                           transition-all duration-200 hover:scale-105
-                           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
-              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    aria-label="Send"
+                    class="w-11 h-11 rounded-full flex items-center justify-center shrink-0
+                           transition-all duration-200 hover:scale-110 active:scale-95
+                           disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                    style="background: linear-gradient(135deg, var(--accent, #1E56DC), var(--accent-dk, #1235A9));
+                           box-shadow: 0 4px 16px rgba(30,86,220,0.4);">
+              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
               </svg>
             </button>
           </form>
+          <!-- Footer label -->
+          <p class="text-center text-[10px] mt-2.5" style="color: rgba(255,255,255,0.2);">
+            Powered by AI · Replies may not be 100% accurate
+          </p>
         </div>
       </div>
     }
   `,
   styles: [`
-    @keyframes voiceDot {
-      0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+    @keyframes vaBar {
+      0%, 100% { height: var(--min, 4px); }
+      50%       { height: var(--max, 28px); }
+    }
+    @keyframes vaDot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
       40%            { transform: scale(1);   opacity: 1;   }
     }
   `],
@@ -343,10 +482,12 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   readonly clinicName = input<string>('');
   readonly services   = input<string[]>([]);
 
-  // ── Public constants ─────────────────────────────────────────────────────────
-  readonly DOT_DELAYS = DOT_DELAYS;
+  // ── Constants ─────────────────────────────────────────────────────────────────
+  readonly BARS         = BARS;
+  readonly DOT_DELAYS   = DOT_DELAYS;
+  readonly QUICK_REPLIES = QUICK_REPLIES;
 
-  // ── UI state ─────────────────────────────────────────────────────────────────
+  // ── State ─────────────────────────────────────────────────────────────────────
   mode       = signal<UIMode>('idle');
   voicePhase = signal<VoicePhase>('connecting');
   messages   = signal<ChatMessage[]>([]);
@@ -362,13 +503,13 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   private shouldScrollDown = false;
   private zone             = inject(NgZone);
 
-  // ── Computed ─────────────────────────────────────────────────────────────────
+  // ── Timer display ─────────────────────────────────────────────────────────────
   formattedTime(): string {
     const s = this.duration();
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   }
 
-  // ── AfterViewChecked — scroll messages to bottom after each render ────────────
+  // ── Auto-scroll ───────────────────────────────────────────────────────────────
   ngAfterViewChecked() {
     if (this.shouldScrollDown && this.messagesEl) {
       const el = this.messagesEl.nativeElement;
@@ -384,13 +525,14 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     this.voicePhase.set('connecting');
     this.clearError();
 
-    // Request mic permission first
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(t => t.stop());
     } catch {
-      this.zone.run(() => this.showError('Microphone access denied. Please allow mic and try again.'));
-      this.mode.set('idle');
+      this.zone.run(() => {
+        this.showError('Microphone access denied. Please allow mic and try again.');
+        this.mode.set('idle');
+      });
       return;
     }
 
@@ -406,7 +548,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         onDisconnect: () => this.zone.run(() => {
           this.voicePhase.set('ended');
           this.stopTimer();
-          setTimeout(() => this.zone.run(() => this.mode.set('idle')), 2000);
+          setTimeout(() => this.zone.run(() => this.mode.set('idle')), 2200);
         }),
         onModeChange: (prop: { mode: string }) => this.zone.run(() => {
           if (this.voicePhase() === 'ended') return;
@@ -427,8 +569,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
       const msg = e instanceof Error ? e.message : String(e);
       this.zone.run(() => {
         this.showError(
-          msg.toLowerCase().includes('agent') ? 'Agent not found. Check your ElevenLabs agent ID.' :
-          msg.toLowerCase().includes('network') ? 'Network error. Check your internet connection.' :
+          msg.toLowerCase().includes('agent') ? 'AI agent not found. Please contact the clinic.' :
           'Could not connect. Please try again.'
         );
         this.mode.set('idle');
@@ -441,10 +582,10 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     try { await this.conv?.endSession(); } catch { /* ignore */ }
     this.conv = null;
     this.voicePhase.set('ended');
-    setTimeout(() => this.zone.run(() => this.mode.set('idle')), 2000);
+    setTimeout(() => this.zone.run(() => this.mode.set('idle')), 2200);
   }
 
-  // ── Text chat mode ────────────────────────────────────────────────────────────
+  // ── Text chat ─────────────────────────────────────────────────────────────────
   startText() {
     this.mode.set('text');
     this.shouldScrollDown = true;
@@ -452,44 +593,41 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   async switchToVoice() {
     this.mode.set('idle');
-    // Small delay so the transition feels intentional
-    setTimeout(() => this.zone.run(() => this.startVoice()), 100);
+    setTimeout(() => this.zone.run(() => this.startVoice()), 80);
   }
 
-  closeChat() {
-    this.mode.set('idle');
+  closeChat() { this.mode.set('idle'); }
+
+  sendQuickReply(text: string) {
+    this.inputText = text;
+    void this.sendMessage();
   }
 
   onEnterKey(event: Event) {
     const ke = event as KeyboardEvent;
-    if (!ke.shiftKey) {
-      ke.preventDefault();
-      void this.sendMessage();
-    }
+    if (!ke.shiftKey) { ke.preventDefault(); void this.sendMessage(); }
   }
 
   autoResize(event: Event) {
     const el = event.target as HTMLTextAreaElement;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 112)}px`;
   }
 
   async sendMessage() {
     const text = this.inputText.trim();
     if (!text || this.isTyping()) return;
 
-    // Add user message
     this.messages.update(msgs => [...msgs, { role: 'user', text }]);
     this.inputText = '';
     this.isTyping.set(true);
     this.shouldScrollDown = true;
 
-    // Reset textarea height
     const textarea = document.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
     if (textarea) textarea.style.height = 'auto';
 
     try {
-      const history = this.messages().slice(-10).map(m => ({
+      const history = this.messages().slice(-12).map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.text,
       }));
@@ -498,28 +636,27 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: text,
+          message:    text,
           clinicName: this.clinicName(),
-          services: this.services(),
-          history: history.slice(0, -1), // exclude the message we just added
+          services:   this.services(),
+          history:    history.slice(0, -1),
         }),
       });
 
-      const data = await resp.json() as { reply?: string; error?: string };
-      const reply = data.reply ?? 'Sorry, I could not process that. Please try again.';
+      const data  = await resp.json() as { reply?: string };
+      const reply = data.reply ?? 'Sorry, I couldn\'t process that. Please try again.';
 
       this.zone.run(() => {
         this.messages.update(msgs => [...msgs, { role: 'assistant', text: reply }]);
         this.isTyping.set(false);
         this.shouldScrollDown = true;
-        // Optional: speak the reply using browser TTS
         this.speakReply(reply);
       });
     } catch {
       this.zone.run(() => {
         this.messages.update(msgs => [...msgs, {
           role: 'assistant',
-          text: 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.',
+          text: 'I\'m having trouble connecting right now. Please call or WhatsApp the clinic directly.',
         }]);
         this.isTyping.set(false);
         this.shouldScrollDown = true;
@@ -527,19 +664,16 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     }
   }
 
-  /** Speak the AI reply using the browser's built-in Speech Synthesis API. */
   private speakReply(text: string) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate  = 1.05;
-    utter.pitch = 1.0;
-    // Prefer a female English voice if available
+    const utter  = new SpeechSynthesisUtterance(text);
+    utter.rate   = 1.05;
+    utter.pitch  = 1.0;
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v => /female|woman/i.test(v.name) && v.lang.startsWith('en'))
-      ?? voices.find(v => v.lang.startsWith('en'))
-      ?? null;
-    if (preferred) utter.voice = preferred;
+    const pref   = voices.find(v => /female|woman/i.test(v.name) && v.lang.startsWith('en'))
+      ?? voices.find(v => v.lang.startsWith('en')) ?? null;
+    if (pref) utter.voice = pref;
     window.speechSynthesis.speak(utter);
   }
 
