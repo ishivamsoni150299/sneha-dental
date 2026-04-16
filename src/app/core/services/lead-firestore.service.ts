@@ -57,7 +57,11 @@ export class LeadFirestoreService {
   }
 
   async create(data: Omit<StoredLead, 'id' | 'createdAt'>): Promise<string> {
-    const ref = await addDoc(collection(db, this.COL), { ...data, createdAt: serverTimestamp() });
+    // Firestore rejects undefined values — strip them before writing
+    const payload = Object.fromEntries(
+      Object.entries({ ...data, createdAt: serverTimestamp() }).filter(([, v]) => v !== undefined)
+    );
+    const ref = await addDoc(collection(db, this.COL), payload);
     return ref.id;
   }
 
