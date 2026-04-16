@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "sneha-dental": {
+    "mydentalplatform": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:class": {
@@ -38,7 +38,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/sneha-dental",
+            "outputPath": "dist/mydentalplatform",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -90,10 +90,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "sneha-dental:build:production"
+              "buildTarget": "mydentalplatform:build:production"
             },
             "development": {
-              "buildTarget": "sneha-dental:build:development"
+              "buildTarget": "mydentalplatform:build:development"
             }
           },
           "defaultConfiguration": "development"

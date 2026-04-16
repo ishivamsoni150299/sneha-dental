@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Sneha Dental** — responsive dental clinic website built with Angular 19 and Tailwind CSS.
+**My Dental Platform** — multi-tenant dental clinic SaaS built with Angular 19 and Tailwind CSS.
 
 ## Tech Stack
 
