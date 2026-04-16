@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, signal, HostListener, computed, PLATFORM_ID, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
@@ -10,7 +10,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 @Component({
   selector: 'app-clinic-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NavbarComponent, FooterComponent, ComingSoonComponent, VoiceAgentComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent, FooterComponent, ComingSoonComponent, VoiceAgentComponent],
   template: `
     @if (clinic.config.comingSoon) {
       <app-coming-soon />
@@ -205,6 +205,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
         <!-- 2 · Book Now — primary filled tab -->
         <a routerLink="/appointment"
+           routerLinkActive="!opacity-60"
            class="flex flex-col items-center justify-center gap-[5px] mx-2 my-2 rounded-2xl text-white active:opacity-80 transition-opacity"
            style="background: linear-gradient(135deg, var(--accent-md,#3B7BF8), var(--accent-dk,#1235A9));
                   box-shadow: 0 4px 16px var(--accent-sh,rgba(30,86,220,.25));">
@@ -226,7 +227,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             <span class="absolute -top-0.5 -right-0.5 w-[7px] h-[7px] bg-green-400 rounded-full"
                   style="border: 1.5px solid #fff; box-shadow: 0 0 6px rgba(74,222,128,0.7);"></span>
           </div>
-          <span class="text-[9.5px] font-semibold leading-none">AI</span>
+          <span class="text-[9.5px] font-semibold leading-none">Chat</span>
         </button>
 
         <!-- 4 · WhatsApp -->

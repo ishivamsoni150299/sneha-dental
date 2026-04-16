@@ -41,6 +41,12 @@ export class HomeComponent {
   readonly openFaq = signal<number | null>(null);
   toggleFaq(i: number) { this.openFaq.update(v => v === i ? null : i); }
 
+  readonly showEmergencyBanner = signal(!sessionStorage.getItem('emergency_banner_seen'));
+  dismissEmergencyBanner() {
+    this.showEmergencyBanner.set(false);
+    sessionStorage.setItem('emergency_banner_seen', '1');
+  }
+
   readonly faqs = [
     { q: 'Will the treatment be painful?',            a: 'We use modern anaesthesia and gentle techniques so the vast majority of treatments are completely painless. For anxious patients we take extra time to make you comfortable before we begin.' },
     { q: 'How much does a typical treatment cost?',   a: 'Costs vary by treatment — a cleaning starts around ₹500, fillings from ₹800, and root canals from ₹3,000. We always tell you the exact price before starting. No hidden charges, ever.' },

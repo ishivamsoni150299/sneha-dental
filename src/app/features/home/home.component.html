@@ -1,5 +1,5 @@
 <!-- ===== HERO ===== -->
-<section class="relative overflow-hidden bg-white min-h-[70vh] sm:min-h-[88vh] flex items-center">
+<section class="relative overflow-hidden bg-white sm:min-h-[88vh] flex items-center">
 
   <!-- Subtle static background tint -->
   <div class="absolute inset-0 pointer-events-none overflow-hidden">
@@ -7,14 +7,14 @@
     <div class="absolute bottom-10 -left-24 w-96 h-96 bg-[var(--accent-lt)] rounded-full opacity-50 blur-2xl"></div>
   </div>
 
-  <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-20">
+  <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-5 sm:py-16 md:py-24 lg:py-20">
     <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
       <!-- Text side -->
       <div class="flex-1 text-center lg:text-left">
 
-        <!-- Badge -->
-        <div class="anim-fade-up inline-flex items-center gap-2 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-7 border border-[var(--accent-lt)] shadow-sm">
+        <!-- Badge — desktop only; wastes fold space on mobile -->
+        <div class="anim-fade-up hidden sm:inline-flex items-center gap-2 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-7 border border-[var(--accent-lt)] shadow-sm">
           <span class="w-2 h-2 bg-[var(--accent-md)] rounded-full animate-pulse"></span>
           Same-Day Appointments Available
         </div>
@@ -26,9 +26,28 @@
           Trust
         </h1>
 
-        <p class="anim-fade-up anim-d2 text-lg text-gray-500 leading-relaxed mb-9 max-w-lg mx-auto lg:mx-0">
+        <!-- Subtitle — hidden on mobile to get CTAs above the fold -->
+        <p class="anim-fade-up anim-d2 hidden sm:block text-lg text-gray-500 leading-relaxed mb-9 max-w-lg mx-auto lg:mx-0">
           Advanced treatment with a gentle approach for all ages. Modern equipment, sterilized tools, and honest pricing — always.
         </p>
+        <!-- Mobile-only: open status + rating line replacing the subtitle -->
+        <div class="anim-fade-up anim-d2 sm:hidden flex items-center gap-3 mb-5 justify-center lg:justify-start">
+          @if (clinic.isOpenNow) {
+            <span class="flex items-center gap-1.5 text-xs font-bold text-green-700 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>Open Now
+            </span>
+          } @else {
+            <span class="flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>Closed
+            </span>
+          }
+          <span class="text-xs text-gray-400">·</span>
+          <span class="flex items-center gap-1 text-xs text-gray-500">
+            <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <strong class="font-bold text-gray-700">{{ config.rating || '4.9' }}</strong>
+            <span class="text-gray-400">· {{ config.patientCount }} patients</span>
+          </span>
+        </div>
 
         <!-- CTAs -->
         <div class="anim-fade-up anim-d3 flex flex-row gap-2.5 sm:gap-3 justify-center lg:justify-start">
@@ -146,61 +165,99 @@
 </section>
 
 <!-- ===== DENTAL EMERGENCY BANNER ===== -->
+@if (showEmergencyBanner()) {
 <section class="relative overflow-hidden bg-gradient-to-r from-red-600 to-rose-600">
   <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-sm"></div>
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3 text-white">
-        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0 animate-pulse">
-          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          </svg>
-        </div>
-        <p class="font-bold text-sm">Dental Emergency? <span class="font-normal opacity-90">Severe pain, broken tooth, swelling — we see you same day.</span></p>
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+    <div class="flex items-center gap-3">
+      <!-- Icon -->
+      <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0 animate-pulse">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
       </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start shrink-0">
+      <!-- Text -->
+      <p class="flex-1 font-bold text-white text-xs sm:text-sm leading-snug min-w-0">
+        Dental Emergency?
+        <span class="font-normal opacity-90 hidden sm:inline"> Severe pain, broken tooth, swelling — we see you same day.</span>
+      </p>
+      <!-- CTA + Dismiss -->
+      <div class="flex items-center gap-2 shrink-0">
         <a [href]="'tel:+' + config.phoneE164"
-           class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white text-red-600 hover:bg-red-50 font-bold text-sm px-4 py-3 sm:py-2.5 rounded-xl transition-all hover:-translate-y-px shadow-sm">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+           class="inline-flex items-center gap-1.5 bg-white text-red-600 font-bold text-xs sm:text-sm px-3 py-2 sm:px-4 rounded-xl shadow-sm transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
           </svg>
           Call Now
         </a>
-        <a [href]="clinic.whatsappUrl('EMERGENCY: I need urgent dental help. Can you see me today?')"
-           target="_blank" rel="noopener noreferrer"
-           class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold text-sm px-4 py-3 sm:py-2.5 rounded-xl transition-all hover:-translate-y-px">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+        <button (click)="dismissEmergencyBanner()"
+                aria-label="Dismiss"
+                class="text-white/70 hover:text-white p-1.5 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-          WhatsApp
-        </a>
+        </button>
       </div>
     </div>
   </div>
 </section>
+}
 
 <!-- ===== TRUST BAR ===== -->
 <section class="relative overflow-hidden bg-[var(--accent)]">
   <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-md"></div>
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-0 text-center text-white divide-x divide-white/10">
-      @for (stat of trustStats; track stat.label; let i = $index) {
-        <div reveal [revealDelay]="i * 80" revealDir="up" class="flex flex-col items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-3 sm:py-4">
-          <div class="w-9 h-9 sm:w-12 sm:h-12 bg-white/15 rounded-xl flex items-center justify-center hover:bg-white/25 transition-colors duration-200">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="stat.icon"/>
-            </svg>
-          </div>
-          <p class="text-xl sm:text-2xl font-extrabold tracking-tight">{{ stat.value }}</p>
-          <p class="text-[var(--accent-lt)] text-[10px] sm:text-xs font-medium leading-tight">{{ stat.label }}</p>
+  <!-- Mobile: slim 4-col strip — number + label only -->
+  <div class="md:hidden grid grid-cols-4 divide-x divide-white/10 text-center text-white py-2.5">
+    @for (stat of trustStats; track stat.label) {
+      <div class="flex flex-col items-center gap-0.5 px-1 py-1">
+        <p class="text-sm font-extrabold tracking-tight leading-none">{{ stat.value }}</p>
+        <p class="text-[var(--accent-lt)] text-[9px] font-medium leading-tight mt-0.5">{{ stat.label }}</p>
+      </div>
+    }
+  </div>
+  <!-- Desktop: full icon grid -->
+  <div class="hidden md:grid md:grid-cols-4 gap-0 text-center text-white divide-x divide-white/10 py-8">
+    @for (stat of trustStats; track stat.label; let i = $index) {
+      <div reveal [revealDelay]="i * 80" revealDir="up" class="flex flex-col items-center gap-2 px-4 py-4">
+        <div class="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center hover:bg-white/25 transition-colors duration-200">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="stat.icon"/>
+          </svg>
         </div>
-      }
-    </div>
+        <p class="text-2xl font-extrabold tracking-tight">{{ stat.value }}</p>
+        <p class="text-[var(--accent-lt)] text-xs font-medium leading-tight">{{ stat.label }}</p>
+      </div>
+    }
   </div>
 </section>
 
-<!-- ===== DOCTOR BIO ===== -->
-<section class="bg-white py-16 md:py-20 overflow-hidden border-b border-gray-100">
+<!-- ===== DOCTOR BIO — mobile compact strip ===== -->
+<div class="md:hidden bg-white border-b border-gray-100 px-4 py-4">
+  <div class="flex items-center gap-3.5">
+    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--accent-md)] to-[var(--accent-dk)] flex items-center justify-center shrink-0 shadow-md">
+      <span class="text-white font-extrabold text-lg select-none">{{ (config.doctorName || 'D').charAt(0) }}</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="font-bold text-gray-900 text-sm leading-tight truncate">{{ config.doctorName || 'Dr. Your Name' }}</p>
+      <p class="text-xs text-[var(--accent)] font-semibold leading-tight">{{ config.doctorQualification || 'BDS' }} · Dental Surgeon</p>
+      <div class="flex items-center gap-0.5 mt-1">
+        @for (s of [1,2,3,4,5]; track s) {
+          <svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+        }
+        <span class="text-[11px] text-gray-500 ml-1">{{ config.rating || '4.9' }} · {{ config.patientCount || '500+' }} patients</span>
+      </div>
+    </div>
+    <a routerLink="/appointment"
+       class="shrink-0 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-sm transition-colors">
+      Book
+    </a>
+  </div>
+</div>
+
+<!-- ===== DOCTOR BIO — desktop full section ===== -->
+<section class="hidden md:block bg-white py-16 overflow-hidden border-b border-gray-100">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
@@ -266,7 +323,7 @@
 
 
 <!-- ===== SERVICES PREVIEW ===== -->
-<section class="bg-gray-50 py-20 md:py-24 overflow-hidden">
+<section class="bg-gray-50 py-10 md:py-20 overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div reveal revealDir="up">
       <app-section-header
@@ -275,32 +332,28 @@
         subtitle="From routine cleanings to complex procedures — all under one roof, with zero compromise on care."
       />
     </div>
-    <!-- Mobile: horizontal swipe carousel -->
-    <div class="sm:hidden -mx-4 px-4 mt-8">
-      <div class="flex gap-3.5 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth" style="scrollbar-width:none;-ms-overflow-style:none;">
+    <!-- Mobile: 3×2 scannable icon tile grid -->
+    <div class="sm:hidden mt-6">
+      <div class="grid grid-cols-3 gap-2.5">
         @for (service of previewServices; track service.name) {
-          <div class="snap-start shrink-0 w-[74vw]">
-            <app-service-card
-              [iconPath]="service.iconPath"
-              [name]="service.name"
-              [description]="service.description"
-              [benefit]="service.benefit"
-            />
-          </div>
-        }
-        <!-- View All card -->
-        <div class="snap-start shrink-0 w-[52vw] flex items-stretch">
           <a routerLink="/services"
-             class="flex flex-col items-center justify-center gap-3 w-full min-h-[180px] bg-[var(--accent-lt)] border-2 border-dashed border-[var(--accent-bd)] rounded-2xl p-5 text-[var(--accent)] active:opacity-75">
-            <div class="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+             class="flex flex-col items-center gap-2 bg-white rounded-2xl border border-gray-100 px-2 py-3.5 shadow-sm active:scale-95 transition-transform">
+            <div class="w-10 h-10 rounded-xl bg-[var(--accent-lt)] flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="service.iconPath"/>
               </svg>
             </div>
-            <span class="text-sm font-bold text-center leading-tight">View All<br>Services</span>
+            <span class="text-[11px] font-semibold text-gray-700 text-center leading-tight">{{ service.name }}</span>
           </a>
-        </div>
+        }
       </div>
+      <a routerLink="/services"
+         class="flex items-center justify-center gap-1.5 mt-4 text-sm font-semibold text-[var(--accent)]">
+        View all services
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </a>
     </div>
 
     <!-- Desktop: grid -->
@@ -332,7 +385,7 @@
 <app-treatment-finder />
 
 <!-- ===== WHY CHOOSE US ===== -->
-<section class="bg-white py-20 md:py-24 overflow-hidden">
+<section class="bg-white py-10 md:py-20 overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
@@ -409,7 +462,7 @@
 </section>
 
 <!-- ===== FAQ ACCORDION ===== -->
-<section class="bg-gray-50 py-20 md:py-24 overflow-hidden border-b border-gray-100">
+<section class="bg-gray-50 py-10 md:py-20 overflow-hidden border-b border-gray-100">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     <div reveal revealDir="up" class="text-center mb-12">
       <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-5 border border-[var(--accent-lt)]">
@@ -461,7 +514,7 @@
 
 <!-- ===== TESTIMONIALS MARQUEE ===== -->
 @if (hasTestimonials) {
-  <section class="bg-gray-50 py-20 md:py-24 overflow-hidden">
+  <section class="bg-gray-50 py-10 md:py-20 overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div reveal revealDir="up">
         <app-section-header
@@ -505,7 +558,7 @@
 }
 
 <!-- ===== CTA BANNER ===== -->
-<section class="bg-[var(--accent-dk)] py-16 md:py-20">
+<section class="bg-[var(--accent-dk)] py-10 md:py-16">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <div reveal revealDir="up">
       <h2 class="font-display text-3xl md:text-4xl text-white mb-4 leading-tight">
