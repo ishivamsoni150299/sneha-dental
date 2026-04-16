@@ -5,6 +5,14 @@ import {
   LeadFirestoreService, StoredLead, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-firestore.service';
 
+interface ImportStats {
+  imported: number;
+  skipped:  number;   // duplicates
+  invalid:  number;   // missing required fields
+  ok:       boolean;
+  msg:      string;
+}
+
 @Component({
   selector: 'app-lead-list',
   standalone: true,
@@ -24,7 +32,7 @@ export class LeadListComponent implements OnInit {
   confirmDelete   = signal<string | null>(null);
   updatingStatus  = signal<string | null>(null);
   importingCsv    = signal(false);
-  importResult    = signal<{ msg: string; ok: boolean } | null>(null);
+  importResult    = signal<ImportStats | null>(null);
   error           = signal<string | null>(null);
 
   // ── Computed ──────────────────────────────────────────────────────────────
@@ -35,8 +43,10 @@ export class LeadListComponent implements OnInit {
     const q = this.search().toLowerCase().trim();
     if (q) list = list.filter(l =>
       l.clinicName.toLowerCase().includes(q) ||
-      l.doctorName.toLowerCase().includes(q) ||
-      l.city.toLowerCase().includes(q)
+      l.doctorName?.toLowerCase().includes(q) ||
+      l.city.toLowerCase().includes(q) ||
+      (l.area?.toLowerCase().includes(q) ?? false) ||
+      (l.address?.toLowerCase().includes(q) ?? false)
     );
     return list;
   });
@@ -112,7 +122,7 @@ export class LeadListComponent implements OnInit {
     }
   }
 
-  // ── CSV Import ────────────────────────────────────────────────────────────
+  // ── CSV Parser ────────────────────────────────────────────────────────────
   private parseCSVLine(line: string): string[] {
     const result: string[] = [];
     let inQuotes = false;
@@ -133,47 +143,147 @@ export class LeadListComponent implements OnInit {
     return result;
   }
 
+  /**
+   * Normalise a CSV header to the internal camelCase field name.
+   * Supports both the new human-readable Google Maps export format
+   * and the old camelCase format for backwards compatibility.
+   */
+  private normalizeHeader(h: string): string {
+    const map: Record<string, string> = {
+      // ── New Google Maps CSV format ─────────────────────────────────────
+      'clinic name':         'clinicName',
+      'full address':        'address',
+      'phone':               'phone',
+      'area / neighborhood': 'area',
+      'area/neighborhood':   'area',
+      'area':                'area',
+      'google rating':       'rating',
+      'total reviews':       'reviewCount',
+      'categories':          'categories',
+      'google maps link':    'mapsLink',
+      'has phone':           '_skip',
+      'has rating':          '_skip',
+      // ── Old camelCase format (backwards compat) ────────────────────────
+      'clinicname':          'clinicName',
+      'doctorname':          'doctorName',
+      'city':                'city',
+      'source':              'source',
+      'status':              'status',
+      'followupdate':        'followUpDate',
+      'referredby':          'referredBy',
+      'notes':               'notes',
+      'address':             'address',
+      'rating':              'rating',
+      'reviewcount':         'reviewCount',
+      'mapslink':            'mapsLink',
+      'doctor name':         'doctorName',
+      'doctor':              'doctorName',
+    };
+    return map[h.toLowerCase().trim()] ?? h.toLowerCase().replace(/\s+/g, '');
+  }
+
+  /** Normalise a phone number to Indian E.164 (91XXXXXXXXXX). Returns '' if invalid. */
+  private normalizePhone(raw: string): string {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    return digits.startsWith('91') ? digits : `91${digits}`;
+  }
+
   async handleCsvImport(event: Event) {
     const input = event.target as HTMLInputElement;
     const file  = input.files?.[0];
     if (!file) return;
+
     this.importingCsv.set(true);
+    let stats: ImportStats = { imported: 0, skipped: 0, invalid: 0, ok: false, msg: '' };
+
     try {
       const text  = await file.text();
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
       if (lines.length < 2) {
-        this.importResult.set({ msg: 'CSV has no data rows.', ok: false });
+        this.importResult.set({ ...stats, msg: 'CSV has no data rows.' });
         return;
       }
-      const headers = this.parseCSVLine(lines[0]);
-      let count = 0;
+
+      // Build normalised headers
+      const rawHeaders = this.parseCSVLine(lines[0]);
+      const headers    = rawHeaders.map(h => this.normalizeHeader(h));
+
+      // ── Build dedup sets from existing leads (one load, no extra queries) ──
+      const existing   = this.leads();
+      const usedPhones = new Set(existing.map(l => l.phone).filter(Boolean));
+      const usedLinks  = new Set(existing.map(l => l.mapsLink).filter(Boolean) as string[]);
+
       for (const line of lines.slice(1)) {
         const vals: Record<string, string> = {};
-        this.parseCSVLine(line).forEach((v, i) => { if (headers[i]) vals[headers[i]] = v; });
-        if (!vals['clinicName'] || !vals['phone']) continue;
-        const digits = vals['phone'].replace(/\D/g, '');
-        const phone  = digits.startsWith('91') ? digits : `91${digits}`;
+        this.parseCSVLine(line).forEach((v, i) => {
+          const key = headers[i];
+          if (key && key !== '_skip') vals[key] = v.trim();
+        });
+
+        // Required: clinic name
+        if (!vals['clinicName']) { stats.invalid++; continue; }
+
+        const phone    = this.normalizePhone(vals['phone'] ?? '');
+        const mapsLink = vals['mapsLink'] ?? '';
+
+        // ── Duplicate check ──────────────────────────────────────────────
+        // Primary key: Google Maps link (unique per listing)
+        // Secondary key: phone number
+        const isDuplicate =
+          (mapsLink && usedLinks.has(mapsLink)) ||
+          (phone    && usedPhones.has(phone));
+
+        if (isDuplicate) { stats.skipped++; continue; }
+
+        // Use `area` as city fallback if `city` not present in CSV
+        const city = vals['city'] || vals['area'] || '';
+
+        const ratingRaw      = parseFloat(vals['rating'] ?? '');
+        const reviewCountRaw = parseInt(vals['reviewCount'] ?? '', 10);
+
         await this.leadStore.create({
           clinicName:   vals['clinicName'],
           doctorName:   vals['doctorName']   ?? '',
           phone,
-          city:         vals['city']         ?? '',
-          source:       (vals['source']      as LeadSource) || 'other',
-          status:       (vals['status']      as LeadStatus) || 'new',
+          city,
+          source:       (vals['source'] as LeadSource) || 'google_maps',
+          status:       (vals['status'] as LeadStatus) || 'new',
           followUpDate: vals['followUpDate'] || undefined,
           notes:        vals['notes']        || undefined,
           referredBy:   vals['referredBy']   || undefined,
+          // Enriched fields
+          address:      vals['address']      || undefined,
+          area:         vals['area']         || undefined,
+          rating:       isNaN(ratingRaw)      ? undefined : ratingRaw,
+          reviewCount:  isNaN(reviewCountRaw) ? undefined : reviewCountRaw,
+          categories:   vals['categories']   || undefined,
+          mapsLink:     mapsLink             || undefined,
         });
-        count++;
+
+        // Add to dedup sets immediately so duplicates within the same CSV are caught
+        if (phone)    usedPhones.add(phone);
+        if (mapsLink) usedLinks.add(mapsLink);
+
+        stats.imported++;
       }
+
       this.leads.set(await this.leadStore.getAll());
-      this.importResult.set({ msg: `Imported ${count} lead${count !== 1 ? 's' : ''}.`, ok: true });
+      stats.ok = true;
+
+      const parts: string[] = [];
+      if (stats.imported > 0) parts.push(`${stats.imported} imported`);
+      if (stats.skipped  > 0) parts.push(`${stats.skipped} skipped (duplicates)`);
+      if (stats.invalid  > 0) parts.push(`${stats.invalid} invalid rows`);
+      stats.msg = parts.join(' · ') || 'No new leads found.';
+
     } catch {
-      this.importResult.set({ msg: 'Import failed — check CSV format.', ok: false });
+      stats.msg = 'Import failed — check CSV format.';
     } finally {
       this.importingCsv.set(false);
       input.value = '';
-      setTimeout(() => this.importResult.set(null), 4000);
+      this.importResult.set(stats);
+      setTimeout(() => this.importResult.set(null), 6000);
     }
   }
 
@@ -181,13 +291,19 @@ export class LeadListComponent implements OnInit {
   exportCsv() {
     const rows = this.sortedLeads();
     if (!rows.length) return;
-    const headers = ['clinicName','doctorName','phone','city','source','status','followUpDate','notes','referredBy'];
-    const escape  = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const lines   = [
+    const headers = [
+      'clinicName', 'doctorName', 'phone', 'city', 'source', 'status',
+      'followUpDate', 'notes', 'referredBy',
+      'address', 'area', 'rating', 'reviewCount', 'categories', 'mapsLink',
+    ];
+    const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines  = [
       headers.join(','),
       ...rows.map(l => [
         l.clinicName, l.doctorName, l.phone, l.city,
         l.source, l.status, l.followUpDate ?? '', l.notes ?? '', l.referredBy ?? '',
+        l.address ?? '', l.area ?? '', l.rating ?? '', l.reviewCount ?? '',
+        l.categories ?? '', l.mapsLink ?? '',
       ].map(escape).join(',')),
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -267,14 +383,18 @@ export class LeadListComponent implements OnInit {
     });
   }
 
+  ratingStars(rating: number): number[] {
+    return Array.from({ length: 5 }, (_, i) => i + 1);
+  }
+
   whatsappLink(lead: StoredLead): string {
     const msgs: Record<LeadStatus, string> = {
-      new:        `Hi ${lead.doctorName}! I build professional websites for dental clinics — with online booking, WhatsApp integration, and a patient dashboard. Live in 24 hours. Free 30-day trial. Here's a live example: https://indram-dental.vercel.app — Interested?`,
-      contacted:  `Hi ${lead.doctorName}! Just following up on the dental website I mentioned. Happy to answer any questions or set up a quick demo. Let me know!`,
-      interested: `Hi ${lead.doctorName}! Great to hear you're interested. I can set up a live demo of your clinic's website this week — which day works best for you?`,
-      demo:       `Hi ${lead.doctorName}! Following up after our demo. Ready to go live? I can have your clinic website up in 24 hours. Free trial — no card needed to start.`,
-      converted:  `Hi ${lead.doctorName}! Thanks for choosing mydentalplatform. I'll get started on your site right away!`,
-      lost:       `Hi ${lead.doctorName}! Reaching out again — we now offer a free 30-day trial with no card required. Would love to show you what's new. No obligation at all!`,
+      new:        `Hi ${lead.doctorName || lead.clinicName}! I build professional websites for dental clinics — with online booking, WhatsApp integration, and a patient dashboard. Live in 24 hours. Free 30-day trial. Here's a live example: https://indram-dental.vercel.app — Interested?`,
+      contacted:  `Hi ${lead.doctorName || lead.clinicName}! Just following up on the dental website I mentioned. Happy to answer any questions or set up a quick demo. Let me know!`,
+      interested: `Hi ${lead.doctorName || lead.clinicName}! Great to hear you're interested. I can set up a live demo of your clinic's website this week — which day works best for you?`,
+      demo:       `Hi ${lead.doctorName || lead.clinicName}! Following up after our demo. Ready to go live? I can have your clinic website up in 24 hours. Free trial — no card needed to start.`,
+      converted:  `Hi ${lead.doctorName || lead.clinicName}! Thanks for choosing mydentalplatform. I'll get started on your site right away!`,
+      lost:       `Hi ${lead.doctorName || lead.clinicName}! Reaching out again — we now offer a free 30-day trial with no card required. Would love to show you what's new. No obligation at all!`,
     };
     const msg = msgs[lead.status] ?? msgs.new;
     return `https://wa.me/${lead.phone}?text=${encodeURIComponent(msg)}`;
