@@ -1,8 +1,12 @@
-import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import {
+  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy,
+} from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import { DoctorService, Doctor, formatSlotDisplay } from '../../core/services/doctor.service';
 
 @Component({
   selector: 'app-appointment',
@@ -11,19 +15,31 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppointmentComponent implements OnInit {
+export class AppointmentComponent implements OnInit, OnDestroy {
   private fb                 = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
   private router             = inject(Router);
   private route              = inject(ActivatedRoute);
+  private doctorSvc          = inject(DoctorService);
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
 
+  // ── Form state ────────────────────────────────────────────────────────────
   submitting = signal(false);
   error      = signal<string | null>(null);
 
-  services  = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
-  timeSlots = ['Morning (9am - 12pm)', 'Afternoon (12pm - 4pm)', 'Evening (4pm - 8pm)'];
+  // ── Doctor state ──────────────────────────────────────────────────────────
+  doctors          = signal<Doctor[]>([]);
+  selectedDoctorId = signal<string>('');
+  availableSlots   = signal<string[]>([]);
+  slotsLoading     = signal(false);
+
+  readonly formatSlotDisplay = formatSlotDisplay;
+
+  services = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
+
+  /** Fallback time slots when no doctor is selected or no doctors configured. */
+  readonly fallbackSlots = ['Morning (9am – 12pm)', 'Afternoon (12pm – 4pm)', 'Evening (4pm – 8pm)'];
 
   readonly nextSteps = [
     { text: 'Submit the form — takes under 60 seconds' },
@@ -43,13 +59,72 @@ export class AppointmentComponent implements OnInit {
     message: [''],
   });
 
+  private subs = new Subscription();
+
   ngOnInit() {
-    // Pre-fill service from ?service= query param (e.g. from service cards)
+    // Pre-fill service from ?service= query param
     const preService = this.route.snapshot.queryParamMap.get('service');
     if (preService) {
       const match = this.services.find(s => s.toLowerCase() === preService.toLowerCase()) ?? preService;
       this.form.patchValue({ service: match });
     }
+
+    // Load doctors if clinic has a Firestore ID
+    const clinicId = this.clinic.config.clinicId;
+    if (clinicId) {
+      this.doctorSvc.getDoctors(clinicId).then(docs => {
+        this.doctors.set(docs.filter(d => d.available));
+      }).catch(() => { /* silently fall back to time-range selection */ });
+    }
+
+    // When date or selected doctor changes, reload available slots
+    this.subs.add(
+      this.form.get('date')!.valueChanges.subscribe(() => void this.refreshSlots())
+    );
+  }
+
+  ngOnDestroy() { this.subs.unsubscribe(); }
+
+  selectDoctor(doctorId: string) {
+    this.selectedDoctorId.set(doctorId);
+    this.form.patchValue({ time: '' }); // clear time when switching doctor
+    void this.refreshSlots();
+  }
+
+  private async refreshSlots() {
+    const doctorId = this.selectedDoctorId();
+    const date     = this.form.get('date')!.value;
+    if (!doctorId || !date) { this.availableSlots.set([]); return; }
+
+    const doctor = this.doctors().find(d => d.id === doctorId);
+    if (!doctor) return;
+
+    this.slotsLoading.set(true);
+    try {
+      const slots = await this.doctorSvc.getAvailableSlots(
+        this.clinic.config.clinicId!, doctor, date
+      );
+      this.availableSlots.set(slots);
+    } catch {
+      this.availableSlots.set([]);
+    } finally {
+      this.slotsLoading.set(false);
+    }
+  }
+
+  get selectedDoctor(): Doctor | undefined {
+    return this.doctors().find(d => d.id === this.selectedDoctorId());
+  }
+
+  get timeSlots(): string[] {
+    // Show doctor's specific slots when available, else fallback
+    const slots = this.availableSlots();
+    if (this.selectedDoctorId() && slots.length > 0) return slots;
+    return this.fallbackSlots;
+  }
+
+  doctorInitials(name: string): string {
+    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
   }
 
   get minDate() {
@@ -79,15 +154,18 @@ export class AppointmentComponent implements OnInit {
     this.error.set(null);
 
     try {
-      const val = this.form.value;
-      const ref = await this.appointmentService.bookAppointment({
-        name:    val.name!,
-        phone:   val.phone!,
-        email:   val.email || undefined,
-        service: val.service!,
-        date:    val.date!,
-        time:    val.time!,
-        message: val.message || undefined,
+      const val    = this.form.value;
+      const doctor = this.selectedDoctor;
+      const ref    = await this.appointmentService.bookAppointment({
+        name:       val.name!,
+        phone:      val.phone!,
+        email:      val.email || undefined,
+        service:    val.service!,
+        date:       val.date!,
+        time:       val.time!,
+        doctorId:   doctor?.id,
+        doctorName: doctor?.name,
+        message:    val.message || undefined,
       });
       this.router.navigate(['/appointment/confirmed'], {
         queryParams: {
@@ -104,5 +182,4 @@ export class AppointmentComponent implements OnInit {
       this.submitting.set(false);
     }
   }
-
 }

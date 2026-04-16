@@ -25,6 +25,8 @@ export interface Appointment {
   service: string;
   date: string;          // "YYYY-MM-DD"
   time: string;
+  doctorId?: string;     // optional — set when patient picks a specific doctor
+  doctorName?: string;   // denormalized for display without extra lookup
   message?: string;
   status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
   createdAt?: Timestamp;
