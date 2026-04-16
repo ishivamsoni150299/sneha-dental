@@ -1,11 +1,15 @@
 {
-  "name": "mydentalplatform",
-  "short_name": "mydentalplatform",
+  "name": "My Dental Platform",
+  "short_name": "My Dental",
   "description": "Professional websites for dental clinics — online booking, WhatsApp & AI receptionist. Live in 24h.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
+  "categories": ["health", "medical", "business"],
   "icons": [
     {
       "src": "/icons/icon-192.png",

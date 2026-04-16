@@ -42,7 +42,13 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* Prevent elastic scroll bounce on iOS (makes it feel like a native app) */
+  overscroll-behavior: none;
+  /* Use dvh so viewport accounts for retractable browser chrome on mobile */
+  height: 100%;
+}
 
 body {
   font-family: var(--font-sans);
@@ -53,6 +59,17 @@ body {
     var(--surface-2);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  min-height: 100%;
+  /* Respect safe area insets (iPhone notch, Dynamic Island, home indicator) */
+  padding-top:    env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left:   env(safe-area-inset-left);
+  padding-right:  env(safe-area-inset-right);
+  /* Remove tap highlight flash on iOS */
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent text size adjust when switching orientation */
+  -webkit-text-size-adjust: 100%;
 }
 
 .font-display { font-family: var(--font-display); }
