@@ -186,20 +186,34 @@
             <!-- Edit mode -->
             <div class="space-y-3">
               <div>
-                <label class="text-xs font-medium text-gray-500 mb-1 block">Treatment done</label>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-medium text-gray-500">Treatment done</label>
+                  <span class="text-[10px] text-gray-400"
+                        [class.text-red-500]="notesForm().treatmentDone.length >= 110">
+                    {{ notesForm().treatmentDone.length }}/120
+                  </span>
+                </div>
                 <input type="text" placeholder="e.g. Scaling & polishing, RCT tooth #14…"
+                       maxlength="120" autofocus
                        [ngModel]="notesForm().treatmentDone"
                        (ngModelChange)="setNotesTreatment($event)"
                        class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none
-                              focus:ring-2 focus:ring-blue-100 focus:border-blue-400">
+                              focus:ring-2 focus:ring-blue-300 focus:border-blue-400">
               </div>
               <div>
-                <label class="text-xs font-medium text-gray-500 mb-1 block">Clinical notes (private)</label>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-medium text-gray-500">Clinical notes (private)</label>
+                  <span class="text-[10px] text-gray-400"
+                        [class.text-red-500]="notesForm().clinicNotes.length >= 450">
+                    {{ notesForm().clinicNotes.length }}/500
+                  </span>
+                </div>
                 <textarea placeholder="Observations, follow-up instructions, allergy notes…" rows="3"
+                          maxlength="500"
                           [ngModel]="notesForm().clinicNotes"
                           (ngModelChange)="setNotesText($event)"
                           class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none
-                                 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 resize-none"></textarea>
+                                 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 resize-none"></textarea>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
@@ -208,14 +222,14 @@
                          [ngModel]="notesForm().amountCharged"
                          (ngModelChange)="setNotesAmount($event)"
                          class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none
-                                focus:ring-2 focus:ring-blue-100 focus:border-blue-400">
+                                focus:ring-2 focus:ring-blue-300 focus:border-blue-400">
                 </div>
                 <div>
                   <label class="text-xs font-medium text-gray-500 mb-1 block">Payment status</label>
                   <select [ngModel]="notesForm().paymentStatus"
                           (ngModelChange)="setNotesPayStatus($event)"
                           class="w-full text-sm border border-gray-200 rounded-xl px-2 py-2.5 outline-none
-                                 focus:ring-2 focus:ring-blue-100 bg-white">
+                                 focus:ring-2 focus:ring-blue-300 bg-white">
                     <option value="">— select —</option>
                     <option value="paid">Paid</option>
                     <option value="unpaid">Unpaid</option>
@@ -229,7 +243,7 @@
                   <select [ngModel]="notesForm().paymentMethod"
                           (ngModelChange)="setNotesPayMethod($event)"
                           class="w-full text-sm border border-gray-200 rounded-xl px-2 py-2.5 outline-none
-                                 focus:ring-2 focus:ring-blue-100 bg-white">
+                                 focus:ring-2 focus:ring-blue-300 bg-white">
                     <option value="">— select —</option>
                     <option value="cash">Cash</option>
                     <option value="upi">UPI</option>
@@ -762,7 +776,7 @@
                 <input type="text" placeholder="Search by name, phone, service, or ref…"
                        [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
                        class="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl outline-none
-                              focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white">
+                              focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white">
               </div>
 
               <!-- Date range -->
@@ -770,12 +784,12 @@
                 <div class="flex items-center gap-2 flex-1 min-w-0">
                   <span class="text-xs text-gray-500 font-medium flex-shrink-0 w-8">From</span>
                   <input type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)"
-                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-100 bg-white">
+                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-300 bg-white">
                 </div>
                 <div class="flex items-center gap-2 flex-1 min-w-0">
                   <span class="text-xs text-gray-500 font-medium flex-shrink-0 w-8">To</span>
                   <input type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)"
-                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-100 bg-white">
+                         class="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-300 bg-white">
                 </div>
 
                 <!-- Quick presets -->
@@ -915,7 +929,7 @@
                       </div>
                     </td>
                     <td class="px-5 py-3.5 cursor-pointer">
-                      <p class="text-xs text-gray-700 max-w-[140px] truncate">{{ appt.service }}</p>
+                      <p class="text-xs text-gray-700 max-w-[140px] truncate" [title]="appt.service">{{ appt.service }}</p>
                       @if (appt.message) {
                         <p class="text-[11px] text-gray-400 truncate max-w-[140px]" [title]="appt.message">{{ appt.message }}</p>
                       }
