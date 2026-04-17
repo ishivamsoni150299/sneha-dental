@@ -65,7 +65,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h2 class="font-bold text-gray-900">Appointment details</h2>
-          <button (click)="closeDetail()" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+          <button (click)="closeDetail()" class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
             <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -247,7 +247,7 @@
                 </button>
                 <button (click)="saveNotes()" [disabled]="savingNotes()"
                         class="flex-1 text-white text-sm font-bold py-2.5 rounded-xl
-                               disabled:opacity-50 transition-colors"
+                               disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         [style.background]="themeColor.hex">
                   {{ savingNotes() ? 'Saving…' : 'Save' }}
                 </button>
@@ -264,7 +264,7 @@
             <button (click)="confirm(detailAppt()!)"
                     [disabled]="updatingId() === detailAppt()!.id"
                     class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl
-                           text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                           text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
               </svg>
@@ -275,7 +275,7 @@
             <button (click)="markArrived(detailAppt()!)"
                     [disabled]="updatingId() === detailAppt()!.id"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl
-                           text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                           text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
@@ -286,7 +286,7 @@
             <button (click)="markCompleted(detailAppt()!)"
                     [disabled]="updatingId() === detailAppt()!.id"
                     class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl
-                           text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                           text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -578,7 +578,7 @@
             </span>
             <!-- Dismiss -->
             <button (click)="dismissOnboarding()" title="Dismiss checklist"
-                    class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0">
+                    class="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0">
               <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -976,7 +976,7 @@
                           </button>
                         }
                         <a [href]="whatsappUrl(appt)" target="_blank" rel="noopener noreferrer" title="WhatsApp"
-                           class="w-7 h-7 bg-green-100 hover:bg-green-200 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
+                           class="w-9 h-9 bg-green-100 hover:bg-green-200 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
                           <svg class="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
                           </svg>
