@@ -1,194 +1,219 @@
-<svg width="760" height="260" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="mydentalplatform — Dental Practice Management SaaS">
+<svg width="760" height="260" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="mydentalplatform">
   <defs>
 
-    <!-- Brand gradient: sky → deep blue -->
+    <!-- Sky → deep blue brand gradient -->
     <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%"   stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#1D4ED8"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
     </linearGradient>
 
-    <!-- Horizontal brand gradient for text -->
+    <!-- Horizontal gradient for "dental" text -->
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%"   stop-color="#38BDF8"/>
-      <stop offset="100%" stop-color="#60A5FA"/>
+      <stop offset="55%"  stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
     </linearGradient>
 
-    <!-- Vertical accent bar gradient -->
-    <linearGradient id="barGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <!-- Vertical left accent bar -->
+    <linearGradient id="accentBar" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%"   stop-color="#38BDF8" stop-opacity="0"/>
-      <stop offset="25%"  stop-color="#38BDF8"/>
-      <stop offset="75%"  stop-color="#1D4ED8"/>
+      <stop offset="22%"  stop-color="#0EA5E9"/>
+      <stop offset="78%"  stop-color="#1D4ED8"/>
       <stop offset="100%" stop-color="#1D4ED8" stop-opacity="0"/>
     </linearGradient>
 
-    <!-- Tooth fill -->
-    <linearGradient id="toothFill" x1="20%" y1="0%" x2="80%" y2="100%">
-      <stop offset="0%"   stop-color="#ffffff"/>
+    <!-- Icon badge background -->
+    <radialGradient id="badgeBg" cx="45%" cy="35%" r="65%">
+      <stop offset="0%"   stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#0C1445"/>
+    </radialGradient>
+
+    <!-- Tooth fill — white to ice blue -->
+    <linearGradient id="toothFill" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#BAE6FD"/>
     </linearGradient>
 
-    <!-- Radial glow behind icon -->
-    <radialGradient id="iconGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="#1D4ED8" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#1D4ED8" stop-opacity="0"/>
-    </radialGradient>
-
-    <!-- Ambient background glow (left-center) -->
-    <radialGradient id="bgGlow" cx="18%" cy="50%" r="38%">
-      <stop offset="0%"   stop-color="#1E40AF" stop-opacity="0.28"/>
+    <!-- Background ambient glow (left side) -->
+    <radialGradient id="ambientL" cx="15%" cy="50%" r="42%">
+      <stop offset="0%"   stop-color="#1D4ED8" stop-opacity="0.28"/>
       <stop offset="100%" stop-color="#020617"  stop-opacity="0"/>
     </radialGradient>
 
-    <!-- Tooth glow filter -->
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
+    <!-- Tooth drop-shadow glow -->
+    <filter id="toothGlow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 0.22
+                0 0 0 0 0.55
+                0 0 0 0 0.98
+                0 0 0 0.6 0" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- "dental" text subtle glow -->
+    <filter id="textGlow" x="-8%" y="-60%" width="116%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
 
-    <!-- Soft text glow -->
-    <filter id="softGlow" x="-20%" y="-60%" width="140%" height="220%">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feComposite in="blur" in2="SourceGraphic" operator="over"/>
-    </filter>
-
-    <!-- Dot grid pattern -->
-    <pattern id="grid" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-      <circle cx="14" cy="14" r="0.9" fill="rgba(148,163,184,0.07)"/>
+    <!-- Dot grid texture -->
+    <pattern id="dots" x="0" y="0" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="13" r="0.85" fill="rgba(148,163,184,0.065)"/>
     </pattern>
 
-    <!-- Rounded clip -->
+    <!-- Card clip (rounded corners) -->
     <clipPath id="card">
-      <rect width="760" height="260" rx="24"/>
+      <rect width="760" height="260" rx="28"/>
     </clipPath>
 
   </defs>
 
   <g clip-path="url(#card)">
 
-    <!-- ── Background ──────────────────────────────────────────────── -->
+    <!-- ═══ BACKGROUND ══════════════════════════════════════════════════ -->
     <rect width="760" height="260" fill="#020617"/>
-    <rect width="760" height="260" fill="url(#grid)"/>
-    <rect width="760" height="260" fill="url(#bgGlow)"/>
+    <rect width="760" height="260" fill="url(#dots)"/>
+    <rect width="760" height="260" fill="url(#ambientL)"/>
 
-    <!-- ── Left accent bar ─────────────────────────────────────────── -->
-    <rect x="0" y="0" width="5" height="260" fill="url(#barGrad)"/>
+    <!-- 1px top edge highlight -->
+    <rect x="0" y="0" width="760" height="1" fill="rgba(56,189,248,0.18)"/>
 
-    <!-- ── Icon section ────────────────────────────────────────────── -->
+    <!-- ═══ LEFT ACCENT BAR ════════════════════════════════════════════ -->
+    <rect x="0" y="0" width="5" height="260" fill="url(#accentBar)"/>
 
-    <!-- Outer glow halo -->
-    <circle cx="102" cy="130" r="62" fill="url(#iconGlow)"/>
+    <!-- ═══ ICON BADGE ════════════════════════════════════════════════ -->
 
-    <!-- Badge ring -->
-    <circle cx="102" cy="130" r="50"
-            fill="rgba(15,23,42,0.85)"
+    <!-- Outer ambient halo -->
+    <circle cx="92" cy="130" r="64" fill="rgba(29,78,216,0.14)"/>
+    <!-- Badge body -->
+    <circle cx="92" cy="130" r="52"
+            fill="url(#badgeBg)"
             stroke="rgba(56,189,248,0.22)"
-            stroke-width="1.2"/>
-
-    <!-- Inner badge ring -->
-    <circle cx="102" cy="130" r="42"
+            stroke-width="1.3"/>
+    <!-- Inner ring -->
+    <circle cx="92" cy="130" r="44"
             fill="none"
-            stroke="rgba(56,189,248,0.10)"
+            stroke="rgba(56,189,248,0.09)"
             stroke-width="0.8"/>
 
-    <!-- Tooth icon — crown centered at (102,130), height ≈ 66px -->
-    <g filter="url(#glow)">
-      <path d="M102 97
-        C93 97 81 104 80 113
-        C79 121 83 127 87 131
-        L85 151
-        C84 158 87 164 91 164
-        C96 164 97 159 97 153
-        L98 142
-        C98.5 139 105.5 139 106 142
-        L107 153
-        C107 159 109 164 114 164
-        C119 164 122 158 121 151
-        L119 131
-        C123 127 127 121 126 113
-        C125 104 111 97 102 97 Z"
-        fill="url(#toothFill)"/>
-
+    <!-- Tooth path
+         Original 200×200 tooth centered at (100.5, 81), h=86, w=59
+         Target center: (92, 128), desired height 62px → scale=0.721
+         tx = 92 − 100.5×0.721 = 92 − 72.46 = 19.54
+         ty = 128 − 81×0.721  = 128 − 58.4  = 69.6              -->
+    <g transform="translate(19.5, 69.6) scale(0.721)" filter="url(#toothGlow)">
+      <path d="M100 38
+               C88 38 72 46 71 58
+               C70 69 75 76 81 81
+               L78 108
+               C77 116 80 124 86 124
+               C92 124 94 118 94 110
+               L95.5 96
+               C96 92 104 92 104.5 96
+               L106 110
+               C106 118 108 124 114 124
+               C120 124 123 116 122 108
+               L119 81
+               C125 76 130 69 129 58
+               C128 46 112 38 100 38 Z"
+            fill="url(#toothFill)"/>
       <!-- Crown highlight arc -->
-      <path d="M88 107 C91 103 95 101 99 102"
-            stroke="rgba(255,255,255,0.65)"
-            stroke-width="2"
+      <path d="M80 51 C83 47 87 45 91 46"
+            stroke="rgba(255,255,255,0.7)"
+            stroke-width="2.8"
             fill="none"
             stroke-linecap="round"/>
-
-      <!-- Root divider groove -->
-      <path d="M102 142 L102 154"
-            stroke="rgba(147,197,253,0.30)"
-            stroke-width="1.2"
+      <!-- Root centre groove -->
+      <path d="M100.5 97 L100.5 110"
+            stroke="rgba(147,197,253,0.28)"
+            stroke-width="1.4"
             fill="none"
             stroke-linecap="round"/>
     </g>
 
-    <!-- Sparkle star top-right of tooth -->
-    <g transform="translate(143, 87)" opacity="0.92">
-      <path d="M0,-8 L1.8,-1.8 L8,0 L1.8,1.8 L0,8 L-1.8,1.8 L-8,0 L-1.8,-1.8 Z"
+    <!-- 4-point sparkle (top-right of badge) -->
+    <g transform="translate(135, 83)" opacity="0.95">
+      <path d="M0,-9 L2.1,-2.1 L9,0 L2.1,2.1 L0,9 L-2.1,2.1 L-9,0 L-2.1,-2.1 Z"
             fill="#38BDF8"/>
     </g>
-    <circle cx="152" cy="79"  r="2.2" fill="rgba(56,189,248,0.55)"/>
-    <circle cx="145" cy="76"  r="1.4" fill="rgba(56,189,248,0.35)"/>
+    <circle cx="148" cy="74" r="2.6" fill="rgba(56,189,248,0.52)"/>
+    <circle cx="141" cy="70" r="1.6" fill="rgba(56,189,248,0.32)"/>
 
-    <!-- Small medical cross (bottom-left of badge) -->
-    <g transform="translate(65, 162)" opacity="0.35">
-      <rect x="-1.2" y="-5" width="2.4" height="10" rx="1.2" fill="#38BDF8"/>
-      <rect x="-5"   y="-1.2" width="10" height="2.4" rx="1.2" fill="#38BDF8"/>
+    <!-- Medical cross (bottom-left accent) -->
+    <g transform="translate(53, 168)" opacity="0.28">
+      <rect x="-1.4" y="-5.5" width="2.8" height="11" rx="1.4" fill="#38BDF8"/>
+      <rect x="-5.5" y="-1.4" width="11"  height="2.8" rx="1.4" fill="#38BDF8"/>
     </g>
 
-    <!-- ── Typography ──────────────────────────────────────────────── -->
+    <!-- ═══ TYPOGRAPHY ════════════════════════════════════════════════ -->
 
-    <!-- Category label -->
-    <text x="176" y="101"
-          font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
-          font-size="9.5"
+    <!-- Category super-label -->
+    <text x="170" y="100"
+          font-family="'Segoe UI', 'SF Pro Text', system-ui, -apple-system, sans-serif"
+          font-size="9"
           font-weight="600"
-          fill="rgba(56,189,248,0.65)"
-          letter-spacing="3.5">DENTAL PRACTICE MANAGEMENT</text>
+          letter-spacing="4.2"
+          fill="rgba(56,189,248,0.58)">DENTAL PRACTICE MANAGEMENT</text>
 
-    <!-- Main brand name -->
-    <text y="150"
-          font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
-          font-size="42"
-          letter-spacing="-1">
-      <tspan x="176" font-weight="300" fill="#CBD5E1">my</tspan><tspan font-weight="800" fill="url(#textGrad)" filter="url(#softGlow)">dental</tspan><tspan font-weight="300" fill="#94A3B8">platform</tspan>
+    <!-- ── Main brand name ── -->
+    <text y="153"
+          font-family="'Segoe UI', 'SF Pro Display', system-ui, -apple-system, sans-serif"
+          font-size="46"
+          xml:space="preserve">
+      <!-- "my" — light weight, muted -->
+      <tspan x="170"
+             font-weight="300"
+             fill="#CBD5E1"
+             letter-spacing="-0.5">my</tspan><!--
+   --><tspan font-weight="800"
+             fill="url(#textGrad)"
+             letter-spacing="-1.2"
+             filter="url(#textGlow)">dental</tspan><!--
+   --><tspan font-weight="300"
+             fill="#64748B"
+             letter-spacing="-0.5">platform</tspan>
     </text>
 
-    <!-- Underline accent beneath "dental" (approx x=218 to x=374) -->
-    <rect x="218" y="157" width="154" height="2.5" rx="1.25" fill="url(#textGrad)" opacity="0.75"/>
+    <!-- Gradient pill underline beneath "dental"
+         At 46px, "my" (weight 300) ≈ 52px wide → dental starts at x≈222
+         "dental" (weight 800) ≈ 135px → ends at x≈357               -->
+    <rect x="222" y="162" width="135" height="2.8" rx="1.4"
+          fill="url(#textGrad)" opacity="0.82"/>
 
     <!-- Tagline -->
-    <text x="176" y="182"
-          font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    <text x="170" y="185"
+          font-family="'Segoe UI', 'SF Pro Text', system-ui, -apple-system, sans-serif"
           font-size="12"
           font-weight="400"
-          fill="rgba(100,116,139,0.85)"
-          letter-spacing="0.3">
-      Manage every clinic · Delight every patient
-    </text>
+          letter-spacing="0.15"
+          fill="rgba(100,116,139,0.80)">Manage every clinic · Delight every patient</text>
 
-    <!-- ── Right decorative data-viz bars ─────────────────────────── -->
-    <g opacity="0.14" transform="translate(672, 68)">
-      <rect x="0"  y="0"   width="4" height="124" rx="2" fill="#38BDF8"/>
-      <rect x="12" y="18"  width="4" height="88"  rx="2" fill="#38BDF8"/>
-      <rect x="24" y="8"   width="4" height="108" rx="2" fill="#60A5FA"/>
-      <rect x="36" y="30"  width="4" height="64"  rx="2" fill="#1D4ED8"/>
-      <rect x="48" y="14"  width="4" height="96"  rx="2" fill="#1D4ED8"/>
-      <rect x="60" y="44"  width="4" height="36"  rx="2" fill="#38BDF8"/>
+    <!-- ═══ RIGHT DECORATIVE BARS (data-viz feel) ════════════════════ -->
+    <g opacity="0.13" transform="translate(648, 62)">
+      <rect x="0"  y="0"   width="5.5" height="136" rx="2.75" fill="#38BDF8"/>
+      <rect x="14" y="22"  width="5.5" height="92"  rx="2.75" fill="#60A5FA"/>
+      <rect x="28" y="9"   width="5.5" height="118" rx="2.75" fill="#38BDF8"/>
+      <rect x="42" y="38"  width="5.5" height="60"  rx="2.75" fill="#3B82F6"/>
+      <rect x="56" y="16"  width="5.5" height="104" rx="2.75" fill="#1D4ED8"/>
+      <rect x="70" y="52"  width="5.5" height="32"  rx="2.75" fill="#38BDF8"/>
+      <rect x="84" y="28"  width="5.5" height="80"  rx="2.75" fill="#60A5FA"/>
     </g>
 
-    <!-- ── Bottom vignette ─────────────────────────────────────────── -->
-    <rect x="0" y="210" width="760" height="50"
-          fill="url(#bgVig)" opacity="0.5"/>
+    <!-- Subtle vertical separator before right deco -->
+    <line x1="634" y1="72" x2="634" y2="188"
+          stroke="rgba(56,189,248,0.07)" stroke-width="1"/>
 
-    <!-- Subtle border glow on card edge -->
-    <rect width="760" height="260" rx="24"
+    <!-- ═══ CARD BORDER ════════════════════════════════════════════════ -->
+    <rect width="760" height="260" rx="28"
           fill="none"
-          stroke="rgba(56,189,248,0.10)"
+          stroke="rgba(56,189,248,0.09)"
           stroke-width="1.5"/>
 
   </g>
