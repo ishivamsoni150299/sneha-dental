@@ -27,6 +27,16 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
   imports: [FormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <!-- Toast -->
+    @if (toast()) {
+      <div class="fixed top-4 right-4 z-[70] flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium bg-gray-900 text-white animate-in fade-in slide-in-from-top-2 duration-200">
+        <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        {{ toast() }}
+      </div>
+    }
+
     <div class="min-h-screen bg-slate-50">
 
       <!-- ── Header ───────────────────────────────────────────────────────── -->
@@ -165,6 +175,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                     Edit Schedule
                   </button>
                   <button (click)="confirmDelete(doctor)"
+                          [attr.aria-label]="'Remove ' + doctor.name"
                           class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition-colors shrink-0">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -193,7 +204,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
           <!-- Modal header -->
           <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
             <h2 class="font-bold text-gray-900">{{ modalMode() === 'add' ? 'Add Doctor' : 'Edit Doctor' }}</h2>
-            <button (click)="closeModal()" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+            <button (click)="closeModal()" aria-label="Close" class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
               <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -207,14 +218,14 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
                 <input [(ngModel)]="form.name" name="doctorName" type="text"
-                       placeholder="e.g. Dr. Priya Sharma"
-                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] bg-white">
+                       placeholder="e.g. Dr. Priya Sharma" autofocus
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Qualification</label>
                 <input [(ngModel)]="form.qualification" name="doctorQual" type="text"
                        placeholder="e.g. BDS, MDS"
-                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] bg-white">
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
               </div>
             </div>
 
@@ -224,7 +235,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Speciality</label>
                 <input [(ngModel)]="form.speciality" name="doctorSpec" type="text"
                        placeholder="e.g. Orthodontics"
-                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] bg-white">
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
               </div>
               <div class="flex items-center gap-3 pt-6">
                 <label class="relative inline-flex items-center cursor-pointer">
@@ -341,7 +352,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
             </button>
             <button (click)="doDelete()"
                     [disabled]="saving()"
-                    class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
+                    class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
               Remove
             </button>
           </div>
@@ -375,6 +386,14 @@ export class AdminDoctorsComponent implements OnInit {
   saving      = signal(false);
   toggling    = signal<string | null>(null);
   deleteTarget = signal<Doctor | null>(null);
+  toast       = signal<string | null>(null);
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private showToast(msg: string) {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toast.set(msg);
+    this.toastTimer = setTimeout(() => this.toast.set(null), 3000);
+  }
 
   // ── Modal ─────────────────────────────────────────────────────────────────
   showModal  = signal(false);
@@ -430,12 +449,14 @@ export class AdminDoctorsComponent implements OnInit {
       if (this.modalMode() === 'add') {
         const newId = await this.doctorSvc.addDoctor(this.clinicId, this.form);
         this.doctors.update(list => [...list, { id: newId, ...this.form }]);
+        this.showToast(`Dr. ${this.form.name} added.`);
       } else {
         const id = this.editId()!;
         await this.doctorSvc.updateDoctor(this.clinicId, id, this.form);
         this.doctors.update(list =>
           list.map(d => d.id === id ? { ...d, ...this.form } : d)
         );
+        this.showToast('Doctor updated.');
       }
       this.closeModal();
     } catch (e) {
@@ -473,6 +494,7 @@ export class AdminDoctorsComponent implements OnInit {
       await this.doctorSvc.deleteDoctor(this.clinicId, target.id);
       this.doctors.update(list => list.filter(d => d.id !== target.id));
       this.deleteTarget.set(null);
+      this.showToast(`${target.name} removed.`);
     } catch (e) {
       console.error(e);
       this.errorMsg.set('Delete failed.');
