@@ -34,7 +34,8 @@
           <input formControlName="clinicName" type="text" placeholder="e.g. Sharma Dental Clinic"
                  class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                 [class.border-red-300]="form.controls.clinicName.invalid && form.controls.clinicName.touched"/>
+                 [class.border-red-300]="form.controls.clinicName.invalid && form.controls.clinicName.touched"
+                 [class.bg-red-50]="form.controls.clinicName.invalid && form.controls.clinicName.touched"/>
         </div>
 
         <!-- Doctor Name -->
@@ -43,7 +44,8 @@
           <input formControlName="doctorName" type="text" placeholder="e.g. Dr. Ramesh Sharma"
                  class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                 [class.border-red-300]="form.controls.doctorName.invalid && form.controls.doctorName.touched"/>
+                 [class.border-red-300]="form.controls.doctorName.invalid && form.controls.doctorName.touched"
+                 [class.bg-red-50]="form.controls.doctorName.invalid && form.controls.doctorName.touched"/>
         </div>
 
         <!-- Phone -->
@@ -52,7 +54,8 @@
           <input formControlName="phone" type="tel" placeholder="e.g. 9876543210"
                  class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                 [class.border-red-300]="form.controls.phone.invalid && form.controls.phone.touched"/>
+                 [class.border-red-300]="form.controls.phone.invalid && form.controls.phone.touched"
+                 [class.bg-red-50]="form.controls.phone.invalid && form.controls.phone.touched"/>
           <p class="text-[11px] text-gray-400 mt-1">Used to open WhatsApp outreach. Country code auto-added.</p>
         </div>
 
@@ -62,7 +65,8 @@
           <input formControlName="city" type="text" placeholder="e.g. Noida"
                  class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                 [class.border-red-300]="form.controls.city.invalid && form.controls.city.touched"/>
+                 [class.border-red-300]="form.controls.city.invalid && form.controls.city.touched"
+                 [class.bg-red-50]="form.controls.city.invalid && form.controls.city.touched"/>
         </div>
 
         <!-- Source -->
