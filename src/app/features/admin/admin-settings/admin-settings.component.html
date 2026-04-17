@@ -81,7 +81,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">Doctor Name <span class="text-red-400">*</span></label>
-              <input formControlName="doctorName" type="text" placeholder="Dr. Ramesh Sharma"
+              <input formControlName="doctorName" type="text" placeholder="Dr. Ramesh Sharma" autofocus
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(infoForm, 'doctorName')
                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200 bg-red-50'
@@ -109,8 +109,17 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1.5">Doctor Bio</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-gray-600">Doctor Bio</label>
+              <span class="text-[11px]"
+                    [class]="(infoForm.get('doctorBio')?.value?.length || 0) > 480
+                      ? 'text-red-500 font-semibold'
+                      : 'text-gray-400'">
+                {{ infoForm.get('doctorBio')?.value?.length || 0 }}/500
+              </span>
+            </div>
             <textarea formControlName="doctorBio" rows="5" placeholder="Write each paragraph on a new line…"
+                      maxlength="500"
                       class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                              focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none">
             </textarea>
@@ -120,7 +129,7 @@
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingInfo()"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
+                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
               @if (savingInfo()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -147,7 +156,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">Phone Number <span class="text-red-400">*</span></label>
-              <input formControlName="phone" type="tel" placeholder="+91 98765 43210"
+              <input formControlName="phone" type="tel" placeholder="+91 98765 43210" autofocus
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(contactForm, 'phone')
                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200 bg-red-50'
@@ -213,7 +222,7 @@
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingContact()"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
+                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
               @if (savingContact()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -297,7 +306,7 @@
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingHours()"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
+                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
               @if (savingHours()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -390,8 +399,16 @@
                   </div>
 
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Review Text <span class="text-red-400">*</span></label>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="block text-xs font-semibold text-gray-600">Review Text <span class="text-red-400">*</span></label>
+                      <span class="text-[11px]"
+                            [class]="(testimonialsArr.at($index).get('review')?.value?.length || 0) > 230
+                              ? 'text-red-500 font-semibold' : 'text-gray-400'">
+                        {{ testimonialsArr.at($index).get('review')?.value?.length || 0 }}/250
+                      </span>
+                    </div>
                     <textarea formControlName="review" rows="3"
+                              maxlength="250"
                               placeholder="The doctor was very gentle and explained everything clearly…"
                               class="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 resize-none transition-colors"
                               [class]="(testimonialsArr.at($index).get('review')?.invalid && testimonialsArr.at($index).get('review')?.touched)
@@ -410,7 +427,7 @@
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingTestimonials()"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
+                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
               @if (savingTestimonials()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -486,7 +503,7 @@
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingSocial()"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2">
+                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
               @if (savingSocial()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>

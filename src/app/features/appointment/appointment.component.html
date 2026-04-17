@@ -106,7 +106,7 @@
                               class="flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all min-h-[52px]"
                               [class]="selectedDoctorId() === ''
                                 ? 'border-[var(--accent)] bg-[var(--accent-lt)] ring-1 ring-[var(--accent)]'
-                                : 'border-gray-200 bg-white hover:border-gray-300'">
+                                : 'border-gray-200 bg-white hover:border-gray-300 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:outline-none'">
                         <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                           <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -123,7 +123,7 @@
                                 class="flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all min-h-[52px]"
                                 [class]="selectedDoctorId() === doctor.id
                                   ? 'border-[var(--accent)] bg-[var(--accent-lt)] ring-1 ring-[var(--accent)]'
-                                  : 'border-gray-200 bg-white hover:border-gray-300'">
+                                  : 'border-gray-200 bg-white hover:border-gray-300 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:outline-none'">
                           <div class="w-9 h-9 rounded-lg bg-[var(--accent-lt)] flex items-center justify-center text-[var(--accent)] font-bold text-xs shrink-0">
                             {{ doctorInitials(doctor.name) }}
                           </div>
@@ -250,6 +250,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                     <input id="appointment-name" formControlName="name" type="text" autocomplete="name" placeholder="e.g. Priya Sharma"
+                           autofocus
                            class="w-full pl-10 pr-4 py-3.5 rounded-xl border transition-colors outline-none"
                            [class]="isInvalid('name') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                   </div>
