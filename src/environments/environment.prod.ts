@@ -3,7 +3,7 @@ export const environment = {
   googleMapsApiKey: '', // Set your Google Maps API key here before deploying
   firebase: {
     apiKey: 'AIzaSyA_efkmE9dWE6jjyDwgE6qGMLrx_BMJEmQ',
-    authDomain: 'sneha-dental-6373b.firebaseapp.com',
+    authDomain: 'mydentalplatform.com',
     projectId: 'sneha-dental-6373b',
     storageBucket: 'sneha-dental-6373b.firebasestorage.app',
     messagingSenderId: '90894209744',
