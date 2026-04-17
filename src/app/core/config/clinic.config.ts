@@ -65,6 +65,7 @@ export interface ClinicConfig {
   // ── Brand ─────────────────────────────────────────────────────────────────
   theme: 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose'; // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"
+  logoDataUrl?: string;           // base64 compressed logo (≤200×200 px) — overrides default tooth icon
 
   // ── Social ────────────────────────────────────────────────────────────────
   social: { facebook?: string; instagram?: string; linkedin?: string };

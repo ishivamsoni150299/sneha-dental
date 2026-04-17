@@ -26,6 +26,7 @@ export interface ClinicSettingsPayload {
   testimonials?:        Testimonial[];
   social?:              { facebook?: string; instagram?: string; linkedin?: string };
   theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
+  logoDataUrl?:         string | null;   // null = remove logo
   comingSoon?:          boolean;
   launchDate?:          string;
 }

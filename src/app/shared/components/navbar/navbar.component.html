@@ -8,30 +8,37 @@
 
       <!-- Logo -->
       <a routerLink="/" class="flex items-center gap-2.5 group flex-shrink-0">
-        <!-- Tooth icon -->
-        <svg class="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
-             [class]="scrolled() ? 'w-[26px] h-[32px]' : 'w-[30px] h-[37px]'"
-             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
-          <defs>
-            <linearGradient id="navTooth" x1="0" y1="0" x2=".6" y2="1">
-              <stop offset="0%" stop-color="#3b82f6"/>
-              <stop offset="100%" stop-color="#1d4ed8"/>
-            </linearGradient>
-          </defs>
-          <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8
-                   L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5
-                   L 17,20 L 15,20
-                   L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z"
-                fill="url(#navTooth)"/>
-          <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.22"
-                   transform="rotate(-18,9,8)"/>
-        </svg>
-        <!-- Wordmark -->
-        <span class="flex flex-col leading-none group-hover:opacity-90 transition-opacity">
-          <span class="font-['Cormorant_Garamond',Georgia,serif] text-gray-900 font-medium tracking-tight transition-all duration-300"
-                [class]="scrolled() ? 'text-lg' : 'text-xl'">{{ config.name }}</span>
-          <span class="text-[8px] font-semibold tracking-[3.5px] text-blue-600 uppercase mt-0.5">DENTAL</span>
-        </span>
+        @if (config.logoDataUrl) {
+          <!-- Custom uploaded logo -->
+          <img [src]="config.logoDataUrl" alt="{{ config.name }} logo"
+               class="object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+               [class]="scrolled() ? 'h-8 max-w-[140px]' : 'h-10 max-w-[160px]'">
+        } @else {
+          <!-- Default tooth icon -->
+          <svg class="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+               [class]="scrolled() ? 'w-[26px] h-[32px]' : 'w-[30px] h-[37px]'"
+               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
+            <defs>
+              <linearGradient id="navTooth" x1="0" y1="0" x2=".6" y2="1">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#1d4ed8"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8
+                     L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5
+                     L 17,20 L 15,20
+                     L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z"
+                  fill="url(#navTooth)"/>
+            <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.22"
+                     transform="rotate(-18,9,8)"/>
+          </svg>
+          <!-- Wordmark (only shown when no custom logo) -->
+          <span class="flex flex-col leading-none group-hover:opacity-90 transition-opacity">
+            <span class="font-['Cormorant_Garamond',Georgia,serif] text-gray-900 font-medium tracking-tight transition-all duration-300"
+                  [class]="scrolled() ? 'text-lg' : 'text-xl'">{{ config.name }}</span>
+            <span class="text-[8px] font-semibold tracking-[3.5px] text-blue-600 uppercase mt-0.5">DENTAL</span>
+          </span>
+        }
       </a>
 
       <!-- Desktop Nav -->

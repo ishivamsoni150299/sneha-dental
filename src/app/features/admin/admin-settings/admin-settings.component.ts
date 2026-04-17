@@ -12,7 +12,7 @@ import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.
 import { Testimonial, ClinicHours, ClinicConfig } from '../../../core/config/clinic.config';
 import { BillingService, BillingPlan } from '../../../core/services/billing.service';
 
-type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'subscription' | 'voice';
+type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'logo' | 'subscription' | 'voice';
 
 export interface ThemeOption {
   value: ClinicConfig['theme'];
@@ -59,6 +59,7 @@ export class AdminSettingsComponent implements OnInit {
     { id: 'testimonials', label: 'Testimonials' },
     { id: 'social',       label: 'Social' },
     { id: 'theme',        label: 'Theme' },
+    { id: 'logo',         label: '🖼 Logo' },
     { id: 'subscription', label: '⚡ Plan' },
     { id: 'voice',        label: '🎙 Voice Agent' },
   ];
@@ -114,6 +115,11 @@ export class AdminSettingsComponent implements OnInit {
 
   selectedTheme = signal<ClinicConfig['theme']>('blue');
   savingTheme   = signal(false);
+
+  // ── Logo ──────────────────────────────────────────────────────────────────
+  logoPreview   = signal<string | null>(null);   // new file preview (not yet saved)
+  savingLogo    = signal(false);
+  logoError     = signal<string | null>(null);
 
   readonly STARS = [1, 2, 3, 4, 5] as const;
 
@@ -493,6 +499,99 @@ export class AdminSettingsComponent implements OnInit {
     } finally {
       this.upgrading.set(false);
     }
+  }
+
+  // ── Logo upload ───────────────────────────────────────────────────────────
+
+  /** Called when user picks a file. Compresses via canvas and sets preview. */
+  async onLogoFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file  = input.files?.[0];
+    if (!file) return;
+    this.logoError.set(null);
+
+    // 5 MB guard
+    if (file.size > 5 * 1024 * 1024) {
+      this.logoError.set('File too large — max 5 MB.');
+      input.value = '';
+      return;
+    }
+
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      this.logoError.set('Use PNG, JPG, WebP, SVG, or GIF.');
+      input.value = '';
+      return;
+    }
+
+    try {
+      const dataUrl = await this.compressLogo(file);
+      this.logoPreview.set(dataUrl);
+    } catch {
+      this.logoError.set('Could not read the image. Try a different file.');
+    }
+    input.value = '';
+  }
+
+  /** Resize to max 300 × 120 px, keeping aspect ratio, then base64-encode. */
+  private compressLogo(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // SVG: just read as text → data URL directly (vector stays crisp at any size)
+      if (file.type === 'image/svg+xml') {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const MAX_W = 400, MAX_H = 160;
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const ratio = Math.min(MAX_W / w, MAX_H / h, 1); // never upscale
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        // PNG for transparent images, JPEG for opaque photos
+        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        resolve(canvas.toDataURL(mime, 0.88));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load failed')); };
+      img.src = url;
+    });
+  }
+
+  async saveLogo(): Promise<void> {
+    const dataUrl = this.logoPreview();
+    if (!dataUrl || !this.guardClinicId()) return;
+    this.savingLogo.set(true);
+    try {
+      await this.store.updateClinicSettings(this.clinicId, { logoDataUrl: dataUrl });
+      this.clinicCfg.updateConfig({ logoDataUrl: dataUrl });
+      this.logoPreview.set(null);
+      this.showToast('Logo saved — now live on your website!', 'success');
+    } catch { this.showToast('Failed to save logo. Try again.', 'error'); }
+    finally   { this.savingLogo.set(false); }
+  }
+
+  async removeLogo(): Promise<void> {
+    if (!this.guardClinicId()) return;
+    this.savingLogo.set(true);
+    try {
+      await this.store.updateClinicSettings(this.clinicId, { logoDataUrl: null });
+      this.clinicCfg.updateConfig({ logoDataUrl: undefined });
+      this.logoPreview.set(null);
+      this.showToast('Logo removed — default icon restored.', 'success');
+    } catch { this.showToast('Failed to remove logo.', 'error'); }
+    finally   { this.savingLogo.set(false); }
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
