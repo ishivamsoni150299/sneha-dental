@@ -2,10 +2,9 @@
 
   <!-- Toast -->
   @if (toast()) {
-    <div class="fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all"
-         [class]="toast()!.type === 'success'
-           ? 'bg-gray-900 text-white'
-           : 'bg-red-600 text-white'">
+    <div role="status" aria-live="polite" aria-atomic="true"
+         class="fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium max-w-xs"
+         [class]="toast()!.type === 'success' ? 'bg-gray-900 text-white' : 'bg-red-600 text-white'">
       @if (toast()!.type === 'success') {
         <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -15,7 +14,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       }
-      {{ toast()!.msg }}
+      <span class="flex-1">{{ toast()!.msg }}</span>
+      <button (click)="toast.set(null)" aria-label="Dismiss"
+              class="ml-1 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1 rounded">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
   }
 
@@ -62,7 +67,7 @@
       <input type="text" [ngModel]="search()" (ngModelChange)="search.set($event)"
              placeholder="Search by name, city or domain…"
              class="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl
-                    focus:outline-none focus:ring-2 focus:ring-gray-200 bg-white">
+                    focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white">
     </div>
   }
 
@@ -135,7 +140,16 @@
               </div>
               <div class="min-w-0">
                 <p class="font-semibold text-gray-900 text-sm truncate">{{ clinic.name }}</p>
-                <p class="text-xs text-gray-400 truncate">{{ clinic.domain || clinic.vercelDomain || '—' }}</p>
+                @if (clinic.domain || clinic.vercelDomain) {
+                  <a [href]="'https://' + (clinic.domain || clinic.vercelDomain)"
+                     target="_blank" rel="noopener noreferrer"
+                     class="text-xs text-blue-500 hover:text-blue-700 hover:underline truncate block transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 rounded"
+                     [title]="clinic.domain || clinic.vercelDomain">
+                    {{ clinic.domain || clinic.vercelDomain }}
+                  </a>
+                } @else {
+                  <p class="text-xs text-gray-400">No domain set</p>
+                }
                 <!-- Subscription badge -->
                 <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full"
                       [class]="subscriptionBadge(clinic).classes">
@@ -149,7 +163,8 @@
                     [disabled]="toggling() === clinic.id"
                     title="{{ clinic.active ? 'Click to deactivate' : 'Click to activate' }}"
                     class="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full
-                           border transition-colors disabled:opacity-50 cursor-pointer"
+                           border transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
                     [class]="clinic.active
                       ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                       : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'">
@@ -255,12 +270,14 @@
               <div class="flex items-center gap-2">
                 <button (click)="edit(clinic.id)"
                         class="flex-1 text-xs font-medium text-gray-700 hover:text-gray-900
-                               border border-gray-200 hover:border-gray-300 py-1.5 rounded-lg transition-colors">
+                               border border-gray-200 hover:border-gray-300 py-1.5 rounded-lg transition-colors
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1">
                   Edit
                 </button>
                 <button (click)="requestDelete(clinic.id)"
                         class="flex-1 text-xs font-medium text-red-500 hover:text-red-700
-                               border border-red-100 hover:border-red-200 py-1.5 rounded-lg transition-colors">
+                               border border-red-100 hover:border-red-200 py-1.5 rounded-lg transition-colors
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1">
                   Delete
                 </button>
               </div>
