@@ -269,6 +269,39 @@ body {
 ::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
+/* ── iOS AUTO-ZOOM FIX ────────────────────────────────────────────────────── */
+/* iOS Safari zooms in whenever an input has font-size < 16px.              */
+/* Force 1rem on all interactive inputs on mobile screens only.             */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="date"],
+  input[type="number"],
+  input[type="search"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 1rem !important;
+  }
+}
+
+/* ── MIN TAP TARGET SIZE ──────────────────────────────────────────────────── */
+/* Ensures all interactive elements meet the 44×44px minimum touch target.   */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── MOBILE BOTTOM BAR SPACER ─────────────────────────────────────────────── */
+/* Ensures page content is not hidden under the 62px fixed bottom nav bar.   */
+.mobile-bottom-safe {
+  padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+}
+
 /* ── TEAL THEME OVERRIDES ─────────────────────────────────────────────────── */
 /* Swap every blue-* utility with its teal equivalent when html.theme-teal    */
 

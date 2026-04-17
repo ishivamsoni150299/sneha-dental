@@ -42,6 +42,9 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
     </main>
     <app-footer />
 
+    <!-- Spacer: prevent content hiding under the 62px fixed mobile bottom bar -->
+    <div class="md:hidden" style="height: calc(62px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
+
     <!-- ── Desktop Speed-Dial FAB (hidden on mobile — bottom bar handles it) ── -->
     <div class="hidden md:flex flex-col items-end gap-2.5 fixed bottom-8 right-6 z-50">
 

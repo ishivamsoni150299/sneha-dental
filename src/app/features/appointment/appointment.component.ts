@@ -24,6 +24,44 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
 
+  // ── Multi-step form state ─────────────────────────────────────────────────
+  currentStep = signal<number>(1);
+  readonly totalSteps = 3;
+
+  readonly stepLabels = [
+    { num: 1, title: 'Service & Schedule', short: 'Service' },
+    { num: 2, title: 'Your Details',       short: 'Details' },
+    { num: 3, title: 'Confirm & Book',     short: 'Confirm' },
+  ];
+
+  /** Fields that must be valid before advancing from each step */
+  private readonly stepFields: Record<number, string[]> = {
+    1: ['service', 'date', 'time'],
+    2: ['name', 'phone'],
+    3: [],
+  };
+
+  nextStep() {
+    const step = this.currentStep();
+    const fields = this.stepFields[step] ?? [];
+    fields.forEach(f => this.form.get(f)!.markAsTouched());
+    const hasErrors = fields.some(f => this.form.get(f)!.invalid);
+    if (hasErrors) return;
+    if (step < this.totalSteps) {
+      this.currentStep.set(step + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  prevStep() {
+    const step = this.currentStep();
+    if (step > 1) this.currentStep.set(step - 1);
+  }
+
+  isStepComplete(step: number): boolean {
+    return (this.stepFields[step] ?? []).every(f => !this.form.get(f)!.invalid);
+  }
+
   // ── Form state ────────────────────────────────────────────────────────────
   submitting = signal(false);
   error      = signal<string | null>(null);
