@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sneha Dental — Logo System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:     #2563eb;
+    --blue-dk:  #1d4ed8;
+    --blue-md:  #3b82f6;
+    --blue-lt:  #60a5fa;
+    --slate:    #0f172a;
+    --muted:    #64748b;
+    --border:   #e2e8f0;
+    --bg:       #f8fafc;
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--slate);
+    min-height: 100vh;
+  }
+
+  /* ── Page layout ─────────────────────────────────────── */
+  .page       { max-width: 900px; margin: 0 auto; padding: 72px 24px 96px; }
+
+  .page-header { margin-bottom: 56px; }
+  .page-header .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--blue); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .page-header .eyebrow::before {
+    content: ''; display: block; width: 20px; height: 2px;
+    background: var(--blue); border-radius: 1px;
+  }
+  .page-header h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(32px, 5vw, 48px); font-weight: 500;
+    letter-spacing: -0.02em; line-height: 1.1; color: var(--slate);
+  }
+
+  /* ── Section headers ─────────────────────────────────── */
+  .section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  }
+
+  /* ── Preview cards ───────────────────────────────────── */
+  .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+  .card {
+    border-radius: 20px; padding: 48px 44px;
+    display: flex; flex-direction: column; gap: 44px;
+  }
+  .card-light { background: #fff; border: 1px solid var(--border); }
+  .card-dark  { background: #0c1525; }
+
+  .card-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .card-label-light { color: #cbd5e1; }
+  .card-label-dark  { color: #1e3a5f; }
+
+  .logo-slot { display: flex; flex-direction: column; gap: 10px; }
+  .slot-label {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .slot-label-light { color: #e2e8f0; }
+  .slot-label-dark  { color: #1a2f4e; }
+
+  .icon-row { display: flex; align-items: flex-end; gap: 16px; }
+
+  /* ── Sizes row ───────────────────────────────────────── */
+  .sizes-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 20px;
+    padding: 40px 44px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 48px; flex-wrap: wrap;
+  }
+  .divider { width: 1px; height: 40px; background: var(--border); }
+
+  /* ── Navbar mock ─────────────────────────────────────── */
+  .navbar-mock {
+    background: #fff; border: 1px solid var(--border); border-radius: 20px;
+    overflow: hidden; margin-bottom: 48px;
+  }
+  .navbar-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 60px; border-bottom: 1px solid #f1f5f9;
+  }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link {
+    font-size: 13px; font-weight: 500; color: #64748b;
+    padding: 6px 12px; border-radius: 8px;
+    text-decoration: none;
+  }
+  .nav-link-active { color: var(--blue); background: #eff6ff; font-weight: 600; }
+  .nav-cta {
+    background: var(--blue); color: #fff; font-size: 13px;
+    font-weight: 600; padding: 8px 16px; border-radius: 10px;
+    border: none; cursor: pointer; font-family: inherit;
+  }
+  .mock-label {
+    background: #f8fafc; padding: 10px 28px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #94a3b8;
+  }
+
+  /* ── Code section ────────────────────────────────────── */
+  .code-block {
+    background: #fff; border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+  }
+  .code-header {
+    padding: 16px 24px; border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .code-header-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .tab-group { display: flex; gap: 2px; background: #f1f5f9; padding: 3px; border-radius: 8px; }
+  .tab {
+    font-size: 11px; font-weight: 500; padding: 4px 14px; border-radius: 6px;
+    border: none; cursor: pointer; background: transparent; color: var(--muted); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab.active { background: #fff; color: var(--slate); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  pre {
+    background: #0d1526; color: #7dd3fc; padding: 28px 28px;
+    font-size: 12.5px; line-height: 1.75; overflow-x: auto;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    tab-size: 2;
+  }
+  .t  { color: #f8fafc; }   /* tag */
+  .a  { color: #93c5fd; }   /* attr */
+  .v  { color: #86efac; }   /* value */
+  .cm { color: #334155; }   /* comment */
+  .p  { color: #f472b6; }   /* punct / angle brackets */
+
+  /* ── Color tokens ────────────────────────────────────── */
+  .palette { display: flex; gap: 12px; margin-bottom: 48px; flex-wrap: wrap; }
+  .swatch { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); flex: 1; min-width: 120px; }
+  .swatch-color { height: 56px; }
+  .swatch-info { background: #fff; padding: 10px 14px; }
+  .swatch-name { font-size: 11px; font-weight: 600; color: var(--slate); display: block; }
+  .swatch-hex  { font-size: 10px; color: var(--muted); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header class="page-header">
+    <p class="eyebrow">Brand Identity</p>
+    <h1>Sneha Dental<br>Logo System</h1>
+  </header>
+
+  <!-- Navbar in context -->
+  <p class="section-title">In Context — Navbar</p>
+  <div class="navbar-mock">
+    <div class="navbar-inner">
+      <!-- Logo -->
+      <a href="#" style="display:flex;align-items:center;gap:10px;text-decoration:none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="26" height="32">
+          <defs>
+            <linearGradient id="ng" x1="0" y1="0" x2=".6" y2="1">
+              <stop offset="0%" stop-color="#3b82f6"/>
+              <stop offset="100%" stop-color="#1d4ed8"/>
+            </linearGradient>
+          </defs>
+          <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#ng)"/>
+          <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.22" transform="rotate(-18,9,8)"/>
+        </svg>
+        <span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:500;color:#0f172a;letter-spacing:-0.3px;line-height:1">Sneha
+          <span style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:2.5px;color:#2563eb;display:block;margin-top:1px">DENTAL</span>
+        </span>
+      </a>
+      <!-- Nav links -->
+      <div class="nav-links">
+        <a class="nav-link nav-link-active" href="#">Home</a>
+        <a class="nav-link" href="#">Services</a>
+        <a class="nav-link" href="#">About</a>
+        <a class="nav-link" href="#">Contact</a>
+      </div>
+      <button class="nav-cta">Book Appointment</button>
+    </div>
+    <div class="mock-label">Live navbar preview · light background</div>
+  </div>
+
+  <!-- Light / Dark previews -->
+  <p class="section-title">Logo Variants</p>
+  <div class="previews">
+
+    <!-- Light -->
+    <div class="card card-light">
+      <span class="card-label card-label-light">Light Background</span>
+
+      <div class="logo-slot">
+        <span class="slot-label slot-label-light">Horizontal</span>
+        <!-- Full logo · light -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 52" width="192" height="52">
+          <defs>
+            <linearGradient id="tgl" x1="0" y1="0" x2=".6" y2="1">
+              <stop offset="0%" stop-color="#3b82f6"/>
+              <stop offset="100%" stop-color="#1d4ed8"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(0,2) scale(0.857)">
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#tgl)"/>
+            <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.22" transform="rotate(-18,9,8)"/>
+          </g>
+          <text x="42" y="30" font-family="'Cormorant Garamond',Georgia,serif" font-size="26" font-weight="500" fill="#0f172a" letter-spacing="-0.4">Sneha</text>
+          <text x="43" y="46" font-family="'DM Sans',system-ui,sans-serif" font-size="9" fill="#2563eb" letter-spacing="3.8" font-weight="600">DENTAL</text>
+        </svg>
+      </div>
+
+      <div class="logo-slot">
+        <span class="slot-label slot-label-light">Icon only</span>
+        <div class="icon-row">
+          <!-- 48px -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="38" height="48">
+            <defs>
+              <linearGradient id="til" x1="0" y1="0" x2=".6" y2="1">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#1d4ed8"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#til)"/>
+            <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.22" transform="rotate(-18,9,8)"/>
+          </svg>
+          <!-- 32px -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="26" height="32">
+            <defs><linearGradient id="til2" x1="0" y1="0" x2=".6" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#til2)"/>
+            <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.22" transform="rotate(-18,9,8)"/>
+          </svg>
+          <!-- 20px -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="16" height="20">
+            <defs><linearGradient id="til3" x1="0" y1="0" x2=".6" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#til3)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark -->
+    <div class="card card-dark">
+      <span class="card-label card-label-dark">Dark Background</span>
+
+      <div class="logo-slot">
+        <span class="slot-label slot-label-dark">Horizontal</span>
+        <!-- Full logo · dark -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 52" width="192" height="52">
+          <defs>
+            <linearGradient id="tgd" x1="0" y1="0" x2=".6" y2="1">
+              <stop offset="0%" stop-color="#60a5fa"/>
+              <stop offset="100%" stop-color="#3b82f6"/>
+            </linearGradient>
+          </defs>
+          <g transform="translate(0,2) scale(0.857)">
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#tgd)"/>
+            <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.28" transform="rotate(-18,9,8)"/>
+          </g>
+          <text x="42" y="30" font-family="'Cormorant Garamond',Georgia,serif" font-size="26" font-weight="500" fill="#f1f5f9" letter-spacing="-0.4">Sneha</text>
+          <text x="43" y="46" font-family="'DM Sans',system-ui,sans-serif" font-size="9" fill="#93c5fd" letter-spacing="3.8" font-weight="600">DENTAL</text>
+        </svg>
+      </div>
+
+      <div class="logo-slot">
+        <span class="slot-label slot-label-dark">Icon only</span>
+        <div class="icon-row">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="38" height="48">
+            <defs><linearGradient id="tid" x1="0" y1="0" x2=".6" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#tid)"/>
+            <ellipse cx="9" cy="8" rx="3.5" ry="6" fill="white" opacity="0.28" transform="rotate(-18,9,8)"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="26" height="32">
+            <defs><linearGradient id="tid2" x1="0" y1="0" x2=".6" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#tid2)"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="16" height="20">
+            <defs><linearGradient id="tid3" x1="0" y1="0" x2=".6" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
+            <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#tid3)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color palette -->
+  <p class="section-title" style="margin-top:40px">Color Tokens</p>
+  <div class="palette">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#3b82f6"></div>
+      <div class="swatch-info"><span class="swatch-name">Primary</span><span class="swatch-hex">#3b82f6 · blue-500</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#2563eb"></div>
+      <div class="swatch-info"><span class="swatch-name">Brand</span><span class="swatch-hex">#2563eb · blue-600</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#1d4ed8"></div>
+      <div class="swatch-info"><span class="swatch-name">Dark</span><span class="swatch-hex">#1d4ed8 · blue-700</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0f172a"></div>
+      <div class="swatch-info"><span class="swatch-name">Text</span><span class="swatch-hex">#0f172a · slate-900</span></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#93c5fd; border:1px solid #e2e8f0"></div>
+      <div class="swatch-info"><span class="swatch-name">On Dark</span><span class="swatch-hex">#93c5fd · blue-300</span></div>
+    </div>
+  </div>
+
+  <!-- Export code -->
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-header-title">Copy SVG</span>
+      <div class="tab-group">
+        <button class="tab active" onclick="switchTab('full',this)">Full Logo</button>
+        <button class="tab" onclick="switchTab('icon',this)">Icon / Favicon</button>
+        <button class="tab" onclick="switchTab('navbar',this)">Navbar (Angular)</button>
+      </div>
+    </div>
+
+    <div id="pane-full">
+<pre><span class="cm">&lt;!-- Full horizontal logo — light background --&gt;</span>
+<span class="p">&lt;</span><span class="t">svg</span> <span class="a">xmlns</span>=<span class="v">"http://www.w3.org/2000/svg"</span> <span class="a">viewBox</span>=<span class="v">"0 0 192 52"</span> <span class="a">width</span>=<span class="v">"192"</span> <span class="a">height</span>=<span class="v">"52"</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="t">defs</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">linearGradient</span> <span class="a">id</span>=<span class="v">"toothGrad"</span> <span class="a">x1</span>=<span class="v">"0"</span> <span class="a">y1</span>=<span class="v">"0"</span> <span class="a">x2</span>=<span class="v">".6"</span> <span class="a">y2</span>=<span class="v">"1"</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="t">stop</span> <span class="a">offset</span>=<span class="v">"0%"</span>   <span class="a">stop-color</span>=<span class="v">"#3b82f6"</span><span class="p">/&gt;</span>
+      <span class="p">&lt;</span><span class="t">stop</span> <span class="a">offset</span>=<span class="v">"100%"</span> <span class="a">stop-color</span>=<span class="v">"#1d4ed8"</span><span class="p">/&gt;</span>
+    <span class="p">&lt;/</span><span class="t">linearGradient</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="t">defs</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- Tooth icon --&gt;</span>
+  <span class="p">&lt;</span><span class="t">g</span> <span class="a">transform</span>=<span class="v">"translate(0,2) scale(0.857)"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">path</span> <span class="a">d</span>=<span class="v">"M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8
+           L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5
+           L 17,20 L 15,20
+           L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z"</span>
+          <span class="a">fill</span>=<span class="v">"url(#toothGrad)"</span><span class="p">/&gt;</span>
+    <span class="cm">&lt;!-- Crown highlight --&gt;</span>
+    <span class="p">&lt;</span><span class="t">ellipse</span> <span class="a">cx</span>=<span class="v">"9"</span> <span class="a">cy</span>=<span class="v">"8"</span> <span class="a">rx</span>=<span class="v">"3.5"</span> <span class="a">ry</span>=<span class="v">"6"</span> <span class="a">fill</span>=<span class="v">"white"</span> <span class="a">opacity</span>=<span class="v">"0.22"</span>
+             <span class="a">transform</span>=<span class="v">"rotate(-18,9,8)"</span><span class="p">/&gt;</span>
+  <span class="p">&lt;/</span><span class="t">g</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- Wordmark --&gt;</span>
+  <span class="p">&lt;</span><span class="t">text</span> <span class="a">x</span>=<span class="v">"42"</span> <span class="a">y</span>=<span class="v">"30"</span>
+        <span class="a">font-family</span>=<span class="v">"'Cormorant Garamond',Georgia,serif"</span>
+        <span class="a">font-size</span>=<span class="v">"26"</span> <span class="a">font-weight</span>=<span class="v">"500"</span> <span class="a">fill</span>=<span class="v">"#0f172a"</span> <span class="a">letter-spacing</span>=<span class="v">"-0.4"</span>
+  <span class="p">&gt;</span>Sneha<span class="p">&lt;/</span><span class="t">text</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="t">text</span> <span class="a">x</span>=<span class="v">"43"</span> <span class="a">y</span>=<span class="v">"46"</span>
+        <span class="a">font-family</span>=<span class="v">"'DM Sans',system-ui,sans-serif"</span>
+        <span class="a">font-size</span>=<span class="v">"9"</span> <span class="a">fill</span>=<span class="v">"#2563eb"</span> <span class="a">letter-spacing</span>=<span class="v">"3.8"</span> <span class="a">font-weight</span>=<span class="v">"600"</span>
+  <span class="p">&gt;</span>DENTAL<span class="p">&lt;/</span><span class="t">text</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="t">svg</span><span class="p">&gt;</span></pre>
+    </div>
+
+    <div id="pane-icon" style="display:none">
+<pre><span class="cm">&lt;!-- Icon / Favicon (32×40 viewBox — scales to any size) --&gt;</span>
+<span class="p">&lt;</span><span class="t">svg</span> <span class="a">xmlns</span>=<span class="v">"http://www.w3.org/2000/svg"</span> <span class="a">viewBox</span>=<span class="v">"0 0 32 40"</span> <span class="a">width</span>=<span class="v">"32"</span> <span class="a">height</span>=<span class="v">"40"</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="t">defs</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">linearGradient</span> <span class="a">id</span>=<span class="v">"toothGrad"</span> <span class="a">x1</span>=<span class="v">"0"</span> <span class="a">y1</span>=<span class="v">"0"</span> <span class="a">x2</span>=<span class="v">".6"</span> <span class="a">y2</span>=<span class="v">"1"</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="t">stop</span> <span class="a">offset</span>=<span class="v">"0%"</span>   <span class="a">stop-color</span>=<span class="v">"#3b82f6"</span><span class="p">/&gt;</span>
+      <span class="p">&lt;</span><span class="t">stop</span> <span class="a">offset</span>=<span class="v">"100%"</span> <span class="a">stop-color</span>=<span class="v">"#1d4ed8"</span><span class="p">/&gt;</span>
+    <span class="p">&lt;/</span><span class="t">linearGradient</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="t">defs</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="t">path</span> <span class="a">d</span>=<span class="v">"M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8
+         L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5
+         L 17,20 L 15,20
+         L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z"</span>
+        <span class="a">fill</span>=<span class="v">"url(#toothGrad)"</span><span class="p">/&gt;</span>
+  <span class="p">&lt;</span><span class="t">ellipse</span> <span class="a">cx</span>=<span class="v">"9"</span> <span class="a">cy</span>=<span class="v">"8"</span> <span class="a">rx</span>=<span class="v">"3.5"</span> <span class="a">ry</span>=<span class="v">"6"</span> <span class="a">fill</span>=<span class="v">"white"</span> <span class="a">opacity</span>=<span class="v">"0.22"</span>
+           <span class="a">transform</span>=<span class="v">"rotate(-18,9,8)"</span><span class="p">/&gt;</span>
+<span class="p">&lt;/</span><span class="t">svg</span><span class="p">&gt;</span></pre>
+    </div>
+
+    <div id="pane-navbar" style="display:none">
+<pre><span class="cm">&lt;!-- Drop this into navbar.component.html, replacing the existing logo block --&gt;</span>
+<span class="p">&lt;</span><span class="t">a</span> <span class="a">routerLink</span>=<span class="v">"/"</span> <span class="a">class</span>=<span class="v">"flex items-center gap-2.5 group flex-shrink-0"</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- Tooth icon --&gt;</span>
+  <span class="p">&lt;</span><span class="t">svg</span> <span class="a">class</span>=<span class="v">"flex-shrink-0 transition-transform duration-300 group-hover:scale-105"</span>
+       <span class="a">[class]</span>=<span class="v">"scrolled() ? 'w-7 h-[34px]' : 'w-8 h-10'"</span>
+       <span class="a">xmlns</span>=<span class="v">"http://www.w3.org/2000/svg"</span> <span class="a">viewBox</span>=<span class="v">"0 0 32 40"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">defs</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="t">linearGradient</span> <span class="a">id</span>=<span class="v">"navTooth"</span> <span class="a">x1</span>=<span class="v">"0"</span> <span class="a">y1</span>=<span class="v">"0"</span> <span class="a">x2</span>=<span class="v">".6"</span> <span class="a">y2</span>=<span class="v">"1"</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="t">stop</span> <span class="a">offset</span>=<span class="v">"0%"</span>   <span class="a">stop-color</span>=<span class="v">"#3b82f6"</span><span class="p">/&gt;</span>
+        <span class="p">&lt;</span><span class="t">stop</span> <span class="a">offset</span>=<span class="v">"100%"</span> <span class="a">stop-color</span>=<span class="v">"#1d4ed8"</span><span class="p">/&gt;</span>
+      <span class="p">&lt;/</span><span class="t">linearGradient</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="t">defs</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">path</span> <span class="a">d</span>=<span class="v">"M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8
+           L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5
+           L 17,20 L 15,20
+           L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z"</span>
+          <span class="a">fill</span>=<span class="v">"url(#navTooth)"</span><span class="p">/&gt;</span>
+    <span class="p">&lt;</span><span class="t">ellipse</span> <span class="a">cx</span>=<span class="v">"9"</span> <span class="a">cy</span>=<span class="v">"8"</span> <span class="a">rx</span>=<span class="v">"3.5"</span> <span class="a">ry</span>=<span class="v">"6"</span> <span class="a">fill</span>=<span class="v">"white"</span> <span class="a">opacity</span>=<span class="v">"0.22"</span>
+             <span class="a">transform</span>=<span class="v">"rotate(-18,9,8)"</span><span class="p">/&gt;</span>
+  <span class="p">&lt;/</span><span class="t">svg</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- Wordmark --&gt;</span>
+  <span class="p">&lt;</span><span class="t">span</span> <span class="a">class</span>=<span class="v">"flex flex-col leading-none group-hover:opacity-90 transition-opacity"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">span</span> <span class="a">class</span>=<span class="v">"font-['Cormorant_Garamond'] text-gray-900 font-medium tracking-tight"</span>
+          <span class="a">[class]</span>=<span class="v">"scrolled() ? 'text-lg' : 'text-xl'"</span>
+    <span class="p">&gt;</span>{{ config.name }}<span class="p">&lt;/</span><span class="t">span</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="t">span</span> <span class="a">class</span>=<span class="v">"text-[8px] font-semibold tracking-[3.5px] text-blue-600 uppercase mt-0.5"</span>
+    <span class="p">&gt;</span>DENTAL<span class="p">&lt;/</span><span class="t">span</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="t">span</span><span class="p">&gt;</span>
+
+<span class="p">&lt;/</span><span class="t">a</span><span class="p">&gt;</span></pre>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+function switchTab(name, btn) {
+  ['full','icon','navbar'].forEach(id => {
+    document.getElementById('pane-' + id).style.display = id === name ? 'block' : 'none';
+  });
+  btn.closest('.tab-group').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
