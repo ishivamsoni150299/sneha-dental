@@ -1,7 +1,15 @@
 <div class="max-w-2xl space-y-6">
 
-  <!-- Header -->
+  <!-- Breadcrumb + Header -->
   <div>
+    <nav class="flex items-center gap-1.5 text-xs text-gray-400 mb-2" aria-label="Breadcrumb">
+      <a routerLink="/business/leads"
+         class="hover:text-gray-700 transition-colors font-medium">Leads</a>
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-gray-600 font-semibold">{{ editId() ? 'Edit Lead' : 'Add Lead' }}</span>
+    </nav>
     <h1 class="text-xl font-bold text-gray-900">{{ editId() ? 'Edit Lead' : 'Add Lead' }}</h1>
     <p class="text-sm text-gray-500 mt-0.5">{{ editId() ? 'Update prospect details' : 'Add a new prospect to your pipeline' }}</p>
   </div>
@@ -31,11 +39,17 @@
         <!-- Clinic Name -->
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1.5">Clinic Name <span class="text-red-500">*</span></label>
-          <input formControlName="clinicName" type="text" placeholder="e.g. Sharma Dental Clinic"
+          <input formControlName="clinicName" type="text" placeholder="e.g. Sharma Dental Clinic" autofocus
                  class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                  [class.border-red-300]="form.controls.clinicName.invalid && form.controls.clinicName.touched"
                  [class.bg-red-50]="form.controls.clinicName.invalid && form.controls.clinicName.touched"/>
+          @if (form.controls.clinicName.invalid && form.controls.clinicName.touched) {
+            <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              Clinic name is required
+            </p>
+          }
         </div>
 
         <!-- Doctor Name -->
@@ -46,6 +60,12 @@
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                  [class.border-red-300]="form.controls.doctorName.invalid && form.controls.doctorName.touched"
                  [class.bg-red-50]="form.controls.doctorName.invalid && form.controls.doctorName.touched"/>
+          @if (form.controls.doctorName.invalid && form.controls.doctorName.touched) {
+            <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              Doctor name is required
+            </p>
+          }
         </div>
 
         <!-- Phone -->
@@ -56,7 +76,14 @@
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                  [class.border-red-300]="form.controls.phone.invalid && form.controls.phone.touched"
                  [class.bg-red-50]="form.controls.phone.invalid && form.controls.phone.touched"/>
-          <p class="text-[11px] text-gray-400 mt-1">Used to open WhatsApp outreach. Country code auto-added.</p>
+          @if (form.controls.phone.invalid && form.controls.phone.touched) {
+            <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              Phone number is required
+            </p>
+          } @else {
+            <p class="text-[11px] text-gray-400 mt-1">Used to open WhatsApp outreach. Country code auto-added.</p>
+          }
         </div>
 
         <!-- City -->
@@ -67,6 +94,12 @@
                         focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                  [class.border-red-300]="form.controls.city.invalid && form.controls.city.touched"
                  [class.bg-red-50]="form.controls.city.invalid && form.controls.city.touched"/>
+          @if (form.controls.city.invalid && form.controls.city.touched) {
+            <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              City is required
+            </p>
+          }
         </div>
 
         <!-- Source -->
@@ -114,8 +147,16 @@
 
         <!-- Notes (full width) -->
         <div class="sm:col-span-2">
-          <label class="block text-xs font-semibold text-gray-700 mb-1.5">Notes</label>
-          <textarea formControlName="notes" rows="3"
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-semibold text-gray-700">Notes</label>
+            <span class="text-[11px] transition-colors"
+                  [class]="(form.controls.notes.value.length || 0) > 450
+                    ? 'text-red-500 font-semibold'
+                    : 'text-gray-400'">
+              {{ form.controls.notes.value.length || 0 }}/500
+            </span>
+          </div>
+          <textarea formControlName="notes" rows="3" maxlength="500"
                     placeholder="Any notes about this prospect — their current website, interest level, concerns…"
                     class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                            focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none">
@@ -131,8 +172,9 @@
         </div>
       }
 
-      <!-- Footer actions -->
-      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-3">
+      <!-- Footer actions — sticky on mobile so Save is always reachable -->
+      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-3
+                  sticky bottom-0 z-10 sm:static sm:z-auto">
         <a routerLink="/business/leads"
            class="text-sm text-gray-500 hover:text-gray-800 transition-colors">
           ← Cancel
