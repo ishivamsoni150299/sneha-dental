@@ -951,7 +951,7 @@
                 <p class="text-sm font-bold text-gray-800">This month's usage</p>
                 <button type="button" (click)="fetchUsage()"
                         [disabled]="loadingUsage()"
-                        class="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40">
+                        class="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   @if (loadingUsage()) { Refreshing… } @else { Refresh ↻ }
                 </button>
               </div>

@@ -909,7 +909,7 @@
                           {{ patientInitials(appt.name) }}
                         </div>
                         <div>
-                          <p class="font-semibold text-gray-900 text-xs group-hover:text-blue-600 transition-colors">{{ appt.name }}</p>
+                          <p class="font-semibold text-gray-900 text-xs group-hover:text-blue-600 transition-colors truncate max-w-[160px]" [title]="appt.name">{{ appt.name }}</p>
                           <p class="text-[11px] text-gray-400">{{ appt.phone }}</p>
                         </div>
                       </div>
