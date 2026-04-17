@@ -15,6 +15,9 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
+export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
+export type PaymentMethod = 'cash' | 'upi' | 'card' | 'insurance' | 'other';
+
 export interface Appointment {
   id?: string;
   clinicId: string;      // scopes this appointment to its clinic
@@ -29,6 +32,12 @@ export interface Appointment {
   doctorName?: string;   // denormalized for display without extra lookup
   message?: string;
   status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
+  // Clinical record (filled by clinic after the visit)
+  clinicNotes?:    string;         // private doctor/clinic notes
+  treatmentDone?:  string;         // procedure performed
+  amountCharged?:  number;         // total billed (INR)
+  paymentStatus?:  PaymentStatus;
+  paymentMethod?:  PaymentMethod;
   createdAt?: Timestamp;
 }
 
@@ -110,6 +119,19 @@ export class AppointmentService {
   /** Set status directly (admin use). */
   async setStatus(id: string, status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled'): Promise<void> {
     await updateDoc(doc(db, this.COLLECTION, id), { status });
+  }
+
+  /** Save clinical record fields (notes, treatment, payment). Strips undefined values. */
+  async updateClinicalDetails(
+    id: string,
+    data: Partial<Pick<Appointment, 'clinicNotes' | 'treatmentDone' | 'amountCharged' | 'paymentStatus' | 'paymentMethod'>>
+  ): Promise<void> {
+    const payload = Object.fromEntries(
+      Object.entries(data).filter(([, v]) => v !== undefined && v !== '' && v !== null)
+    );
+    if (Object.keys(payload).length) {
+      await updateDoc(doc(db, this.COLLECTION, id), payload);
+    }
   }
 
   /** Cancel (delete) appointment — enforces 24-hour rule. */

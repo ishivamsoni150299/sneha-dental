@@ -49,6 +49,12 @@ export const businessRoutes: Routes = [
           import('../admin/admin-doctors/admin-doctors.component').then(m => m.AdminDoctorsComponent),
         data: { title: 'Doctor Management', noIndex: true },
       },
+      {
+        path: 'patients',
+        loadComponent: () =>
+          import('../admin/admin-patients/admin-patients.component').then(m => m.AdminPatientsComponent),
+        data: { title: 'Patient Directory', noIndex: true },
+      },
     ],
   },
 

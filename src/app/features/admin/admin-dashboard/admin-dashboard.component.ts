@@ -3,9 +3,10 @@ import {
   inject, OnInit, OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
+import { AppointmentService, Appointment, PaymentStatus, PaymentMethod } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
@@ -32,7 +33,7 @@ export type CancelReason = typeof CANCEL_REASONS[number];
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, DecimalPipe],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -65,6 +66,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // ── Appointment detail panel ─────────────────────────────────────────────
   detailAppt      = signal<Appointment | null>(null);  // selected for detail view
+
+  // ── Clinical notes editing (inside detail panel) ──────────────────────────
+  editingNotes  = signal(false);
+  savingNotes   = signal(false);
+  notesForm     = signal({
+    clinicNotes:   '',
+    treatmentDone: '',
+    amountCharged: '',
+    paymentStatus: '' as PaymentStatus | '',
+    paymentMethod: '' as PaymentMethod | '',
+  });
 
   today = new Date().toISOString().split('T')[0];
   private errorTimer: ReturnType<typeof setTimeout> | null = null;
@@ -280,8 +292,66 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // ── Detail panel ─────────────────────────────────────────────────────────
-  openDetail(appt: Appointment) { this.detailAppt.set(appt); }
-  closeDetail()                  { this.detailAppt.set(null); }
+  openDetail(appt: Appointment) {
+    this.detailAppt.set(appt);
+    this.editingNotes.set(false);
+    this.notesForm.set({
+      clinicNotes:   appt.clinicNotes   ?? '',
+      treatmentDone: appt.treatmentDone ?? '',
+      amountCharged: appt.amountCharged != null ? String(appt.amountCharged) : '',
+      paymentStatus: appt.paymentStatus ?? '',
+      paymentMethod: appt.paymentMethod ?? '',
+    });
+  }
+  closeDetail() { this.detailAppt.set(null); }
+
+  // Field setters (arrow functions are not supported in Angular templates)
+  setNotesTreatment(v: string)            { this.notesForm.update(f => ({ ...f, treatmentDone: v })); }
+  setNotesText(v: string)                 { this.notesForm.update(f => ({ ...f, clinicNotes: v })); }
+  setNotesAmount(v: string)               { this.notesForm.update(f => ({ ...f, amountCharged: v })); }
+  setNotesPayStatus(v: PaymentStatus | '') { this.notesForm.update(f => ({ ...f, paymentStatus: v })); }
+  setNotesPayMethod(v: PaymentMethod | '') { this.notesForm.update(f => ({ ...f, paymentMethod: v })); }
+
+  cancelNotesEdit() {
+    const appt = this.detailAppt();
+    if (appt) {
+      this.notesForm.set({
+        clinicNotes:   appt.clinicNotes   ?? '',
+        treatmentDone: appt.treatmentDone ?? '',
+        amountCharged: appt.amountCharged != null ? String(appt.amountCharged) : '',
+        paymentStatus: appt.paymentStatus ?? '',
+        paymentMethod: appt.paymentMethod ?? '',
+      });
+    }
+    this.editingNotes.set(false);
+  }
+
+  async saveNotes() {
+    const appt = this.detailAppt();
+    if (!appt?.id) return;
+    this.savingNotes.set(true);
+    try {
+      const f = this.notesForm();
+      const charged = f.amountCharged ? parseFloat(f.amountCharged) : undefined;
+      const data: Partial<Appointment> = {
+        clinicNotes:   f.clinicNotes   || undefined,
+        treatmentDone: f.treatmentDone || undefined,
+        amountCharged: charged && !isNaN(charged) ? charged : undefined,
+        paymentStatus: f.paymentStatus || undefined,
+        paymentMethod: f.paymentMethod || undefined,
+      };
+      await this.appointmentService.updateClinicalDetails(appt.id, data);
+      const updated = { ...appt, ...data };
+      this.appointments.update(list => list.map(a => a.id === appt.id ? updated : a));
+      this.detailAppt.set(updated);
+      this.editingNotes.set(false);
+      this.setSuccess('Clinical record saved.');
+    } catch {
+      this.setError('Could not save notes.');
+    } finally {
+      this.savingNotes.set(false);
+    }
+  }
 
   // ── Search & filter helpers ──────────────────────────────────────────────
   clearFilters() {
@@ -353,6 +423,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       cancelled:  'Cancelled',
     };
     return map[status] ?? status;
+  }
+
+  paymentStatusColor(s: PaymentStatus): string {
+    return s === 'paid'    ? 'bg-emerald-100 text-emerald-700'
+         : s === 'unpaid'  ? 'bg-red-100 text-red-600'
+         :                   'bg-amber-100 text-amber-700';
+  }
+
+  paymentStatusLabel(s: PaymentStatus): string {
+    return s === 'paid' ? '₹ Paid' : s === 'unpaid' ? '₹ Unpaid' : '₹ Partial';
   }
 
   statusDot(status: string): string {
