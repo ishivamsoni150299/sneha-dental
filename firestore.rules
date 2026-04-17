@@ -2,64 +2,87 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     function isSuperAdmin() {
       return request.auth != null &&
         exists(/databases/$(database)/documents/superAdmins/$(request.auth.uid));
     }
 
+    // True when the authenticated user is the admin of a specific clinic doc.
+    function isClinicAdmin(clinicId) {
+      return request.auth != null &&
+        request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)).data.adminUid;
+    }
+
+    // True when the authenticated user owns the clinic that this appointment belongs to.
+    function ownsAppointmentClinic() {
+      return request.auth != null &&
+        request.auth.uid ==
+          get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid;
+    }
+
     // ── Clinics ───────────────────────────────────────────────────────────────
-    // Public read: APP_INITIALIZER loads clinic config on any visitor's domain.
-    // Create: super admins only (self-signup goes through server-side Admin SDK).
+    // Public read is intentionally wide: APP_INITIALIZER loads clinic config on
+    // every visitor's browser. Sensitive billing/auth fields are stored in the
+    // private subcollection below so they are never exposed to patients.
+    //
+    // Create: super admins only — self-signup goes through the server-side
+    //         Admin SDK which bypasses these rules.
     // Update/delete: the clinic's own admin OR a platform super admin.
     match /clinics/{clinicId} {
-      allow read: if true;
+      allow read:   if true;
       allow create: if isSuperAdmin();
-      allow update, delete: if request.auth != null && (
-        request.auth.uid == resource.data.adminUid ||
-        isSuperAdmin()
-      );
+      allow update: if isClinicAdmin(clinicId) || isSuperAdmin();
+      allow delete: if isSuperAdmin();
 
-      // ── Doctors subcollection ──────────────────────────────────────────────
+      // ── Sensitive billing / auth data (never exposed to patients) ─────────
+      // Stored separately so `allow read: if true` on the parent doc is safe.
+      match /private/{docId} {
+        allow read, write: if isClinicAdmin(clinicId) || isSuperAdmin();
+      }
+
+      // ── Doctors subcollection ─────────────────────────────────────────────
       match /doctors/{doctorId} {
-        allow read: if true;
-        allow write: if request.auth != null && (
-          request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)).data.adminUid ||
-          isSuperAdmin()
-        );
+        allow read:  if true;
+        allow write: if isClinicAdmin(clinicId) || isSuperAdmin();
       }
     }
 
     // ── Appointments ──────────────────────────────────────────────────────────
-    // create/read: unauthenticated (patients book online and look up by ref+phone)
-    // update/delete: authenticated admins only (confirm / cancel / complete)
+    // create/read: unauthenticated — patients book and look up by ref+phone.
+    //
+    // update: the clinic admin who OWNS this appointment's clinic, OR a super
+    //         admin. Any other authenticated user (e.g. a different clinic's
+    //         doctor) is explicitly denied.
+    //
+    // delete: super admin only — clinic admins cancel via status update, not
+    //         hard delete, so patient records are preserved.
     match /appointments/{appointmentId} {
-      allow create, read: if true;
-      allow update, delete: if request.auth != null;
+      allow create: if true;
+      allow read:   if true;
+      allow update: if ownsAppointmentClinic() || isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
 
     // ── Contacts ─────────────────────────────────────────────────────────────
-    // create: public (contact form is unauthenticated)
-    // manage: super admin only
     match /contacts/{docId} {
       allow create: if true;
       allow read, update, delete: if isSuperAdmin();
     }
 
     // ── Leads ─────────────────────────────────────────────────────────────────
-    // Platform CRM — authenticated users only.
-    // Activities subcollection must be matched explicitly (rules do not cascade).
+    // Platform CRM — super admin only. Clinic admins must NOT be able to read
+    // the platform's prospect pipeline.
     match /leads/{leadId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSuperAdmin();
 
       match /activities/{activityId} {
-        allow read, write: if request.auth != null;
+        allow read, write: if isSuperAdmin();
       }
     }
 
     // ── Super Admins ──────────────────────────────────────────────────────────
-    // Users may only read their own doc to verify platform-admin role.
-    // No client writes — records are seeded via Firebase Admin SDK only.
     match /superAdmins/{uid} {
       allow read:  if request.auth != null && request.auth.uid == uid;
       allow write: if false;
@@ -67,16 +90,33 @@ service cloud.firestore {
 
     // ── Analytics / counters ──────────────────────────────────────────────────
     // Public write: booking flow atomically increments counters without auth.
-    // Read: authenticated only (admin dashboards).
+    // Read: super admin only (shown on Revenue / Analytics pages).
     match /analytics/{docId} {
-      allow read:  if request.auth != null;
+      allow read:  if isSuperAdmin();
       allow write: if true;
     }
 
     // ── Platform settings ─────────────────────────────────────────────────────
-    // Super admin only — stores monthly cost figures for the Revenue page.
     match /platform/{docId} {
       allow read, write: if isSuperAdmin();
+    }
+
+    // ── Notification queue (trial expiry emails, reminders) ───────────────────
+    // Written server-side via Admin SDK; client never reads or writes directly.
+    match /notifications/{docId} {
+      allow read, write: if false;
+    }
+
+    // ── Slots (atomic slot reservations for double-booking prevention) ────────
+    // Written atomically by the booking transaction. Readable publicly (booking
+    // form needs to check availability). Only the owning clinic admin can delete.
+    match /slots/{slotId} {
+      allow read:   if true;
+      allow create: if true;
+      allow delete: if request.auth != null &&
+        request.auth.uid ==
+          get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid;
+      allow update: if false;
     }
   }
 }

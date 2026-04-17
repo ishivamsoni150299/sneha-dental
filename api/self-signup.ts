@@ -3,6 +3,7 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import Razorpay from 'razorpay';
+import { sendEmail } from './send-email';
 
 // ── Firebase Admin ────────────────────────────────────────────────────────────
 if (!getApps().length) {
@@ -23,6 +24,28 @@ const RAZORPAY_PLAN_IDS: Record<string, string | undefined> = {
   starter: process.env['RAZORPAY_PLAN_STARTER'],
   pro:     process.env['RAZORPAY_PLAN_PRO'],
 };
+
+// ── Rate limiting (in-memory, per cold-start) ─────────────────────────────────
+// Limits abuse without requiring Redis. Tracks signup attempts per IP.
+// Resets when the Vercel function cold-starts (typically every few minutes).
+// For stricter limits add Upstash Redis later.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX    = 5;      // max signups per IP per window
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute window (ms)
+
+function isRateLimited(ip: string): boolean {
+  const now   = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return false;
+  }
+
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) return true;
+  return false;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -50,9 +73,34 @@ async function uniqueSlug(base: string): Promise<string> {
   }
 }
 
+// ── Typed response ────────────────────────────────────────────────────────────
+export interface SelfSignupResponse {
+  clinicId:         string;
+  slug:             string;
+  siteUrl:          string;
+  adminUrl:         string;
+  email:            string;
+  plan:             'trial' | 'starter' | 'pro';
+  subscriptionId:   string | null;
+  paymentUrl:       string | null;
+  trialEndDate:     string | null;
+  domainRegistered: boolean;
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
+
+  // ── Rate limiting ────────────────────────────────────────────────────────
+  const ip = (
+    req.headers['x-forwarded-for'] as string | undefined
+  )?.split(',')[0]?.trim() ?? req.socket?.remoteAddress ?? 'unknown';
+
+  if (isRateLimited(ip)) {
+    return res.status(429).json({
+      error: 'Too many signup attempts. Please wait a minute and try again.',
+    });
+  }
 
   const {
     // Clinic
@@ -228,6 +276,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
   }
+
+  // ── Welcome email ─────────────────────────────────────────────────────────
+  // Non-blocking — fire-and-forget. A failed email must never fail the signup.
+  sendEmail('welcome', email, {
+    clinicName:    name.trim(),
+    doctorName:    doctorName?.trim() ?? '',
+    siteUrl,
+    adminUrl:      `${siteUrl}/admin/login`,
+    email,
+    plan,
+    trialEndDate:  plan === 'trial' ? trialEndDate : '',
+    supportPhone:  process.env['SUPPORT_PHONE'] ?? '',
+  });
 
   // ── Success ────────────────────────────────────────────────────────────────
   return res.status(200).json({

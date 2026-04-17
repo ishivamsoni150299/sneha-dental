@@ -454,7 +454,11 @@ export class SignupComponent implements OnInit {
         }),
       });
 
-      const data = await resp.json();
+      const data = await resp.json() as {
+        siteUrl?: string; adminUrl?: string; email?: string;
+        plan?: string; paymentUrl?: string | null; trialEndDate?: string | null;
+        error?: string;
+      };
       if (!resp.ok) {
         this.error.set(data.error ?? 'Something went wrong. Please try again.');
         this.submitting.set(false);
@@ -462,10 +466,10 @@ export class SignupComponent implements OnInit {
       }
 
       this.result.set({
-        siteUrl:      data.siteUrl,
-        adminUrl:     data.adminUrl,
-        email:        data.email,
-        plan:         data.plan,
+        siteUrl:      data.siteUrl ?? '',
+        adminUrl:     data.adminUrl     ?? '',
+        email:        data.email        ?? '',
+        plan:         data.plan         ?? 'trial',
         paymentUrl:   data.paymentUrl   ?? null,
         trialEndDate: data.trialEndDate ?? null,
       });

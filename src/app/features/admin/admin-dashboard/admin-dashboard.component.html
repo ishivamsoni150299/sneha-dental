@@ -555,6 +555,94 @@
         </div>
       }
 
+      <!-- ── Onboarding checklist ──────────────────────────────────────── -->
+      @if (showOnboarding()) {
+        <div class="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
+          <!-- Header row -->
+          <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                 [style.background]="themeColor.hexLight">
+              <svg class="w-5 h-5" [class]="themeColor.textClass" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-gray-900 text-sm">Clinic setup checklist</p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                {{ onboardingDoneCount() }} of {{ onboardingTotal() }} steps complete
+              </p>
+            </div>
+            <!-- Progress pct -->
+            <span class="text-sm font-extrabold shrink-0" [class]="themeColor.textClass">
+              {{ onboardingPct() }}%
+            </span>
+            <!-- Dismiss -->
+            <button (click)="dismissOnboarding()" title="Dismiss checklist"
+                    class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0">
+              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="h-1.5 bg-gray-100 w-full">
+            <div class="h-full transition-all duration-500 rounded-full"
+                 [style.width]="onboardingPct() + '%'"
+                 [style.background]="themeColor.hex">
+            </div>
+          </div>
+
+          <!-- Steps list -->
+          <div class="px-5 py-3 space-y-0.5">
+            @for (item of onboardingItems(); track item.key) {
+              <div class="flex items-center gap-3 py-2.5 group"
+                   [class.opacity-60]="item.done">
+                <!-- Check icon -->
+                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                     [class.border-gray-300]="!item.done"
+                     [class.bg-white]="!item.done"
+                     [style.borderColor]="item.done ? themeColor.hex : ''"
+                     [style.background]="item.done ? themeColor.hex : ''">
+                  @if (item.done) {
+                    <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  }
+                </div>
+                <!-- Label -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-800"
+                     [class.line-through]="item.done"
+                     [class.text-gray-400]="item.done">
+                    {{ item.label }}
+                  </p>
+                  @if (!item.done) {
+                    <p class="text-xs text-gray-400 mt-0.5">{{ item.hint }}</p>
+                  }
+                </div>
+                <!-- Action -->
+                @if (!item.done) {
+                  @if (item.link) {
+                    <a [routerLink]="item.link" [queryParams]="{highlight: item.key}"
+                       class="text-xs font-semibold shrink-0 transition-colors"
+                       [class]="themeColor.textClass">
+                      Set up →
+                    </a>
+                  } @else {
+                    <button (click)="markSharedWebsite()"
+                            class="text-xs font-semibold shrink-0 transition-colors"
+                            [class]="themeColor.textClass">
+                      Mark done →
+                    </button>
+                  }
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       <!-- ── Stat cards ────────────────────────────────────────────────── -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow"

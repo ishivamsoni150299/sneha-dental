@@ -62,6 +62,10 @@ export interface ClinicConfig {
   billingEmail?:       string;
   billingNotes?:       string;     // free-text notes for manual tracking
 
+  // ── Onboarding ────────────────────────────────────────────────────────────
+  onboardingDismissed?:     boolean;  // admin dismissed the setup checklist
+  onboardingSharedWebsite?: boolean;  // admin confirmed they shared the website
+
   // ── Brand ─────────────────────────────────────────────────────────────────
   theme: 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose'; // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"

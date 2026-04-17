@@ -79,8 +79,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   });
 
   today = new Date().toISOString().split('T')[0];
-  private errorTimer: ReturnType<typeof setTimeout> | null = null;
+  private errorTimer:   ReturnType<typeof setTimeout> | null = null;
   private successTimer: ReturnType<typeof setTimeout> | null = null;
+  private unsubscribeAppointments: (() => void) | null = null;
 
   adminEmail = computed(() => this.auth.currentUser()?.email ?? '');
 
@@ -168,6 +169,65 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.searchQuery().trim().length > 0 || this.dateFrom() !== '' || this.dateTo() !== '',
   );
 
+  // ── Onboarding checklist ─────────────────────────────────────────────────
+  onboardingItems = computed(() => {
+    const cfg = this.clinic.config;
+    return [
+      {
+        key:   'profile',
+        label: 'Complete your clinic profile',
+        hint:  'Add doctor name, qualification, and bio',
+        done:  !!(cfg.doctorName?.trim() && cfg.doctorQualification?.trim()),
+        link:  '/business/clinic/settings',
+      },
+      {
+        key:   'contact',
+        label: 'Add contact & address details',
+        hint:  'Phone number and clinic address',
+        done:  !!(cfg.phone?.trim() && cfg.addressLine1?.trim()),
+        link:  '/business/clinic/settings',
+      },
+      {
+        key:   'hours',
+        label: 'Set your clinic hours',
+        hint:  'Let patients know when you\'re open',
+        done:  (cfg.hours?.length ?? 0) > 0,
+        link:  '/business/clinic/settings',
+      },
+      {
+        key:   'services',
+        label: 'Add your services',
+        hint:  'List treatments and pricing',
+        done:  (cfg.services?.length ?? 0) > 0,
+        link:  '/business/clinic/settings',
+      },
+      {
+        key:   'share',
+        label: 'Share your website with patients',
+        hint:  'Send your unique link to 5 patients',
+        done:  !!(cfg.onboardingSharedWebsite),
+        link:  null, // handled by button
+      },
+    ];
+  });
+
+  onboardingDoneCount  = computed(() => this.onboardingItems().filter(i => i.done).length);
+  onboardingTotal      = computed(() => this.onboardingItems().length);
+  onboardingPct        = computed(() => Math.round((this.onboardingDoneCount() / this.onboardingTotal()) * 100));
+  onboardingAllDone    = computed(() => this.onboardingDoneCount() === this.onboardingTotal());
+
+  showOnboarding = computed(() =>
+    !this.clinic.config.onboardingDismissed && !this.onboardingAllDone(),
+  );
+
+  async dismissOnboarding() {
+    await this.clinic.saveOnboardingFlag('onboardingDismissed');
+  }
+
+  async markSharedWebsite() {
+    await this.clinic.saveOnboardingFlag('onboardingSharedWebsite');
+  }
+
   // ── Subscription helpers ─────────────────────────────────────────────────
   get plan()   { return this.clinicConfig.subscriptionPlan   ?? 'trial'; }
   get status() { return this.clinicConfig.subscriptionStatus ?? 'trial'; }
@@ -186,22 +246,38 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   get showUpgradeBanner() { return !this.isPro; }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
-  async ngOnInit() { await this.loadAppointments(); }
+  ngOnInit() { this.startRealtimeSync(); }
 
   ngOnDestroy() {
+    this.unsubscribeAppointments?.();
     if (this.errorTimer)   clearTimeout(this.errorTimer);
     if (this.successTimer) clearTimeout(this.successTimer);
   }
 
-  async loadAppointments() {
+  /**
+   * Alias for startRealtimeSync — used by the "Refresh" button in the template.
+   * With onSnapshot the data is already live; calling this re-subscribes and
+   * resets the loading spinner which gives a visible "refresh" feel.
+   */
+  loadAppointments() { this.startRealtimeSync(); }
+
+  /**
+   * Opens a Firestore onSnapshot listener so the dashboard updates in real
+   * time whenever a patient books or an admin changes a status — no refresh
+   * required. The listener is torn down in ngOnDestroy.
+   */
+  startRealtimeSync() {
     this.loading.set(true);
-    try {
-      this.appointments.set(await this.appointmentService.getAllAppointments());
-    } catch {
-      this.setError('Failed to load appointments.');
-    } finally {
-      this.loading.set(false);
-    }
+    this.unsubscribeAppointments = this.appointmentService.subscribeToAppointments(
+      (appointments) => {
+        this.appointments.set(appointments);
+        this.loading.set(false);
+      },
+      () => {
+        this.setError('Real-time sync failed. Reload to retry.');
+        this.loading.set(false);
+      },
+    );
   }
 
   // ── Error / success banners with auto-clear ──────────────────────────────

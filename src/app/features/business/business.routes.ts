@@ -25,6 +25,14 @@ export const businessRoutes: Routes = [
       import('./business-login/business-login.component').then(m => m.BusinessLoginComponent),
   },
 
+  // ── Subscription expired page (accessible without active subscription) ───
+  {
+    path: 'clinic/expired',
+    loadComponent: () =>
+      import('../admin/admin-expired/admin-expired.component').then(m => m.AdminExpiredComponent),
+    data: { title: 'Subscription Expired', noIndex: true },
+  },
+
   // ── Clinic-owner admin portal (appointments + settings) ──────────────────
   {
     path: 'clinic',

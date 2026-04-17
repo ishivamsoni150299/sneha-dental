@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
 import { clinicConfig, type ClinicConfig } from '../config/clinic.config';
 export type { ClinicConfig };
 import { db } from '../firebase';
@@ -183,6 +183,21 @@ export class ClinicConfigService {
       console.error('[ClinicConfig] loadByUid failed:', e);
     }
     return false;
+  }
+
+  /**
+   * Persist a single boolean onboarding flag to Firestore and update in-memory config.
+   * Safe to call even before clinic is fully loaded — silently skips on 'default'.
+   */
+  async saveOnboardingFlag(field: 'onboardingDismissed' | 'onboardingSharedWebsite'): Promise<void> {
+    const clinicId = this.config.clinicId;
+    if (!clinicId || clinicId === 'default') return;
+    try {
+      await updateDoc(doc(db, 'clinics', clinicId), { [field]: true });
+      this.updateConfig({ [field]: true });
+    } catch (e) {
+      console.error('[ClinicConfig] saveOnboardingFlag failed:', e);
+    }
   }
 
   /** Merge partial fields into the in-memory config (does NOT write to Firestore). */

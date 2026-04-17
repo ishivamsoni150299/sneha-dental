@@ -6,17 +6,19 @@ import { ClinicConfigService } from '../services/clinic-config.service';
 /**
  * Guards all clinic-admin routes under /business/clinic/*.
  *
- * On first login the LoginComponent already calls clinicCfg.loadByUid() so the
- * config is ready immediately. On a page refresh we wait for Firebase Auth to
- * restore the session, then lazy-load the clinic config by UID if not already
- * loaded (hostname won't match on mydentalplatform.com).
+ * Checks (in order):
+ *  1. Firebase Auth session is restored (handles page refresh)
+ *  2. User is authenticated
+ *  3. A clinic doc exists for this user
+ *  4. The clinic's subscription is not expired / cancelled
+ *
+ * Expired/cancelled clinics → /business/clinic/expired (upgrade prompt).
  */
 export const clinicAdminGuard: CanActivateFn = async () => {
   const auth      = inject(AuthService);
   const clinicCfg = inject(ClinicConfigService);
   const router    = inject(Router);
 
-  // Wait for Firebase Auth to restore session from localStorage (handles F5 refresh)
   await auth.authReadyPromise;
 
   if (!auth.isLoggedIn) {
@@ -24,16 +26,42 @@ export const clinicAdminGuard: CanActivateFn = async () => {
   }
 
   // Config may already be loaded (fresh login) — skip Firestore call
-  if (clinicCfg.isLoaded) return true;
+  if (!clinicCfg.isLoaded) {
+    const uid = auth.currentUser()!.uid;
+    const ok  = await clinicCfg.loadByUid(uid);
+    if (!ok) return router.createUrlTree(['/business/login']);
+  }
 
-  // Page refresh: config not yet loaded — fetch by UID
-  const uid = auth.currentUser()!.uid;
-  const ok  = await clinicCfg.loadByUid(uid);
+  // ── Subscription gate ────────────────────────────────────────────────────
+  const cfg    = clinicCfg.config;
+  const status = cfg.subscriptionStatus ?? 'trial';
 
-  if (!ok) {
-    // Authenticated but no clinic doc — redirect to login
-    return router.createUrlTree(['/business/login']);
+  // Explicitly terminated
+  if (status === 'cancelled' || status === 'expired') {
+    return router.createUrlTree(['/business/clinic/expired']);
+  }
+
+  // Trial past end date (+ 3-day grace)
+  if (status === 'trial' && cfg.trialEndDate) {
+    if (isPastGrace(cfg.trialEndDate, 3)) {
+      return router.createUrlTree(['/business/clinic/expired']);
+    }
+  }
+
+  // Paid subscription past renewal date (+ 3-day grace)
+  if (status === 'active' && cfg.subscriptionEndDate) {
+    if (isPastGrace(cfg.subscriptionEndDate, 3)) {
+      return router.createUrlTree(['/business/clinic/expired']);
+    }
   }
 
   return true;
 };
+
+/** Returns true if the ISO date is more than graceDays in the past. */
+function isPastGrace(isoDate: string, graceDays: number): boolean {
+  const end = new Date(isoDate);
+  end.setDate(end.getDate() + graceDays);
+  end.setHours(23, 59, 59, 999);
+  return end < new Date();
+}

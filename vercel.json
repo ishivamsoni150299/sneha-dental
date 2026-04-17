@@ -3,9 +3,15 @@
   "outputDirectory": "dist/mydentalplatform/browser",
   "framework": null,
   "rewrites": [
-    { "source": "/api/(.*)",       "destination": "/api/$1" },
-    { "source": "/__/auth/(.*)",   "destination": "https://sneha-dental-6373b.firebaseapp.com/__/auth/$1" },
+    { "source": "/api/(.*)",         "destination": "/api/$1" },
+    { "source": "/__/auth/(.*)",     "destination": "https://sneha-dental-6373b.firebaseapp.com/__/auth/$1" },
     { "source": "/__/firebase/(.*)", "destination": "https://sneha-dental-6373b.firebaseapp.com/__/firebase/$1" },
-    { "source": "/(.*)",           "destination": "/index.html" }
+    { "source": "/(.*)",             "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path":     "/api/cron-trial-expiry",
+      "schedule": "30 2 * * *"
+    }
   ]
 }
