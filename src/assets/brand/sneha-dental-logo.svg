@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 90" width="380" height="90" role="img" aria-label="Sneha Dental logo">
+  <defs>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1d4ed8"/>
+      <stop offset="100%" style="stop-color:#2563eb"/>
+    </linearGradient>
+    <linearGradient id="toothGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#e0f2fe"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1e40af" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Badge circle -->
+  <circle cx="45" cy="45" r="40" fill="url(#badgeGrad)" filter="url(#shadow)"/>
+
+  <!-- Tooth icon (white) — two-root premolar style -->
+  <path d="M45 18
+    C38 18 28 24 27 33
+    C26 42 30 47 34 51
+    L32 72
+    C31 78 33 84 37 84
+    C41 84 43 80 43 74
+    L44 61
+    C44.5 58 45.5 58 46 61
+    L47 74
+    C47 80 49 84 53 84
+    C57 84 59 78 58 72
+    L56 51
+    C60 47 64 42 63 33
+    C62 24 52 18 45 18 Z"
+    fill="url(#toothGrad)"/>
+
+  <!-- Sparkle highlight on tooth -->
+  <path d="M33 25 C35 22 38 21 40 22" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="22" r="1.5" fill="rgba(255,255,255,0.7)"/>
+  <circle cx="64" cy="26" r="1" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="57" cy="19" r="1" fill="rgba(255,255,255,0.5)"/>
+
+  <!-- Clinic name text -->
+  <text x="98" y="38"
+    font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="28"
+    font-weight="800"
+    fill="#111827"
+    letter-spacing="-0.5">Sneha</text>
+
+  <text x="100" y="62"
+    font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="17"
+    font-weight="600"
+    fill="#2563eb"
+    letter-spacing="4">DENTAL</text>
+
+  <!-- Divider line -->
+  <line x1="98" y1="68" x2="338" y2="68" stroke="#e5e7eb" stroke-width="0.8"/>
+
+  <!-- Tagline -->
+  <text x="100" y="80"
+    font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="10.5"
+    font-weight="400"
+    fill="#9ca3af"
+    letter-spacing="1.5">YOUR SMILE · OUR CARE</text>
+</svg>

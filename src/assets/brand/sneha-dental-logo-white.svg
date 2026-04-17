@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 90" width="380" height="90" role="img" aria-label="Sneha Dental logo — white variant">
+  <!-- Use on dark / colored backgrounds (dark headers, email banners, etc.) -->
+  <defs>
+    <linearGradient id="toothGradW" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#dbeafe"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Badge circle (white semi-transparent ring) -->
+  <circle cx="45" cy="45" r="40" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+
+  <!-- Tooth icon (white) -->
+  <path d="M45 18
+    C38 18 28 24 27 33
+    C26 42 30 47 34 51
+    L32 72
+    C31 78 33 84 37 84
+    C41 84 43 80 43 74
+    L44 61
+    C44.5 58 45.5 58 46 61
+    L47 74
+    C47 80 49 84 53 84
+    C57 84 59 78 58 72
+    L56 51
+    C60 47 64 42 63 33
+    C62 24 52 18 45 18 Z"
+    fill="url(#toothGradW)"/>
+
+  <!-- Sparkle -->
+  <path d="M33 25 C35 22 38 21 40 22" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Clinic name — all white -->
+  <text x="98" y="38"
+    font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="28"
+    font-weight="800"
+    fill="white"
+    letter-spacing="-0.5">Sneha</text>
+
+  <text x="100" y="62"
+    font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="17"
+    font-weight="600"
+    fill="rgba(147,197,253,0.95)"
+    letter-spacing="4">DENTAL</text>
+
+  <line x1="98" y1="68" x2="338" y2="68" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
+
+  <text x="100" y="80"
+    font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="10.5"
+    font-weight="400"
+    fill="rgba(255,255,255,0.45)"
+    letter-spacing="1.5">YOUR SMILE · OUR CARE</text>
+</svg>
