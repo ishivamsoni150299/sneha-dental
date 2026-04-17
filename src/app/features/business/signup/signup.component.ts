@@ -480,4 +480,46 @@ export class SignupComponent implements OnInit {
   stepLabel(vs: number): string {
     return ['', 'Clinic', 'Services', 'Plan'][vs] ?? '';
   }
+
+  // ── Step 5 — Congratulation page ─────────────────────────────────────────
+  readonly copiedUrl = signal(false);
+
+  /** 35 confetti pieces with deterministic pseudo-random positions/timing */
+  readonly confettiPieces = Array.from({ length: 35 }, (_, i) => {
+    const palette = ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#a855f7'];
+    const left    = ((i * 97  + 17) % 100);               // 0–99%
+    const delay   = ((i * 37  + 11) % 30) / 10;           // 0–2.9s
+    const dur     = (22 + ((i * 53  +  7) % 18)) / 10;    // 2.2–3.9s
+    const size    = 6 + (i % 5) * 2;                      // 6–14 px
+    return {
+      id:    i,
+      left:  left + '%',
+      delay: delay + 's',
+      dur:   dur.toFixed(1) + 's',
+      color: palette[i % palette.length],
+      size,
+      cls:   i % 3 === 0 ? 'round' : (i % 5 === 0 ? 'strip' : ''),
+    };
+  });
+
+  readonly nextTips = [
+    { text: 'Visit your website and try booking an appointment as a patient' },
+    { text: 'Log into your admin dashboard to manage and confirm bookings' },
+    { text: 'Share your website link on WhatsApp with existing patients' },
+    { text: 'Upgrade to Starter to connect your own custom domain' },
+  ];
+
+  copyUrl(url: string): void {
+    navigator.clipboard.writeText(url).then(() => {
+      this.copiedUrl.set(true);
+      setTimeout(() => this.copiedUrl.set(false), 2500);
+    }).catch(() => {/* clipboard not available */});
+  }
+
+  shareOnWhatsApp(): void {
+    const url = this.result()?.siteUrl;
+    if (!url) return;
+    const msg = `My dental clinic website is now live! 🦷\n\nVisit us at: ${url}\n\nBook your appointment online in just 60 seconds!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
 }

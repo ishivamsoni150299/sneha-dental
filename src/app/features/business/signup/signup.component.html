@@ -570,59 +570,172 @@
       }
 
       <!-- ══════════════════════════════════════════════════════════════ -->
-      <!-- STEP 5 — Success                                               -->
+      <!-- STEP 5 — Success / Congratulations                             -->
       <!-- ══════════════════════════════════════════════════════════════ -->
       @if (step() === 5 && result()) {
-        <div class="animate-in fade-in zoom-in-95 duration-500">
-          <div class="text-center mb-8">
-            <div class="text-6xl mb-4">🎉</div>
-            <h1 class="text-3xl font-extrabold text-gray-900">Your website is live!</h1>
-            <p class="text-gray-500 text-sm mt-2">
-              @if (result()!.plan === 'trial') {
-                30-day free trial active
-                @if (result()!.trialEndDate) { · Ends <strong>{{ result()!.trialEndDate }}</strong> }
-              } @else { Clinic website ready }
-            </p>
+
+        <!-- ── Confetti overlay (CSS animated, falls from top) ──────── -->
+        <div class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:9999;" aria-hidden="true">
+          @for (c of confettiPieces; track c.id) {
+            <div class="confetti-piece" [class]="c.cls"
+                 [style.left]="c.left"
+                 [style.background]="c.color"
+                 [style.width.px]="c.size"
+                 [style.height.px]="c.size"
+                 [style.animation-duration]="c.dur"
+                 [style.animation-delay]="c.delay">
+            </div>
+          }
+        </div>
+
+        <!-- ── Main content ──────────────────────────────────────────── -->
+        <div class="max-w-md mx-auto text-center px-1">
+
+          <!-- Animated success circle -->
+          <div class="relative inline-flex items-center justify-center mb-6 mt-2">
+            <div class="success-ring absolute w-28 h-28 rounded-full border-[3px] border-green-400"></div>
+            <div class="success-circle w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl shadow-green-200/60">
+              <svg class="success-check w-11 h-11 text-white" viewBox="0 0 52 52" fill="none"
+                   stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 27l9 9 16-18"/>
+              </svg>
+            </div>
           </div>
 
-          <a [href]="result()!.siteUrl" target="_blank" rel="noopener"
-             class="block rounded-2xl p-5 mb-4 hover:shadow-xl hover:-translate-y-0.5 transition-all group text-white"
-             [style.background]="themeGradient()">
-            <p class="text-xs font-semibold opacity-70 uppercase tracking-wide mb-1">Your website</p>
-            <p class="font-bold text-lg break-all group-hover:underline">{{ result()!.siteUrl }}</p>
-            <p class="text-xs opacity-70 mt-1">Click to visit ↗</p>
-          </a>
+          <!-- Live badge -->
+          <div class="s-badge mb-3">
+            <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest
+                         bg-green-50 px-4 py-2 rounded-full border border-green-100">
+              <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              <span class="live-badge">Website Live</span>
+            </span>
+          </div>
 
-          <a [href]="result()!.adminUrl" target="_blank" rel="noopener"
-             class="block bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-4 hover:shadow-md transition-all group">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Admin dashboard</p>
-            <p class="font-semibold text-gray-800 text-sm break-all group-hover:text-blue-600">{{ result()!.adminUrl }} ↗</p>
-            <p class="text-xs text-gray-400 mt-1">Login: <strong>{{ result()!.email }}</strong></p>
-          </a>
+          <!-- Headline -->
+          <h1 class="s-h1 text-3xl font-extrabold text-gray-900 leading-tight">
+            Congratulations! 🎉
+          </h1>
 
+          <!-- Subtext -->
+          <p class="s-sub text-gray-500 text-sm mt-2 mb-7">
+            @if (result()!.plan === 'trial') {
+              Your free 30-day trial is active.
+              @if (result()!.trialEndDate) {
+                <strong class="text-gray-700 block mt-0.5">Trial ends {{ result()!.trialEndDate }}</strong>
+              }
+            } @else {
+              Your clinic website is live and accepting bookings!
+            }
+          </p>
+
+          <!-- Site URL card — theme-coloured with glow -->
+          <div class="s-card1 url-card-glow rounded-2xl overflow-hidden mb-3 transition-all duration-300"
+               [style.background]="themeGradient()"
+               [style.--success-glow]="selectedTheme().hex + '40'">
+            <div class="p-5 text-white">
+              <!-- Top row: pulsing dot + LIVE badge -->
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>
+                  <span class="text-[10px] font-bold uppercase tracking-widest opacity-80">Your Website · Live Now</span>
+                </div>
+                <span class="bg-green-400 text-green-900 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide">
+                  ✓ Live
+                </span>
+              </div>
+              <!-- URL -->
+              <p class="font-bold text-base break-all leading-snug mb-4 text-left">
+                {{ result()!.siteUrl }}
+              </p>
+              <!-- Action buttons -->
+              <div class="flex gap-2">
+                <a [href]="result()!.siteUrl" target="_blank" rel="noopener"
+                   class="flex-1 bg-white font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5
+                          transition-all hover:bg-gray-50 hover:shadow-md"
+                   [style.color]="selectedTheme().hex">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  Open website
+                </a>
+                <button type="button" (click)="copyUrl(result()!.siteUrl)"
+                        class="bg-white/20 hover:bg-white/30 text-white text-xs font-semibold py-2.5 px-4
+                               rounded-xl flex items-center gap-1.5 transition-all border border-white/20">
+                  @if (copiedUrl()) {
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Copied!
+                  } @else {
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copy link
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin dashboard card -->
+          <div class="s-card2 bg-white border border-gray-200 rounded-2xl p-4 mb-3 hover:shadow-md transition-all">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1 text-left">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Admin Dashboard</p>
+                <p class="font-semibold text-gray-800 text-sm break-all">{{ result()!.adminUrl }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Login: <strong class="text-gray-600">{{ result()!.email }}</strong>
+                </p>
+              </div>
+              <a [href]="result()!.adminUrl" target="_blank" rel="noopener"
+                 class="shrink-0 w-9 h-9 bg-gray-100 hover:bg-gray-900 hover:text-white rounded-xl
+                        flex items-center justify-center transition-all group/btn">
+                <svg class="w-4 h-4 text-gray-500 group-hover/btn:text-white" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Payment CTA (paid plans only) -->
           @if (result()!.paymentUrl) {
             <a [href]="result()!.paymentUrl" target="_blank" rel="noopener"
-               class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl
-                      text-sm transition-all hover:shadow-lg mb-4 text-center">
+               class="s-card3 block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl
+                      text-sm transition-all hover:shadow-lg mb-3 text-center">
               Complete payment to activate →
             </a>
           }
 
-          <div class="bg-white border border-gray-200 rounded-2xl p-5">
-            <p class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">What to do next</p>
-            <div class="space-y-3">
-              @for (tip of [
-                {icon:'🌐', text:'Visit your website and try booking an appointment'},
-                {icon:'📊', text:'Log in to your admin dashboard to manage bookings'},
-                {icon:'📲', text:'Share your website link with patients on WhatsApp'},
-                {icon:'🌟', text:'Upgrade to Starter/Pro to add your custom domain'}
-              ]; track tip.text) {
-                <div class="flex items-start gap-3 text-sm text-gray-600">
-                  <span class="text-base flex-shrink-0">{{ tip.icon }}</span>{{ tip.text }}
+          <!-- What to do next -->
+          <div class="s-card3 bg-white border border-gray-100 rounded-2xl p-5 mb-4 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 text-left">What to do next</p>
+            <div class="space-y-4">
+              @for (tip of nextTips; track tip.text; let i = $index) {
+                <div class="flex items-center gap-3.5 text-left"
+                     [class]="'s-tip-' + i">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0
+                               text-white text-xs font-extrabold shadow-md"
+                       [style.background]="themeGradient()">
+                    {{ i + 1 }}
+                  </div>
+                  <p class="text-sm text-gray-700 leading-snug flex-1">{{ tip.text }}</p>
                 </div>
               }
             </div>
           </div>
+
+          <!-- WhatsApp share button -->
+          <button type="button" (click)="shareOnWhatsApp()"
+                  class="s-card4 w-full flex items-center justify-center gap-2.5
+                         bg-[#25D366] hover:bg-[#20bc5a] text-white font-bold py-3.5 rounded-xl
+                         text-sm transition-all shadow-lg shadow-green-200 hover:-translate-y-0.5 hover:shadow-xl">
+            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Share your website on WhatsApp
+          </button>
+
         </div>
       }
 

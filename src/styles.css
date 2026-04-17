@@ -753,3 +753,106 @@ body {
 .theme-rose .to-indigo-500  { --tw-gradient-to: #f43f5e !important; }
 .theme-rose .to-indigo-950  { --tw-gradient-to: #4c0519 !important; }
 .theme-rose .via-indigo-500 { --tw-gradient-via: #f43f5e !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIGNUP SUCCESS — Confetti + Celebration Animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Confetti falling pieces */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-50px) rotate(0deg) scale(1); opacity: 1; }
+  75%  { opacity: 0.9; }
+  100% { transform: translateY(105vh) rotate(800deg) scale(0.4); opacity: 0; }
+}
+
+.confetti-piece {
+  position: fixed;
+  top: -50px;
+  pointer-events: none;
+  animation: confetti-fall linear forwards;
+  z-index: 9999;
+  border-radius: 2px;
+}
+.confetti-piece.round { border-radius: 50%; }
+.confetti-piece.strip { width: 4px !important; height: 14px !important; border-radius: 2px; }
+
+/* Success circle pop */
+@keyframes success-pop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  55%  { transform: scale(1.18) rotate(6deg); opacity: 1; }
+  75%  { transform: scale(0.94) rotate(-2deg); }
+  90%  { transform: scale(1.04) rotate(1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes success-ring-pulse {
+  0%   { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(1.9);  opacity: 0; }
+}
+@keyframes success-check-draw {
+  0%   { stroke-dashoffset: 90; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes success-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50%       { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+}
+
+.success-circle {
+  animation: success-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both,
+             success-glow-pulse 2s ease-out 0.9s infinite;
+}
+.success-ring {
+  animation: success-ring-pulse 1.1s ease-out 0.75s infinite;
+}
+.success-check path {
+  stroke-dasharray: 90;
+  stroke-dashoffset: 90;
+  animation: success-check-draw 0.45s ease-out 0.75s forwards;
+}
+
+/* Staggered content reveals */
+@keyframes success-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes success-scale-in {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.s-badge  { animation: success-rise    0.45s ease-out 0.55s both; }
+.s-h1     { animation: success-rise    0.45s ease-out 0.70s both; }
+.s-sub    { animation: success-rise    0.45s ease-out 0.82s both; }
+.s-card1  { animation: success-scale-in 0.5s ease-out 0.95s both; }
+.s-card2  { animation: success-scale-in 0.5s ease-out 1.10s both; }
+.s-card3  { animation: success-scale-in 0.5s ease-out 1.22s both; }
+.s-card4  { animation: success-scale-in 0.5s ease-out 1.34s both; }
+.s-card5  { animation: success-scale-in 0.5s ease-out 1.46s both; }
+.s-tip-0  { animation: success-rise    0.4s ease-out 1.30s both; }
+.s-tip-1  { animation: success-rise    0.4s ease-out 1.44s both; }
+.s-tip-2  { animation: success-rise    0.4s ease-out 1.58s both; }
+.s-tip-3  { animation: success-rise    0.4s ease-out 1.72s both; }
+
+/* Shimmer on "Live" badge */
+@keyframes live-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.live-badge {
+  background: linear-gradient(90deg, #10b981 30%, #6ee7b7 50%, #10b981 70%);
+  background-size: 200% auto;
+  animation: live-shimmer 2.5s linear infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* URL card theme glow */
+.url-card-glow {
+  transition: box-shadow 0.3s ease;
+}
+.url-card-glow:hover {
+  box-shadow: 0 24px 60px var(--success-glow, rgba(37, 99, 235, 0.3)) !important;
+  transform: translateY(-2px);
+}
+
