@@ -152,7 +152,7 @@
         }
 
         <button type="submit" [disabled]="loading() || googleLoading()"
-                class="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white
+                class="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white
                        py-3 rounded-xl font-bold text-sm transition-colors mt-1">
           @if (loading()) {
             <span class="flex items-center justify-center gap-2">

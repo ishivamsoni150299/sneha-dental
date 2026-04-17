@@ -874,7 +874,7 @@
           </a>
           <button type="button" (click)="onSubmit()"
                   [disabled]="saving() || success()"
-                  class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 disabled:opacity-50
+                  class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
                          text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-colors">
             @if (saving()) {
               <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
