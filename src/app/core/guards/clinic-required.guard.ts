@@ -4,17 +4,30 @@ import { ClinicConfigService } from '../services/clinic-config.service';
 
 /**
  * Blocks patient-facing routes when no clinic config was loaded.
- * This happens on the platform admin domain (e.g. mydentalplatform.com)
- * which has no matching clinic doc in Firestore.
  *
- * Always returns a UrlTree on denial — never a boolean false — so Angular
- * can compose guards correctly and avoid a double-navigation race condition.
+ * On the platform domain (mydentalplatform.com) with no clinic match:
+ *   → redirect to /business (platform portal)
+ *
+ * On a clinic subdomain (e.g. smile.mydentalplatform.com) with no match:
+ *   → hard cross-origin redirect to www.mydentalplatform.com
+ *   This prevents the business portal from appearing on clinic subdomains.
  */
-export const clinicRequiredGuard: CanActivateFn = (): true | UrlTree => {
+export const clinicRequiredGuard: CanActivateFn = (): true | UrlTree | boolean => {
   const clinic = inject(ClinicConfigService);
   const router = inject(Router);
 
   if (!clinic.isLoaded) {
+    const host = window.location.hostname;
+    const isClinicSubdomain =
+      host.endsWith('.mydentalplatform.com') &&
+      host !== 'www.mydentalplatform.com';
+
+    if (isClinicSubdomain) {
+      // Hard redirect to platform — keeps the admin portal off clinic subdomains
+      window.location.href = 'https://www.mydentalplatform.com/business';
+      return false;
+    }
+
     return router.createUrlTree(['/business']);
   }
 

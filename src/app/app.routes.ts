@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { clinicRequiredGuard } from './core/guards/clinic-required.guard';
+import { platformOnlyGuard } from './core/guards/platform-only.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
 
 export const routes: Routes = [
@@ -105,6 +106,7 @@ export const routes: Routes = [
   // ── Platform admin panel (its own shell, no clinic navbar/footer) ─────────
   {
     path: 'business',
+    canActivate: [platformOnlyGuard],
     loadChildren: () =>
       import('./features/business/business.routes').then(m => m.businessRoutes),
     data: {
