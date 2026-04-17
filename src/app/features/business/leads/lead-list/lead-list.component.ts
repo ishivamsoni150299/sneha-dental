@@ -190,6 +190,11 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   cancelNoteEdit() { this.inlineNote.set(null); }
 
+  updateNoteText(text: string) {
+    const n = this.inlineNote();
+    if (n) this.inlineNote.set({ ...n, text });
+  }
+
   async saveInlineNote(lead: StoredLead) {
     const note = this.inlineNote();
     if (!note || note.leadId !== lead.id) return;

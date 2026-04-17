@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, OnInit, HostListener } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { SuperAuthService } from '../../../core/services/super-auth.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
@@ -16,7 +16,11 @@ export class BusinessShellComponent implements OnInit {
   private  router      = inject(Router);
   private  clinicStore = inject(ClinicFirestoreService);
 
-  clinicCount = signal<number | null>(null);
+  clinicCount  = signal<number | null>(null);
+  menuOpen     = signal(false);
+
+  @HostListener('document:keydown.escape')
+  closeMenu() { this.menuOpen.set(false); }
 
   async ngOnInit() {
     try {
