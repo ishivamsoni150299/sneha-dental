@@ -7,8 +7,12 @@
   </div>
 
   @if (loading()) {
-    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-      <p class="text-sm text-gray-400">Loading revenue data…</p>
+    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center space-y-4">
+      <div class="w-7 h-7 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin mx-auto"></div>
+      <div class="space-y-2 animate-pulse">
+        <div class="h-4 bg-gray-100 rounded w-1/3 mx-auto"></div>
+        <div class="h-3 bg-gray-100 rounded w-1/4 mx-auto"></div>
+      </div>
     </div>
   }
 

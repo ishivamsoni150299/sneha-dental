@@ -7,8 +7,27 @@
   </div>
 
   @if (loading()) {
-    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-      <p class="text-sm text-gray-400">Loading analytics…</p>
+    <div class="space-y-4">
+      <!-- Stats skeleton -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (_ of [1,2,3,4]; track $index) {
+          <div class="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse space-y-2">
+            <div class="h-3 bg-gray-100 rounded w-2/3"></div>
+            <div class="h-7 bg-gray-200 rounded w-1/2"></div>
+            <div class="h-3 bg-gray-100 rounded w-4/5"></div>
+          </div>
+        }
+      </div>
+      <!-- Chart skeleton -->
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse">
+        <div class="h-4 bg-gray-200 rounded w-1/4 mb-6"></div>
+        <div class="flex items-end gap-2 h-32">
+          @for (_ of [1,2,3,4,5,6,7]; track $index) {
+            <div class="flex-1 bg-gray-100 rounded-t"
+                 [style.height]="(30 + ($index * 13) % 70) + '%'"></div>
+          }
+        </div>
+      </div>
     </div>
   }
 
