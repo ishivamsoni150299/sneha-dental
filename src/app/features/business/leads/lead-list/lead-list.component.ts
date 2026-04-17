@@ -460,12 +460,15 @@ I help dental clinics like yours get a *professional website* with:
 ✅ Patient management dashboard
 ✅ Mobile-friendly, fast & secure
 
-👉 Here's a live example: ${demo}
+🎬 *Watch how it works (2 min):*
+https://youtu.be/R7d1KqfdH6U
+
+👉 Live example: ${demo}
 
 *30-day FREE trial — no credit card required.*
 Your site can be live within 24 hours.
 
-Would you like a quick demo? I can walk you through in just 10 minutes 🙏`,
+Interested? I can set it up for ${clinic} today 🙏`,
 
       contacted:
 `Hello ${name} 👋
