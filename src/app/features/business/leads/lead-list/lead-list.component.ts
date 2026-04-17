@@ -440,14 +440,103 @@ export class LeadListComponent implements OnInit {
   }
 
   whatsappLink(lead: StoredLead): string {
+    const name    = lead.doctorName ? `Dr. ${lead.doctorName.replace(/^dr\.?\s*/i, '')}` : lead.clinicName;
+    const clinic  = lead.clinicName;
+    const city    = lead.city ? ` in ${lead.city}` : '';
+    const rating  = lead.rating  ? `⭐ ${lead.rating} rating` : '';
+    const reviews = lead.reviewCount ? ` · ${lead.reviewCount} reviews` : '';
+    const social  = rating ? `\n\n${rating}${reviews} — that's a strong reputation${city}!` : '';
+    const demo    = `https://indram-dental.vercel.app`;
+
     const msgs: Record<LeadStatus, string> = {
-      new:        `Hi ${lead.doctorName || lead.clinicName}! I build professional websites for dental clinics — with online booking, WhatsApp integration, and a patient dashboard. Live in 24 hours. Free 30-day trial. Here's a live example: https://indram-dental.vercel.app — Interested?`,
-      contacted:  `Hi ${lead.doctorName || lead.clinicName}! Just following up on the dental website I mentioned. Happy to answer any questions or set up a quick demo. Let me know!`,
-      interested: `Hi ${lead.doctorName || lead.clinicName}! Great to hear you're interested. I can set up a live demo of your clinic's website this week — which day works best for you?`,
-      demo:       `Hi ${lead.doctorName || lead.clinicName}! Following up after our demo. Ready to go live? I can have your clinic website up in 24 hours. Free trial — no card needed to start.`,
-      converted:  `Hi ${lead.doctorName || lead.clinicName}! Thanks for choosing mydentalplatform. I'll get started on your site right away!`,
-      lost:       `Hi ${lead.doctorName || lead.clinicName}! Reaching out again — we now offer a free 30-day trial with no card required. Would love to show you what's new. No obligation at all!`,
+      new:
+`Hello ${name} 👋
+
+I came across *${clinic}*${city} and was impressed!${social}
+
+I help dental clinics like yours get a *professional website* with:
+✅ Online appointment booking (24/7)
+✅ WhatsApp alerts for every new booking
+✅ Patient management dashboard
+✅ Mobile-friendly, fast & secure
+
+👉 Here's a live example: ${demo}
+
+*30-day FREE trial — no credit card required.*
+Your site can be live within 24 hours.
+
+Would you like a quick demo? I can walk you through in just 10 minutes 🙏`,
+
+      contacted:
+`Hello ${name} 👋
+
+Following up on my message about a professional website for *${clinic}*.
+
+I understand you're busy — that's exactly why this matters. Your patients can book appointments *anytime, even at midnight*, without calling the clinic.
+
+Most clinics see their first online booking within *48 hours* of going live.
+
+Would it be easier if I just sent a short video? Or we can hop on a 10-min call — whatever works for you 🙏`,
+
+      interested:
+`Hello ${name}! 😊
+
+Glad to hear you're interested in a website for *${clinic}*!
+
+Here's exactly what you'll get:
+🌐 Professional clinic website with your branding
+📅 Patients book appointments from their phone
+💬 Instant WhatsApp alert to you for every booking
+📊 Dashboard to manage & confirm appointments
+🔒 Secure, HTTPS, mobile-optimised
+
+*Everything set up and live in 24 hours.*
+
+When are you free for a quick 10-min demo? We can do it over a WhatsApp video call — no downloads, no hassle 🙏`,
+
+      demo:
+`Hello ${name}!
+
+Thank you for taking time for the demo of *${clinic}*'s website!
+
+As we discussed, here's your quick summary:
+✅ Professional website — live in 24 hours
+✅ Online booking — patients book from their phone
+✅ Instant WhatsApp notifications for every booking
+✅ Admin dashboard on your phone or laptop
+✅ *30-day FREE trial — no card, no commitment*
+
+Just reply *"YES"* and I'll have your clinic's site live by tomorrow. 🚀
+
+Any last questions? Happy to help any time!`,
+
+      converted:
+`Hello ${name}! 🎉
+
+Welcome to *mydentalplatform* — so excited to have *${clinic}* on board!
+
+I'll start setting up your website right away. You'll receive a confirmation message once it's live.
+
+In the meantime, feel free to reach out for anything at all. We're here to make this as smooth as possible for you.
+
+Thank you for trusting us! 🙏`,
+
+      lost:
+`Hello ${name} 👋
+
+Hope you're doing well! Quick update since we last spoke — mydentalplatform has some exciting new features I'd love to show you:
+
+✨ *What's new for ${clinic}:*
+• AI receptionist that answers patient queries 24/7
+• Google Reviews integration on your website
+• Faster setup — your site goes live same day
+• *Free 30-day trial, no card needed*
+
+Several clinics${city} are already live and getting new patients online every day.
+
+No pressure — would you like a fresh 10-min demo of the new version? 🙏`,
     };
+
     const msg = msgs[lead.status] ?? msgs.new;
     return `https://wa.me/${lead.phone}?text=${encodeURIComponent(msg)}`;
   }
