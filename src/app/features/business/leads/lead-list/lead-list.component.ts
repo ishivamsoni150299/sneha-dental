@@ -1,4 +1,4 @@
-import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
@@ -21,20 +21,27 @@ interface ImportStats {
   templateUrl: './lead-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LeadListComponent implements OnInit {
+export class LeadListComponent implements OnInit, OnDestroy {
   private leadStore = inject(LeadFirestoreService);
 
   leads           = signal<StoredLead[]>([]);
   loading         = signal(true);
   activeTab       = signal<LeadStatus | 'all'>('all');
   search          = signal('');
-  sortBy          = signal<'newest' | 'followup'>('newest');
+  sortBy          = signal<'newest' | 'followup' | 'score'>('newest');
   deleting        = signal<string | null>(null);
   confirmDelete   = signal<string | null>(null);
   updatingStatus  = signal<string | null>(null);
   importingCsv    = signal(false);
   importResult    = signal<ImportStats | null>(null);
   error           = signal<string | null>(null);
+
+  // ── New interaction state ─────────────────────────────────────────────────
+  copiedId        = signal<string | null>(null);   // feedback after copy
+  sendingWa       = signal<string | null>(null);   // WA button loading state
+  inlineNote      = signal<{ leadId: string; text: string } | null>(null);
+  savingNote      = signal(false);
+  private copyTimer: ReturnType<typeof setTimeout> | null = null;
 
   // ── Computed ──────────────────────────────────────────────────────────────
   filteredLeads = computed(() => {
@@ -62,6 +69,9 @@ export class LeadListComponent implements OnInit {
         return a.followUpDate.localeCompare(b.followUpDate);
       });
     }
+    if (this.sortBy() === 'score') {
+      return list.sort((a, b) => this.leadScore(b) - this.leadScore(a));
+    }
     return list; // newest — already ordered by Firestore
   });
 
@@ -76,6 +86,27 @@ export class LeadListComponent implements OnInit {
     const active    = all.filter(l => l.status !== 'converted' && l.status !== 'lost').length;
     const rate      = all.length > 0 ? Math.round((converted / all.length) * 100) : 0;
     return { total: all.length, converted, active, rate, overdue: this.overdueLeads().length };
+  });
+
+  /** Top 5 cities by lead count with per-city conversion rate. */
+  cityStats = computed(() => {
+    const map = new Map<string, { total: number; converted: number }>();
+    for (const l of this.leads()) {
+      const city = (l.city || l.area || 'Unknown').trim();
+      const entry = map.get(city) ?? { total: 0, converted: 0 };
+      entry.total++;
+      if (l.status === 'converted') entry.converted++;
+      map.set(city, entry);
+    }
+    return Array.from(map.entries())
+      .map(([city, d]) => ({
+        city,
+        total:     d.total,
+        converted: d.converted,
+        rate:      d.total > 0 ? Math.round((d.converted / d.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 6);
   });
 
   overdueLeads = computed(() => {
@@ -97,13 +128,28 @@ export class LeadListComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.copyTimer) clearTimeout(this.copyTimer);
+  }
+
   // ── Quick inline status update ────────────────────────────────────────────
   async quickStatus(lead: StoredLead, status: LeadStatus) {
     if (lead.status === status) return;
     this.updatingStatus.set(lead.id);
     try {
-      await this.leadStore.update(lead.id, { status });
-      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, status } : l));
+      const updates: Partial<StoredLead> = { status };
+      // Auto-set follow-up date when advancing the pipeline (only if not already set)
+      const autoFollowUp: Partial<Record<LeadStatus, number>> = {
+        contacted: 2, interested: 1, demo: 3,
+      };
+      const daysAhead = autoFollowUp[status];
+      if (daysAhead && !lead.followUpDate) {
+        const d = new Date();
+        d.setDate(d.getDate() + daysAhead);
+        updates.followUpDate = d.toISOString().split('T')[0];
+      }
+      await this.leadStore.update(lead.id, updates);
+      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
     } catch {
       this.error.set('Could not update status.');
     } finally {
@@ -120,6 +166,93 @@ export class LeadListComponent implements OnInit {
       this.confirmDelete.set(null);
     } finally {
       this.deleting.set(null);
+    }
+  }
+
+  // ── Lead scoring ─────────────────────────────────────────────────────────
+  leadScore(lead: StoredLead): number {
+    let score = 0;
+    if (lead.rating)      score += lead.rating * 10;                        // 0 – 50
+    if (lead.reviewCount) score += Math.min(lead.reviewCount * 0.1, 20);    // 0 – 20 cap
+    const sourceBonus: Partial<Record<LeadSource, number>> = {
+      referral: 30, walkin: 25, ida: 20, google_maps: 10, instagram: 5,
+    };
+    score += sourceBonus[lead.source] ?? 0;
+    return Math.round(score);
+  }
+
+  isHotLead(lead: StoredLead): boolean { return this.leadScore(lead) >= 60; }
+
+  // ── Inline quick note ─────────────────────────────────────────────────────
+  startNoteEdit(lead: StoredLead) {
+    this.inlineNote.set({ leadId: lead.id, text: lead.notes ?? '' });
+  }
+
+  cancelNoteEdit() { this.inlineNote.set(null); }
+
+  async saveInlineNote(lead: StoredLead) {
+    const note = this.inlineNote();
+    if (!note || note.leadId !== lead.id) return;
+    this.savingNote.set(true);
+    try {
+      const text = note.text.trim() || undefined;
+      await this.leadStore.update(lead.id, { notes: text });
+      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, notes: text } : l));
+      this.inlineNote.set(null);
+    } catch {
+      this.error.set('Could not save note.');
+    } finally {
+      this.savingNote.set(false);
+    }
+  }
+
+  // ── Send WhatsApp + auto-log + auto-advance ───────────────────────────────
+  async sendWhatsApp(lead: StoredLead) {
+    if (!lead.phone) return;
+    this.sendingWa.set(lead.id);
+    window.open(this.whatsappLink(lead), '_blank', 'noopener,noreferrer');
+
+    try {
+      const nextStatus: Partial<Record<LeadStatus, LeadStatus>> = { new: 'contacted' };
+      const autoFollowUp: Partial<Record<LeadStatus, number>> = {
+        new: 2, contacted: 2, interested: 1, demo: 3,
+      };
+      const next       = nextStatus[lead.status];
+      const daysAhead  = autoFollowUp[lead.status] ?? 2;
+      const followUp   = new Date();
+      followUp.setDate(followUp.getDate() + daysAhead);
+
+      const updates: Partial<StoredLead> = {
+        followUpDate: followUp.toISOString().split('T')[0],
+        ...(next ? { status: next } : {}),
+      };
+
+      await Promise.all([
+        this.leadStore.update(lead.id, updates),
+        this.leadStore.addActivity(lead.id, {
+          type: 'whatsapp',
+          note: `WhatsApp sent${next ? ` — status → ${next}` : ''}`,
+        }),
+      ]);
+
+      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
+    } catch {
+      // Non-fatal — the WA message was already opened
+    } finally {
+      this.sendingWa.set(null);
+    }
+  }
+
+  // ── Copy message to clipboard ─────────────────────────────────────────────
+  async copyMessage(lead: StoredLead) {
+    const msg = this.buildMessage(lead);
+    try {
+      await navigator.clipboard.writeText(msg);
+      if (this.copyTimer) clearTimeout(this.copyTimer);
+      this.copiedId.set(lead.id);
+      this.copyTimer = setTimeout(() => this.copiedId.set(null), 2000);
+    } catch {
+      this.error.set('Copy failed — please copy manually.');
     }
   }
 
@@ -439,24 +572,52 @@ export class LeadListComponent implements OnInit {
     return Array.from({ length: 5 }, (_, i) => i + 1);
   }
 
-  whatsappLink(lead: StoredLead): string {
-    const name    = lead.doctorName ? `Dr. ${lead.doctorName.replace(/^dr\.?\s*/i, '')}` : lead.clinicName;
-    const clinic  = lead.clinicName;
-    const city    = lead.city ? ` in ${lead.city}` : '';
-    const rating  = lead.rating  ? `⭐ ${lead.rating} rating` : '';
-    const reviews = lead.reviewCount ? ` · ${lead.reviewCount} reviews` : '';
-    const social  = rating ? `\n\n${rating}${reviews} — that's a strong reputation${city}!` : '';
-    const demo    = `https://indram-dental.vercel.app`;
+  // ── Message builder (used by both sendWhatsApp and copyMessage) ──────────
+  buildMessage(lead: StoredLead): string {
+    const name     = lead.doctorName
+      ? `Dr. ${lead.doctorName.replace(/^dr\.?\s*/i, '')}`
+      : lead.clinicName;
+    const clinic   = lead.clinicName;
+
+    // Location — prefer area+city for hyper-local feel e.g. "Sector 15, Noida"
+    const location = [lead.area, lead.city].filter(Boolean).join(', ');
+    const cityLine = location ? ` in ${location}` : '';
+    const cityOnly = lead.city ? ` in ${lead.city}` : '';
+
+    // Time-of-day greeting
+    const hour     = new Date().getHours();
+    const timeGreet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+    // Social proof from Google reviews
+    const hasRating  = !!lead.rating;
+    const ratingLine = hasRating
+      ? `⭐ ${lead.rating} rating${lead.reviewCount ? ` · ${lead.reviewCount} patient reviews` : ''} — your patients clearly love you!`
+      : '';
+
+    // Category-aware speciality mention
+    const cats      = (lead.categories ?? '').toLowerCase();
+    const speciality = cats.includes('implant') ? 'dental implants website'
+      : cats.includes('cosmet') || cats.includes('smile')  ? 'smile makeover showcase'
+      : cats.includes('orthodon') || cats.includes('align') ? 'orthodontics booking page'
+      : 'professional dental website';
+
+    // Their own Google Maps listing (shows we did research)
+    const mapsRef  = lead.mapsLink
+      ? `\n\nI even checked your Google listing: ${lead.mapsLink}`
+      : '';
+
+    const demo = `https://indram-dental.vercel.app`;
 
     const msgs: Record<LeadStatus, string> = {
       new:
-`Hello ${name} 👋
+`${timeGreet} ${name} 👋
 
-I came across *${clinic}*${city} and was impressed!${social}
+I came across *${clinic}*${cityLine} and was impressed!${mapsRef}
+${ratingLine ? '\n' + ratingLine : ''}
 
-I help dental clinics like yours get a *professional website* with:
+I help dental clinics get a *${speciality}* with:
 ✅ Online appointment booking (24/7)
-✅ WhatsApp alerts for every new booking
+✅ WhatsApp alert for every new booking
 ✅ Patient management dashboard
 ✅ Mobile-friendly, fast & secure
 
@@ -465,82 +626,85 @@ https://youtu.be/R7d1KqfdH6U
 
 👉 Live example: ${demo}
 
-*30-day FREE trial — no credit card required.*
+*30-day FREE trial — no credit card needed.*
 Your site can be live within 24 hours.
 
-Interested? I can set it up for ${clinic} today 🙏`,
+Interested? I can set it up for *${clinic}* today 🙏`,
 
       contacted:
-`Hello ${name} 👋
+`${timeGreet} ${name} 👋
 
-Following up on my message about a professional website for *${clinic}*.
-
-I understand you're busy — that's exactly why this matters. Your patients can book appointments *anytime, even at midnight*, without calling the clinic.
+Just following up on my earlier message about a *${speciality}* for *${clinic}*${cityLine}.
+${ratingLine ? '\nWith ' + ratingLine.replace('— your patients clearly love you!', '') + ', you deserve an online presence that matches.' : ''}
+Your patients can book *anytime, even at midnight* — without calling you.
 
 Most clinics see their first online booking within *48 hours* of going live.
 
-Would it be easier if I just sent a short video? Or we can hop on a 10-min call — whatever works for you 🙏`,
+🎬 2-min walkthrough: https://youtu.be/R7d1KqfdH6U
+
+Would a quick 10-min call work for you? Completely free, no pressure 🙏`,
 
       interested:
-`Hello ${name}! 😊
+`${timeGreet} ${name}! 😊
 
-Glad to hear you're interested in a website for *${clinic}*!
+Great to hear you're interested in a website for *${clinic}*${cityLine}!
 
 Here's exactly what you'll get:
-🌐 Professional clinic website with your branding
-📅 Patients book appointments from their phone
+🌐 ${speciality.charAt(0).toUpperCase() + speciality.slice(1)} with your branding
+📅 Patients book from their phone — day or night
 💬 Instant WhatsApp alert to you for every booking
-📊 Dashboard to manage & confirm appointments
-🔒 Secure, HTTPS, mobile-optimised
+📊 Dashboard to manage & confirm from anywhere
+🔒 Secure, HTTPS, fast on mobile
+${ratingLine ? '\n' + ratingLine : ''}
+*Everything live within 24 hours.*
 
-*Everything set up and live in 24 hours.*
-
-When are you free for a quick 10-min demo? We can do it over a WhatsApp video call — no downloads, no hassle 🙏`,
+When are you free for a quick 10-min demo over WhatsApp call? 🙏`,
 
       demo:
-`Hello ${name}!
+`${timeGreet} ${name}!
 
-Thank you for taking time for the demo of *${clinic}*'s website!
+Thank you for the demo — really enjoyed showing you what *${clinic}*'s website could look like!
 
-As we discussed, here's your quick summary:
+Quick summary of what's included:
 ✅ Professional website — live in 24 hours
-✅ Online booking — patients book from their phone
+✅ Online booking from patients' phones
 ✅ Instant WhatsApp notifications for every booking
-✅ Admin dashboard on your phone or laptop
+✅ Admin dashboard — works on phone & laptop
 ✅ *30-day FREE trial — no card, no commitment*
-
-Just reply *"YES"* and I'll have your clinic's site live by tomorrow. 🚀
-
-Any last questions? Happy to help any time!`,
+${ratingLine ? '\nWith your ' + ratingLine.split('—')[0].trim() + ', patients will trust and book instantly.' : ''}
+Just reply *"YES"* and I'll have your site live by tomorrow 🚀`,
 
       converted:
-`Hello ${name}! 🎉
+`${timeGreet} ${name}! 🎉
 
-Welcome to *mydentalplatform* — so excited to have *${clinic}* on board!
+Welcome to *mydentalplatform* — thrilled to have *${clinic}*${cityLine} on board!
 
-I'll start setting up your website right away. You'll receive a confirmation message once it's live.
+I'm setting up your website right now. You'll get a message as soon as it's live.
 
-In the meantime, feel free to reach out for anything at all. We're here to make this as smooth as possible for you.
+Feel free to reach out any time — we're here to make this seamless for you.
 
 Thank you for trusting us! 🙏`,
 
       lost:
-`Hello ${name} 👋
+`${timeGreet} ${name} 👋
 
-Hope you're doing well! Quick update since we last spoke — mydentalplatform has some exciting new features I'd love to show you:
+Hope things are going well at *${clinic}*${cityLine}!
 
-✨ *What's new for ${clinic}:*
-• AI receptionist that answers patient queries 24/7
-• Google Reviews integration on your website
-• Faster setup — your site goes live same day
-• *Free 30-day trial, no card needed*
+Quick update — mydentalplatform has some exciting new features:
+✨ AI receptionist that answers patient queries 24/7
+✨ Google Reviews integration on your website
+✨ Same-day setup — your site goes live today
+✨ *Free 30-day trial, no card needed*
+${ratingLine ? '\nWith ' + ratingLine.split('—')[0].trim() + ', an online presence would bring in new patients daily.' : ''}
+Several clinics${cityOnly} are already live and booking online.
 
-Several clinics${city} are already live and getting new patients online every day.
-
-No pressure — would you like a fresh 10-min demo of the new version? 🙏`,
+No pressure — want a fresh 10-min demo? 🙏`,
     };
 
-    const msg = msgs[lead.status] ?? msgs.new;
-    return `https://wa.me/${lead.phone}?text=${encodeURIComponent(msg)}`;
+    return msgs[lead.status] ?? msgs.new;
+  }
+
+  whatsappLink(lead: StoredLead): string {
+    return `https://wa.me/${lead.phone}?text=${encodeURIComponent(this.buildMessage(lead))}`;
   }
 }
