@@ -359,7 +359,7 @@
 
                 <!-- Submit button -->
                 <button type="submit" [disabled]="submitting()"
-                        class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] disabled:opacity-60 text-white py-4 rounded-xl font-bold text-base shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:shadow-lg flex items-center justify-center gap-2">
+                        class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-base shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:shadow-lg flex items-center justify-center gap-2">
                   @if (submitting()) {
                     <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>

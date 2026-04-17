@@ -207,7 +207,7 @@
               @if (isInvalid('message')) { <p id="message-error" class="text-red-500 text-xs mt-1">Please enter your message (min 10 characters).</p> }
             </div>
             <button type="submit" [disabled]="submitting()"
-                    class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] disabled:opacity-60 text-white py-4 rounded-xl font-bold transition-all">
+                    class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold transition-all">
               @if (submitting()) { Sending... } @else { Send Message }
             </button>
             <p class="text-xs text-gray-400 text-center">
