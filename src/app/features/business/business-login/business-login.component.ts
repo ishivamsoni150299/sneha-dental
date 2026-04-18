@@ -1,17 +1,12 @@
 import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../../core/firebase';
 import { AuthService } from '../../../core/services/auth.service';
 import { SuperAuthService } from '../../../core/services/super-auth.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { environment } from '../../../../environments/environment';
-
-const firebaseApp = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const fbAuth      = getAuth(firebaseApp);
-const db          = getFirestore(firebaseApp);
 
 @Component({
   selector: 'app-business-login',
@@ -88,7 +83,7 @@ export class BusinessLoginComponent {
     const superSnap = await getDoc(doc(db, 'superAdmins', uid));
     if (superSnap.exists()) {
       // Explicitly update SuperAuthService so the superAdminGuard passes immediately
-      this.superAuth.currentUser.set(fbAuth.currentUser);
+      this.superAuth.currentUser.set(auth.currentUser);
       this.superAuth.isSuperAdmin.set(true);
       this.router.navigate(['/business/clinics']);
       return;
@@ -102,7 +97,7 @@ export class BusinessLoginComponent {
     }
 
     // 3. Unknown user — sign out and explain
-    await signOut(fbAuth);
+    await signOut(auth);
     this.auth.currentUser.set(null);
     this.error.set('No admin account found for this email. Contact support.');
   }

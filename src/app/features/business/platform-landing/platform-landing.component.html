@@ -655,6 +655,11 @@
                   </span>
                   <span class="text-xs" [class]="plan.highlighted ? 'text-gray-400' : 'text-gray-400'">/month</span>
                 </div>
+                @if (plan.highlighted) {
+                  <p class="text-[11px] mt-1" [class]="plan.highlighted ? 'text-blue-400' : 'text-gray-400'">
+                    ₹50/day — less than one cleaning fee
+                  </p>
+                }
                 @if (billingYearly()) {
                   <p class="text-xs" [class]="plan.highlighted ? 'text-blue-400' : 'text-green-600'">
                     Billed ₹{{ plan.yearly }}/year — 2 months free
@@ -668,13 +673,35 @@
             <ul class="space-y-2.5 flex-1">
               @for (feat of plan.features; track feat) {
                 <li class="flex items-start gap-2 text-xs">
-                  <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
-                       [class]="plan.highlighted ? 'text-blue-400' : 'text-green-500'"
-                       fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span [class]="plan.highlighted ? 'text-gray-300' : 'text-gray-600'">{{ feat }}</span>
+                  <!-- Usage-based badge for voice overage line -->
+                  @if (feat.includes('₹20/min')) {
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span class="text-amber-300">{{ feat }}
+                      <span class="ml-1 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-semibold">usage-based</span>
+                    </span>
+                  } @else {
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
+                         [class]="plan.highlighted ? 'text-blue-400' : 'text-green-500'"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span [class]="plan.highlighted ? 'text-gray-300' : 'text-gray-600'">{{ feat }}</span>
+                  }
                 </li>
+              }
+              <!-- Not included section -->
+              @if (plan.notIncluded && plan.notIncluded.length > 0) {
+                <li class="pt-2 border-t" [class]="plan.highlighted ? 'border-gray-700' : 'border-gray-100'"></li>
+                @for (item of plan.notIncluded; track item) {
+                  <li class="flex items-start gap-2 text-xs opacity-50">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span [class]="plan.highlighted ? 'text-gray-500' : 'text-gray-400'">{{ item }}</span>
+                  </li>
+                }
               }
             </ul>
 
@@ -686,7 +713,38 @@
           </div>
         }
       </div>
-      <p class="text-center text-xs text-gray-400 mt-8">All prices in INR · GST extra · Cancel anytime · No setup fee</p>
+      <!-- ROI callout -->
+      <div class="text-center mt-6">
+        <p class="text-xs text-gray-500">
+          1 missed call = 1 lost patient = ₹2,000–₹10,000 lost revenue.
+          <strong class="text-gray-700">Pays for itself with 1 booking/month.</strong>
+        </p>
+      </div>
+
+      <!-- Early adopter badge -->
+      <div class="mt-4 flex justify-center">
+        <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-4 py-2 rounded-full">
+          <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+          Early adopter pricing — first 20 clinics get their price locked for 12 months
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-gray-400 mt-4">All prices in INR · GST extra · Cancel anytime · No setup fee</p>
+
+      <!-- Usage-based pricing note -->
+      <div class="mt-4 max-w-xl mx-auto bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex items-start gap-3">
+        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <p class="text-xs text-amber-800 leading-relaxed">
+          <strong>Usage-based:</strong> Pro plan includes <strong>30 voice minutes/month</strong> at no extra cost.
+          Additional minutes are billed at <strong>₹20/min</strong> — only if you exceed the limit.
+          You can set a monthly budget cap (default ₹1,000) so there are never any surprises.
+          Usage visible in your admin dashboard.
+        </p>
+      </div>
 
       <!-- Guarantee strip -->
       <div class="mt-8 bg-white border border-green-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">

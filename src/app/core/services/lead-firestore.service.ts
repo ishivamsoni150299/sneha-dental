@@ -1,13 +1,9 @@
 import { Injectable } from '@angular/core';
-import { initializeApp, getApps } from 'firebase/app';
 import {
-  getFirestore, collection, getDocs, getDoc, addDoc, updateDoc,
+  collection, getDocs, getDoc, addDoc, updateDoc,
   deleteDoc, doc, query, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
-import { environment } from '../../../environments/environment';
-
-const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const db  = getFirestore(app);
+import { db } from '../firebase';
 
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'demo' | 'converted' | 'lost';
 export type LeadSource = 'google_maps' | 'instagram' | 'referral' | 'ida' | 'walkin' | 'other';

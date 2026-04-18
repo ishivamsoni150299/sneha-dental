@@ -159,6 +159,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   trialEnd.setDate(trialEnd.getDate() + 30);
   const trialEndDate = trialEnd.toISOString().slice(0, 10); // "YYYY-MM-DD"
 
+  // ── Grandfather pricing — first 20 clinics get 12-month price lock ────────
+  const totalClinics = await db.collection('clinics').count().get();
+  const clinicCount  = totalClinics.data().count;
+  const isGrandfathered = clinicCount < 20 && plan !== 'trial';
+  const grandfatherEnd  = new Date();
+  grandfatherEnd.setMonth(grandfatherEnd.getMonth() + 12);
+
   // ── Create Firestore clinic doc ────────────────────────────────────────────
   const clinicData: Record<string, unknown> = {
     name:                name.trim(),
@@ -193,6 +200,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Auth
     adminEmail:          email,
     adminUid:            uid,
+    // Voice defaults
+    voiceBudgetCap:      1000,       // ₹1,000 default overage budget
+    voiceAutoStop:       true,       // auto-pause when budget exhausted
+    // Grandfather pricing
+    ...(isGrandfathered ? {
+      grandfatheredUntil: grandfatherEnd.toISOString().slice(0, 10),
+      grandfatheredPlan:  plan as 'starter' | 'pro',
+    } : {}),
     // Timestamps
     createdAt:           FieldValue.serverTimestamp(),
   };

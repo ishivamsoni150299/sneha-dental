@@ -29,7 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!doc.exists) return res.status(404).json({ error: 'Clinic not found' });
 
   const agentId = (doc.data() as Record<string, unknown>)['elevenLabsAgentId'] as string | undefined;
-  if (!agentId) return res.status(200).json({ conversations: 0, minutesUsed: 0, minutesLimit: 60 });
+  const clinicData = doc.data() as Record<string, unknown>;
+  if (!agentId) return res.status(200).json({ conversations: 0, minutesUsed: 0, minutesLimit: 30 });
 
   // Fetch conversation history for this agent (current month)
   const startOfMonth = new Date();
@@ -42,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!convRes.ok) {
     console.error('[elevenlabs-usage] API error:', await convRes.text());
-    return res.status(200).json({ conversations: 0, minutesUsed: 0, minutesLimit: 60 });
+    return res.status(200).json({ conversations: 0, minutesUsed: 0, minutesLimit: 30 });
   }
 
   const data = await convRes.json() as {
@@ -57,9 +58,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const totalSecs = thisMonth.reduce((sum, c) => sum + (c.call_duration_secs ?? 0), 0);
   const minutesUsed = Math.round(totalSecs / 60);
 
+  // Voice budget cap: default ₹1,000 = 50 extra min max → 80 min total
+  const minutesLimit = 30;  // Pro plan included minutes
+  const voiceBudgetCap  = (clinicData['voiceBudgetCap']  as number | undefined) ?? 1000;
+  const voiceAutoStop   = (clinicData['voiceAutoStop']    as boolean | undefined) ?? true;
+  const overageRate     = 20; // ₹/min
+  const maxOverageMin   = Math.floor(voiceBudgetCap / overageRate);
+  const hardLimit       = minutesLimit + maxOverageMin; // 30 + 50 = 80 by default
+  const overageMinutes  = Math.max(0, minutesUsed - minutesLimit);
+  const overageCost     = overageMinutes * overageRate;
+
   return res.status(200).json({
     conversations: thisMonth.length,
     minutesUsed,
-    minutesLimit: 60,    // Pro plan included minutes
+    minutesLimit,
+    voiceBudgetCap,
+    voiceAutoStop,
+    overageRate,
+    overageMinutes,
+    overageCost,
+    hardLimit,
+    limitReached: voiceAutoStop && minutesUsed >= hardLimit,
   });
 }

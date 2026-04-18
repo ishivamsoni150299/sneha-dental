@@ -49,6 +49,12 @@ export interface ClinicConfig {
   voiceAgentVoiceId?: string;      // ElevenLabs voice ID override
   voiceAgentWhatsapp?: string;     // WhatsApp number for AI channel (E164, no +)
   voiceMinutesUsed?: number;       // Current month minutes consumed (fetched from ElevenLabs)
+  voiceBudgetCap?: number;         // Monthly overage budget in ₹ (default 1000 = 50 extra min)
+  voiceAutoStop?: boolean;         // Auto-pause voice agent when budget exhausted (default true)
+
+  // ── Grandfather (early adopter pricing lock) ─────────────────────────
+  grandfatheredUntil?: string;     // ISO date — price locked until this date
+  grandfatheredPlan?: 'starter' | 'pro'; // Plan that was locked at signup
 
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';
@@ -125,5 +131,5 @@ export const clinicConfig: ClinicConfig = {
 export const PLATFORM_PLANS = {
   trial:   { label: 'Free Trial', monthly: 0,   yearly: 0    },
   starter: { label: 'Starter',    monthly: 499, yearly: 4999 },
-  pro:     { label: 'Pro',        monthly: 999, yearly: 9999 },
+  pro:     { label: 'Pro',        monthly: 1499, yearly: 14999 },
 } as const;

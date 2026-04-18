@@ -66,6 +66,9 @@ service cloud.firestore {
     }
 
     // ── Contacts ─────────────────────────────────────────────────────────────
+    // Public create: submitted via the unauthenticated contact form on clinic
+    // sites and the platform landing page. Sensitive data (read/edit/delete)
+    // is restricted to super admins only.
     match /contacts/{docId} {
       allow create: if true;
       allow read, update, delete: if isSuperAdmin();
@@ -90,10 +93,16 @@ service cloud.firestore {
 
     // ── Analytics / counters ──────────────────────────────────────────────────
     // Public write: booking flow atomically increments counters without auth.
+    // Field validation ensures only legitimate counter fields can be written —
+    // prevents arbitrary data injection while keeping the write unauthenticated.
     // Read: super admin only (shown on Revenue / Analytics pages).
     match /analytics/{docId} {
       allow read:  if isSuperAdmin();
-      allow write: if true;
+      allow write: if request.resource.data.keys().hasOnly([
+        'totalBookings', 'totalRevenue', 'activeClinics',
+        'trialClinics', 'cancelledClinics', 'updatedAt',
+        'dailyBookings', 'monthlyRevenue', 'clinicId', 'date'
+      ]);
     }
 
     // ── Platform settings ─────────────────────────────────────────────────────
