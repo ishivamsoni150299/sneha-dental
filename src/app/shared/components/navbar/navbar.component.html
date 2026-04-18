@@ -14,7 +14,7 @@
                class="object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
                [class]="scrolled() ? 'h-8 max-w-[140px]' : 'h-10 max-w-[160px]'">
         } @else {
-          <!-- Default tooth icon — natural shape, theme-aware colour -->
+          <!-- Default tooth icon — natural shape, theme-aware colour, clinic initial embedded -->
           <svg class="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
                [class]="scrolled() ? 'w-[22px] h-[28px]' : 'w-[26px] h-[32px]'"
                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
@@ -42,11 +42,21 @@
             <!-- Highlight sheen -->
             <ellipse cx="11" cy="10" rx="3" ry="5.5" fill="white" opacity="0.18"
                      transform="rotate(-15,11,10)"/>
+            <!-- Clinic initial(s) embedded in crown -->
+            <text x="16" y="17"
+                  text-anchor="middle" dominant-baseline="middle"
+                  fill="white" opacity="0.92"
+                  font-family="Georgia,serif" font-weight="700"
+                  [attr.font-size]="logoInitial.length > 1 ? '8' : '10'">{{ logoInitial }}</text>
           </svg>
-          <!-- Wordmark — just the clinic name, no hardcoded "DENTAL" -->
+          <!-- Wordmark — brand name + optional suffix line -->
           <span class="flex flex-col leading-none group-hover:opacity-90 transition-opacity">
-            <span class="font-['Cormorant_Garamond',Georgia,serif] text-gray-900 font-medium tracking-tight transition-all duration-300"
-                  [class]="scrolled() ? 'text-lg' : 'text-xl'">{{ config.name }}</span>
+            <span class="font-['Cormorant_Garamond',Georgia,serif] text-gray-900 font-semibold tracking-tight transition-all duration-300"
+                  [class]="scrolled() ? 'text-lg' : 'text-xl'">{{ logoBrand }}</span>
+            @if (logoSuffix) {
+              <span class="text-[var(--accent)] font-medium tracking-widest uppercase transition-all duration-300"
+                    [class]="scrolled() ? 'text-[8px]' : 'text-[9px]'">{{ logoSuffix }}</span>
+            }
           </span>
         }
       </a>
