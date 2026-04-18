@@ -88,18 +88,18 @@ export class AdminSettingsComponent implements OnInit {
       id: 'trial', label: 'Free Trial', price: '₹0', period: '30 days',
       color: 'gray',
       features: ['Clinic website', 'Online booking', 'WhatsApp integration', 'Patient admin dashboard', 'Free subdomain'],
-      locked: ['Custom domain', 'AI Voice Receptionist', 'Google Reviews sync', 'SEO-optimised pages'],
+      locked: ['Custom domain', 'AI Voice Receptionist', 'Content updates'],
     },
     {
       id: 'starter', label: 'Starter', price: '₹499', period: '/month',
       color: 'blue',
-      features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate', 'Services catalogue', 'Priority WhatsApp support', '1 content update/month'],
-      locked: ['AI Voice Receptionist', 'Google Reviews sync', 'SEO-optimised pages', 'Unlimited updates'],
+      features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate', 'Services catalogue', 'Email + WhatsApp support', '1 content update/month (text, image, or section)'],
+      locked: ['AI Voice Receptionist', 'Voice minutes'],
     },
     {
-      id: 'pro', label: 'Pro', price: '₹999', period: '/month',
+      id: 'pro', label: 'Pro', price: '₹1,499', period: '/month',
       color: 'purple',
-      features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English voice', 'Google Reviews sync', 'Testimonials management', 'SEO-optimised pages', 'Google Analytics setup', 'Unlimited content updates', 'Priority support'],
+      features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English + Hinglish', '30 voice min/month included', '₹20/min after 30 min', '3 content updates/month', '1 onboarding call (20 min)', 'Revenue & analytics dashboard', 'Priority support'],
       locked: [],
     },
   ] as const;

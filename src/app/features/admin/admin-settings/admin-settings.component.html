@@ -745,7 +745,7 @@
                 @if (isExpired)        { Trial Expired }
                 @else if (isTrial)     { Free Trial — {{ trialDaysLeft }} days left }
                 @else if (isStarter)   { Starter · ₹499/month }
-                @else if (isPro)       { Pro · ₹999/month }
+                @else if (isPro)       { Pro · ₹1,499/month }
                 @else                  { Trial }
               </p>
               @if (isTrial && !isExpired) {
@@ -755,7 +755,7 @@
                 <p class="text-red-600 text-xs mt-1">Your website is currently hidden from patients. Upgrade now to restore it.</p>
               }
               @if (isStarter) {
-                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro to unlock AI Voice Receptionist + Google Reviews sync.</p>
+                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro to unlock AI Voice Receptionist — answers patient calls 24/7 in Hindi & English.</p>
               }
               @if (isPro) {
                 <p class="text-purple-700 text-xs mt-1">You're on the best plan. All features are unlocked.</p>
@@ -776,7 +776,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                   </svg>
                 }
-                {{ isStarter ? 'Upgrade to Pro — ₹999/mo' : 'Upgrade to Starter — ₹499/mo' }}
+                {{ isStarter ? 'Upgrade to Pro — ₹1,499/mo' : 'Upgrade to Starter — ₹499/mo' }}
               </button>
             }
             @if (upgradeError()) {
@@ -844,7 +844,7 @@
                             [class]="p.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'">
                       @if (upgrading()) { Processing… }
                       @else if (p.id === 'starter') { Upgrade to Starter · ₹499/mo }
-                      @else { Upgrade to Pro · ₹999/mo }
+                      @else { Upgrade to Pro · ₹1,499/mo }
                     </button>
                   } @else {
                     <span class="block w-full text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400 cursor-default">
@@ -860,7 +860,7 @@
           <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <p class="text-sm font-bold text-gray-900 mb-1">Is it worth it?</p>
             <p class="text-xs text-gray-500 leading-relaxed">
-              One extra patient booking per week = ~₹1,500–₹3,000 revenue. Pro costs ₹999/month.
+              One extra patient booking per week = ~₹1,500–₹3,000 revenue. Pro costs ₹1,499/month.
               The AI Voice Receptionist alone pays for itself if it books even <strong class="text-gray-700">one missed call</strong> a month.
             </p>
           </div>
@@ -899,7 +899,7 @@
                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-md transition-all hover:scale-105"
                       style="background: linear-gradient(135deg, #7c3aed, #9333ea)">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Upgrade to Pro — ₹999/mo
+                Upgrade to Pro — ₹1,499/mo
               </button>
             </div>
 
@@ -970,7 +970,7 @@
                          [class]="u.minutesUsed >= u.minutesLimit ? 'bg-red-500' : u.minutesUsed / u.minutesLimit > 0.8 ? 'bg-amber-500' : 'bg-purple-500'">
                     </div>
                   </div>
-                  <p class="text-[11px] text-gray-400">{{ u.conversations }} conversations · Pro plan includes 60 min/mo free</p>
+                  <p class="text-[11px] text-gray-400">{{ u.conversations }} conversations · Pro plan includes 30 min/mo free · ₹20/min after</p>
                 </div>
               } @else {
                 <p class="text-xs text-gray-400 italic">Usage data not loaded yet. Click Refresh.</p>
