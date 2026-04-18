@@ -2,10 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Razorpay from 'razorpay';
 
 // ── Env vars to set in Vercel dashboard ──────────────────────────────────────
-// RAZORPAY_KEY_ID      → rzp_live_xxx   (from Razorpay → Settings → API Keys)
-// RAZORPAY_KEY_SECRET  → your secret
+// RAZORPAY_KEY_ID       → rzp_live_xxx   (Razorpay → Settings → API Keys)
+// RAZORPAY_KEY_SECRET   → your secret
 // RAZORPAY_PLAN_STARTER → plan_xxx      (create ₹499/mo plan in Razorpay dashboard)
-// RAZORPAY_PLAN_PRO     → plan_xxx      (create ₹999/mo plan in Razorpay dashboard)
+// RAZORPAY_PLAN_PRO     → plan_xxx      (create ₹1499/mo plan in Razorpay dashboard)
 
 const PLAN_IDS: Record<string, string | undefined> = {
   starter: process.env['RAZORPAY_PLAN_STARTER'],
@@ -17,8 +17,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { clinicId, plan, clinicName, phone } = req.body ?? {};
 
-  if (!clinicId || !plan || !PLAN_IDS[plan]) {
-    return res.status(400).json({ error: 'Missing clinicId, plan, or plan not configured.' });
+  // ── Guard: API keys present ───────────────────────────────────────────────
+  if (!process.env['RAZORPAY_KEY_ID'] || !process.env['RAZORPAY_KEY_SECRET']) {
+    console.error('[create-subscription] Razorpay API keys not configured in env vars');
+    return res.status(500).json({ error: 'Payment not configured. Contact support.' });
+  }
+
+  // ── Guard: plan ID present ────────────────────────────────────────────────
+  if (!clinicId || !plan) {
+    return res.status(400).json({ error: 'Missing clinicId or plan.' });
+  }
+  if (!PLAN_IDS[plan]) {
+    console.error(`[create-subscription] Plan ID for "${plan}" not set in env vars (RAZORPAY_PLAN_${plan.toUpperCase()})`);
+    return res.status(500).json({
+      error: `Payment plan not configured. Set RAZORPAY_PLAN_${plan.toUpperCase()} in Vercel env vars.`,
+    });
   }
 
   const razorpay = new Razorpay({
@@ -40,7 +53,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       shortUrl:       (sub as unknown as Record<string, unknown>)['short_url'],
     });
   } catch (err: unknown) {
-    console.error('Razorpay create subscription error:', err);
-    return res.status(500).json({ error: 'Failed to create subscription.' });
+    // Surface the real Razorpay error so it's visible in logs + UI
+    const rzpErr = err as Record<string, unknown>;
+    const detail  = (rzpErr['error'] as Record<string, unknown>)?.['description']
+      ?? (rzpErr['message'] as string)
+      ?? JSON.stringify(err);
+    console.error('[create-subscription] Razorpay error:', detail, err);
+    return res.status(500).json({ error: `Razorpay: ${detail}` });
   }
 }
