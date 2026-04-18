@@ -58,6 +58,14 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     if (step > 1) this.currentStep.set(step - 1);
   }
 
+  goToStep(target: number) {
+    // Only allow jumping back to a completed step
+    if (target < this.currentStep() && target >= 1) {
+      this.currentStep.set(target);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
   isStepComplete(step: number): boolean {
     return (this.stepFields[step] ?? []).every(f => !this.form.get(f)!.invalid);
   }
