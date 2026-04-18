@@ -630,13 +630,15 @@
                 <!-- Default tooth icon -->
                 <div class="flex flex-col items-center gap-3">
                   <div class="w-full bg-white rounded-xl border border-gray-200 flex items-center justify-center h-16 gap-2.5">
-                    <svg class="w-7 h-9 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
+                    <svg class="w-6 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
                       <defs>
-                        <linearGradient id="logoPreviewTooth" x1="0" y1="0" x2=".6" y2="1">
-                          <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/>
+                        <linearGradient id="logoPreviewTooth" x1="0" y1="0" x2=".4" y2="1">
+                          <stop offset="0%" style="stop-color: var(--accent-md)"/>
+                          <stop offset="100%" style="stop-color: var(--accent-dk)"/>
                         </linearGradient>
                       </defs>
-                      <path d="M 0,8 a 8,8 0 0,1 8,-8 L 24,0 a 8,8 0 0,1 8,8 L 32,32 a 5,5 0 0,1 -5,5 L 22,37 a 5,5 0 0,1 -5,-5 L 17,20 L 15,20 L 15,32 a 5,5 0 0,1 -5,5 L 5,37 a 5,5 0 0,1 -5,-5 Z" fill="url(#logoPreviewTooth)"/>
+                      <path d="M 16,2 C 23,2 29,7 28,14 C 28,19 27,22 26,24 C 26,28 25,33 24,37 C 24,39 21,39 21,37 C 21,33 21,28 20,25 C 19,23 17,23 15,23 C 14,26 14,33 12,37 C 12,39 9,39 9,37 C 8,33 7,28 7,24 C 5,22 4,19 4,14 C 3,7 9,2 16,2 Z" fill="url(#logoPreviewTooth)"/>
+                      <ellipse cx="11" cy="10" rx="3" ry="5.5" fill="white" opacity="0.2" transform="rotate(-15,11,10)"/>
                     </svg>
                     <span class="text-base font-medium text-gray-700 truncate max-w-[100px]">{{ cfg.name }}</span>
                   </div>
