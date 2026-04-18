@@ -49,6 +49,72 @@
 
     @if (!loading()) {
 
+      <!-- Setup completion score -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 overflow-hidden">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <p class="font-bold text-gray-900 text-sm">Setup progress</p>
+            <p class="text-xs text-gray-400 mt-0.5">Complete your profile to get the most out of your clinic site</p>
+          </div>
+          <div class="text-right shrink-0 ml-4">
+            <p class="text-2xl font-extrabold leading-none"
+               [class]="setupScore === 100 ? 'text-green-600' : setupScore >= 60 ? 'text-[var(--accent)]' : 'text-amber-500'">
+              {{ setupScore }}%
+            </p>
+            <p class="text-[10px] text-gray-400 mt-0.5 font-medium">
+              {{ setupDoneCount }}/{{ setupChecklist.length }} done
+            </p>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+          <div class="h-full rounded-full transition-all duration-700"
+               [style.width.%]="setupScore"
+               [class]="setupScore === 100 ? 'bg-green-500' : setupScore >= 60 ? 'bg-[var(--accent)]' : 'bg-amber-400'">
+          </div>
+        </div>
+
+        <!-- Checklist items — show incomplete first -->
+        <div class="space-y-2">
+          @for (item of setupChecklist; track item.label) {
+            <div class="flex items-center gap-3 py-1.5 px-3 rounded-xl transition-colors cursor-pointer group"
+                 [class]="item.done ? 'bg-gray-50' : 'bg-amber-50 hover:bg-amber-100'"
+                 (click)="activeTab.set(item.tab)">
+              <!-- Status icon -->
+              <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                   [class]="item.done ? 'bg-green-100' : 'bg-amber-100'">
+                @if (item.done) {
+                  <svg class="w-3 h-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                } @else {
+                  <svg class="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/>
+                  </svg>
+                }
+              </div>
+              <!-- Label + hint -->
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold leading-tight"
+                   [class]="item.done ? 'text-gray-500 line-through' : 'text-gray-800'">
+                  {{ item.label }}
+                </p>
+                @if (!item.done) {
+                  <p class="text-[10px] text-amber-600 leading-tight mt-0.5">{{ item.hint }}</p>
+                }
+              </div>
+              <!-- Go arrow for incomplete items -->
+              @if (!item.done) {
+                <svg class="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-600 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
       <!-- Tab bar -->
       <div class="flex gap-1 bg-white border border-gray-200 rounded-2xl p-1 overflow-x-auto">
         @for (tab of tabs; track tab.id) {

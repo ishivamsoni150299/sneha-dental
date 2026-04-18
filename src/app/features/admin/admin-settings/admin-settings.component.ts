@@ -123,6 +123,26 @@ export class AdminSettingsComponent implements OnInit {
 
   readonly STARS = [1, 2, 3, 4, 5] as const;
 
+  // ── Setup completion checklist ────────────────────────────────────────────
+  get setupChecklist(): Array<{ label: string; done: boolean; tab: TabId; hint: string }> {
+    const c = this.cfg;
+    return [
+      { label: 'Doctor name & qualification',  done: !!(c.doctorName && c.doctorQualification), tab: 'info',         hint: 'Complete doctor profile for patient trust' },
+      { label: 'Phone number & address',        done: !!(c.phone && c.addressLine1),             tab: 'contact',      hint: 'Required for patients to reach you' },
+      { label: 'Map link added',                done: !!(c.mapEmbedUrl || c.mapDirectionsUrl),   tab: 'contact',      hint: 'Helps patients find your clinic easily' },
+      { label: 'Clinic hours set',              done: c.hours.length > 0,                        tab: 'hours',        hint: 'Show patients when you\'re open' },
+      { label: 'At least one testimonial',      done: c.testimonials.length > 0,                 tab: 'testimonials', hint: 'Social proof improves booking conversions' },
+      { label: 'Logo uploaded',                 done: !!c.logoDataUrl,                           tab: 'logo',         hint: 'Brand your clinic — builds patient confidence' },
+      { label: 'Voice agent configured',        done: !!(c.elevenLabsAgentId),                   tab: 'voice',        hint: 'Capture missed calls 24/7 automatically' },
+    ];
+  }
+
+  get setupDoneCount(): number { return this.setupChecklist.filter(i => i.done).length; }
+  get setupScore(): number {
+    const list = this.setupChecklist;
+    return Math.round((this.setupDoneCount / list.length) * 100);
+  }
+
   // ── Forms ─────────────────────────────────────────────────────────────────
   infoForm = this.fb.nonNullable.group({
     doctorName:          ['', Validators.required],

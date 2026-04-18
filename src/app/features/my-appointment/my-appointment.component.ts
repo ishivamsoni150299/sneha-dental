@@ -30,7 +30,12 @@ export class MyAppointmentComponent {
 
   services = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
 
-  timeSlots = ['Morning (9am - 12pm)', 'Afternoon (12pm - 4pm)', 'Evening (4pm - 8pm)'];
+  timeSlots = [
+    '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+    '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+    '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM',
+    '6:00 PM', '6:30 PM', '7:00 PM',
+  ];
 
   lookupForm = this.fb.group({
     bookingRef: ['', [Validators.required, Validators.pattern(new RegExp(`^${this.prefix}-[A-Z0-9]{8}$`))]],
