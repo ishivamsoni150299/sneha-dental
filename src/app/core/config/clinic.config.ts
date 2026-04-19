@@ -8,6 +8,8 @@ export interface ClinicService { iconPath: string; name: string; description: st
 export interface HealthPlan    { tag: string; name: string; subtitle: string; price: string; period: string; highlighted: boolean; features: string[] }
 export interface Testimonial   { name: string; location: string; rating: number; review: string }
 export interface ClinicHours   { days: string; time: string }
+export const CLINIC_THEMES = ['blue', 'teal', 'emerald', 'purple', 'rose', 'caramel'] as const;
+export type ClinicTheme = typeof CLINIC_THEMES[number];
 
 export interface ClinicConfig {
   // ── Identity ──────────────────────────────────────────────────────────────
@@ -73,7 +75,7 @@ export interface ClinicConfig {
   onboardingSharedWebsite?: boolean;  // admin confirmed they shared the website
 
   // ── Brand ─────────────────────────────────────────────────────────────────
-  theme: 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose'; // default color theme for this deployment
+  theme: ClinicTheme;            // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"
   logoDataUrl?: string;           // base64 compressed logo (≤200×200 px) — overrides default tooth icon
 

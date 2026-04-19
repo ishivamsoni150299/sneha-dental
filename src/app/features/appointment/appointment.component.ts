@@ -307,7 +307,10 @@ export class AppointmentComponent implements OnInit, OnDestroy {
       });
     } catch (e) {
       console.error('[Appointment] Booking failed:', e);
-      this.error.set('Something went wrong. Please try again or WhatsApp us.');
+      const message = e instanceof Error && e.message
+        ? e.message
+        : 'Something went wrong. Please try again or WhatsApp us.';
+      this.error.set(message);
     } finally {
       this.submitting.set(false);
     }

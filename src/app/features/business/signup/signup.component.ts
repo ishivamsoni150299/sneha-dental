@@ -15,6 +15,7 @@ import {
 } from 'firebase/auth';
 import { initializeApp, getApps } from 'firebase/app';
 import { environment } from '../../../../environments/environment';
+import type { ClinicTheme } from '../../../core/config/clinic.config';
 
 // ── Firebase client ───────────────────────────────────────────────────────────
 const app  = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
@@ -51,19 +52,20 @@ interface MarketingAttribution {
 
 // ── Theme definitions ─────────────────────────────────────────────────────────
 export interface Theme {
-  id: 'blue' | 'teal' | 'emerald' | 'purple' | 'rose' | 'caramel';
+  id: ClinicTheme;
   name: string;
+  note: string;
   hex: string;
   hexTo: string;
 }
 
 export const THEMES: Theme[] = [
-  { id: 'blue',    name: 'Ocean Blue',   hex: '#2563eb', hexTo: '#1e3a8a' },
-  { id: 'teal',    name: 'Teal Green',   hex: '#0d9488', hexTo: '#134e4a' },
-  { id: 'emerald', name: 'Emerald',      hex: '#059669', hexTo: '#064e3b' },
-  { id: 'purple',  name: 'Royal Purple', hex: '#7c3aed', hexTo: '#4c1d95' },
-  { id: 'rose',    name: 'Rose Red',     hex: '#e11d48', hexTo: '#881337' },
-  { id: 'caramel', name: 'Caramel Gold', hex: '#b45309', hexTo: '#78350f' },
+  { id: 'blue',    name: 'Clinical Blue',  note: 'Trusted and premium',        hex: '#1E56DC', hexTo: '#1235A9' },
+  { id: 'teal',    name: 'Sterile Teal',   note: 'Clean and modern',           hex: '#0B7285', hexTo: '#085E6F' },
+  { id: 'emerald', name: 'Fresh Mint',     note: 'Friendly preventive care',   hex: '#059669', hexTo: '#065F46' },
+  { id: 'purple',  name: 'Specialist Navy', note: 'Confident and advanced',    hex: '#0F4C81', hexTo: '#0B3657' },
+  { id: 'rose',    name: 'Aqua Mist',      note: 'Soft family comfort',        hex: '#0891B2', hexTo: '#0E7490' },
+  { id: 'caramel', name: 'Porcelain Slate', note: 'Calm boutique finish',      hex: '#4D7C8A', hexTo: '#325764' },
 ];
 
 export const ALL_SERVICES = [

@@ -1,7 +1,8 @@
 import { Injectable, inject, effect } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
+import { CLINIC_THEMES } from '../config/clinic.config';
 
-const ALL_THEMES = ['theme-blue', 'theme-teal', 'theme-caramel', 'theme-emerald', 'theme-purple', 'theme-rose'];
+const ALL_THEMES = CLINIC_THEMES.map(theme => `theme-${theme}`);
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {

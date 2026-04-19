@@ -51,6 +51,12 @@ export class AppointmentService {
   private readonly zone   = inject(NgZone);
   private readonly COLLECTION = 'appointments';
 
+  private stripUndefined<T extends Record<string, unknown>>(data: T): Partial<T> {
+    return Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined),
+    ) as Partial<T>;
+  }
+
   private get clinicId(): string {
     return this.clinic.config.clinicId ?? this.clinic.config.bookingRefPrefix;
   }
@@ -91,6 +97,13 @@ export class AppointmentService {
   ): Promise<string> {
     const bookingRef = this.generateBookingRef();
     const clinicId   = this.clinicId;
+    const appointmentPayload = this.stripUndefined({
+      ...data,
+      clinicId,
+      bookingRef,
+      status: 'pending' as const,
+      createdAt: serverTimestamp(),
+    });
 
     // Build a deterministic slot ID — normalise time to avoid space issues
     const slotKey  = `${clinicId}_${data.doctorId ?? 'any'}_${data.date}_${data.time.replace(/[:\s]/g, '')}`;
@@ -114,13 +127,7 @@ export class AppointmentService {
       });
 
       // Create the appointment
-      tx.set(apptRef, {
-        ...data,
-        clinicId,
-        bookingRef,
-        status:    'pending',
-        createdAt: serverTimestamp(),
-      });
+      tx.set(apptRef, appointmentPayload);
     });
 
     return bookingRef;
@@ -145,7 +152,7 @@ export class AppointmentService {
     id: string,
     data: Partial<Pick<Appointment, 'service' | 'date' | 'time' | 'message'>>
   ): Promise<void> {
-    await updateDoc(doc(db, this.COLLECTION, id), { ...data });
+    await updateDoc(doc(db, this.COLLECTION, id), this.stripUndefined({ ...data }));
   }
 
   /**
