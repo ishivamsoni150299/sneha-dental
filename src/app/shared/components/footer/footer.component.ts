@@ -13,6 +13,7 @@ export class FooterComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
   readonly year   = new Date().getFullYear();
+  readonly contactEmail = this.config.billingEmail?.trim() ?? '';
 
   quickLinks = [
     { label: 'Home',             route: '/' },

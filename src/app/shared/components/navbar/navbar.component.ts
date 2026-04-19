@@ -10,7 +10,8 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
-  readonly config = inject(ClinicConfigService).config;
+  readonly clinic = inject(ClinicConfigService);
+  readonly config = this.clinic.config;
   menuOpen = signal(false);
   scrolled  = signal(false);
 
