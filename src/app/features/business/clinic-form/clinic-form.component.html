@@ -1,4 +1,4 @@
-<div class="max-w-3xl pb-32">
+<div class="max-w-5xl pb-32">
 
   <!-- ── Page Header ───────────────────────────────────────────────────────── -->
   <div class="flex items-start gap-3 mb-5">
@@ -10,34 +10,62 @@
       </svg>
     </a>
     <div class="flex-1">
-      <h1 class="text-xl font-bold text-gray-900">{{ isEdit ? 'Edit Clinic' : 'New Clinic' }}</h1>
-      <p class="text-xs text-gray-400 mt-0.5">
+      <h1 class="text-2xl font-black tracking-tight text-slate-950">{{ isEdit ? 'Refine Clinic Profile' : 'Launch A Dental Clinic Profile' }}</h1>
+      <p class="hidden">
         {{ isEdit ? (form.controls.name.value || 'Loading…') : 'Super admin tool — set up a new clinic deployment' }}
+      </p>
+      <p class="mt-1 text-sm leading-6 text-slate-600">
+        {{ isEdit
+          ? (form.controls.name.value || 'Update clinic identity, theme, website content and billing controls from one place.')
+          : 'Configure a polished clinic profile using the current dental theme system, booking flow and business data model.' }}
       </p>
     </div>
     @if (!isEdit) {
-      <span class="shrink-0 text-[10px] font-bold uppercase tracking-widest bg-blue-100 text-blue-700
-                   px-2.5 py-1 rounded-full mt-1">New Deployment</span>
+      <span class="mt-1 shrink-0 rounded-full bg-sky-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-sky-700">
+        Dental Setup
+      </span>
     }
   </div>
 
   <!-- ── Info banner (new clinic only) ─────────────────────────────────────── -->
   @if (!isEdit && !loading()) {
-    <div class="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3.5 mb-5 flex items-start gap-3">
-      <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <div class="mb-5 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3.5">
+      <svg class="mt-0.5 h-4 w-4 shrink-0 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
-      <p class="text-xs text-blue-700 leading-relaxed">
+      <p class="hidden">
         Fill in the clinic's core details below. Identity, Hours, and Billing are required.
         Services, Health Plans and Testimonials can be updated later from the clinic's own settings page.
       </p>
+      <p class="text-xs leading-relaxed text-sky-800">
+        This page now follows the latest dental brand system. Core identity, contact, booking and billing data save directly to the clinic record. Optional website content sections can remain empty without blocking creation.
+      </p>
+    </div>
+  }
+
+  @if (accountAlreadyLinked) {
+    <div class="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-start gap-3">
+        <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-7.938 4h15.876c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L2.33 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold text-amber-900">This signed-in account already owns a clinic.</p>
+          <p class="mt-1 text-xs leading-6 text-amber-800">
+            A second clinic will not be created for the same account. Open the existing record and update it instead.
+          </p>
+        </div>
+      </div>
+      <a [routerLink]="['/business/clinics', ownedClinic()!.id, 'edit']"
+         class="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-700">
+        Open existing clinic
+      </a>
     </div>
   }
 
   <!-- ── Section quick-nav ─────────────────────────────────────────────────── -->
   @if (!loading()) {
-    <div class="sticky top-14 z-20 bg-gray-50/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-2 mb-5
-                border-b border-gray-200 overflow-x-auto">
+    <div class="sticky top-14 z-20 -mx-4 mb-5 overflow-x-auto border-b border-sky-100 bg-white/95 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div class="flex items-center gap-0.5 min-w-max">
         @for (sec of [
           {id:'identity',      label:'Identity'},
@@ -52,8 +80,8 @@
           <button type="button" (click)="scrollToSection(sec.id)"
                   class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all"
                   [class]="activeSection() === sec.id
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm'">
+                    ? 'bg-slate-950 text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-sky-50 hover:text-slate-900'">
             {{ sec.label }}
           </button>
         }
@@ -328,31 +356,28 @@
 
         <!-- Theme picker -->
         <div>
-          <label class="form-label mb-2">Theme Color</label>
-          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            @for (opt of [
-              {value:'blue',    label:'Sapphire',      primary:'#1E56DC', gradient:'linear-gradient(135deg,#1E56DC,#3B7BF8)'},
-              {value:'teal',    label:'Teal Precision', primary:'#0B7285', gradient:'linear-gradient(135deg,#0B7285,#0EA5C4)'},
-              {value:'emerald', label:'Forest',         primary:'#047857', gradient:'linear-gradient(135deg,#047857,#059669)'},
-              {value:'purple',  label:'Royal Indigo',   primary:'#4338CA', gradient:'linear-gradient(135deg,#4338CA,#6366F1)'},
-              {value:'rose',    label:'Crimson',        primary:'#BE123C', gradient:'linear-gradient(135deg,#BE123C,#E11D48)'},
-              {value:'caramel', label:'Amber Gold',     primary:'#B45309', gradient:'linear-gradient(135deg,#B45309,#D97706)'}
-            ]; track opt.value) {
+          <div class="mb-2 flex items-end justify-between gap-3">
+            <label class="form-label mb-0">Theme Color</label>
+            <p class="text-[11px] text-slate-500">Dental-first palettes tuned for trust, clarity and a clean clinical feel.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            @for (opt of themeOptions; track opt.value) {
               <button type="button"
                       (click)="form.controls.theme.setValue(opt.value)"
-                      class="relative rounded-xl overflow-hidden border-2 transition-all focus:outline-none"
+                      class="relative overflow-hidden rounded-2xl border-2 bg-white text-left transition-all focus:outline-none"
                       [class]="form.controls.theme.value === opt.value
-                        ? 'border-gray-900 shadow-lg scale-[1.04]'
-                        : 'border-transparent hover:border-gray-300'">
-                <div class="h-10 flex items-center justify-center" [style.background]="opt.gradient">
+                        ? 'border-slate-950 shadow-lg shadow-sky-100'
+                        : 'border-slate-200 hover:border-slate-300 hover:-translate-y-0.5'">
+                <div class="flex h-12 items-center justify-center" [style.background]="opt.gradient">
                   @if (form.controls.theme.value === opt.value) {
                     <svg class="w-4 h-4 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
                   }
                 </div>
-                <div class="px-1.5 py-1 bg-white text-center">
-                  <span class="text-[9px] font-bold text-gray-700 leading-none">{{ opt.label }}</span>
+                <div class="space-y-1 px-3 py-3">
+                  <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-700">{{ opt.label }}</p>
+                  <p class="text-[11px] leading-5 text-slate-500">{{ opt.note }}</p>
                 </div>
               </button>
             }
@@ -847,8 +872,8 @@
 
   <!-- ── Sticky Save Bar ─────────────────────────────────────────────────────── -->
   @if (!loading()) {
-    <div class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3">
-      <div class="max-w-3xl mx-auto flex items-center justify-between gap-4">
+    <div class="fixed bottom-0 left-0 right-0 z-30 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur-sm">
+      <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
 
         @if (success()) {
           <div class="flex items-center gap-2 text-sm font-semibold text-green-700">
@@ -864,6 +889,9 @@
             <p class="text-xs font-semibold text-gray-700">
               {{ isEdit ? 'Editing: ' + (form.controls.name.value || '—') : 'New clinic' }}
             </p>
+            @if (accountAlreadyLinked) {
+              <p class="mt-0.5 text-xs text-amber-600">This account already has a clinic record. Creation is locked.</p>
+            }
             @if (form.invalid && form.touched) {
               <p class="text-xs text-red-500 mt-0.5">Fix the highlighted fields before saving.</p>
             }
@@ -876,14 +904,14 @@
             Cancel
           </a>
           <button type="button" (click)="onSubmit()"
-                  [disabled]="saving() || success()"
+                  [disabled]="saving() || success() || accountAlreadyLinked"
                   class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
                          text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-colors">
             @if (saving()) {
               <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               Saving…
             } @else {
-              {{ isEdit ? 'Save Changes' : 'Create Clinic' }}
+              {{ isEdit ? 'Save Changes' : accountAlreadyLinked ? 'Account Already Linked' : 'Create Clinic' }}
             }
           </button>
         </div>

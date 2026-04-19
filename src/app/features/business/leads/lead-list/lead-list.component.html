@@ -324,6 +324,15 @@
               }
             </p>
 
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+                {{ messageTemplate(lead) }}
+              </span>
+              <p class="min-w-0 flex-1 truncate text-[11px] text-gray-500" [title]="messagePreview(lead)">
+                {{ messagePreview(lead) }}
+              </p>
+            </div>
+
             <!-- Inline note display + edit -->
             @if (inlineNote()?.leadId === lead.id) {
               <div class="mt-1.5 flex items-center gap-2">
@@ -374,6 +383,7 @@
             @if (lead.phone) {
               <button (click)="sendWhatsApp(lead)" [disabled]="sendingWa() === lead.id"
                       [attr.aria-label]="'Send WhatsApp to ' + lead.clinicName"
+                      [title]="messageTemplate(lead)"
                       class="inline-flex items-center gap-1 text-xs bg-green-600 hover:bg-green-700
                              disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors
                              w-10 h-10 justify-center sm:w-auto sm:px-3 sm:py-1.5 sm:gap-1.5">
@@ -384,7 +394,7 @@
               </button>
 
               <!-- Copy message -->
-              <button (click)="copyMessage(lead)" title="Copy message"
+              <button (click)="copyMessage(lead)" [title]="'Copy ' + messageTemplate(lead) + ' message'"
                       class="inline-flex items-center gap-1 text-xs border font-semibold rounded-lg transition-colors
                              w-10 h-10 justify-center sm:w-auto sm:px-2.5 sm:py-1.5"
                       [class]="copiedId() === lead.id

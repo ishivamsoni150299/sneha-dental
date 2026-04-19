@@ -10,6 +10,7 @@ import {
   ClinicFirestoreService, StoredClinic,
 } from '../../../core/services/clinic-firestore.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
+import { SuperAuthService } from '../../../core/services/super-auth.service';
 
 // TODO: Uncomment when Google Maps API key is ready in environment.ts
 // import { environment } from '../../../../environments/environment';
@@ -27,6 +28,45 @@ import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 //   return _mapsApiPromise;
 // }
 
+const CLINIC_THEME_OPTIONS = [
+  {
+    value: 'blue',
+    label: 'Clinical Blue',
+    note: 'Trusted and premium',
+    gradient: 'linear-gradient(135deg,#1E56DC,#1235A9)',
+  },
+  {
+    value: 'teal',
+    label: 'Sterile Teal',
+    note: 'Clean and modern',
+    gradient: 'linear-gradient(135deg,#0B7285,#085E6F)',
+  },
+  {
+    value: 'emerald',
+    label: 'Fresh Mint',
+    note: 'Friendly preventive care',
+    gradient: 'linear-gradient(135deg,#059669,#065F46)',
+  },
+  {
+    value: 'purple',
+    label: 'Specialist Navy',
+    note: 'Confident and advanced',
+    gradient: 'linear-gradient(135deg,#0F4C81,#0B3657)',
+  },
+  {
+    value: 'rose',
+    label: 'Aqua Mist',
+    note: 'Soft family comfort',
+    gradient: 'linear-gradient(135deg,#0891B2,#0E7490)',
+  },
+  {
+    value: 'caramel',
+    label: 'Porcelain Slate',
+    note: 'Calm boutique finish',
+    gradient: 'linear-gradient(135deg,#4D7C8A,#325764)',
+  },
+] as const;
+
 @Component({
   selector: 'app-clinic-form',
   standalone: true,
@@ -38,11 +78,13 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   private readonly _subs = new Subscription();
   private fb          = inject(FormBuilder);
   private clinicStore = inject(ClinicFirestoreService);
+  private superAuth   = inject(SuperAuthService);
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
   // private ngZone   = inject(NgZone); // TODO: Uncomment with Google Maps API
 
   readonly platformPlans = PLATFORM_PLANS;
+  readonly themeOptions  = CLINIC_THEME_OPTIONS;
 
   private zone = inject(NgZone);
 
@@ -51,6 +93,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   error          = signal<string | null>(null);
   success        = signal(false);
   activeSection  = signal<string>('identity');
+  ownedClinic    = signal<StoredClinic | null>(null);
 
   readonly SECTIONS = ['identity', 'contact', 'hours', 'brand', 'services', 'plans', 'testimonials', 'billing'];
 
@@ -156,12 +199,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       }
     } else {
-      // seed one empty row for each array
-      this.addBio();
       this.addHour();
-      this.addService();
-      this.addPlan();
-      this.addTestimonial();
 
       // Default trial: starts today, ends in 30 days
       const trialEnd = new Date();
@@ -169,6 +207,12 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       this.form.controls.trialEndDate.setValue(trialEnd.toISOString().split('T')[0]);
       this.form.controls.subscriptionPlan.setValue('trial');
       this.form.controls.subscriptionStatus.setValue('trial');
+
+      await this.superAuth.authReady;
+      const uid = this.superAuth.currentUser()?.uid;
+      if (uid) {
+        this.ownedClinic.set(await this.clinicStore.getByAdminUid(uid));
+      }
     }
 
     this.setupAutoFills();
@@ -413,8 +457,11 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           instagram: v.instagram || null,
           linkedin:  v.linkedin  || null,
         },
-        doctorBio:    v.doctorBio as string[],
-        hours:        v.hours    as { days: string; time: string }[],
+        doctorBio: (v.doctorBio as string[])
+          .map(paragraph => paragraph.trim())
+          .filter(Boolean),
+        hours: (v.hours as Array<{ days: string; time: string }>)
+          .filter(slot => slot.days.trim() || slot.time.trim()),
         services:     v.services as StoredClinic['services'],
         plans:        (v.plans as Array<Record<string, unknown>>).map(p => ({
           ...p,
@@ -428,6 +475,21 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       if (this.isEdit) {
         await this.clinicStore.update(this.clinicId!, firestorePayload);
       } else {
+        await this.superAuth.authReady;
+        const user = this.superAuth.currentUser();
+        if (!user) {
+          throw new Error('You must be signed in to create a clinic.');
+        }
+
+        const existingClinic = this.ownedClinic() ?? await this.clinicStore.getByAdminUid(user.uid);
+        if (existingClinic) {
+          this.ownedClinic.set(existingClinic);
+          throw new Error('This account already has a clinic. Open the existing clinic instead of creating another one.');
+        }
+
+        firestorePayload.adminUid = user.uid;
+        firestorePayload.adminEmail = user.email?.trim() || null;
+        firestorePayload.rating = '4.9';
         await this.clinicStore.create(firestorePayload);
       }
 
@@ -490,5 +552,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.intersectionObserver?.disconnect();
     this._subs.unsubscribe();
+  }
+
+  get accountAlreadyLinked(): boolean {
+    return !this.isEdit && !!this.ownedClinic();
   }
 }

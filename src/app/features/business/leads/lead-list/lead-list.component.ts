@@ -14,6 +14,17 @@ interface ImportStats {
   msg:         string;
 }
 
+interface WhatsAppPlan {
+  template: string;
+  buttonLabel: string;
+  preview: string;
+  message: string;
+  activityNote: string;
+}
+
+const DEMO_WEBSITE_URL = 'https://indram-dental.vercel.app';
+const DEMO_VIDEO_URL = 'https://youtu.be/R7d1KqfdH6U';
+
 @Component({
   selector: 'app-lead-list',
   standalone: true,
@@ -215,6 +226,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
   async sendWhatsApp(lead: StoredLead) {
     if (!lead.phone) return;
     this.sendingWa.set(lead.id);
+    const plan = this.buildWhatsAppPlan(lead);
     window.open(this.whatsappLink(lead), '_blank', 'noopener,noreferrer');
 
     try {
@@ -250,7 +262,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   // ── Copy message to clipboard ─────────────────────────────────────────────
   async copyMessage(lead: StoredLead) {
-    const msg = this.buildMessage(lead);
+    const msg = this.buildDynamicMessage(lead);
     try {
       await navigator.clipboard.writeText(msg);
       if (this.copyTimer) clearTimeout(this.copyTimer);
@@ -710,6 +722,232 @@ No pressure — want a fresh 10-min demo? 🙏`,
   }
 
   whatsappLink(lead: StoredLead): string {
-    return `https://wa.me/${lead.phone}?text=${encodeURIComponent(this.buildMessage(lead))}`;
+    return `https://wa.me/${lead.phone}?text=${encodeURIComponent(this.buildDynamicMessage(lead))}`;
+  }
+
+  messageTemplate(lead: StoredLead): string {
+    return this.buildWhatsAppPlan(lead).template;
+  }
+
+  messageButtonLabel(lead: StoredLead): string {
+    return this.buildWhatsAppPlan(lead).buttonLabel;
+  }
+
+  messagePreview(lead: StoredLead): string {
+    return this.buildWhatsAppPlan(lead).preview;
+  }
+
+  private buildDynamicMessage(lead: StoredLead): string {
+    return this.buildWhatsAppPlan(lead).message;
+  }
+
+  private buildWhatsAppPlan(lead: StoredLead): WhatsAppPlan {
+    const clinic = lead.clinicName.trim();
+    const contactName = this.contactName(lead);
+    const greeting = this.timeGreeting();
+    const location = this.fullLocation(lead);
+    const city = (lead.city || lead.area || 'your area').trim();
+    const locationLine = location ? ` in ${location}` : '';
+    const proofLine = this.proofLine(lead);
+    const speciality = this.specialityLine(lead);
+    const sourceIntro = this.sourceIntro(lead, clinic, locationLine);
+    const clinicShort = clinic.length > 34 ? `${clinic.slice(0, 34)}...` : clinic;
+    const bookingOutcome = city ? `get more patient bookings in ${city}` : 'get more patient bookings';
+    const referredBy = lead.referredBy?.trim();
+
+    const plans: Record<LeadStatus, WhatsAppPlan> = {
+      new: {
+        template: 'First Touch',
+        buttonLabel: 'First message',
+        preview: `Personalized first outreach for ${clinicShort}${city ? ` in ${city}` : ''}`,
+        activityNote: `Sent first-touch WhatsApp for ${clinicShort}`,
+        message:
+`${greeting} ${contactName},
+
+${sourceIntro}
+
+I help dental clinics like *${clinic}* ${bookingOutcome} with a professional website and WhatsApp-first enquiry flow.
+
+That usually includes:
+- online appointment requests
+- instant WhatsApp alerts for each lead
+- mobile-friendly clinic profile
+- simple dashboard for follow-up and confirmations
+${proofLine ? `\n${proofLine}` : ''}
+${speciality ? `\nFor ${clinic}, I would position the site around ${speciality}.` : ''}
+
+If useful, I can share a sample page idea tailored for *${clinic}*${locationLine}.
+
+Demo website: ${DEMO_WEBSITE_URL}
+2-minute walkthrough: ${DEMO_VIDEO_URL}
+
+Would you like me to send the sample?`,
+      },
+      contacted: {
+        template: 'Follow-up',
+        buttonLabel: 'Follow up',
+        preview: `Short follow-up reminding ${clinicShort} about the booking setup`,
+        activityNote: `Sent follow-up WhatsApp for ${clinicShort}`,
+        message:
+`${greeting} ${contactName},
+
+Following up on my earlier note about helping *${clinic}*${locationLine} improve online bookings.
+${proofLine ? `\n${proofLine}` : ''}
+
+The reason clinics usually respond is simple:
+- patients can enquire after clinic hours
+- staff get WhatsApp alerts instantly
+- the clinic looks more trusted online
+
+If you want, I can share a sample idea for *${clinic}* and explain the setup in 10 minutes.
+
+Demo website: ${DEMO_WEBSITE_URL}
+Walkthrough: ${DEMO_VIDEO_URL}
+
+Would a quick WhatsApp call this week work for you?`,
+      },
+      interested: {
+        template: 'Proposal Push',
+        buttonLabel: 'Send proposal',
+        preview: `Warm proposal-style message for interested lead ${clinicShort}`,
+        activityNote: `Sent proposal WhatsApp for ${clinicShort}`,
+        message:
+`${greeting} ${contactName},
+
+Thanks for showing interest in the website setup for *${clinic}*${locationLine}.
+
+Here is what I can prepare for you:
+- branded dental homepage
+- appointment booking form connected to WhatsApp
+- treatment and service sections
+- mobile-first patient experience
+- dashboard to manage confirmations and follow-ups
+${speciality ? `\nThe messaging can focus on ${speciality}.` : ''}
+${proofLine ? `\n${proofLine}` : ''}
+
+I can send a clinic-specific sample structure for *${clinic}* today itself if you want.
+
+Demo website: ${DEMO_WEBSITE_URL}
+Walkthrough: ${DEMO_VIDEO_URL}
+
+What time suits you for a short demo?`,
+      },
+      demo: {
+        template: 'Demo Close',
+        buttonLabel: 'Close lead',
+        preview: `Post-demo summary and close message for ${clinicShort}`,
+        activityNote: `Sent post-demo WhatsApp for ${clinicShort}`,
+        message:
+`${greeting} ${contactName},
+
+Thank you for your time today. It was great speaking with you about *${clinic}*${locationLine}.
+
+Quick recap of what goes live:
+- professional dental website
+- online appointment booking
+- instant WhatsApp alerts for each enquiry
+- mobile-friendly admin dashboard
+- launch support from our side
+${proofLine ? `\n${proofLine}` : ''}
+
+If you reply with *YES*, I can move ahead with the setup for *${clinic}*.`,
+      },
+      converted: {
+        template: 'Onboarding Welcome',
+        buttonLabel: 'Welcome note',
+        preview: `Onboarding welcome message for converted lead ${clinicShort}`,
+        activityNote: `Sent onboarding WhatsApp for ${clinicShort}`,
+        message:
+`${greeting} ${contactName},
+
+Welcome on board. We are excited to set up *${clinic}*${locationLine} on mydentalplatform.
+
+Next steps from our side:
+- prepare your clinic website
+- connect booking and WhatsApp flow
+- share the live link with you for review
+
+If you have a logo, doctor details, or service list ready, you can send them here anytime.
+
+We will keep the process simple and fast for you.`,
+      },
+      lost: {
+        template: 'Reactivation',
+        buttonLabel: 'Reconnect',
+        preview: `Reactivation message for ${clinicShort}${city ? ` in ${city}` : ''}`,
+        activityNote: `Sent reactivation WhatsApp for ${clinicShort}`,
+        message:
+`${greeting} ${contactName},
+
+Just checking in again regarding *${clinic}*${locationLine}.
+
+We are now helping dental clinics with:
+- faster website setup
+- mobile-first appointment requests
+- WhatsApp-based lead follow-up
+- cleaner clinic branding online
+${proofLine ? `\n${proofLine}` : ''}
+${referredBy ? `\nSince ${referredBy} had referred this earlier, I wanted to reconnect once.` : ''}
+
+If timing is better now, I can share a fresh sample for *${clinic}*.
+
+Demo website: ${DEMO_WEBSITE_URL}
+Walkthrough: ${DEMO_VIDEO_URL}
+
+Should I send the updated sample?`,
+      },
+    };
+
+    return plans[lead.status] ?? plans.new;
+  }
+
+  private contactName(lead: StoredLead): string {
+    const cleanedDoctor = lead.doctorName?.replace(/^dr\.?\s*/i, '').trim();
+    return cleanedDoctor ? `Dr. ${cleanedDoctor}` : lead.clinicName.trim();
+  }
+
+  private fullLocation(lead: StoredLead): string {
+    return [lead.area?.trim(), lead.city?.trim()].filter(Boolean).join(', ');
+  }
+
+  private timeGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  private proofLine(lead: StoredLead): string {
+    if (!lead.rating) return '';
+    const reviews = lead.reviewCount ? ` from ${lead.reviewCount} patient reviews` : '';
+    return `Your Google presence already looks strong with a ${lead.rating} rating${reviews}.`;
+  }
+
+  private specialityLine(lead: StoredLead): string {
+    const categories = (lead.categories ?? '').toLowerCase();
+    if (categories.includes('implant')) return 'dental implants and advanced treatment trust';
+    if (categories.includes('cosmet') || categories.includes('smile')) return 'smile design and cosmetic dentistry';
+    if (categories.includes('orthodon') || categories.includes('align')) return 'braces, aligners and consultation conversion';
+    if (categories.includes('child') || categories.includes('pediatric')) return 'family-friendly pediatric dental care';
+    return 'clean booking experience and local patient trust';
+  }
+
+  private sourceIntro(lead: StoredLead, clinic: string, locationLine: string): string {
+    switch (lead.source) {
+      case 'google_maps':
+        return `I came across *${clinic}*${locationLine} while reviewing dental clinics on Google Maps.`;
+      case 'instagram':
+        return `I found *${clinic}* through social media and wanted to reach out with a simple growth idea.`;
+      case 'referral':
+        return lead.referredBy
+          ? `${lead.referredBy} suggested I speak with you about helping *${clinic}* improve patient enquiries online.`
+          : `A referral suggested I connect with *${clinic}* about improving patient enquiries online.`;
+      case 'ida':
+        return 'I am reaching out because many IDA-connected clinics are now moving bookings and follow-up to a website plus WhatsApp flow.';
+      case 'walkin':
+        return `I noticed *${clinic}*${locationLine} and thought your clinic could benefit from a stronger online booking setup.`;
+      default:
+        return `I wanted to reach out regarding *${clinic}*${locationLine} and share a simple patient booking setup idea.`;
+    }
   }
 }

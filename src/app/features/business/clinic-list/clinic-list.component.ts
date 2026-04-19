@@ -45,6 +45,9 @@ export class ClinicListComponent implements OnInit {
   readonly themeColors: Record<string, string> = {
     blue:    '#2563eb',
     teal:    '#0d9488',
+    emerald: '#059669',
+    purple:  '#0f4c81',
+    rose:    '#0891b2',
     caramel: '#b45309',
   };
 

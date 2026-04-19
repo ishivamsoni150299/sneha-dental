@@ -55,6 +55,8 @@ export interface StoredClinic extends ClinicConfig {
   id:         string;
   domain:     string;
   active:     boolean;
+  adminUid?:  string;
+  adminEmail?: string;
   createdAt?: Timestamp;
 }
 
@@ -97,6 +99,16 @@ export class ClinicFirestoreService {
     return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
   }
 
+  async getByAdminUid(uid: string): Promise<StoredClinic | null> {
+    const q = query(
+      collection(db, this.COL),
+      where('adminUid', '==', uid),
+      limit(1),
+    );
+    const snap = await getDocs(q);
+    return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
+  }
+
   async getActiveSubscriptions(): Promise<StoredClinic[]> {
     const q    = query(collection(db, this.COL), where('subscriptionStatus', '==', 'active'));
     const snap = await getDocs(q);
@@ -119,6 +131,7 @@ export class ClinicFirestoreService {
       collection(db, this.COL),
       { ...toFirestoreData(data as unknown as Record<string, unknown>), createdAt: serverTimestamp() },
     );
+    await updateDoc(ref, { clinicId: ref.id });
     return ref.id;
   }
 

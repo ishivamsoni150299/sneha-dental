@@ -41,6 +41,12 @@ export interface LeadActivity {
 export class LeadFirestoreService {
   private readonly COL = 'leads';
 
+  private stripUndefined<T extends Record<string, unknown>>(data: T): Partial<T> {
+    return Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined),
+    ) as Partial<T>;
+  }
+
   async getAll(): Promise<StoredLead[]> {
     const q    = query(collection(db, this.COL), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
@@ -63,7 +69,7 @@ export class LeadFirestoreService {
 
   async update(id: string, data: Partial<Omit<StoredLead, 'id' | 'createdAt'>>): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await updateDoc(doc(db, this.COL, id), data as any);
+    await updateDoc(doc(db, this.COL, id), this.stripUndefined(data as Record<string, unknown>) as any);
   }
 
   async remove(id: string): Promise<void> {
