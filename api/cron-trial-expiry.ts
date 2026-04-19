@@ -18,7 +18,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore }                   from 'firebase-admin/firestore';
-import { sendEmail }                       from './send-email';
+import { sendEmail }                       from '../lib/server/send-email';
 
 if (!getApps().length) {
   initializeApp({

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getBaseUrl, getRequestHostname, getRobotsTxt } from './seo-utils';
+import { getBaseUrl, getRequestHostname, getRobotsTxt } from '../lib/server/seo-utils';
 
 export default function handler(req: VercelRequest, res: VercelResponse): VercelResponse {
   const hostname = getRequestHostname(req);

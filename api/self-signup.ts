@@ -3,7 +3,7 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import Razorpay from 'razorpay';
-import { sendEmail } from './send-email';
+import { sendEmail } from '../lib/server/send-email';
 
 // ── Firebase Admin ────────────────────────────────────────────────────────────
 if (!getApps().length) {

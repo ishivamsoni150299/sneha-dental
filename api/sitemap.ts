@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getBaseUrl, getRequestHostname, getSitemapUrls } from './seo-utils';
+import { getBaseUrl, getRequestHostname, getSitemapUrls } from '../lib/server/seo-utils';
 
 function escapeXml(value: string): string {
   return value
