@@ -27,6 +27,8 @@ export interface StoredLead {
   reviewCount?: number;   // Total review count
   categories?:  string;   // Clinic type (e.g. "Dental clinic, Dentist")
   mapsLink?:    string;   // Direct Google Maps URL (used as dedup key)
+  whatsappTemplateLabel?: string;
+  whatsappMessage?: string;
   createdAt?:   Timestamp;
 }
 

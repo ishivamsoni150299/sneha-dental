@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
 
 @Component({
   selector: 'app-footer',
@@ -14,6 +15,7 @@ export class FooterComponent {
   readonly config = this.clinic.config;
   readonly year   = new Date().getFullYear();
   readonly contactEmail = this.config.billingEmail?.trim() ?? '';
+  readonly brandMark = buildClinicMonogram(this.config.name, 'CL');
 
   quickLinks = [
     { label: 'Home',             route: '/' },

@@ -98,11 +98,9 @@
             <img [src]="config.logoDataUrl" alt="{{ config.name }} logo"
                  class="h-10 max-w-[160px] object-contain flex-shrink-0 brightness-0 invert group-hover:opacity-80 transition-opacity">
           } @else {
-            <div class="w-9 h-9 bg-gradient-to-br from-[var(--accent-md)] to-[var(--accent-dk)] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md group-hover:shadow-lg transition-shadow">
-              <svg class="w-[18px] h-[24px]" viewBox="0 0 32 40" fill="white">
-                <path d="M 16,2 C 23,2 29,7 28,14 C 28,19 27,22 26,24 C 26,28 25,33 24,37 C 24,39 21,39 21,37 C 21,33 21,28 20,25 C 19,23 17,23 15,23 C 14,26 14,33 12,37 C 12,39 9,39 9,37 C 8,33 7,28 7,24 C 5,22 4,19 4,14 C 3,7 9,2 16,2 Z"/>
-                <ellipse cx="11" cy="10" rx="3" ry="5.5" fill="white" opacity="0.25" transform="rotate(-15,11,10)"/>
-              </svg>
+            <div class="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.1),rgba(255,255,255,0.02))] text-white shadow-md transition-shadow group-hover:shadow-lg">
+              <span class="text-xs font-black tracking-[0.18em]">{{ brandMark }}</span>
+              <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-gray-900 bg-[var(--accent-bd)]"></span>
             </div>
           }
           <span class="font-display text-xl text-white group-hover:text-[var(--accent-bd)] transition-colors">{{ config.name }}</span>

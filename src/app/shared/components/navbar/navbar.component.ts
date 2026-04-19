@@ -1,6 +1,7 @@
 import { Component, signal, ChangeDetectionStrategy, inject, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
 
 @Component({
   selector: 'app-navbar',
@@ -12,6 +13,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 export class NavbarComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
+  readonly brandMark = buildClinicMonogram(this.config.name, 'CL');
   menuOpen = signal(false);
   scrolled  = signal(false);
 

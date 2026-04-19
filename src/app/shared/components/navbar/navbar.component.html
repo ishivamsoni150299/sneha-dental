@@ -12,31 +12,11 @@
                class="object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
                [class]="scrolled() ? 'h-8 max-w-[140px]' : 'h-10 max-w-[160px]'">
         } @else {
-          <svg class="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
-               [class]="scrolled() ? 'w-[22px] h-[28px]' : 'w-[26px] h-[32px]'"
-               xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
-            <defs>
-              <linearGradient id="navTooth" x1="0" y1="0" x2=".4" y2="1">
-                <stop offset="0%" style="stop-color: var(--accent-md)"/>
-                <stop offset="100%" style="stop-color: var(--accent-dk)"/>
-              </linearGradient>
-            </defs>
-            <path d="M 16,2
-                     C 23,2 29,7 28,14
-                     C 28,19 27,22 26,24
-                     C 26,28 25,33 24,37
-                     C 24,39 21,39 21,37
-                     C 21,33 21,28 20,25
-                     C 19,23 17,23 15,23
-                     C 14,26 14,33 12,37
-                     C 12,39 9,39 9,37
-                     C 8,33 7,28 7,24
-                     C 5,22 4,19 4,14
-                     C 3,7 9,2 16,2 Z"
-                  fill="url(#navTooth)"/>
-            <ellipse cx="11" cy="10" rx="3" ry="5.5" fill="white" opacity="0.18"
-                     transform="rotate(-15,11,10)"/>
-          </svg>
+          <div class="relative flex shrink-0 items-center justify-center rounded-2xl border border-[var(--accent-bd)] bg-[linear-gradient(145deg,var(--accent-lt),white)] text-[var(--accent-dk)] shadow-sm transition-transform duration-300 group-hover:scale-105"
+               [class]="scrolled() ? 'h-9 w-9' : 'h-10 w-10'">
+            <span class="text-[11px] font-black tracking-[0.16em]">{{ brandMark }}</span>
+            <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--accent)]"></span>
+          </div>
           <span class="flex flex-col leading-none group-hover:opacity-90 transition-opacity">
             <span class="font-['Cormorant_Garamond',Georgia,serif] text-gray-900 font-medium tracking-tight transition-all duration-300"
                   [class]="scrolled() ? 'text-lg' : 'text-xl'">{{ config.name }}</span>

@@ -5,6 +5,11 @@ import { TestimonialCardComponent } from '../../shared/components/testimonial-ca
 import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import { RevealDirective } from '../../shared/directives/reveal.directive';
+import {
+  buildClinicMonogram,
+  buildDoctorLabel,
+  buildDoctorMonogram,
+} from '../../core/utils/clinic-branding';
 
 @Component({
   selector: 'app-home',
@@ -16,6 +21,27 @@ import { RevealDirective } from '../../shared/directives/reveal.directive';
 export class HomeComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
+  readonly clinicMonogram = buildClinicMonogram(this.config.name, 'CL');
+  readonly doctorMonogram = buildDoctorMonogram(this.config.doctorName, this.config.name);
+  readonly displayDoctorName = buildDoctorLabel(this.config.doctorName, this.config.name);
+
+  readonly clinicMoments = [
+    {
+      src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=900&q=80',
+      alt: 'Modern treatment room',
+      label: 'Treatment Room',
+    },
+    {
+      src: 'https://placehold.co/480x360/EAF4FF/1E56DC?text=Reception',
+      alt: 'Clinic reception area',
+      label: 'Reception',
+    },
+    {
+      src: 'https://placehold.co/480x360/F1F8FF/1E56DC?text=Sterilisation',
+      alt: 'Sterilisation and hygiene area',
+      label: 'Hygiene',
+    },
+  ];
 
   readonly trustStats = [
     { value: this.config.patientCount,        label: 'Happy Patients',    icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' },
@@ -58,4 +84,7 @@ export class HomeComponent {
   get previewServices()       { return this.config.services.slice(0, 6); }
   get hasTestimonials()       { return this.config.testimonials?.length > 0; }
   get duplicatedTestimonials(){ return [...(this.config.testimonials ?? []), ...(this.config.testimonials ?? [])]; }
+  get doctorTitle()           { return this.config.doctorQualification || 'Dental Care Team'; }
+  get heroHours()             { return this.config.hours.length ? this.config.hours.slice(0, 3) : [{ days: 'Mon - Sat', time: '9:00 AM - 7:00 PM' }]; }
+  get clinicLocationLabel()   { return this.config.city || 'Trusted local clinic'; }
 }

@@ -331,7 +331,42 @@
               <p class="min-w-0 flex-1 truncate text-[11px] text-gray-500" [title]="messagePreview(lead)">
                 {{ messagePreview(lead) }}
               </p>
+              <button (click)="startMessageEdit(lead)"
+                      class="text-[10px] font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                Edit message
+              </button>
             </div>
+
+            @if (messageDraft()?.leadId === lead.id) {
+              <div class="mt-2 rounded-xl border border-blue-200 bg-blue-50/60 p-3">
+                <div class="grid gap-2 sm:grid-cols-[170px_minmax(0,1fr)] sm:items-start">
+                  <div>
+                    <label class="mb-1 block text-[11px] font-semibold text-blue-900">Template label</label>
+                    <input type="text"
+                           [ngModel]="messageDraft()!.label"
+                           (ngModelChange)="updateMessageLabel($event)"
+                           class="w-full rounded-lg border border-blue-200 bg-white px-2.5 py-2 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-300">
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-[11px] font-semibold text-blue-900">WhatsApp message</label>
+                    <textarea rows="8"
+                              [ngModel]="messageDraft()!.message"
+                              (ngModelChange)="updateMessageBody($event)"
+                              class="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs leading-5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-300"></textarea>
+                  </div>
+                </div>
+                <div class="mt-2 flex items-center justify-end gap-2">
+                  <button (click)="cancelMessageEdit()"
+                          class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700">
+                    Cancel
+                  </button>
+                  <button (click)="saveMessageEdit(lead)" [disabled]="savingMessage()"
+                          class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    {{ savingMessage() ? 'Saving...' : 'Save message' }}
+                  </button>
+                </div>
+              </div>
+            }
 
             <!-- Inline note display + edit -->
             @if (inlineNote()?.leadId === lead.id) {

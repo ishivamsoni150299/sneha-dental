@@ -50,15 +50,30 @@
           }
         </div>
 
-        <!-- Mobile: doctor + trust strip -->
+        <!-- Mobile: clinic proof strip -->
         <div class="anim-fade-up anim-d5 mt-7 grid gap-3 lg:hidden">
-          <div class="flex items-center gap-3 bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
-            <div class="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shrink-0">
-              <span class="text-white font-bold text-sm select-none">{{ (config.doctorName || 'D').charAt(0) }}</span>
+          <div class="rounded-[1.75rem] border border-gray-200 bg-white p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div class="flex items-start gap-3">
+              <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--accent-bd)] bg-[var(--accent-lt)]">
+                <span class="text-sm font-black tracking-[0.14em] text-[var(--accent-dk)]">{{ clinicMonogram }}</span>
+                <span class="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-400"></span>
+              </div>
+              <div class="min-w-0">
+                <p class="truncate text-base font-bold text-gray-900">{{ config.name || 'Clinic Profile' }}</p>
+                <p class="mt-0.5 text-xs font-medium text-[var(--accent)]">{{ clinicLocationLabel }}</p>
+                <p class="mt-1 text-xs text-gray-500">{{ displayDoctorName }} · {{ doctorTitle }}</p>
+              </div>
             </div>
-            <div class="min-w-0">
-              <p class="text-sm font-bold text-gray-900 truncate">{{ config.doctorName || 'Dr. Your Name' }}</p>
-              <p class="text-xs text-[var(--accent)] font-medium">{{ config.doctorQualification || 'BDS' }}</p>
+
+            <div class="mt-4 grid grid-cols-3 gap-2.5">
+              @for (moment of clinicMoments; track moment.label) {
+                <div class="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
+                  <div class="aspect-[4/3]">
+                    <img [src]="moment.src" [alt]="moment.alt" class="h-full w-full object-cover">
+                  </div>
+                  <p class="px-2.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">{{ moment.label }}</p>
+                </div>
+              }
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
@@ -91,17 +106,22 @@
 
       <!-- Hero card — desktop only -->
       <div class="anim-scale-in hidden lg:flex flex-1 justify-end">
-        <div class="w-full max-w-[340px] bg-white rounded-3xl border border-gray-100 overflow-hidden"
+        <div class="w-full max-w-[460px] bg-white rounded-[2rem] border border-slate-200 overflow-hidden"
              style="box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);">
 
           <!-- Card header -->
-          <div class="bg-[var(--accent)] px-6 pt-6 pb-6">
+          <div class="relative overflow-hidden bg-slate-950 px-6 pt-6 pb-6">
+            <div class="absolute inset-0">
+              <img [src]="clinicMoments[0].src" [alt]="clinicMoments[0].alt" class="h-full w-full object-cover opacity-20">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/75 via-slate-950/75 to-slate-950"></div>
             <div class="flex items-start gap-4">
-              <div class="w-14 h-14 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
-                <span class="text-white font-black text-2xl select-none">{{ (config.doctorName || 'D').charAt(0) }}</span>
+              <div class="relative z-10 w-14 h-14 rounded-2xl bg-white/12 border border-white/25 flex items-center justify-center shrink-0 backdrop-blur-md">
+                <span class="text-white font-black text-lg tracking-[0.18em] select-none">{{ clinicMonogram }}</span>
               </div>
-              <div class="flex-1 min-w-0 pt-0.5">
-                <p class="font-bold text-white text-base leading-snug">{{ config.doctorName || 'Dr. Your Name' }}</p>
+              <div class="relative z-10 flex-1 min-w-0 pt-0.5">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100/80">Clinic Preview</p>
+                <p class="mt-1 font-display text-2xl text-white leading-none">{{ config.name || 'Dental Clinic' }}</p>
                 <p class="text-white/70 text-xs mt-0.5">{{ config.doctorQualification || 'BDS' }} · Dental Surgeon</p>
                 <div class="flex items-center gap-1.5 mt-2">
                   <div class="flex gap-px">
@@ -117,27 +137,38 @@
               @if (clinic.isOpenNow) {
                 <span class="flex items-center gap-1 text-[10px] font-bold bg-white/20 border border-white/25 text-white px-2.5 py-1.5 rounded-full shrink-0">
                   <span class="w-1.5 h-1.5 bg-green-300 rounded-full"></span>
-                  Open
+                  Open now
                 </span>
               } @else {
                 <span class="text-[10px] font-bold bg-black/20 border border-white/10 text-white/60 px-2.5 py-1.5 rounded-full shrink-0">
-                  Closed
+                  Call to confirm
                 </span>
               }
             </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5 px-6 py-4 bg-white">
+            @for (moment of clinicMoments; track moment.label) {
+              <div class="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
+                <div class="aspect-[4/3]">
+                  <img [src]="moment.src" [alt]="moment.alt" class="h-full w-full object-cover">
+                </div>
+                <p class="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">{{ moment.label }}</p>
+              </div>
+            }
           </div>
 
           <!-- Hours -->
           <div class="px-6 pt-5 pb-6">
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Clinic Hours</p>
             <div class="space-y-2 mb-5">
-              @for (h of config.hours; track h.days) {
+              @for (h of heroHours; track h.days) {
                 <div class="flex items-center justify-between text-xs">
                   <span class="text-gray-500">{{ h.days }}</span>
                   <span class="font-semibold text-gray-800 tabular-nums">{{ h.time }}</span>
                 </div>
               }
-              @if (!config.hours.length) {
+              @if (false) {
                 <div class="flex items-center justify-between text-xs">
                   <span class="text-gray-500">Mon – Sat</span>
                   <span class="font-semibold text-gray-800">9:00 AM – 7:00 PM</span>
@@ -213,10 +244,10 @@
       <div reveal revealDir="left" class="flex flex-col items-center lg:items-start">
         <div class="relative w-48 h-48 sm:w-56 sm:h-56 mb-8">
           <div class="w-full h-full rounded-full bg-[var(--accent-lt)] border border-[var(--accent-bd)] flex items-center justify-center">
-            <span class="text-[var(--accent)] font-black text-6xl select-none">{{ (config.doctorName || 'D').charAt(0) }}</span>
+            <span class="text-[var(--accent)] font-black text-4xl tracking-[0.16em] select-none">{{ doctorMonogram }}</span>
           </div>
           <div class="absolute -bottom-2 -right-2 bg-[var(--accent)] text-white text-xs font-bold px-3 py-1.5 rounded-full border-2 border-white">
-            {{ config.doctorQualification || 'BDS' }}
+            {{ doctorTitle }}
           </div>
         </div>
 
@@ -239,7 +270,7 @@
           <span class="block w-5 h-px bg-[var(--accent)]"></span>
           <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Meet Your Doctor</span>
         </div>
-        <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-1 leading-tight">{{ config.doctorName || 'Dr. Your Name' }}</h2>
+        <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-1 leading-tight">{{ displayDoctorName }}</h2>
         <p class="text-[var(--accent)] font-medium text-sm mb-6">{{ config.doctorQualification || 'BDS' }} · Dental Surgeon</p>
 
         <p class="text-gray-500 leading-relaxed mb-8 text-base">
@@ -249,14 +280,14 @@
 
         <!-- Credential chips -->
         <div class="flex flex-wrap gap-2 mb-8">
-          @for (tag of [config.doctorQualification || 'BDS', 'Pain-Free Specialist', 'Family Dentist', config.city || 'Local Expert']; track tag) {
+          @for (tag of [doctorTitle, 'Pain-Free Specialist', 'Family Dentist', config.city || 'Local Expert']; track tag) {
             <span class="text-xs font-medium text-gray-600 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full">{{ tag }}</span>
           }
         </div>
 
         <a routerLink="/appointment"
            class="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-7 py-3 rounded-xl font-semibold text-sm transition-colors">
-          Book With {{ (config.doctorName || 'Doctor').split(' ')[0] }}
+          Book With {{ displayDoctorName.split(' ')[0] }}
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
           </svg>

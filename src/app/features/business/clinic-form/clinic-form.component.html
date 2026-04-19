@@ -387,13 +387,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <!-- Booking Ref Prefix -->
           <div>
-            <label class="form-label">Booking Ref Prefix <span class="text-red-400">*</span></label>
+            <label class="form-label">Booking Reference Code <span class="text-red-400">*</span></label>
             <input formControlName="bookingRefPrefix" type="text" placeholder="SD"
                    class="form-input" [class.input-error]="hasErr(form.controls.bookingRefPrefix)">
             @if (hasErr(form.controls.bookingRefPrefix)) {
               <p class="text-xs text-red-500 mt-1">Prefix is required.</p>
             } @else {
-              <p class="text-xs text-gray-400 mt-1">Auto-generated from clinic name. e.g. "SD" → "SD-A1B2C3"</p>
+              <p class="text-xs text-gray-400 mt-1">Used to generate appointment IDs shown to patients and staff. Example: "SD-A1B2C3".</p>
             }
           </div>
 
@@ -404,11 +404,11 @@
             <p class="text-xs text-gray-400 mt-1">Client's own domain once DNS is pointed.</p>
           </div>
 
-          <!-- Vercel Domain -->
+          <!-- Preview Address -->
           <div>
-            <label class="form-label">Vercel Domain <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
+            <label class="form-label">Preview Website Address <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
             <input formControlName="vercelDomain" type="text" placeholder="sneha-dental.vercel.app" class="form-input">
-            <p class="text-xs text-gray-400 mt-1">Fallback while custom domain is being configured.</p>
+            <p class="text-xs text-gray-400 mt-1">Temporary website address used before the final custom domain is connected.</p>
           </div>
 
           <!-- Active toggle -->

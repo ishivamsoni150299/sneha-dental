@@ -22,6 +22,12 @@ interface WhatsAppPlan {
   activityNote: string;
 }
 
+interface MessageDraft {
+  leadId: string;
+  label: string;
+  message: string;
+}
+
 const DEMO_WEBSITE_URL = 'https://indram-dental.vercel.app';
 const DEMO_VIDEO_URL = 'https://youtu.be/R7d1KqfdH6U';
 
@@ -52,6 +58,8 @@ export class LeadListComponent implements OnInit, OnDestroy {
   sendingWa       = signal<string | null>(null);   // WA button loading state
   inlineNote      = signal<{ leadId: string; text: string } | null>(null);
   savingNote      = signal(false);
+  messageDraft    = signal<MessageDraft | null>(null);
+  savingMessage   = signal(false);
   private copyTimer: ReturnType<typeof setTimeout> | null = null;
 
   // ── Computed ──────────────────────────────────────────────────────────────
@@ -248,7 +256,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
         this.leadStore.update(lead.id, updates),
         this.leadStore.addActivity(lead.id, {
           type: 'whatsapp',
-          note: `WhatsApp sent${next ? ` — status → ${next}` : ''}`,
+          note: `${plan.activityNote}${next ? ` — status → ${next}` : ''}`,
         }),
       ]);
 
@@ -270,6 +278,56 @@ export class LeadListComponent implements OnInit, OnDestroy {
       this.copyTimer = setTimeout(() => this.copiedId.set(null), 2000);
     } catch {
       this.error.set('Copy failed — please copy manually.');
+    }
+  }
+
+  startMessageEdit(lead: StoredLead) {
+    const plan = this.buildWhatsAppPlan(lead);
+    this.messageDraft.set({
+      leadId: lead.id,
+      label: lead.whatsappTemplateLabel?.trim() || plan.template,
+      message: lead.whatsappMessage?.trim() || plan.message,
+    });
+  }
+
+  cancelMessageEdit() {
+    this.messageDraft.set(null);
+  }
+
+  updateMessageLabel(label: string) {
+    const draft = this.messageDraft();
+    if (!draft) return;
+    this.messageDraft.set({ ...draft, label });
+  }
+
+  updateMessageBody(message: string) {
+    const draft = this.messageDraft();
+    if (!draft) return;
+    this.messageDraft.set({ ...draft, message });
+  }
+
+  async saveMessageEdit(lead: StoredLead) {
+    const draft = this.messageDraft();
+    if (!draft || draft.leadId !== lead.id) return;
+
+    this.savingMessage.set(true);
+    try {
+      const label = draft.label.trim() || undefined;
+      const message = draft.message.trim() || undefined;
+      await this.leadStore.update(lead.id, {
+        whatsappTemplateLabel: label,
+        whatsappMessage: message,
+      });
+      this.leads.update(list => list.map(item => item.id === lead.id ? {
+        ...item,
+        whatsappTemplateLabel: label,
+        whatsappMessage: message,
+      } : item));
+      this.messageDraft.set(null);
+    } catch {
+      this.error.set('Could not save WhatsApp message.');
+    } finally {
+      this.savingMessage.set(false);
     }
   }
 
@@ -898,7 +956,21 @@ Should I send the updated sample?`,
       },
     };
 
-    return plans[lead.status] ?? plans.new;
+    const basePlan = plans[lead.status] ?? plans.new;
+    const customLabel = lead.whatsappTemplateLabel?.trim();
+    const customMessage = lead.whatsappMessage?.trim();
+    const resolvedMessage = customMessage || basePlan.message;
+    const previewLine = resolvedMessage.split('\n').find(line => line.trim())?.trim() ?? basePlan.preview;
+
+    return {
+      ...basePlan,
+      template: customLabel || basePlan.template,
+      preview: previewLine,
+      message: resolvedMessage,
+      activityNote: customLabel
+        ? `Sent ${customLabel.toLowerCase()} WhatsApp for ${clinicShort}`
+        : basePlan.activityNote,
+    };
   }
 
   private contactName(lead: StoredLead): string {

@@ -125,6 +125,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     name, doctorName, doctorQualification, city,
     addressLine1, addressLine2,
     phone, phoneE164, whatsappNumber,
+    hours = [],
+    services = [],
     // Auth — client sends a Firebase ID token (user already authenticated)
     idToken,
     // Plan
@@ -217,8 +219,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     theme:               ['blue','teal','emerald','purple','rose','caramel'].includes(theme) ? theme : 'blue',
     bookingRefPrefix:    slug.slice(0, 2).toUpperCase() || 'BK',
     social:              {},
-    hours:               [],
-    services:            [],
+    hours:               Array.isArray(hours) ? hours : [],
+    services:            Array.isArray(services) ? services : [],
     plans:               [],
     testimonials:        [],
     // Platform fields
