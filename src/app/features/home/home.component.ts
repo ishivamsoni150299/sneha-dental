@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
 import { TestimonialCardComponent } from '../../shared/components/testimonial-card/testimonial-card.component';
 import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
@@ -10,7 +9,7 @@ import { RevealDirective } from '../../shared/directives/reveal.directive';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, SectionHeaderComponent, ServiceCardComponent, TestimonialCardComponent, TreatmentFinderComponent, RevealDirective],
+  imports: [RouterLink, ServiceCardComponent, TestimonialCardComponent, TreatmentFinderComponent, RevealDirective],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
