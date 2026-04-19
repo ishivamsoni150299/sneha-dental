@@ -208,6 +208,30 @@
                   </div>
                 </div>
 
+                <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-5">
+                  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div>
+                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">Booking preview</p>
+                      <h3 class="mt-2 text-lg font-bold">{{ selectedServiceLabel }}</h3>
+                      <p class="mt-1 text-sm text-slate-300">{{ selectedDateLabel }} @if (form.get('time')?.value) { · {{ selectedTimeLabel }} }</p>
+                    </div>
+                    <span class="inline-flex items-center gap-2 bg-emerald-400/10 text-emerald-200 border border-emerald-400/20 text-xs font-semibold px-3 py-2 rounded-full">
+                      <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
+                      {{ confirmationWindowLabel }}
+                    </span>
+                  </div>
+                  <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
+                      <p class="text-[11px] uppercase tracking-wide text-slate-400">Preferred doctor</p>
+                      <p class="mt-1 text-sm font-semibold text-white">{{ selectedDoctorLabel }}</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
+                      <p class="text-[11px] uppercase tracking-wide text-slate-400">What to expect</p>
+                      <p class="mt-1 text-sm text-slate-200">{{ slotRecommendation }}</p>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Step 1 → Next -->
                 <button type="button" (click)="nextStep()"
                         class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white py-4 rounded-xl font-bold text-base shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:shadow-lg flex items-center justify-center gap-2 mt-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2">
@@ -239,13 +263,19 @@
                   </div>
                   <div class="min-w-0">
                     <p class="text-xs font-bold text-[var(--accent-dk)] uppercase tracking-wide mb-1">Your Selection</p>
-                    <p class="text-sm font-semibold text-gray-900">{{ form.get('service')?.value || '—' }}</p>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ form.get('date')?.value || '—' }} · {{ form.get('time')?.value || '—' }}</p>
+                    <p class="text-sm font-semibold text-gray-900">{{ selectedServiceLabel }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ selectedDateLabel }} · {{ selectedTimeLabel }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Doctor: {{ selectedDoctorLabel }}</p>
                   </div>
-                  <button type="button" (click)="prevStep()"
-                          class="shrink-0 text-xs text-[var(--accent)] font-semibold hover:underline underline-offset-2 mt-0.5">
-                    Edit
-                  </button>
+                  <div class="shrink-0 text-right">
+                    <div class="text-[11px] font-semibold text-[var(--accent-dk)] bg-white/80 border border-[var(--accent-bd)] px-2.5 py-1 rounded-full">
+                      {{ confirmationWindowLabel }}
+                    </div>
+                    <button type="button" (click)="prevStep()"
+                            class="mt-2 text-xs text-[var(--accent)] font-semibold hover:underline underline-offset-2">
+                      Edit
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Name -->
@@ -316,15 +346,19 @@
                   <div class="p-4 space-y-3">
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Service</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ form.get('service')?.value }}</span>
+                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedServiceLabel }}</span>
                     </div>
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Date</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ form.get('date')?.value }}</span>
+                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedDateLabel }}</span>
                     </div>
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Time</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ form.get('time')?.value }}</span>
+                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedTimeLabel }}</span>
+                    </div>
+                    <div class="flex justify-between items-start gap-3">
+                      <span class="text-xs text-gray-500 shrink-0">Doctor</span>
+                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedDoctorLabel }}</span>
                     </div>
                     <div class="border-t border-gray-200 pt-3 flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Name</span>
@@ -337,6 +371,21 @@
                   </div>
                   <div class="px-4 pb-3 text-right">
                     <button type="button" (click)="prevStep()" class="text-xs text-[var(--accent)] font-semibold hover:underline underline-offset-2">Edit details</button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="rounded-2xl border border-gray-200 bg-white px-4 py-3">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Confirmation</p>
+                    <p class="mt-1 text-sm font-semibold text-gray-900">{{ confirmationWindowLabel }}</p>
+                  </div>
+                  <div class="rounded-2xl border border-gray-200 bg-white px-4 py-3">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Arrival</p>
+                    <p class="mt-1 text-sm font-semibold text-gray-900">Please arrive 10 minutes early</p>
+                  </div>
+                  <div class="rounded-2xl border border-gray-200 bg-white px-4 py-3">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-400">Flexibility</p>
+                    <p class="mt-1 text-sm font-semibold text-gray-900">Reschedule or cancel anytime</p>
                   </div>
                 </div>
 
@@ -435,6 +484,40 @@
         <!-- Reassurance panel — sticky, visible from step 1 -->
         <div class="lg:sticky lg:top-20 space-y-4">
 
+        <div class="bg-slate-900 text-white rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-white/10">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Booking confidence</p>
+                <h3 class="mt-2 text-lg font-bold">{{ bookingStatusTitle }}</h3>
+              </div>
+              <span class="text-sm font-bold text-emerald-300">{{ bookingReadinessPct }}%</span>
+            </div>
+            <div class="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-300 transition-all duration-300"
+                   [style.width.%]="bookingReadinessPct">
+              </div>
+            </div>
+          </div>
+          <div class="px-5 py-4 space-y-4">
+            <p class="text-sm text-slate-200 leading-relaxed">{{ bookingStatusText }}</p>
+            <div class="grid grid-cols-1 gap-3">
+              <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Response window</p>
+                <p class="mt-1 text-sm font-semibold text-white">{{ confirmationWindowLabel }}</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Doctor assignment</p>
+                <p class="mt-1 text-sm font-semibold text-white">{{ selectedDoctorLabel }}</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Scheduling note</p>
+                <p class="mt-1 text-sm text-slate-200">{{ slotRecommendation }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Booking progress card — shows selected details as user fills in form -->
         @if (form.get('service')?.value || form.get('date')?.value || form.get('time')?.value) {
           <div class="bg-white rounded-2xl border-2 border-[var(--accent-bd)] shadow-sm overflow-hidden">
@@ -452,7 +535,7 @@
                   </svg>
                   <div>
                     <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Service</p>
-                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ form.get('service')?.value }}</p>
+                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ selectedServiceLabel }}</p>
                   </div>
                 </div>
               }
@@ -463,28 +546,21 @@
                   </svg>
                   <div>
                     <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Date &amp; Time</p>
-                    <p class="text-sm font-semibold text-gray-900 leading-snug">
-                      {{ form.get('date')?.value || '—' }}
-                      @if (form.get('time')?.value) { · {{ form.get('time')?.value }} }
-                    </p>
+                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ selectedDateLabel }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ selectedTimeLabel }}</p>
                   </div>
                 </div>
               }
-              @if (selectedDoctorId()) {
-                @for (doctor of doctors(); track doctor.id) {
-                  @if (doctor.id === selectedDoctorId()) {
-                    <div class="flex items-start gap-2.5">
-                      <div class="w-3.5 h-3.5 rounded-full bg-[var(--accent-lt)] flex items-center justify-center shrink-0 mt-0.5">
-                        <span class="text-[8px] font-bold text-[var(--accent)]">{{ doctorInitials(doctor.name).charAt(0) }}</span>
-                      </div>
-                      <div>
-                        <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Doctor</p>
-                        <p class="text-sm font-semibold text-gray-900 leading-snug">{{ doctor.name }}</p>
-                      </div>
-                    </div>
-                  }
-                }
-              }
+              <div class="flex items-start gap-2.5">
+                <div class="w-3.5 h-3.5 rounded-full bg-[var(--accent-lt)] flex items-center justify-center shrink-0 mt-0.5">
+                  <span class="text-[8px] font-bold text-[var(--accent)]">{{ doctorInitials(selectedDoctorLabel).charAt(0) }}</span>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Doctor</p>
+                  <p class="text-sm font-semibold text-gray-900 leading-snug">{{ selectedDoctorLabel }}</p>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ confirmationWindowLabel }}</p>
+                </div>
+              </div>
             </div>
           </div>
         }

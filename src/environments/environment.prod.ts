@@ -1,10 +1,12 @@
+import { publicEnv } from './public-env.generated';
+
 export const environment = {
   production: true,
-  googleMapsApiKey: '', // Set your Google Maps API key here before deploying
+  googleMapsApiKey: publicEnv.googleMapsApiKey,
   // Sentry DSN — paste your project DSN from sentry.io here.
   // The DSN is safe to commit (it's included in the public JS bundle anyway).
   // Leave empty to disable error reporting.
-  sentryDsn: '',
+  sentryDsn: publicEnv.sentryDsn,
   firebase: {
     apiKey: 'AIzaSyA_efkmE9dWE6jjyDwgE6qGMLrx_BMJEmQ',
     authDomain: 'mydentalplatform.com',

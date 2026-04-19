@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 
@@ -13,6 +13,12 @@ export class PlatformLandingComponent implements OnInit {
   private readonly firestoreService = inject(ClinicFirestoreService);
 
   ngOnInit() { /* no-op — portfolio uses curated showcase data, not live Firestore */ }
+
+  readonly billingYearly = signal(false);
+  readonly roiPlan = signal<'Starter' | 'Pro'>('Starter');
+  readonly monthlyMissedLeads = signal(12);
+  readonly avgCaseValue = signal(3500);
+  readonly leadCloseRate = signal(40);
 
   // ── Curated showcase clinics (fictional — protects real client privacy) ────
   readonly showcaseClinics = [
@@ -170,11 +176,49 @@ export class PlatformLandingComponent implements OnInit {
       a: 'Pro plan includes 30 voice minutes/month at no extra cost. After that, it\'s ₹20/min usage-based — you only pay for what you use. You can set a monthly overage budget cap (default ₹1,000) so there are never any surprises. When your limit is reached, the AI politely connects patients to your clinic number directly.' },
   ];
 
-  readonly billingYearly = signal(false);
-
   planPrice(plan: { monthly: number; yearly: number }): number {
     return this.billingYearly() ? Math.round(plan.yearly / 12) : plan.monthly;
   }
+
+  readonly roiPlanDetails = computed(() =>
+    this.plans.find(plan => plan.name === this.roiPlan()) ?? this.plans[1],
+  );
+
+  readonly recoveredBookings = computed(() =>
+    Math.max(1, Math.round(this.monthlyMissedLeads() * (this.leadCloseRate() / 100))),
+  );
+
+  readonly recoveredRevenue = computed(() =>
+    this.recoveredBookings() * this.avgCaseValue(),
+  );
+
+  readonly roiMonthlyCost = computed(() => this.roiPlanDetails().monthly);
+
+  readonly roiNetGain = computed(() =>
+    Math.max(0, this.recoveredRevenue() - this.roiMonthlyCost()),
+  );
+
+  readonly roiPaybackBookings = computed(() =>
+    Math.max(1, Math.ceil(this.roiMonthlyCost() / Math.max(1, this.avgCaseValue()))),
+  );
+
+  readonly launchChecklist = [
+    {
+      title: 'Send your clinic basics',
+      description: 'Doctor details, services, phone number, address, logo and a few treatment photos.',
+      timeline: '10 minutes',
+    },
+    {
+      title: 'We configure everything',
+      description: 'Website copy, booking flow, WhatsApp routing, domain connection and launch polish.',
+      timeline: 'Same day',
+    },
+    {
+      title: 'Start collecting patients',
+      description: 'Your site goes live with appointment capture and an admin dashboard ready to use.',
+      timeline: 'Day 1',
+    },
+  ];
 
   readonly testimonials = [
     {
@@ -222,6 +266,10 @@ export class PlatformLandingComponent implements OnInit {
   scrollTo(sectionId: string): void {
     const el = document.getElementById(sectionId);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  setRoiPlan(planName: 'Starter' | 'Pro') {
+    this.roiPlan.set(planName);
   }
 
   whatsappEnquiry(planName: string) {

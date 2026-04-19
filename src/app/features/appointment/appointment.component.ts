@@ -174,6 +174,85 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     return this.fallbackSlots;
   }
 
+  get selectedServiceLabel(): string {
+    return String(this.form.get('service')?.value || 'Choose a service');
+  }
+
+  get selectedDateLabel(): string {
+    const value = this.form.get('date')?.value;
+    if (!value) return 'Pick a preferred date';
+    return new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+  }
+
+  get selectedTimeLabel(): string {
+    const value = this.form.get('time')?.value;
+    if (!value) return 'Select a time';
+    return this.selectedDoctorId() ? formatSlotDisplay(String(value)) : String(value);
+  }
+
+  get selectedDoctorLabel(): string {
+    return this.selectedDoctor?.name || 'First available doctor';
+  }
+
+  get bookingReadiness(): number {
+    return ['service', 'date', 'time', 'name', 'phone'].filter((field) => {
+      const value = this.form.get(field)?.value;
+      return value != null && String(value).trim().length > 0;
+    }).length;
+  }
+
+  get bookingReadinessPct(): number {
+    return Math.round((this.bookingReadiness / 5) * 100);
+  }
+
+  get bookingStatusTitle(): string {
+    if (this.currentStep() === 3 && this.form.valid) return 'Ready to confirm';
+    if (this.bookingReadiness >= 3) return 'Slot shortlisted';
+    if (this.form.get('service')?.value) return 'Building your booking';
+    return 'Start with your treatment';
+  }
+
+  get bookingStatusText(): string {
+    if (!this.form.get('service')?.value) {
+      return 'Choose a treatment, date and time to see the booking summary update live.';
+    }
+    if (!this.form.get('date')?.value || !this.form.get('time')?.value) {
+      return 'Add your preferred visit time and the clinic will match you with the best available slot.';
+    }
+    if (!this.form.get('name')?.value || !this.form.get('phone')?.value) {
+      return 'Your slot is shortlisted. Add your contact details so the clinic can confirm it quickly.';
+    }
+    return `You are requesting ${this.selectedServiceLabel} on ${this.selectedDateLabel} at ${this.selectedTimeLabel}.`;
+  }
+
+  get confirmationWindowLabel(): string {
+    return this.clinic.isOpenNow ? 'Within 2 hours today' : 'Next working window';
+  }
+
+  get slotRecommendation(): string {
+    const date = this.form.get('date')?.value;
+    const time = this.form.get('time')?.value;
+    if (!date || !time) {
+      return 'Same-day appointments are often available while the clinic is open.';
+    }
+
+    const selectedDate = new Date(`${date}T00:00:00`);
+    const today = new Date(`${this.minDate}T00:00:00`);
+    const diffDays = Math.round((selectedDate.getTime() - today.getTime()) / 86_400_000);
+
+    if (diffDays === 0) {
+      return 'This is a same-day request, so the clinic will prioritize confirmation if the slot is still open.';
+    }
+    if (this.selectedDoctorId()) {
+      return `${this.selectedDoctorLabel} has live availability enabled, so the clinic can confirm this slot more accurately.`;
+    }
+    return 'No doctor preference selected, which helps the clinic confirm the fastest available doctor.';
+  }
+
   doctorInitials(name: string): string {
     return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
   }

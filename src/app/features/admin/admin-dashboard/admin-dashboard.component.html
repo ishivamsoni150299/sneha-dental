@@ -657,6 +657,91 @@
         </div>
       }
 
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4">
+        <div class="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-sm">
+          <div class="px-6 py-6">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Clinic overview</p>
+                <h2 class="mt-3 text-3xl font-extrabold leading-tight">{{ greeting }}, {{ greetingLine }}</h2>
+                <p class="mt-2 text-sm text-slate-300 max-w-2xl">
+                  {{ todayFormatted }}. Keep the front desk focused on pending confirmations, today's arrivals and payment follow-ups.
+                </p>
+              </div>
+
+              @if (nextAppointment()) {
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 min-w-[240px]">
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Next appointment</p>
+                  <p class="mt-2 text-lg font-bold text-white">{{ nextAppointment()!.name }}</p>
+                  <p class="text-sm text-slate-300 mt-1">{{ nextAppointment()!.service }} · {{ nextAppointment()!.time }}</p>
+                  <button (click)="openDetail(nextAppointment()!)"
+                          class="mt-3 text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors">
+                    Open details →
+                  </button>
+                </div>
+              } @else {
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 min-w-[240px]">
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Next appointment</p>
+                  <p class="mt-2 text-lg font-bold text-white">No active appointments</p>
+                  <p class="text-sm text-slate-300 mt-1">New online bookings will appear here automatically.</p>
+                </div>
+              }
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Completion rate</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ completionRate() }}%</p>
+                <p class="text-xs text-slate-300 mt-1">Across active appointments</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Collected revenue</p>
+                <p class="mt-2 text-2xl font-bold text-emerald-300">{{ formatCurrency(paidRevenue()) }}</p>
+                <p class="text-xs text-slate-300 mt-1">Paid treatments logged so far</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Needs action</p>
+                <p class="mt-2 text-2xl font-bold text-amber-300">{{ counts().pending + unpaidAppointments() }}</p>
+                <p class="text-xs text-slate-300 mt-1">Pending confirmations + unpaid visits</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-4">
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Today's queue</p>
+            <p class="mt-2 text-3xl font-extrabold text-gray-900">{{ todayQueue().scheduled }}</p>
+            <div class="mt-4 space-y-2 text-sm text-gray-600">
+              <div class="flex items-center justify-between">
+                <span>Pending</span>
+                <span class="font-semibold text-amber-600">{{ todayQueue().pending }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>In clinic</span>
+                <span class="font-semibold text-blue-600">{{ todayQueue().inClinic }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Completed</span>
+                <span class="font-semibold text-emerald-600">{{ todayQueue().completed }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Today's payments</p>
+            <p class="mt-2 text-3xl font-extrabold text-gray-900">{{ formatCurrency(todayCollectedRevenue()) }}</p>
+            <p class="mt-2 text-sm text-gray-500">Collected from paid and partial visits scheduled for today.</p>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Outstanding revenue</p>
+            <p class="mt-2 text-3xl font-extrabold text-gray-900">{{ formatCurrency(outstandingRevenue()) }}</p>
+            <p class="mt-2 text-sm text-gray-500">{{ unpaidAppointments() }} unpaid and {{ partialPayments() }} partial payment{{ partialPayments() === 1 ? '' : 's' }} to follow up.</p>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Stat cards ────────────────────────────────────────────────── -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
@@ -728,6 +813,76 @@
           </div>
           <p class="text-2xl font-extrabold text-gray-900">{{ counts().completed }}</p>
           <p class="text-xs text-gray-400 mt-1">completed</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-gray-900 text-sm">Today's agenda</h2>
+              <p class="text-xs text-gray-400 mt-0.5">Who needs attention before the day gets busy</p>
+            </div>
+            <span class="text-xs font-semibold text-gray-500">{{ agendaPreview().length }} visible</span>
+          </div>
+
+          @if (agendaPreview().length > 0) {
+            <div class="divide-y divide-gray-100">
+              @for (appt of agendaPreview(); track appt.id) {
+                <button type="button"
+                        (click)="openDetail(appt)"
+                        class="w-full text-left px-5 py-4 hover:bg-slate-50 transition-colors">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="font-semibold text-gray-900 text-sm">{{ appt.name }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ appt.service }} · {{ appt.time }}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                            [class]="statusColor(appt.status)">
+                        {{ statusLabel(appt.status) }}
+                      </span>
+                      @if (appt.paymentStatus) {
+                        <p class="text-[11px] text-gray-400 mt-2">{{ paymentStatusLabel(appt.paymentStatus) }}</p>
+                      }
+                    </div>
+                  </div>
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="px-5 py-10 text-center">
+              <p class="text-sm font-semibold text-gray-700">No appointments scheduled for today</p>
+              <p class="text-xs text-gray-400 mt-1">New same-day bookings will appear here automatically.</p>
+            </div>
+          }
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-bold text-gray-900 text-sm">Revenue snapshot</h2>
+          <p class="text-xs text-gray-400 mt-1">Use this to spot billing gaps before the end of the day.</p>
+
+          <div class="mt-5 space-y-4">
+            <div class="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-4">
+              <p class="text-[11px] uppercase tracking-wide text-emerald-700">Paid revenue</p>
+              <p class="mt-2 text-2xl font-extrabold text-emerald-900">{{ formatCurrency(paidRevenue()) }}</p>
+            </div>
+
+            <div class="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-4">
+              <p class="text-[11px] uppercase tracking-wide text-amber-700">Outstanding</p>
+              <p class="mt-2 text-2xl font-extrabold text-amber-900">{{ formatCurrency(outstandingRevenue()) }}</p>
+              <p class="mt-2 text-xs text-amber-800">{{ unpaidAppointments() }} unpaid and {{ partialPayments() }} partial visits still need closure.</p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4">
+              <p class="text-[11px] uppercase tracking-wide text-slate-500">Payment follow-up playbook</p>
+              <ul class="mt-3 space-y-2 text-sm text-slate-600">
+                <li>Confirm pending patients before clinic hours end.</li>
+                <li>Review partial payments before marking treatment complete.</li>
+                <li>Export CSV when the front desk needs a manual cash tally.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 

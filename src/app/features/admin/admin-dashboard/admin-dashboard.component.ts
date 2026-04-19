@@ -165,6 +165,71 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     completed:  this.appointments().filter(a => a.status === 'completed').length,
   }));
 
+  activeAppointments = computed(() =>
+    this.appointments().filter(a => a.status !== 'cancelled' && a.status !== 'no_show'),
+  );
+
+  todayAppointmentsList = computed(() =>
+    this.activeAppointments()
+      .filter(a => a.date === this.today)
+      .sort((a, b) => this.timeToMinutes(a.time) - this.timeToMinutes(b.time)),
+  );
+
+  todayQueue = computed(() => ({
+    scheduled: this.todayAppointmentsList().length,
+    pending: this.todayAppointmentsList().filter(a => a.status === 'pending').length,
+    inClinic: this.todayAppointmentsList().filter(a => a.status === 'checked_in').length,
+    completed: this.todayAppointmentsList().filter(a => a.status === 'completed').length,
+  }));
+
+  agendaPreview = computed(() => this.todayAppointmentsList().slice(0, 5));
+
+  nextAppointment = computed(() => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    return this.todayAppointmentsList().find(
+      a => this.timeToMinutes(a.time) >= currentMinutes && a.status !== 'completed',
+    ) ?? this.todayAppointmentsList().find(a => a.status !== 'completed') ?? null;
+  });
+
+  paidRevenue = computed(() =>
+    this.appointments().reduce((sum, appt) =>
+      appt.paymentStatus === 'paid' ? sum + (appt.amountCharged ?? 0) : sum, 0),
+  );
+
+  todayCollectedRevenue = computed(() =>
+    this.todayAppointmentsList().reduce((sum, appt) =>
+      appt.paymentStatus === 'paid' || appt.paymentStatus === 'partial'
+        ? sum + (appt.amountCharged ?? 0)
+        : sum, 0),
+  );
+
+  outstandingRevenue = computed(() =>
+    this.appointments().reduce((sum, appt) =>
+      appt.paymentStatus === 'unpaid' || appt.paymentStatus === 'partial'
+        ? sum + (appt.amountCharged ?? 0)
+        : sum, 0),
+  );
+
+  unpaidAppointments = computed(() =>
+    this.appointments().filter(a => a.paymentStatus === 'unpaid').length,
+  );
+
+  partialPayments = computed(() =>
+    this.appointments().filter(a => a.paymentStatus === 'partial').length,
+  );
+
+  completionRate = computed(() => {
+    const trackable = this.activeAppointments().filter(a =>
+      a.status === 'pending'
+      || a.status === 'confirmed'
+      || a.status === 'checked_in'
+      || a.status === 'completed',
+    );
+    if (!trackable.length) return 0;
+    return Math.round((trackable.filter(a => a.status === 'completed').length / trackable.length) * 100);
+  });
+
   hasActiveFilters = computed(() =>
     this.searchQuery().trim().length > 0 || this.dateFrom() !== '' || this.dateTo() !== '',
   );
@@ -462,6 +527,34 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   async logout() {
     await this.auth.logout();
     this.router.navigate(['/business/login']);
+  }
+
+  private timeToMinutes(time: string): number {
+    const value = (time || '').trim();
+    if (/^\d{2}:\d{2}$/.test(value)) {
+      const [hours, minutes] = value.split(':').map(Number);
+      return (hours * 60) + minutes;
+    }
+
+    const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return Number.MAX_SAFE_INTEGER;
+
+    let hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const meridiem = match[3].toUpperCase();
+
+    if (meridiem === 'PM' && hours !== 12) hours += 12;
+    if (meridiem === 'AM' && hours === 12) hours = 0;
+
+    return (hours * 60) + minutes;
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(amount);
   }
 
   formatDate(dateStr: string): string {

@@ -24,6 +24,7 @@
         <button (click)="scrollTo('problem')"  class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Why now?</button>
         <button (click)="scrollTo('features')" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Features</button>
         <button (click)="scrollTo('portfolio')" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Our Work</button>
+        <button (click)="scrollTo('roi')" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">ROI</button>
         <button (click)="scrollTo('pricing')"  class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Pricing</button>
         <button (click)="scrollTo('faq')"      class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">FAQ</button>
         <a routerLink="/business/signup"
@@ -324,6 +325,158 @@
             <div class="text-[11px] text-gray-500 leading-relaxed">{{ r.desc }}</div>
           </div>
         }
+      </div>
+    </div>
+  </section>
+
+  <section id="roi" class="py-20 bg-slate-950 text-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] gap-8 items-start">
+        <div>
+          <span class="inline-flex items-center gap-2 text-xs font-semibold text-cyan-200 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full mb-5">
+            Revenue calculator
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold leading-tight">
+            See what one better month online can do for your clinic
+          </h2>
+          <p class="mt-4 text-slate-300 text-base leading-relaxed max-w-2xl">
+            This is the real business case: convert missed calls and after-hours enquiries into booked treatments,
+            then compare that upside with your monthly software cost.
+          </p>
+
+          <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            @for (item of launchChecklist; track item.title) {
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <p class="text-sm font-semibold text-white">{{ item.title }}</p>
+                  <span class="text-[10px] font-bold uppercase tracking-wide text-cyan-200 bg-cyan-400/10 border border-cyan-400/20 px-2 py-1 rounded-full">
+                    {{ item.timeline }}
+                  </span>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed">{{ item.description }}</p>
+              </div>
+            }
+          </div>
+
+          <div class="mt-8 rounded-3xl border border-emerald-400/20 bg-gradient-to-r from-emerald-400/10 to-cyan-400/10 p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-200">Modeled upside</p>
+                <p class="mt-2 text-4xl font-extrabold text-white">{{ recoveredBookings() }}</p>
+                <p class="text-sm text-slate-300 mt-1">extra bookings recovered each month</p>
+              </div>
+              <div class="grid grid-cols-2 gap-3 sm:w-[320px]">
+                <div class="rounded-2xl bg-black/20 border border-white/10 p-4">
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Revenue</p>
+                  <p class="mt-2 text-xl font-bold text-white">₹{{ recoveredRevenue() }}</p>
+                </div>
+                <div class="rounded-2xl bg-black/20 border border-white/10 p-4">
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Net gain</p>
+                  <p class="mt-2 text-xl font-bold text-emerald-300">₹{{ roiNetGain() }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-[28px] border border-white/10 bg-white/95 text-slate-900 shadow-2xl shadow-cyan-950/20 overflow-hidden">
+          <div class="px-6 py-5 border-b border-slate-200">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Clinic economics</p>
+                <h3 class="mt-2 text-2xl font-bold text-slate-950">Estimate your monthly return</h3>
+              </div>
+              <div class="rounded-2xl bg-slate-950 text-white px-4 py-3 text-right">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Chosen plan</p>
+                <p class="text-lg font-bold">{{ roiPlan() }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-6 space-y-6">
+            <div>
+              <p class="text-sm font-semibold text-slate-800 mb-3">Which plan are you comparing against?</p>
+              <div class="grid grid-cols-2 gap-3">
+                @for (planName of ['Starter', 'Pro']; track planName) {
+                  <button type="button"
+                          (click)="setRoiPlan($any(planName))"
+                          class="rounded-2xl border px-4 py-4 text-left transition-all"
+                          [class]="roiPlan() === planName
+                            ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-100'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'">
+                    <p class="text-sm font-semibold text-slate-900">{{ planName }}</p>
+                    <p class="text-xs text-slate-500 mt-1">₹{{ planName === 'Starter' ? 499 : 1499 }}/month</p>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <label for="roi-missed-leads" class="text-sm font-semibold text-slate-800">Missed calls or enquiries per month</label>
+                <span class="text-sm font-bold text-slate-950">{{ monthlyMissedLeads() }}</span>
+              </div>
+              <input id="roi-missed-leads" type="range" min="4" max="40" step="2"
+                     [value]="monthlyMissedLeads()"
+                     (input)="monthlyMissedLeads.set(+$any($event.target).value)"
+                     class="w-full accent-blue-600">
+              <p class="mt-2 text-xs text-slate-500">Phone calls after hours, Instagram DMs, missed WhatsApp chats and people who cannot find your clinic online.</p>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <label for="roi-case-value" class="text-sm font-semibold text-slate-800">Average treatment value</label>
+                <span class="text-sm font-bold text-slate-950">₹{{ avgCaseValue() }}</span>
+              </div>
+              <input id="roi-case-value" type="range" min="1000" max="15000" step="500"
+                     [value]="avgCaseValue()"
+                     (input)="avgCaseValue.set(+$any($event.target).value)"
+                     class="w-full accent-blue-600">
+              <p class="mt-2 text-xs text-slate-500">Use your usual first-visit or accepted-case revenue, not the biggest treatment in the clinic.</p>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <label for="roi-close-rate" class="text-sm font-semibold text-slate-800">Enquiry to booking close rate</label>
+                <span class="text-sm font-bold text-slate-950">{{ leadCloseRate() }}%</span>
+              </div>
+              <input id="roi-close-rate" type="range" min="10" max="90" step="5"
+                     [value]="leadCloseRate()"
+                     (input)="leadCloseRate.set(+$any($event.target).value)"
+                     class="w-full accent-blue-600">
+              <p class="mt-2 text-xs text-slate-500">A conservative model for how many saved enquiries convert once patients can book properly.</p>
+            </div>
+
+            <div class="rounded-3xl bg-slate-950 text-white p-5">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Recovered revenue</p>
+                  <p class="mt-2 text-2xl font-bold">₹{{ recoveredRevenue() }}</p>
+                </div>
+                <div>
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Net monthly upside</p>
+                  <p class="mt-2 text-2xl font-bold text-emerald-300">₹{{ roiNetGain() }}</p>
+                </div>
+                <div>
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Software cost</p>
+                  <p class="mt-2 text-lg font-semibold">₹{{ roiMonthlyCost() }}/month</p>
+                </div>
+                <div>
+                  <p class="text-[11px] uppercase tracking-wide text-slate-400">Break-even point</p>
+                  <p class="mt-2 text-lg font-semibold">{{ roiPaybackBookings() }} booking{{ roiPaybackBookings() === 1 ? '' : 's' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <button (click)="whatsappEnquiry(roiPlan())"
+                    class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3.5 rounded-2xl transition-all hover:shadow-lg text-sm">
+              Discuss this ROI for my clinic
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -918,6 +1071,7 @@
           <button (click)="scrollTo('problem')"  class="hover:text-gray-700 transition-colors bg-transparent border-0 cursor-pointer">Why now?</button>
           <button (click)="scrollTo('features')" class="hover:text-gray-700 transition-colors bg-transparent border-0 cursor-pointer">Features</button>
           <button (click)="scrollTo('portfolio')"class="hover:text-gray-700 transition-colors bg-transparent border-0 cursor-pointer">Our Work</button>
+          <button (click)="scrollTo('roi')"      class="hover:text-gray-700 transition-colors bg-transparent border-0 cursor-pointer">ROI</button>
           <button (click)="scrollTo('pricing')"  class="hover:text-gray-700 transition-colors bg-transparent border-0 cursor-pointer">Pricing</button>
           <button (click)="scrollTo('faq')"      class="hover:text-gray-700 transition-colors bg-transparent border-0 cursor-pointer">FAQ</button>
           <a routerLink="/business/login" class="hover:text-gray-700 transition-colors">Client login</a>

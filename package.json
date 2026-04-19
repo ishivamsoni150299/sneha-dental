@@ -2,6 +2,10 @@
   "name": "mydentalplatform",
   "version": "0.0.0",
   "scripts": {
+    "prestart": "node scripts/sync-public-env.mjs development",
+    "prebuild": "node scripts/sync-public-env.mjs production",
+    "prewatch": "node scripts/sync-public-env.mjs development",
+    "pretest": "node scripts/sync-public-env.mjs development",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
