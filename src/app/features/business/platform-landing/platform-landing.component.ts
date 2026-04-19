@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
+type PlanId = 'trial' | 'starter' | 'pro';
 
 @Component({
   selector: 'app-platform-landing',
@@ -54,6 +55,7 @@ export class PlatformLandingComponent {
 
   readonly plans = [
     {
+      id: 'trial' as const,
       name: 'Trial',
       tag: 'Try for free',
       monthly: 0,
@@ -75,6 +77,7 @@ export class PlatformLandingComponent {
       ],
     },
     {
+      id: 'starter' as const,
       name: 'Starter',
       tag: 'For solo clinics',
       monthly: 499,
@@ -95,6 +98,7 @@ export class PlatformLandingComponent {
       ],
     },
     {
+      id: 'pro' as const,
       name: 'Pro',
       tag: 'Most popular',
       monthly: 1499,
@@ -113,6 +117,36 @@ export class PlatformLandingComponent {
         'Revenue & analytics dashboard',
       ],
       notIncluded: [],
+    },
+  ];
+
+  readonly growthPaths = [
+    {
+      eyebrow: 'Start lean',
+      title: 'Trial launch for first-time clinics',
+      summary: 'Go live before you spend. Test bookings, share your link, and validate demand with zero setup risk.',
+      outcome: 'Free for 30 days with booking capture from day one.',
+      planId: 'trial' as const,
+      cta: 'Start free',
+      offer: '30-day launch trial',
+    },
+    {
+      eyebrow: 'Most chosen',
+      title: 'Starter for solo clinics ready to grow',
+      summary: 'Use your own domain, look established, and turn search traffic into consultations without agency fees.',
+      outcome: 'Best for owner-led clinics targeting steady monthly bookings.',
+      planId: 'starter' as const,
+      cta: 'Choose Starter',
+      offer: 'Domain-ready growth plan',
+    },
+    {
+      eyebrow: 'High intent',
+      title: 'Pro for clinics that miss calls and leads',
+      summary: 'Add AI voice reception so patients can book after hours, during procedures, and when the front desk is busy.',
+      outcome: 'Best for premium cases, multiple doctors, and higher inbound volume.',
+      planId: 'pro' as const,
+      cta: 'Choose Pro',
+      offer: 'After-hours booking capture',
     },
   ];
 
@@ -268,6 +302,12 @@ export class PlatformLandingComponent {
 
   setRoiPlan(planName: 'Starter' | 'Pro') {
     this.roiPlan.set(planName);
+  }
+
+  signupQuery(plan: PlanId, source: string, campaign = 'sales-sprint', offer?: string): Record<string, string> {
+    const query: Record<string, string> = { plan, source, campaign };
+    if (offer) query['offer'] = offer;
+    return query;
   }
 
   whatsappEnquiry(planName: string) {

@@ -87,6 +87,24 @@ export interface SelfSignupResponse {
   domainRegistered: boolean;
 }
 
+interface MarketingPayload {
+  plan?: 'trial' | 'starter' | 'pro';
+  source?: string;
+  campaign?: string;
+  offer?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmTerm?: string | null;
+  utmContent?: string | null;
+}
+
+function cleanText(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, 120) : null;
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -115,6 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     theme = 'blue',
     // Optional
     slug: preferredSlug,
+    marketing,
   } = req.body ?? {};
 
   // ── Basic validation ───────────────────────────────────────────────────────
@@ -127,6 +146,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!['trial', 'starter', 'pro'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan.' });
   }
+
+  const rawMarketing = (marketing ?? {}) as MarketingPayload;
+  const marketingAttribution = {
+    plan,
+    source: cleanText(rawMarketing.source) ?? 'direct',
+    campaign: cleanText(rawMarketing.campaign) ?? 'organic-signup',
+    offer: cleanText(rawMarketing.offer),
+    utmSource: cleanText(rawMarketing.utmSource),
+    utmMedium: cleanText(rawMarketing.utmMedium),
+    utmCampaign: cleanText(rawMarketing.utmCampaign),
+    utmTerm: cleanText(rawMarketing.utmTerm),
+    utmContent: cleanText(rawMarketing.utmContent),
+  };
 
   // ── Verify Firebase ID token ───────────────────────────────────────────────
   let uid: string;
@@ -197,6 +229,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     subscriptionStatus:  plan === 'trial' ? 'trial' : 'pending',
     trialEndDate:        plan === 'trial' ? trialEndDate : null,
     billingEmail:        email,
+    leadSource:          marketingAttribution.source,
+    marketingAttribution,
     // Auth
     adminEmail:          email,
     adminUid:            uid,

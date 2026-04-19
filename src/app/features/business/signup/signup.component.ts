@@ -3,7 +3,7 @@ import {
   inject, DestroyRef, OnInit, NgZone,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import {
@@ -33,6 +33,20 @@ async function isSlugAvailable(slug: string): Promise<boolean> {
 
 function toSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
+}
+
+type SignupPlan = 'trial' | 'starter' | 'pro';
+
+interface MarketingAttribution {
+  plan: SignupPlan;
+  source: string;
+  campaign: string;
+  offer: string | null;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmTerm: string | null;
+  utmContent: string | null;
 }
 
 // ── Theme definitions ─────────────────────────────────────────────────────────
@@ -93,6 +107,7 @@ declare const google: any;
 })
 export class SignupComponent implements OnInit {
   private readonly fb         = inject(FormBuilder);
+  private readonly route      = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone       = inject(NgZone);
 
@@ -104,6 +119,23 @@ export class SignupComponent implements OnInit {
     siteUrl: string; adminUrl: string; email: string;
     plan: string; paymentUrl: string | null; trialEndDate: string | null;
   } | null>(null);
+  readonly attribution = signal<MarketingAttribution | null>(null);
+
+  readonly activeOffer = computed(() => {
+    const attribution = this.attribution();
+    if (!attribution) return null;
+
+    if (attribution.offer) return attribution.offer;
+    if (attribution.plan === 'pro') return 'After-hours booking capture';
+    if (attribution.plan === 'starter') return 'Domain-ready growth plan';
+    return '30-day launch trial';
+  });
+
+  readonly showCampaignBanner = computed(() => {
+    const attribution = this.attribution();
+    if (!attribution) return false;
+    return attribution.source !== 'direct' || attribution.campaign !== 'organic-signup' || attribution.offer !== null;
+  });
 
   // Visual step 1/2/3 for the progress stepper
   readonly visualStep = computed(() => {
@@ -310,7 +342,7 @@ export class SignupComponent implements OnInit {
   }
 
   // ── Plan ─────────────────────────────────────────────────────────────────
-  readonly selectedPlan = signal<'trial' | 'starter' | 'pro'>('trial');
+  readonly selectedPlan = signal<SignupPlan>('trial');
 
   readonly plans = [
     {
@@ -357,6 +389,7 @@ export class SignupComponent implements OnInit {
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit(): void {
+    this.captureMarketingContext();
     this.loadPlacesApi();
 
     // Auto-fill slug from clinic name
@@ -384,6 +417,30 @@ export class SignupComponent implements OnInit {
   }
 
   // ── Navigation ───────────────────────────────────────────────────────────
+  private captureMarketingContext(): void {
+    const queryParams = this.route.snapshot.queryParamMap;
+    const plan = this.normalizePlan(queryParams.get('plan'));
+    const attribution: MarketingAttribution = {
+      plan,
+      source: queryParams.get('source') ?? 'direct',
+      campaign: queryParams.get('campaign') ?? 'organic-signup',
+      offer: queryParams.get('offer'),
+      utmSource: queryParams.get('utm_source'),
+      utmMedium: queryParams.get('utm_medium'),
+      utmCampaign: queryParams.get('utm_campaign'),
+      utmTerm: queryParams.get('utm_term'),
+      utmContent: queryParams.get('utm_content'),
+    };
+
+    this.selectedPlan.set(plan);
+    this.attribution.set(attribution);
+  }
+
+  private normalizePlan(value: string | null): SignupPlan {
+    if (value === 'starter' || value === 'pro') return value;
+    return 'trial';
+  }
+
   next(): void {
     const s = this.step();
     if (s === 1) {
@@ -403,7 +460,7 @@ export class SignupComponent implements OnInit {
     else if (s === 4) this.step.set(2);
   }
 
-  selectPlan(plan: 'trial' | 'starter' | 'pro') { this.selectedPlan.set(plan); }
+  selectPlan(plan: SignupPlan): void { this.selectedPlan.set(plan); }
 
   onSlugInput(event: Event): void {
     const v = toSlug((event.target as HTMLInputElement).value);
@@ -449,6 +506,7 @@ export class SignupComponent implements OnInit {
           slug,
           plan:  this.selectedPlan(),
           theme: this.selectedTheme().id,
+          marketing: this.attribution(),
           logoDataUrl: null,
           hours,
           services,

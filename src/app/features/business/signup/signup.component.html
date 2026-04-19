@@ -30,6 +30,24 @@
       <!-- ══════════════════════════════════════════════════════════════ -->
       <!-- STEP 0 — Authentication gate                                   -->
       <!-- ══════════════════════════════════════════════════════════════ -->
+      @if (step() < 5 && showCampaignBanner()) {
+        <div class="mb-6 rounded-2xl border border-blue-200 bg-blue-50/80 px-4 py-4 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-700">Campaign active</p>
+              <p class="mt-1 text-sm font-semibold text-gray-900">{{ activeOffer() ?? 'Sales offer selected' }}</p>
+              <p class="mt-1 text-xs leading-6 text-gray-600">
+                Plan preselected: <span class="font-semibold uppercase text-gray-800">{{ attribution()?.plan }}</span>
+                • Source: <span class="font-semibold text-gray-800">{{ attribution()?.source }}</span>
+              </p>
+            </div>
+            <div class="rounded-xl bg-white px-3 py-2 text-xs font-medium text-gray-600 shadow-sm">
+              Campaign: {{ attribution()?.campaign }}
+            </div>
+          </div>
+        </div>
+      }
+
       @if (step() === 0) {
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-sm mx-auto w-full">
           <div class="mb-7 text-center">

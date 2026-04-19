@@ -28,6 +28,7 @@
         <button (click)="scrollTo('pricing')"  class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Pricing</button>
         <button (click)="scrollTo('faq')"      class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">FAQ</button>
         <a routerLink="/business/signup"
+           [queryParams]="signupQuery('trial', 'top-nav', 'sales-sprint', '30-day launch trial')"
            class="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm">
           Get started free
         </a>
@@ -66,6 +67,7 @@
 
           <div class="mt-8 flex flex-col sm:flex-row gap-3">
             <a routerLink="/business/signup"
+               [queryParams]="signupQuery('trial', 'hero-primary', 'sales-sprint', '30-day launch trial')"
                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
                       text-white font-bold px-7 py-4 sm:py-3.5 rounded-xl transition-all
                       hover:shadow-xl hover:-translate-y-0.5 text-sm shadow-lg shadow-blue-200">
@@ -241,6 +243,7 @@
       <!-- CTA below video -->
       <div class="mt-8 text-center">
         <a routerLink="/business/signup"
+           [queryParams]="signupQuery('trial', 'video-cta', 'sales-sprint', '30-day launch trial')"
            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold
                   px-7 py-3.5 rounded-xl transition-all hover:shadow-xl hover:-translate-y-0.5
                   shadow-lg shadow-blue-200 text-sm">
@@ -252,6 +255,51 @@
   </section>
 
   <!-- ── Problem section ───────────────────────────────────────────────────── -->
+  <section class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-4 text-center mb-12">
+        <span class="inline-flex items-center justify-center gap-2 self-center rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+          Sales Paths
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">
+          Pick the growth path that matches your clinic stage
+        </h2>
+        <p class="mx-auto max-w-2xl text-sm leading-7 text-gray-500 sm:text-base">
+          Every option gets you live fast. The difference is how aggressively you want to convert traffic, missed calls, and repeat referrals into booked consultations.
+        </p>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-3">
+        @for (path of growthPaths; track path.title) {
+          <article class="flex h-full flex-col rounded-3xl border border-gray-200 bg-gradient-to-b from-white to-slate-50 p-7 shadow-sm shadow-slate-200/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div class="mb-5 flex items-center justify-between gap-3">
+              <span class="rounded-full bg-gray-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
+                {{ path.eyebrow }}
+              </span>
+              <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                {{ path.planId }}
+              </span>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900">{{ path.title }}</h3>
+            <p class="mt-3 text-sm leading-7 text-gray-600">{{ path.summary }}</p>
+
+            <div class="mt-6 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-700">Expected outcome</p>
+              <p class="mt-2 text-sm font-medium leading-6 text-gray-700">{{ path.outcome }}</p>
+            </div>
+
+            <a routerLink="/business/signup"
+               [queryParams]="signupQuery(path.planId, 'sales-paths', 'sales-sprint', path.offer)"
+               class="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg">
+              {{ path.cta }} →
+            </a>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
   <section id="problem" class="py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -277,6 +325,7 @@
       <div class="mt-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white text-center">
         <p class="font-bold text-lg">mydentalplatform solves all three — from just ₹499/month.</p>
         <a routerLink="/business/signup"
+           [queryParams]="signupQuery('starter', 'problem-cta', 'sales-sprint', 'Domain-ready growth plan')"
            class="mt-4 inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50
                   font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm">
           Fix this today →
@@ -851,6 +900,7 @@
             </ul>
 
             <a routerLink="/business/signup"
+               [queryParams]="signupQuery(plan.id, 'pricing-card', billingYearly() ? 'yearly-pricing' : 'monthly-pricing', plan.name + ' pricing')"
                class="w-full font-semibold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                [class]="plan.highlighted ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-md' : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md'">
               @if (plan.monthly === 0) { Start free — no card needed } @else { Get started → }
@@ -1036,6 +1086,7 @@
           </p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a routerLink="/business/signup"
+               [queryParams]="signupQuery('trial', 'final-cta', 'sales-sprint', '30-day launch trial')"
                class="inline-flex items-center gap-2 bg-white text-gray-900
                       hover:bg-blue-50 font-bold px-8 py-4 rounded-xl transition-all
                       hover:shadow-xl hover:-translate-y-0.5 text-sm">
@@ -1087,6 +1138,7 @@
   <div class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3"
        style="padding-bottom: env(safe-area-inset-bottom, 12px)">
     <a routerLink="/business/signup"
+       [queryParams]="signupQuery('trial', 'mobile-sticky', 'sales-sprint', '30-day launch trial')"
        class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
               text-white font-bold py-3.5 rounded-xl text-sm transition-colors shadow-md">
       Create your free website →
