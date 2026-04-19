@@ -108,13 +108,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           language: 'hi',   // Hindi primary — agent will switch based on user's language
         },
         tts: {
-          voice_id:  voiceId,
-          model_id:  'eleven_multilingual_v2',   // supports Hindi, English, Hinglish
-          optimize_streaming_latency: 3,
+          voice_id: voiceId,
+          model_id: 'eleven_multilingual_v2',   // supports Hindi, English, Hinglish
         },
         conversation: {
-          max_duration_seconds:     600,   // 10 min max call
-          client_events:            ['audio', 'interruption'],
+          max_duration_seconds: 600,   // 10 min max call
         },
       },
       platform_settings: {

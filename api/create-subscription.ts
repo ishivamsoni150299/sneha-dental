@@ -8,8 +8,8 @@ import Razorpay from 'razorpay';
 // RAZORPAY_PLAN_PRO     → plan_xxx      (create ₹1499/mo plan in Razorpay dashboard)
 
 const PLAN_IDS: Record<string, string | undefined> = {
-  starter: process.env['RAZORPAY_PLAN_STARTER'],
-  pro:     process.env['RAZORPAY_PLAN_PRO'],
+  starter: process.env['RAZORPAY_PLAN_STARTER']?.trim(),
+  pro:     process.env['RAZORPAY_PLAN_PRO']?.trim(),
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -35,8 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const razorpay = new Razorpay({
-    key_id:     process.env['RAZORPAY_KEY_ID']!,
-    key_secret: process.env['RAZORPAY_KEY_SECRET']!,
+    key_id:     process.env['RAZORPAY_KEY_ID']!.trim(),
+    key_secret: process.env['RAZORPAY_KEY_SECRET']!.trim(),
   });
 
   try {
