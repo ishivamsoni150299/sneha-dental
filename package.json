@@ -22,7 +22,9 @@
     "@angular/forms": "^19.2.0",
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
+    "@angular/platform-server": "^19.2.20",
     "@angular/router": "^19.2.0",
+    "@angular/ssr": "^19.2.20",
     "@sentry/angular": "^10.49.0",
     "@types/nodemailer": "^8.0.0",
     "firebase": "^10.14.1",
@@ -39,8 +41,10 @@
     "@angular-eslint/eslint-plugin": "^21.3.1",
     "@angular-eslint/eslint-plugin-template": "^21.3.1",
     "@angular-eslint/schematics": "^21.3.1",
+    "@angular-eslint/template-parser": "^21.3.1",
     "@angular/cli": "^19.2.23",
     "@angular/compiler-cli": "^19.2.0",
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "^8.58.2",
@@ -56,6 +60,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.17",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.58.2"
   }
 }

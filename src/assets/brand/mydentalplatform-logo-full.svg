@@ -1,22 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 96" role="img" aria-label="mydentalplatform">
   <defs>
-    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B9EFF"/>
-      <stop offset="50%" stop-color="#0A6BFF"/>
-      <stop offset="100%" stop-color="#1E7BFF"/>
+    <linearGradient id="brandMarkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#091426"/>
+      <stop offset="100%" stop-color="#102343"/>
     </linearGradient>
-    <linearGradient id="smileGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#3B9EFF"/>
-      <stop offset="50%" stop-color="#0A6BFF"/>
-      <stop offset="100%" stop-color="#1E7BFF"/>
+    <linearGradient id="brandMarkGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3EE0C4"/>
+      <stop offset="100%" stop-color="#2B6BFF"/>
+    </linearGradient>
+    <linearGradient id="brandWord" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14B8A6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
     </linearGradient>
   </defs>
-  <rect width="1080" height="1080" fill="#000000"/>
-  <circle cx="540" cy="540" r="490" fill="none" stroke="url(#ringGrad)" stroke-width="12"/>
-  <g font-family="'Helvetica Neue', Arial, sans-serif" font-weight="300" font-size="110" letter-spacing="-2">
-    <text x="540" y="555" text-anchor="middle">
-      <tspan fill="#FFFFFF">my</tspan><tspan fill="#1E7BFF">dental</tspan><tspan fill="#FFFFFF">platform</tspan>
-    </text>
+  <rect x="6" y="8" width="64" height="64" rx="18" fill="url(#brandMarkBg)"/>
+  <circle cx="24" cy="24" r="13" fill="#1DD3B0" opacity="0.18"/>
+  <path d="M22 41c0-10.6 7.1-18.2 16-18.2S54 30.4 54 41" fill="none" stroke="url(#brandMarkGlow)" stroke-linecap="round" stroke-width="5"/>
+  <rect x="24" y="37" width="7.5" height="13.5" rx="3.75" fill="#F7FBFF"/>
+  <rect x="34.25" y="31.5" width="7.5" height="19" rx="3.75" fill="#9CEAFF"/>
+  <rect x="44.5" y="37" width="7.5" height="13.5" rx="3.75" fill="#F7FBFF"/>
+  <path d="M26 48.5c3.4 3 7.2 4.5 12 4.5s8.6-1.5 12-4.5" fill="none" stroke="#9CEAFF" stroke-linecap="round" stroke-width="2.5"/>
+  <g font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" letter-spacing="-0.03em">
+    <text x="92" y="41" fill="#0F172A" font-size="30" font-weight="800">mydental</text>
+    <text x="243" y="41" fill="url(#brandWord)" font-size="30" font-weight="800">platform</text>
+    <text x="92" y="64" fill="#64748B" font-size="12.5" font-weight="600">Websites, booking, and AI reception for modern dental clinics</text>
   </g>
-  <path d="M 260 620 Q 540 790 820 620 Q 540 735 260 620 Z" fill="url(#smileGrad)"/>
 </svg>

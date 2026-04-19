@@ -8,6 +8,7 @@ export class ThemeService {
   constructor() {
     const clinic = inject(ClinicConfigService);
     effect(() => {
+      if (typeof document === 'undefined') return;
       const theme = clinic.config.theme;
       const html  = document.documentElement;
       html.classList.remove(...ALL_THEMES);

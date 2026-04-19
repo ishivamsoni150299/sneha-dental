@@ -12,9 +12,13 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  *   → hard cross-origin redirect to www.mydentalplatform.com
  *   This prevents the business portal from appearing on clinic subdomains.
  */
-export const clinicRequiredGuard: CanActivateFn = (): true | UrlTree | boolean => {
+export const clinicRequiredGuard: CanActivateFn = (): boolean | UrlTree => {
   const clinic = inject(ClinicConfigService);
   const router = inject(Router);
+
+  if (typeof window === 'undefined') {
+    return true;
+  }
 
   if (!clinic.isLoaded) {
     const host = window.location.hostname;

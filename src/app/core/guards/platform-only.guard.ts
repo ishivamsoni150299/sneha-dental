@@ -11,6 +11,8 @@ import { type CanActivateFn } from '@angular/router';
  * domain so they land on the correct shell.
  */
 export const platformOnlyGuard: CanActivateFn = (): boolean => {
+  if (typeof window === 'undefined') return true;
+
   const host = window.location.hostname;
 
   // A clinic subdomain ends with .mydentalplatform.com but is NOT www.
@@ -21,7 +23,7 @@ export const platformOnlyGuard: CanActivateFn = (): boolean => {
 
   if (isClinicSubdomain) {
     // Hard cross-origin redirect — preserve the path so /business/login still works
-    window.location.href = 'https://www.mydentalplatform.com' + window.location.pathname + window.location.search;
+    window.location.href = `https://www.mydentalplatform.com${window.location.pathname}${window.location.search}`;
     return false;
   }
 

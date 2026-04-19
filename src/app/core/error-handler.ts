@@ -1,4 +1,4 @@
-import { ErrorHandler, Injectable, inject } from '@angular/core';
+import { Injectable, inject, type ErrorHandler } from '@angular/core';
 import { Router } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 
@@ -19,7 +19,11 @@ export class GlobalErrorHandler implements ErrorHandler {
 
     // Lazy-chunk load failure after a new deployment — full page refresh fixes it.
     if (message.includes('ChunkLoadError') || message.includes('Loading chunk')) {
-      window.location.assign('/');
+      if (typeof window !== 'undefined') {
+        window.location.assign('/');
+      } else {
+        void this.router.navigateByUrl('/');
+      }
       return;
     }
 

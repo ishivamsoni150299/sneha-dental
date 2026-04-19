@@ -59,6 +59,7 @@ const THEME_PALETTES: Record<string, Record<string, string>> = {
 };
 
 function applyTheme(theme: string | undefined) {
+  if (typeof document === 'undefined') return;
   const palette = THEME_PALETTES[theme ?? 'blue'] ?? THEME_PALETTES['blue'];
   const root = document.documentElement;
   Object.entries(palette).forEach(([prop, val]) => root.style.setProperty(prop, val));
@@ -85,6 +86,10 @@ export class ClinicConfigService {
    * Never throws — falls back to static config on any error.
    */
   async loadFromFirestore(): Promise<void> {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') {
       applyTheme(this._config().theme); // apply default/static config theme in dev

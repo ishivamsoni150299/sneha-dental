@@ -36,7 +36,9 @@ export class AppComponent {
     inject(Router).events.subscribe(e => {
       if (e instanceof NavigationStart)                                                              this.navigating.set(true);
       if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.navigating.set(false);
-      if (e instanceof NavigationEnd) window.scrollTo({ top: 0, behavior: 'instant' });
+      if (e instanceof NavigationEnd && typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
     });
   }
 }

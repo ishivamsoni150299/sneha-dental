@@ -1,6 +1,5 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 
 @Component({
   selector: 'app-platform-landing',
@@ -9,8 +8,7 @@ import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.
   templateUrl: './platform-landing.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlatformLandingComponent implements OnInit {
-  private readonly firestoreService = inject(ClinicFirestoreService);
+export class PlatformLandingComponent {
 
   ngOnInit() { /* no-op — portfolio uses curated showcase data, not live Firestore */ }
 

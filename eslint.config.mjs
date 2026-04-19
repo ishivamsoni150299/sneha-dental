@@ -36,7 +36,6 @@ export default tsEslint.config(
       '@angular-eslint/no-input-rename':                 'error',
       '@angular-eslint/no-output-rename':                'error',
       '@angular-eslint/use-lifecycle-interface':         'error',
-      '@angular-eslint/prefer-on-push-change-detection': 'error',
       '@angular-eslint/component-selector': [
         'error',
         { type: 'element', prefix: 'app', style: 'kebab-case' },

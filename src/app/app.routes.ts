@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 import { clinicRequiredGuard } from './core/guards/clinic-required.guard';
 import { platformOnlyGuard } from './core/guards/platform-only.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
@@ -109,11 +109,6 @@ export const routes: Routes = [
     canActivate: [platformOnlyGuard],
     loadChildren: () =>
       import('./features/business/business.routes').then(m => m.businessRoutes),
-    data: {
-      title: 'Business Portal',
-      description: 'Internal business portal.',
-      noIndex: true,
-    },
   },
 
   // ── Coming Soon (full-page, no clinic navbar) ─────────────────────────────

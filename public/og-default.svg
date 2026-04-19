@@ -1,59 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="mydentalplatform">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#eff6ff"/>
-      <stop offset="100%" stop-color="#eef2ff"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081424"/>
+      <stop offset="45%" stop-color="#102343"/>
+      <stop offset="100%" stop-color="#0B1730"/>
     </linearGradient>
-    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#f8faff"/>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3EE0C4"/>
+      <stop offset="100%" stop-color="#2B6BFF"/>
     </linearGradient>
-    <linearGradient id="icon" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#2563eb"/>
-      <stop offset="100%" stop-color="#4f46e5"/>
-    </linearGradient>
-    <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
-      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#2563eb" flood-opacity="0.08"/>
-    </filter>
   </defs>
-
-  <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
-
-  <!-- Decorative circles -->
-  <circle cx="1120" cy="80" r="180" fill="#dbeafe" opacity="0.5"/>
-  <circle cx="80"   cy="560" r="220" fill="#e0e7ff" opacity="0.4"/>
-  <circle cx="600"  cy="600" r="100" fill="#bfdbfe" opacity="0.3"/>
-
-  <!-- Main card -->
-  <rect x="100" y="100" width="1000" height="430" rx="32" fill="url(#card)" filter="url(#shadow)" stroke="#e5e7eb" stroke-width="1"/>
-
-  <!-- Logo mark -->
-  <rect x="200" y="180" width="80" height="80" rx="20" fill="url(#icon)"/>
-  <path d="M240 195c-5.5 0-9.5 2.8-12 6.7-1.3 2.2-2 4.7-2 7.3 0 4.3 2 7.5 2 11.8 0 3.2 2 10.7 5 14.7.9 1.2 2.2.2 2.7-1.5 1-4.7 1-8.2 4.3-8.2s3.3 3.5 4.3 8.2c.5 1.7 1.8 2.7 2.7 1.5 3-4 5-11.5 5-14.7 0-4.3 2-7.5 2-11.8 0-2.6-.7-5.1-2-7.3C249.5 197.8 245.5 195 240 195z" fill="white"/>
-
-  <!-- Wordmark -->
-  <text x="302" y="224" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6b7280">my</text>
-  <text x="345" y="224" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" fill="#2563eb">dental</text>
-  <text x="490" y="224" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#6b7280">platform</text>
-
-  <!-- Tagline -->
-  <text x="200" y="272" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#9ca3af" font-weight="400">Professional websites for dental clinics — live in under 24 hours</text>
-
-  <!-- Divider -->
-  <line x1="200" y1="305" x2="1000" y2="305" stroke="#e5e7eb" stroke-width="1"/>
-
-  <!-- Hero headline -->
-  <text x="200" y="375" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800" fill="#111827">Patients search online.</text>
-  <text x="200" y="435" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800" fill="#2563eb">Be the clinic they find.</text>
-
-  <!-- CTA pill -->
-  <rect x="200" y="462" width="220" height="44" rx="22" fill="#2563eb"/>
-  <text x="310" y="490" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="white">Start free — ₹0</text>
-
-  <!-- Stats -->
-  <text x="760" y="380" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#2563eb">₹399</text>
-  <text x="760" y="412" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6b7280">/month · Starter plan</text>
-  <text x="760" y="455" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="800" fill="#2563eb">&lt;24h</text>
-  <text x="760" y="487" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#6b7280">to go live</text>
+  <circle cx="1040" cy="70" r="220" fill="#0E7490" opacity="0.12"/>
+  <circle cx="180" cy="580" r="260" fill="#2563EB" opacity="0.14"/>
+  <circle cx="980" cy="540" r="160" fill="#14B8A6" opacity="0.1"/>
+  <rect x="78" y="74" width="1044" height="482" rx="36" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)"/>
+  <rect x="136" y="132" width="84" height="84" rx="24" fill="#091426" stroke="rgba(255,255,255,0.1)"/>
+  <circle cx="160" cy="156" r="14" fill="#1DD3B0" opacity="0.18"/>
+  <path d="M150 176c0-13.8 9.1-23.8 20.5-23.8S191 162.2 191 176" fill="none" stroke="url(#glow)" stroke-linecap="round" stroke-width="6"/>
+  <rect x="152" y="171" width="9" height="17" rx="4.5" fill="#F7FBFF"/>
+  <rect x="166" y="164" width="9" height="24" rx="4.5" fill="#9CEAFF"/>
+  <rect x="180" y="171" width="9" height="17" rx="4.5" fill="#F7FBFF"/>
+  <path d="M154 185c4 3.3 8.7 5 16.5 5s12.5-1.7 16.5-5" fill="none" stroke="#9CEAFF" stroke-linecap="round" stroke-width="3"/>
+  <g font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif">
+    <text x="248" y="184" fill="#F8FAFC" font-size="44" font-weight="800" letter-spacing="-0.04em">mydental</text>
+    <text x="468" y="184" fill="url(#glow)" font-size="44" font-weight="800" letter-spacing="-0.04em">platform</text>
+    <text x="136" y="262" fill="#D8E4F2" font-size="64" font-weight="800" letter-spacing="-0.05em">Websites, booking, and AI reception</text>
+    <text x="136" y="334" fill="#F8FAFC" font-size="64" font-weight="800" letter-spacing="-0.05em">for modern dental clinics.</text>
+    <text x="136" y="394" fill="#9FB2C9" font-size="27" font-weight="600">Launch faster. Look professional. Capture more appointments.</text>
+  </g>
+  <rect x="136" y="448" width="318" height="58" rx="29" fill="#F8FAFC"/>
+  <text x="295" y="485" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="24" font-weight="800" fill="#081424">mydentalplatform.com</text>
 </svg>

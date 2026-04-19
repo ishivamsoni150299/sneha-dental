@@ -12,7 +12,41 @@ interface ChatRequestBody {
   history?: ChatMessage[];
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+function buildFallbackReply(body: ChatRequestBody): string {
+  const clinicName = body.clinicName?.trim() ?? 'our clinic';
+  const message = body.message.trim().toLowerCase();
+  const serviceList = body.services?.filter(Boolean).slice(0, 4) ?? [];
+  const listedServices = serviceList.join(', ');
+
+  if (/(book|appointment|schedule|slot|visit|consult)/i.test(message)) {
+    return `I can help you book with ${clinicName}. Use the Book Appointment button and share your preferred treatment, day, and time, and the clinic will confirm the best available slot.`;
+  }
+
+  if (/(price|cost|fee|fees|charge|charges)/i.test(message)) {
+    return 'Pricing depends on the treatment and your case, so the fastest next step is to book a consultation or call the clinic for today\'s pricing. I can still help you choose the right appointment type.';
+  }
+
+  if (/(hour|time|open|close|timing|today)/i.test(message)) {
+    return `Clinic timings can vary by day, so the safest option is to use the call or WhatsApp action on this site for the latest availability. If you want, I can still help you prepare a booking request for ${clinicName}.`;
+  }
+
+  if (/(service|treatment|whitening|implant|braces|cleaning|root canal|filling|extraction)/i.test(message)) {
+    return listedServices
+      ? `${clinicName} currently offers services such as ${listedServices}. Tell me the dental issue you are facing and I will guide you to the most relevant appointment request.`
+      : `I can help you find the right treatment at ${clinicName}. Tell me what issue you are facing, and I will guide you toward the best appointment request.`;
+  }
+
+  if (/(contact|call|phone|whatsapp|address|location|map|directions)/i.test(message)) {
+    return `You can reach ${clinicName} from the Contact page, the Call action, or the WhatsApp button on this site. If you want, I can also help you figure out which treatment to book before you contact the clinic.`;
+  }
+
+  return `I can help with treatments, appointments, timings, and next steps for ${clinicName}. Ask about booking, services, pricing, or contact details and I will keep it short and useful.`;
+}
+
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<VercelResponse> {
   const origin = req.headers.origin ?? '';
   const allowed = ['https://mydentalplatform.com', 'https://www.mydentalplatform.com'];
   if (allowed.includes(origin) || origin.endsWith('.mydentalplatform.com')) {
@@ -26,13 +60,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const apiKey = process.env['ANTHROPIC_API_KEY'];
-  if (!apiKey) return res.status(503).json({ error: 'AI chat not configured' });
-
   const body = req.body as ChatRequestBody;
   const { message, clinicName = 'our clinic', services = [], history = [] } = body;
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'message is required' });
+  }
+
+  if (!apiKey) {
+    return res.status(200).json({
+      reply: buildFallbackReply(body),
+      fallback: true,
+    });
   }
 
   const systemPrompt = `You are a warm, helpful AI receptionist for ${clinicName}, a dental clinic.
@@ -42,11 +81,11 @@ Rules:
 - Keep replies concise (2-3 sentences max)
 - Always be encouraging about booking when relevant
 - If asked something unrelated to dental care, politely redirect
-- Use simple, friendly language — no medical jargon
+- Use simple, friendly language - no medical jargon
 - If asked about prices, suggest calling or booking a consultation`;
 
   const messages: ChatMessage[] = [
-    ...history.slice(-10), // keep last 10 messages for context
+    ...history.slice(-10),
     { role: 'user', content: message.trim() },
   ];
 
