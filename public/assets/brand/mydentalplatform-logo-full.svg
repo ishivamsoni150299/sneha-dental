@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B9EFF"/>
+      <stop offset="50%" stop-color="#0A6BFF"/>
+      <stop offset="100%" stop-color="#1E7BFF"/>
+    </linearGradient>
+    <linearGradient id="smileGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B9EFF"/>
+      <stop offset="50%" stop-color="#0A6BFF"/>
+      <stop offset="100%" stop-color="#1E7BFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="#000000"/>
+  <circle cx="540" cy="540" r="490" fill="none" stroke="url(#ringGrad)" stroke-width="12"/>
+  <g font-family="'Helvetica Neue', Arial, sans-serif" font-weight="300" font-size="110" letter-spacing="-2">
+    <text x="540" y="555" text-anchor="middle">
+      <tspan fill="#FFFFFF">my</tspan><tspan fill="#1E7BFF">dental</tspan><tspan fill="#FFFFFF">platform</tspan>
+    </text>
+  </g>
+  <path d="M 260 620 Q 540 790 820 620 Q 540 735 260 620 Z" fill="url(#smileGrad)"/>
+</svg>
