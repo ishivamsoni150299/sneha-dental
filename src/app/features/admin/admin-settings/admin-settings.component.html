@@ -19,7 +19,7 @@
 
   <!-- Header -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <a routerLink="/business/clinic/dashboard"
            class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -29,13 +29,13 @@
         </a>
         <div>
           <p class="font-bold text-gray-900 text-sm leading-none">Clinic Settings</p>
-          <p class="text-xs text-gray-400 mt-0.5">Edit your clinic information</p>
+          <p class="text-xs text-gray-400 mt-0.5">{{ cfg.name || 'Edit your clinic website content and branding' }}</p>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
     <!-- Loading skeleton -->
     @if (loading()) {
@@ -138,7 +138,10 @@
         <form [formGroup]="infoForm" (ngSubmit)="saveInfo()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
           <div class="flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-gray-900">Clinic Info</h2>
+            <div>
+              <h2 class="text-sm font-semibold text-gray-900">Clinic Profile</h2>
+              <p class="text-xs text-gray-400 mt-1">These details power your logo fallback, homepage trust signals, and booking experience.</p>
+            </div>
             @if (isTabDirty('info')) {
               <span class="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Unsaved changes</span>
             }
@@ -146,8 +149,22 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Clinic Name <span class="text-red-400">*</span></label>
+              <input formControlName="name" type="text" placeholder="Smile Dental Clinic"
+                     class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
+                     [class]="hasError(infoForm, 'name')
+                       ? 'border-red-300 focus:border-red-400 focus:ring-red-200 bg-red-50'
+                       : 'border-gray-200 focus:border-blue-400 focus:ring-blue-200'"/>
+              @if (hasError(infoForm, 'name')) {
+                <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                  Clinic name is required
+                </p>
+              }
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">Doctor Name <span class="text-red-400">*</span></label>
-              <input formControlName="doctorName" type="text" placeholder="Dr. Ramesh Sharma" autofocus
+              <input formControlName="doctorName" type="text" placeholder="Dr. Ramesh Sharma"
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(infoForm, 'doctorName')
                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200 bg-red-50'
@@ -171,6 +188,19 @@
                      class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
               <p class="text-[11px] text-gray-400 mt-1">Shown on homepage trust bar</p>
+            </div>
+            <div class="sm:col-span-2 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-lg font-bold shrink-0">
+                  {{ clinicInitial }}
+                </div>
+                <div class="min-w-0">
+                  <p class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Live Website Preview</p>
+                  <p class="mt-2 text-lg font-bold truncate">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
+                  <p class="text-sm text-slate-300 mt-1 truncate">{{ websiteHost }}</p>
+                  <p class="text-xs text-slate-400 mt-2">Profile updates here flow into homepage branding, logo fallback text, and booking messages.</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -202,7 +232,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
                 Saving…
-              } @else { Save Clinic Info }
+              } @else { Save Profile }
             </button>
           </div>
         </form>
@@ -386,6 +416,110 @@
       }
 
       <!-- ── Testimonials ────────────────────────────────────────────────── -->
+      @if (activeTab() === 'services') {
+        <form [formGroup]="servicesForm" (ngSubmit)="saveServices()"
+              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 class="text-sm font-semibold text-gray-900">Services Offered</h2>
+              <p class="text-xs text-gray-400 mt-1">These services appear on your homepage, services page, and appointment form.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" (click)="fillSuggestedServices()"
+                      class="text-xs text-gray-600 hover:text-gray-900 font-semibold border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                Use Suggested List
+              </button>
+              <button type="button" (click)="addService()"
+                      class="text-xs text-gray-600 hover:text-gray-900 font-semibold border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                + Add Service
+              </button>
+            </div>
+          </div>
+
+          @if (servicesArr.length === 0) {
+            <div class="rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
+              <p class="text-sm text-gray-400">No services added yet.</p>
+              <button type="button" (click)="fillSuggestedServices()"
+                      class="mt-2 text-sm text-blue-600 font-semibold hover:underline">
+                Start with a dental service list
+              </button>
+            </div>
+          }
+
+          <div formArrayName="services" class="space-y-4">
+            @for (_ of servicesArr.controls; track $index) {
+              <div [formGroupName]="$index"
+                   class="rounded-2xl border border-gray-100 bg-gray-50 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-semibold text-gray-600">Service {{ $index + 1 }}</p>
+                    <p class="text-[11px] text-gray-400 mt-0.5">Shown as a bookable treatment on the website.</p>
+                  </div>
+                  <button type="button" (click)="removeService($index)"
+                          class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Remove
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Service Name <span class="text-red-400">*</span></label>
+                    <input formControlName="name" type="text" placeholder="Root Canal Treatment"
+                           class="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 transition-colors"
+                           [class]="(servicesArr.at($index).get('name')?.invalid && servicesArr.at($index).get('name')?.touched)
+                             ? 'border-red-300 focus:border-red-400 focus:ring-red-200 bg-red-50'
+                             : 'border-gray-200 focus:border-blue-400 focus:ring-blue-200'"/>
+                    @if (servicesArr.at($index).get('name')?.invalid && servicesArr.at($index).get('name')?.touched) {
+                      <p class="text-[11px] text-red-500 mt-1">Service name is required</p>
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Price Label</label>
+                    <input formControlName="price" type="text" placeholder="On consultation"
+                           class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                    <textarea formControlName="description" rows="2"
+                              placeholder="Single-sitting treatment with modern rotary care."
+                              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none"></textarea>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Benefit Line</label>
+                    <input formControlName="benefit" type="text" placeholder="Save your natural tooth"
+                           class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                    <p class="text-[11px] text-gray-400 mt-1">Short reassurance line shown on service cards.</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (servicesArr.length > 0) {
+            <div class="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+              <p class="text-[11px] font-semibold text-blue-700 uppercase tracking-wide">Where this is used</p>
+              <p class="text-xs text-blue-700 mt-1">Patients see this list on the homepage, full services page, and when choosing treatment during appointment booking.</p>
+            </div>
+          }
+
+          <div class="flex justify-end pt-1">
+            <button type="submit" [disabled]="savingServices()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              @if (savingServices()) {
+                <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Saving…
+              } @else { Save Services }
+            </button>
+          </div>
+        </form>
+      }
+
       @if (activeTab() === 'testimonials') {
         <form [formGroup]="testimonialsForm" (ngSubmit)="saveTestimonials()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -586,13 +720,36 @@
       <!-- ── Theme ────────────────────────────────────────────────────────── -->
       @if (activeTab() === 'theme') {
         <div class="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
-          <div>
-            <h2 class="text-sm font-semibold text-gray-900">Clinic Theme</h2>
-            <p class="text-xs text-gray-400 mt-1">Choose a brand color for your clinic website. Changes preview instantly.</p>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-sm font-semibold text-gray-900">Clinic Theme</h2>
+              <p class="text-xs text-gray-400 mt-1">Choose a dental-friendly theme for your website. Unsaved previews are automatically reverted when you leave this page.</p>
+            </div>
+            @if (isTabDirty('theme')) {
+              <span class="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Unsaved theme</span>
+            }
           </div>
 
-          <!-- Theme cards grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white">
+            <div class="flex items-start gap-4">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-bold border border-white/15"
+                   [style.background]="selectedThemeMeta.gradient">
+                {{ clinicInitial }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Theme Preview</p>
+                <p class="mt-2 text-lg font-bold truncate">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
+                <p class="text-sm text-slate-300 mt-1">{{ selectedThemeMeta.label }} · {{ selectedThemeMeta.note }}</p>
+                <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                  <span class="px-3 py-1 rounded-full border border-white/10 bg-white/5">Open profile</span>
+                  <span class="px-3 py-1 rounded-full text-white font-semibold"
+                        [style.background]="selectedThemeMeta.primary">Book Appointment</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             @for (opt of themeOptions; track opt.value) {
               <button type="button" (click)="pickTheme(opt.value)"
                       class="relative rounded-2xl overflow-hidden border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
@@ -615,28 +772,28 @@
                 </div>
 
                 <!-- Label -->
-                <div class="px-3 py-2.5 flex items-center justify-between bg-white">
-                  <div class="flex items-center gap-2">
+                <div class="px-3 py-2.5 bg-white text-left">
+                  <div class="flex items-center justify-between gap-2">
                     <span class="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
                           [style.background]="opt.primary"></span>
                     <span class="text-xs font-semibold text-gray-700">{{ opt.label }}</span>
+                    @if (selectedTheme() === opt.value) {
+                      <svg class="w-4 h-4 text-gray-900 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    }
                   </div>
-                  @if (selectedTheme() === opt.value) {
-                    <svg class="w-4 h-4 text-gray-900 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  }
+                  <p class="mt-2 text-[11px] text-gray-400">{{ opt.note }}</p>
                 </div>
               </button>
             }
           </div>
 
-          <!-- Live preview hint -->
           <div class="flex items-start gap-2.5 bg-blue-50 rounded-xl p-3">
             <svg class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <p class="text-xs text-blue-700">Selecting a theme previews it on this page instantly. Click <strong>Save Theme</strong> to apply it to your live clinic website.</p>
+            <p class="text-xs text-blue-700">Selecting a theme updates the live preview immediately. Save only when you want that color published to the clinic website.</p>
           </div>
 
           <div class="flex justify-end">
@@ -1011,7 +1168,12 @@
                 <p class="text-sm font-bold text-green-800">Voice agent is live</p>
                 <p class="text-xs text-green-600 font-mono truncate mt-0.5">ID: {{ cfg.elevenLabsAgentId }}</p>
               </div>
-              <span class="shrink-0 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-200 px-2 py-0.5 rounded-full">Active</span>
+              <div class="flex items-center gap-2">
+                @if (selectedWhatsappAccount) {
+                  <span class="shrink-0 text-[10px] font-bold uppercase tracking-widest text-green-800 bg-white px-2 py-0.5 rounded-full border border-green-200">WhatsApp linked</span>
+                }
+                <span class="shrink-0 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-200 px-2 py-0.5 rounded-full">Active</span>
+              </div>
             </div>
 
             <!-- Usage meter -->
@@ -1119,6 +1281,87 @@
 
               <!-- WhatsApp AI channel -->
               <div class="rounded-xl border border-green-200 bg-green-50 p-4 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-bold text-green-800">WhatsApp AI Channel</p>
+                      <p class="text-[11px] text-green-700 mt-0.5">Connect an imported WhatsApp Business account from your ElevenLabs workspace.</p>
+                    </div>
+                  </div>
+                  <button type="button"
+                          (click)="fetchWhatsappAccounts()"
+                          [disabled]="loadingWhatsappAccounts()"
+                          class="shrink-0 text-[11px] font-semibold text-green-700 hover:text-green-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    @if (loadingWhatsappAccounts()) { Refreshing... } @else { Refresh list }
+                  </button>
+                </div>
+
+                @if (selectedWhatsappAccount; as wa) {
+                  <div class="rounded-lg border border-white/70 bg-white/80 p-3 space-y-2">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-bold text-gray-900">{{ wa.phoneNumber || wa.phoneNumberName || 'Connected account' }}</p>
+                        <p class="text-[11px] text-gray-500">{{ wa.businessAccountName || wa.phoneNumberName || wa.phoneNumberId }}</p>
+                      </div>
+                      <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                            [class]="wa.connectedToCurrentAgent ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+                        {{ wa.connectedToCurrentAgent ? 'Assigned' : 'Needs Save' }}
+                      </span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                      <span class="text-[10px] font-semibold px-2 py-1 rounded-full"
+                            [class]="wa.enableMessaging ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+                        {{ wa.enableMessaging ? 'Messaging on' : 'Messaging off' }}
+                      </span>
+                      <span class="text-[10px] font-semibold px-2 py-1 rounded-full"
+                            [class]="wa.enableAudioMessageResponse ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'">
+                        {{ wa.enableAudioMessageResponse ? 'Audio replies on' : 'Text replies only' }}
+                      </span>
+                      @if (wa.isTokenExpired) {
+                        <span class="text-[10px] font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">Token expired</span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (whatsappAccountsError(); as err) {
+                  <p class="text-[11px] text-red-600">{{ err }}</p>
+                }
+
+                @if (whatsappAccounts().length > 0) {
+                  <div>
+                    <label class="block text-xs font-bold text-green-800 mb-1">WhatsApp business account</label>
+                    <select formControlName="whatsapp"
+                            class="w-full px-3 py-2 rounded-lg border border-green-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Disable WhatsApp AI for now</option>
+                      @for (account of whatsappAccounts(); track account.phoneNumberId) {
+                        <option [value]="account.phoneNumberId"
+                                [disabled]="isWhatsappAccountLocked(account)">
+                          {{ account.phoneNumber || account.phoneNumberName || account.phoneNumberId }}{{ isWhatsappAccountLocked(account) ? ' - assigned to another agent' : '' }}
+                        </option>
+                      }
+                    </select>
+                    <p class="text-[11px] text-green-700 mt-1">Select one imported account so the receptionist can answer inbound WhatsApp messages and calls from that business number.</p>
+                  </div>
+                } @else {
+                  <div class="rounded-lg border border-dashed border-green-300 bg-white/70 p-3">
+                    <p class="text-sm font-bold text-green-900">No imported WhatsApp accounts found</p>
+                    <p class="text-[11px] text-green-700 mt-1">Open ElevenLabs - WhatsApp, import your WhatsApp Business account, allow messaging or calls in Meta WhatsApp Manager, then refresh this list here.</p>
+                  </div>
+                }
+
+                @if (selectedWhatsappAccount?.isTokenExpired) {
+                  <p class="text-[11px] text-red-600">This WhatsApp connection has an expired token in ElevenLabs. Reconnect it there before relying on AI replies.</p>
+                }
+                @if (selectedWhatsappAccount && !selectedWhatsappAccount.enableMessaging) {
+                  <p class="text-[11px] text-amber-700">Messaging is currently disabled on this account in ElevenLabs. Saving here will reassign the agent, but you should still verify the account settings in ElevenLabs and Meta WhatsApp Manager.</p>
+                }
+              </div>
+              @if (false) {
+              <div class="rounded-xl border border-green-200 bg-green-50 p-4 space-y-3">
                 <div class="flex items-center gap-2">
                   <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
@@ -1136,6 +1379,7 @@
                   <p class="text-[11px] text-green-600 mt-1">Leave blank to disable WhatsApp AI. Setup guide: elevenlabs.io → Conversational AI → Phone Numbers.</p>
                 </div>
               </div>
+              }
 
               <!-- Save -->
               <div class="flex items-center gap-3 pt-1">

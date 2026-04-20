@@ -49,7 +49,7 @@ export interface ClinicConfig {
   voiceAgentLanguage?: 'hindi' | 'english' | 'bilingual'; // Conversation language
   voiceAgentPersona?: string;      // Extra system prompt instructions for the agent
   voiceAgentVoiceId?: string;      // ElevenLabs voice ID override
-  voiceAgentWhatsapp?: string;     // WhatsApp number for AI channel (E164, no +)
+  voiceAgentWhatsapp?: string;     // ElevenLabs WhatsApp phone_number_id assigned to this agent
   voiceMinutesUsed?: number;       // Current month minutes consumed (fetched from ElevenLabs)
   voiceBudgetCap?: number;         // Monthly overage budget in ₹ (default 1000 = 50 extra min)
   voiceAutoStop?: boolean;         // Auto-pause voice agent when budget exhausted (default true)

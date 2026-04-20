@@ -4,12 +4,13 @@ import {
   deleteDoc, doc, query, orderBy, where, serverTimestamp,
   type Timestamp, type UpdateData, type DocumentData, limit,
 } from 'firebase/firestore';
-import type { ClinicConfig, ClinicHours, Testimonial } from '../config/clinic.config';
+import type { ClinicConfig, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
 import { db } from '../firebase';
 
 // ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
 // Billing, subscription, domain, active, and theme are intentionally excluded.
 export interface ClinicSettingsPayload {
+  name?:                string;
   doctorName?:          string;
   doctorQualification?: string;
   patientCount?:        string;
@@ -23,6 +24,7 @@ export interface ClinicSettingsPayload {
   mapEmbedUrl?:         string;
   mapDirectionsUrl?:    string;
   hours?:               ClinicHours[];
+  services?:            ClinicService[];
   testimonials?:        Testimonial[];
   social?:              { facebook?: string; instagram?: string; linkedin?: string };
   theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';

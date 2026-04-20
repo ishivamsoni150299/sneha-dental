@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { buildAgentSystemPrompt } from './_lib/elevenlabs-agent-config';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -9,6 +10,11 @@ interface ChatRequestBody {
   message: string;
   clinicName?: string;
   services?: string[];
+  city?: string;
+  phone?: string;
+  address?: string;
+  hours?: string[];
+  whatsappNumber?: string;
   history?: ChatMessage[];
 }
 
@@ -17,9 +23,13 @@ function buildFallbackReply(body: ChatRequestBody): string {
   const message = body.message.trim().toLowerCase();
   const serviceList = body.services?.filter(Boolean).slice(0, 4) ?? [];
   const listedServices = serviceList.join(', ');
+  const phone = body.phone?.trim() ?? '';
+  const whatsappNumber = body.whatsappNumber?.trim() ?? '';
+  const hours = body.hours?.filter(Boolean).slice(0, 3) ?? [];
+  const hoursLine = hours.join(', ');
 
   if (/(book|appointment|schedule|slot|visit|consult)/i.test(message)) {
-    return `I can help you book with ${clinicName}. Use the Book Appointment button and share your preferred treatment, day, and time, and the clinic will confirm the best available slot.`;
+    return `I can help you book with ${clinicName}. Use the Book Appointment button and share your preferred treatment, day, and time, and the clinic will confirm the best available slot${whatsappNumber ? ` on WhatsApp (+${whatsappNumber})` : ''}.`;
   }
 
   if (/(price|cost|fee|fees|charge|charges)/i.test(message)) {
@@ -27,7 +37,9 @@ function buildFallbackReply(body: ChatRequestBody): string {
   }
 
   if (/(hour|time|open|close|timing|today)/i.test(message)) {
-    return `Clinic timings can vary by day, so the safest option is to use the call or WhatsApp action on this site for the latest availability. If you want, I can still help you prepare a booking request for ${clinicName}.`;
+    return hoursLine
+      ? `${clinicName} currently shows timings like ${hoursLine}. For the latest availability, use the call or WhatsApp action on this site.`
+      : `Clinic timings can vary by day, so the safest option is to use the call or WhatsApp action on this site for the latest availability. If you want, I can still help you prepare a booking request for ${clinicName}.`;
   }
 
   if (/(service|treatment|whitening|implant|braces|cleaning|root canal|filling|extraction)/i.test(message)) {
@@ -37,7 +49,7 @@ function buildFallbackReply(body: ChatRequestBody): string {
   }
 
   if (/(contact|call|phone|whatsapp|address|location|map|directions)/i.test(message)) {
-    return `You can reach ${clinicName} from the Contact page, the Call action, or the WhatsApp button on this site. If you want, I can also help you figure out which treatment to book before you contact the clinic.`;
+    return `You can reach ${clinicName}${phone ? ` on ${phone}` : ''} from the Contact page, the Call action, or the WhatsApp button on this site. If you want, I can also help you figure out which treatment to book before you contact the clinic.`;
   }
 
   return `I can help with treatments, appointments, timings, and next steps for ${clinicName}. Ask about booking, services, pricing, or contact details and I will keep it short and useful.`;
@@ -74,15 +86,20 @@ export default async function handler(
     });
   }
 
-  const systemPrompt = `You are a warm, helpful AI receptionist for ${clinicName}, a dental clinic.
-Your role: answer questions about services, guide patients to book appointments, and provide friendly dental info.
-${services.length > 0 ? `Services offered: ${services.join(', ')}.` : ''}
-Rules:
-- Keep replies concise (2-3 sentences max)
-- Always be encouraging about booking when relevant
-- If asked something unrelated to dental care, politely redirect
-- Use simple, friendly language - no medical jargon
-- If asked about prices, suggest calling or booking a consultation`;
+  const systemPrompt = `${buildAgentSystemPrompt({
+    name: clinicName,
+    services: services.map(name => ({ name })),
+    city: body.city,
+    phone: body.phone,
+    addressLine1: body.address,
+    hours: (body.hours ?? []).map(slot => ({ days: slot, time: '' })),
+    whatsappNumber: body.whatsappNumber,
+  })}
+
+CHANNEL CONTEXT:
+- This is the website text chat on ${clinicName}'s clinic website.
+- If the patient wants to book, guide them to the Book Appointment button or collect their name, phone, preferred date or time, and treatment so the clinic can follow up.
+- Keep replies short and natural for typed chat.`;
 
   const messages: ChatMessage[] = [
     ...history.slice(-10),

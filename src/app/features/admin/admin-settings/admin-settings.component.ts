@@ -1,6 +1,6 @@
 import {
   Component, signal, ChangeDetectionStrategy,
-  inject, OnInit, DestroyRef,
+  inject, OnInit, OnDestroy, DestroyRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -9,19 +9,96 @@ import {
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
-import { Testimonial, ClinicHours, ClinicConfig } from '../../../core/config/clinic.config';
+import {
+  Testimonial,
+  ClinicHours,
+  ClinicConfig,
+  ClinicService,
+} from '../../../core/config/clinic.config';
 import { BillingService, BillingPlan } from '../../../core/services/billing.service';
 
-type TabId = 'info' | 'contact' | 'hours' | 'testimonials' | 'social' | 'theme' | 'logo' | 'subscription' | 'voice';
+type TabId =
+  | 'info'
+  | 'contact'
+  | 'hours'
+  | 'services'
+  | 'testimonials'
+  | 'social'
+  | 'theme'
+  | 'logo'
+  | 'subscription'
+  | 'voice';
 
 export interface ThemeOption {
   value: ClinicConfig['theme'];
   label: string;
+  note: string;
   primary: string;
   dark: string;
   light: string;
   gradient: string;
 }
+
+interface WhatsappAccountOption {
+  phoneNumberId: string;
+  phoneNumber: string;
+  phoneNumberName: string;
+  businessAccountName: string;
+  assignedAgentId: string | null;
+  assignedAgentName: string | null;
+  enableMessaging: boolean;
+  enableAudioMessageResponse: boolean;
+  isTokenExpired: boolean;
+  connectedToCurrentAgent: boolean;
+}
+
+const GENERIC_SERVICE_ICON =
+  'M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z';
+
+const DEFAULT_SERVICE_LIBRARY: ClinicService[] = [
+  {
+    iconPath: GENERIC_SERVICE_ICON,
+    name: 'Dental Check-up & Cleaning',
+    description: 'Routine exam, cleaning, polishing, and preventive guidance.',
+    benefit: 'Best for regular visits',
+    price: 'On consultation',
+  },
+  {
+    iconPath: GENERIC_SERVICE_ICON,
+    name: 'Tooth Filling',
+    description: 'Tooth-coloured fillings for cavities and minor damage.',
+    benefit: 'Natural-looking restoration',
+    price: 'On consultation',
+  },
+  {
+    iconPath: GENERIC_SERVICE_ICON,
+    name: 'Root Canal Treatment',
+    description: 'Modern rotary treatment for infected or painful teeth.',
+    benefit: 'Save your natural tooth',
+    price: 'On consultation',
+  },
+  {
+    iconPath: GENERIC_SERVICE_ICON,
+    name: 'Tooth Extraction',
+    description: 'Simple and surgical extraction with gentle pain control.',
+    benefit: 'Quick relief and recovery',
+    price: 'On consultation',
+  },
+  {
+    iconPath: GENERIC_SERVICE_ICON,
+    name: 'Teeth Whitening',
+    description: 'Professional smile-brightening for stains and dull enamel.',
+    benefit: 'Visible cosmetic boost',
+    price: 'On consultation',
+  },
+  {
+    iconPath: GENERIC_SERVICE_ICON,
+    name: 'Dental Implants',
+    description: 'Long-term replacement for missing teeth with stable function.',
+    benefit: 'Fixed replacement option',
+    price: 'On consultation',
+  },
+];
 
 @Component({
   selector: 'app-admin-settings',
@@ -30,7 +107,7 @@ export interface ThemeOption {
   templateUrl: './admin-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminSettingsComponent implements OnInit {
+export class AdminSettingsComponent implements OnInit, OnDestroy {
   private clinicCfg  = inject(ClinicConfigService);
   private store      = inject(ClinicFirestoreService);
   private billing    = inject(BillingService);
@@ -38,7 +115,6 @@ export class AdminSettingsComponent implements OnInit {
   private route      = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
 
-  // ── State signals ─────────────────────────────────────────────────────────
   loading            = signal(true);
   upgrading          = signal(false);
   upgradeError       = signal<string | null>(null);
@@ -46,105 +122,81 @@ export class AdminSettingsComponent implements OnInit {
   savingInfo         = signal(false);
   savingContact      = signal(false);
   savingHours        = signal(false);
+  savingServices     = signal(false);
   savingTestimonials = signal(false);
   savingSocial       = signal(false);
+  savingTheme        = signal(false);
+  savingVoice        = signal(false);
+  creatingVoiceAgent = signal(false);
+  savingLogo         = signal(false);
   dirtyTabs          = signal<Set<TabId>>(new Set());
-  toast = signal<{ msg: string; type: 'success' | 'error' } | null>(null);
+  selectedTheme      = signal<ClinicConfig['theme']>('blue');
+  logoPreview        = signal<string | null>(null);
+  logoError          = signal<string | null>(null);
+  voiceUsage         = signal<{ conversations: number; minutesUsed: number; minutesLimit: number } | null>(null);
+  loadingUsage       = signal(false);
+  whatsappAccounts   = signal<WhatsappAccountOption[]>([]);
+  loadingWhatsappAccounts = signal(false);
+  whatsappAccountsError = signal<string | null>(null);
+  toast              = signal<{ msg: string; type: 'success' | 'error' } | null>(null);
+
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private persistedTheme = signal<ClinicConfig['theme']>('blue');
 
   readonly tabs: Array<{ id: TabId; label: string }> = [
-    { id: 'info',         label: 'Clinic Info' },
+    { id: 'info',         label: 'Profile' },
     { id: 'contact',      label: 'Contact' },
     { id: 'hours',        label: 'Hours' },
+    { id: 'services',     label: 'Services' },
     { id: 'testimonials', label: 'Testimonials' },
     { id: 'social',       label: 'Social' },
     { id: 'theme',        label: 'Theme' },
-    { id: 'logo',         label: '🖼 Logo' },
-    { id: 'subscription', label: '⚡ Plan' },
-    { id: 'voice',        label: '🎙 Voice Agent' },
+    { id: 'logo',         label: 'Logo' },
+    { id: 'subscription', label: 'Plan' },
+    { id: 'voice',        label: 'Voice Agent' },
   ];
-
-  // ── Dirty tracking helpers ────────────────────────────────────────────────
-  markDirty(tab: TabId)  { this.dirtyTabs.update(s => new Set([...s, tab])); }
-  clearDirty(tab: TabId) { this.dirtyTabs.update(s => { const n = new Set(s); n.delete(tab); return n; }); }
-  isTabDirty(tab: TabId) { return this.dirtyTabs().has(tab); }
-
-  // ── Subscription helpers ──────────────────────────────────────────────────
-  get cfg() { return this.clinicCfg.config; }
-  get plan()   { return this.cfg.subscriptionPlan   ?? 'trial'; }
-  get planStatus() { return this.cfg.subscriptionStatus ?? 'trial'; }
-  get trialDaysLeft(): number {
-    if (!this.cfg.trialEndDate) return 30;
-    const end = new Date(this.cfg.trialEndDate).getTime();
-    return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-  }
-  get isExpired()  { return this.planStatus === 'expired' || (this.planStatus === 'trial' && this.trialDaysLeft <= 0); }
-  get isTrial()    { return this.planStatus === 'trial' && this.trialDaysLeft > 0; }
-  get isStarter()  { return this.plan === 'starter' && this.planStatus === 'active'; }
-  get isPro()      { return this.plan === 'pro' && this.planStatus === 'active'; }
 
   readonly PLANS = [
     {
       id: 'trial', label: 'Free Trial', price: '₹0', period: '30 days',
-      color: 'gray',
       features: ['Clinic website', 'Online booking', 'WhatsApp integration', 'Patient admin dashboard', 'Free subdomain'],
       locked: ['Custom domain', 'AI Voice Receptionist', 'Content updates'],
     },
     {
       id: 'starter', label: 'Starter', price: '₹499', period: '/month',
-      color: 'blue',
       features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate', 'Services catalogue', 'Email + WhatsApp support', '1 content update/month (text, image, or section)'],
       locked: ['AI Voice Receptionist', 'Voice minutes'],
     },
     {
       id: 'pro', label: 'Pro', price: '₹1,499', period: '/month',
-      color: 'purple',
       features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English + Hinglish', '30 voice min/month included', '₹20/min after 30 min', '3 content updates/month', '1 onboarding call (20 min)', 'Revenue & analytics dashboard', 'Priority support'],
       locked: [],
     },
   ] as const;
 
   readonly themeOptions: ThemeOption[] = [
-    { value: 'blue',    label: 'Sapphire',      primary: '#1E56DC', dark: '#1235A9', light: '#EBF2FF', gradient: 'linear-gradient(135deg,#1E56DC,#3B7BF8)' },
-    { value: 'teal',    label: 'Teal Precision', primary: '#0B7285', dark: '#085E6F', light: '#ECFEFF', gradient: 'linear-gradient(135deg,#0B7285,#0EA5C4)' },
-    { value: 'emerald', label: 'Forest',         primary: '#047857', dark: '#065F46', light: '#ECFDF5', gradient: 'linear-gradient(135deg,#047857,#059669)' },
-    { value: 'purple',  label: 'Royal Indigo',   primary: '#4338CA', dark: '#3730A3', light: '#EEF2FF', gradient: 'linear-gradient(135deg,#4338CA,#6366F1)' },
-    { value: 'rose',    label: 'Crimson',        primary: '#BE123C', dark: '#9F1239', light: '#FFF1F2', gradient: 'linear-gradient(135deg,#BE123C,#E11D48)' },
-    { value: 'caramel', label: 'Amber Gold',     primary: '#B45309', dark: '#92400E', light: '#FFFBEB', gradient: 'linear-gradient(135deg,#B45309,#D97706)' },
+    { value: 'blue',    label: 'Clinical Blue',   note: 'Trusted and premium',      primary: '#1E56DC', dark: '#1235A9', light: '#EBF2FF', gradient: 'linear-gradient(135deg,#1E56DC,#1235A9)' },
+    { value: 'teal',    label: 'Sterile Teal',    note: 'Clean and modern',         primary: '#0B7285', dark: '#085E6F', light: '#ECFEFF', gradient: 'linear-gradient(135deg,#0B7285,#085E6F)' },
+    { value: 'emerald', label: 'Fresh Mint',      note: 'Friendly preventive care', primary: '#059669', dark: '#065F46', light: '#ECFDF5', gradient: 'linear-gradient(135deg,#059669,#065F46)' },
+    { value: 'purple',  label: 'Specialist Navy', note: 'Confident and advanced',   primary: '#0F4C81', dark: '#0B3657', light: '#EEF6FB', gradient: 'linear-gradient(135deg,#0F4C81,#0B3657)' },
+    { value: 'rose',    label: 'Aqua Mist',       note: 'Soft family comfort',      primary: '#0891B2', dark: '#0E7490', light: '#ECFEFF', gradient: 'linear-gradient(135deg,#0891B2,#0E7490)' },
+    { value: 'caramel', label: 'Porcelain Slate', note: 'Calm boutique finish',     primary: '#4D7C8A', dark: '#325764', light: '#F4F9FB', gradient: 'linear-gradient(135deg,#4D7C8A,#325764)' },
   ];
 
-  selectedTheme = signal<ClinicConfig['theme']>('blue');
-  savingTheme   = signal(false);
-
-  // ── Logo ──────────────────────────────────────────────────────────────────
-  logoPreview   = signal<string | null>(null);   // new file preview (not yet saved)
-  savingLogo    = signal(false);
-  logoError     = signal<string | null>(null);
+  readonly VOICE_OPTIONS = [
+    { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria',      gender: 'Female',  style: 'Warm & professional' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',     gender: 'Female',  style: 'Soft & reassuring' },
+    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',     gender: 'Female',  style: 'Upbeat & friendly' },
+    { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', gender: 'Female',  style: 'Confident & clear' },
+    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',     gender: 'Male',    style: 'Deep & trustworthy' },
+    { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River',     gender: 'Neutral', style: 'Calm & balanced' },
+  ] as const;
 
   readonly STARS = [1, 2, 3, 4, 5] as const;
+  readonly Math = Math;
 
-  // ── Setup completion checklist ────────────────────────────────────────────
-  get setupChecklist(): Array<{ label: string; done: boolean; tab: TabId; hint: string }> {
-    const c = this.cfg;
-    return [
-      { label: 'Doctor name & qualification',  done: !!(c.doctorName && c.doctorQualification), tab: 'info',         hint: 'Complete doctor profile for patient trust' },
-      { label: 'Phone number & address',        done: !!(c.phone && c.addressLine1),             tab: 'contact',      hint: 'Required for patients to reach you' },
-      { label: 'Map link added',                done: !!(c.mapEmbedUrl || c.mapDirectionsUrl),   tab: 'contact',      hint: 'Helps patients find your clinic easily' },
-      { label: 'Clinic hours set',              done: c.hours.length > 0,                        tab: 'hours',        hint: 'Show patients when you\'re open' },
-      { label: 'At least one testimonial',      done: c.testimonials.length > 0,                 tab: 'testimonials', hint: 'Social proof improves booking conversions' },
-      { label: 'Logo uploaded',                 done: !!c.logoDataUrl,                           tab: 'logo',         hint: 'Brand your clinic — builds patient confidence' },
-      { label: 'Voice agent configured',        done: !!(c.elevenLabsAgentId),                   tab: 'voice',        hint: 'Capture missed calls 24/7 automatically' },
-    ];
-  }
-
-  get setupDoneCount(): number { return this.setupChecklist.filter(i => i.done).length; }
-  get setupScore(): number {
-    const list = this.setupChecklist;
-    return Math.round((this.setupDoneCount / list.length) * 100);
-  }
-
-  // ── Forms ─────────────────────────────────────────────────────────────────
   infoForm = this.fb.nonNullable.group({
+    name:                ['', Validators.required],
     doctorName:          ['', Validators.required],
     doctorQualification: [''],
     patientCount:        [''],
@@ -164,6 +216,10 @@ export class AdminSettingsComponent implements OnInit {
     hours: this.fb.nonNullable.array<FormGroup>([]),
   });
 
+  servicesForm = this.fb.nonNullable.group({
+    services: this.fb.nonNullable.array<FormGroup>([]),
+  });
+
   testimonialsForm = this.fb.nonNullable.group({
     testimonials: this.fb.nonNullable.array<FormGroup>([]),
   });
@@ -178,91 +234,122 @@ export class AdminSettingsComponent implements OnInit {
     greeting:  [''],
     language:  ['bilingual' as 'hindi' | 'english' | 'bilingual'],
     persona:   [''],
-    voiceId:   ['9BWtsMINqrJLrRacOk9x'],  // default: Aria
+    voiceId:   ['9BWtsMINqrJLrRacOk9x'],
     whatsapp:  [''],
   });
 
-  savingVoice        = signal(false);
-  creatingVoiceAgent = signal(false);
-  voiceUsage         = signal<{ conversations: number; minutesUsed: number; minutesLimit: number } | null>(null);
-  loadingUsage       = signal(false);
-
-  // Curated voices — all support eleven_multilingual_v2 (Hindi + English)
-  readonly VOICE_OPTIONS = [
-    { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria',      gender: 'Female', style: 'Warm & professional' },
-    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',     gender: 'Female', style: 'Soft & reassuring' },
-    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',     gender: 'Female', style: 'Upbeat & friendly' },
-    { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', gender: 'Female', style: 'Confident & clear' },
-    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',     gender: 'Male',   style: 'Deep & trustworthy' },
-    { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River',     gender: 'Neutral', style: 'Calm & balanced' },
-  ] as const;
-
-  // ── FormArray getters ─────────────────────────────────────────────────────
-  get hoursArr()        { return this.hoursForm.controls.hours as FormArray; }
+  get cfg() { return this.clinicCfg.config; }
+  get plan() { return this.cfg.subscriptionPlan ?? 'trial'; }
+  get planStatus() { return this.cfg.subscriptionStatus ?? 'trial'; }
+  get hoursArr() { return this.hoursForm.controls.hours as FormArray; }
+  get servicesArr() { return this.servicesForm.controls.services as FormArray; }
   get testimonialsArr() { return this.testimonialsForm.controls.testimonials as FormArray; }
+  get clinicInitial(): string {
+    return (this.infoForm.get('name')?.value || this.cfg.name || 'C').trim().charAt(0).toUpperCase() || 'C';
+  }
+  get websiteHost(): string {
+    return this.cfg.domain || this.cfg.vercelDomain || 'yourclinic.mydentalplatform.com';
+  }
+  get selectedThemeMeta(): ThemeOption {
+    return this.themeOptions.find(opt => opt.value === this.selectedTheme()) ?? this.themeOptions[0];
+  }
+  get selectedWhatsappAccount(): WhatsappAccountOption | null {
+    const selectedId = this.voiceForm.controls.whatsapp.value;
+    return this.whatsappAccounts().find(account => account.phoneNumberId === selectedId) ?? null;
+  }
+  get trialDaysLeft(): number {
+    if (!this.cfg.trialEndDate) return 30;
+    const end = new Date(this.cfg.trialEndDate).getTime();
+    return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+  }
+  get isExpired() {
+    return this.planStatus === 'expired' || (this.planStatus === 'trial' && this.trialDaysLeft <= 0);
+  }
+  get isTrial() { return this.planStatus === 'trial' && this.trialDaysLeft > 0; }
+  get isStarter() { return this.plan === 'starter' && this.planStatus === 'active'; }
+  get isPro() { return this.plan === 'pro' && this.planStatus === 'active'; }
 
-  // Expose Math to templates
-  readonly Math = Math;
-
-  // ── Star rating helpers ───────────────────────────────────────────────────
-  getStars(i: number): number {
-    return (this.testimonialsArr.at(i) as FormGroup).get('rating')?.value as number ?? 5;
+  get setupChecklist(): Array<{ label: string; done: boolean; tab: TabId; hint: string }> {
+    const c = this.cfg;
+    return [
+      { label: 'Clinic name and doctor profile', done: !!(c.name && c.doctorName && c.doctorQualification), tab: 'info',         hint: 'This drives branding across the website and booking flow' },
+      { label: 'Phone number & address',         done: !!(c.phone && c.addressLine1),                         tab: 'contact',      hint: 'Required for patients to reach you quickly' },
+      { label: 'Map link added',                 done: !!(c.mapEmbedUrl || c.mapDirectionsUrl),               tab: 'contact',      hint: 'Helps patients find your clinic easily' },
+      { label: 'Clinic hours set',               done: c.hours.length > 0,                                    tab: 'hours',        hint: 'Shows when the clinic is open on the website' },
+      { label: 'Services listed',                done: c.services.length > 0,                                 tab: 'services',     hint: 'Used on the homepage, services page, and booking form' },
+      { label: 'At least one testimonial',       done: c.testimonials.length > 0,                             tab: 'testimonials', hint: 'Social proof improves booking conversions' },
+      { label: 'Logo uploaded',                  done: !!c.logoDataUrl,                                       tab: 'logo',         hint: 'Builds patient trust and improves brand recall' },
+      { label: 'Voice agent configured',         done: !!c.elevenLabsAgentId,                                 tab: 'voice',        hint: 'Capture missed calls 24/7 automatically' },
+    ];
   }
 
-  setStars(i: number, stars: number) {
-    (this.testimonialsArr.at(i) as FormGroup).get('rating')!.setValue(stars);
-    this.markDirty('testimonials');
+  get setupDoneCount(): number { return this.setupChecklist.filter(item => item.done).length; }
+  get setupScore(): number {
+    return Math.round((this.setupDoneCount / this.setupChecklist.length) * 100);
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  markDirty(tab: TabId) { this.dirtyTabs.update(set => new Set([...set, tab])); }
+  clearDirty(tab: TabId) {
+    this.dirtyTabs.update(set => {
+      const next = new Set(set);
+      next.delete(tab);
+      return next;
+    });
+  }
+  isTabDirty(tab: TabId) { return this.dirtyTabs().has(tab); }
+
   ngOnInit() {
     const tab = this.route.snapshot.queryParamMap.get('tab') as TabId | null;
-    if (tab && this.tabs.some(t => t.id === tab)) this.activeTab.set(tab);
+    if (tab && this.tabs.some(item => item.id === tab)) {
+      this.activeTab.set(tab);
+    }
 
     const cfg = this.clinicCfg.config;
-
     this.infoForm.patchValue({
-      doctorName:          cfg.doctorName          ?? '',
+      name:                cfg.name ?? '',
+      doctorName:          cfg.doctorName ?? '',
       doctorQualification: cfg.doctorQualification ?? '',
-      patientCount:        cfg.patientCount        ?? '',
+      patientCount:        cfg.patientCount ?? '',
       doctorBio:           (cfg.doctorBio ?? []).join('\n'),
     });
 
     this.contactForm.patchValue({
-      phone:            cfg.phone            ?? '',
-      addressLine1:     cfg.addressLine1     ?? '',
-      addressLine2:     cfg.addressLine2     ?? '',
-      city:             cfg.city             ?? '',
-      mapEmbedUrl:      cfg.mapEmbedUrl      ?? '',
+      phone:            cfg.phone ?? '',
+      addressLine1:     cfg.addressLine1 ?? '',
+      addressLine2:     cfg.addressLine2 ?? '',
+      city:             cfg.city ?? '',
+      mapEmbedUrl:      cfg.mapEmbedUrl ?? '',
       mapDirectionsUrl: cfg.mapDirectionsUrl ?? '',
     });
 
     this.selectedTheme.set(cfg.theme ?? 'blue');
+    this.persistedTheme.set(cfg.theme ?? 'blue');
 
-    (cfg.hours        ?? []).forEach(h => this.addHour(h.days, h.time));
-    (cfg.testimonials ?? []).forEach(t => this.addTestimonial(t));
+    (cfg.hours ?? []).forEach(hour => this.addHour(hour.days, hour.time));
+    (cfg.services ?? []).forEach(service => this.addService(service));
+    (cfg.testimonials ?? []).forEach(item => this.addTestimonial(item));
 
     this.socialForm.patchValue({
-      facebook:  cfg.social?.facebook  ?? '',
+      facebook:  cfg.social?.facebook ?? '',
       instagram: cfg.social?.instagram ?? '',
-      linkedin:  cfg.social?.linkedin  ?? '',
+      linkedin:  cfg.social?.linkedin ?? '',
     });
 
     this.voiceForm.patchValue({
       greeting: cfg.voiceAgentGreeting ?? '',
       language: cfg.voiceAgentLanguage ?? 'bilingual',
-      persona:  cfg.voiceAgentPersona  ?? '',
-      voiceId:  cfg.voiceAgentVoiceId  ?? '9BWtsMINqrJLrRacOk9x',
+      persona:  cfg.voiceAgentPersona ?? '',
+      voiceId:  cfg.voiceAgentVoiceId ?? '9BWtsMINqrJLrRacOk9x',
       whatsapp: cfg.voiceAgentWhatsapp ?? '',
     });
-    // Load usage stats if agent exists
+
     if (cfg.elevenLabsAgentId && cfg.clinicId && cfg.clinicId !== 'default') {
       this.fetchUsage();
+      void this.fetchWhatsappAccounts();
     }
 
     this.loading.set(false);
 
-    // Subscribe to valueChanges AFTER patchValue so initial load doesn't dirty tabs
     this.infoForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.markDirty('info'));
@@ -272,6 +359,9 @@ export class AdminSettingsComponent implements OnInit {
     this.hoursForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.markDirty('hours'));
+    this.servicesForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.markDirty('services'));
     this.testimonialsForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.markDirty('testimonials'));
@@ -283,150 +373,295 @@ export class AdminSettingsComponent implements OnInit {
       .subscribe(() => this.markDirty('voice'));
   }
 
-  // ── FormArray helpers ─────────────────────────────────────────────────────
-  addHour(days = '', time = '') {
-    this.hoursArr.push(this.fb.nonNullable.group({ days: [days], time: [time] }));
+  ngOnDestroy() {
+    if (this.selectedTheme() !== this.persistedTheme()) {
+      this.clinicCfg.updateConfig({ theme: this.persistedTheme() });
+    }
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
-  removeHour(i: number) { this.hoursArr.removeAt(i); }
 
-  addTestimonial(t?: Partial<Testimonial>) {
-    this.testimonialsArr.push(this.fb.nonNullable.group({
-      name:     [t?.name     ?? '', Validators.required],
-      location: [t?.location ?? ''],
-      rating:   [t?.rating   ?? 5],
-      review:   [t?.review   ?? '', Validators.required],
+  addHour(days = '', time = '') {
+    this.hoursArr.push(this.fb.nonNullable.group({
+      days: [days],
+      time: [time],
     }));
   }
-  removeTestimonial(i: number) { this.testimonialsArr.removeAt(i); }
 
-  // ── Control error helper for template ────────────────────────────────────
-  hasError(form: FormGroup, name: string, error = 'required'): boolean {
-    const c = form.get(name);
-    return !!(c?.hasError(error) && (c.dirty || c.touched));
+  removeHour(index: number) {
+    this.hoursArr.removeAt(index);
   }
 
-  // ── clinicId (safe resolution) ────────────────────────────────────────────
-  private get clinicId(): string { return this.clinicCfg.config.clinicId ?? ''; }
+  addService(service?: Partial<ClinicService>) {
+    this.servicesArr.push(this.fb.nonNullable.group({
+      name:        [service?.name ?? '', Validators.required],
+      description: [service?.description ?? ''],
+      benefit:     [service?.benefit ?? ''],
+      price:       [service?.price ?? ''],
+      iconPath:    [service?.iconPath ?? GENERIC_SERVICE_ICON],
+    }));
+  }
+
+  removeService(index: number) {
+    this.servicesArr.removeAt(index);
+  }
+
+  fillSuggestedServices() {
+    this.servicesArr.clear();
+    DEFAULT_SERVICE_LIBRARY.forEach(service => this.addService(service));
+  }
+
+  addTestimonial(testimonial?: Partial<Testimonial>) {
+    this.testimonialsArr.push(this.fb.nonNullable.group({
+      name:     [testimonial?.name ?? '', Validators.required],
+      location: [testimonial?.location ?? ''],
+      rating:   [testimonial?.rating ?? 5],
+      review:   [testimonial?.review ?? '', Validators.required],
+    }));
+  }
+
+  removeTestimonial(index: number) {
+    this.testimonialsArr.removeAt(index);
+  }
+
+  getStars(index: number): number {
+    return (this.testimonialsArr.at(index) as FormGroup).get('rating')?.value as number ?? 5;
+  }
+
+  setStars(index: number, stars: number) {
+    (this.testimonialsArr.at(index) as FormGroup).get('rating')!.setValue(stars);
+    this.markDirty('testimonials');
+  }
+
+  hasError(form: FormGroup, name: string, error = 'required'): boolean {
+    const control = form.get(name);
+    return !!(control?.hasError(error) && (control.dirty || control.touched));
+  }
+
+  private get clinicId(): string {
+    return this.clinicCfg.config.clinicId ?? '';
+  }
 
   private guardClinicId(): boolean {
     if (!this.clinicId || this.clinicId === 'default') {
-      this.showToast('Cannot save — clinic not fully configured.', 'error');
+      this.showToast('Cannot save - clinic not fully configured.', 'error');
       return false;
     }
     return true;
   }
 
-  // ── Save methods ──────────────────────────────────────────────────────────
   async saveInfo() {
     this.infoForm.markAllAsTouched();
     if (this.infoForm.invalid || !this.guardClinicId()) return;
+
     this.savingInfo.set(true);
     try {
-      const v = this.infoForm.getRawValue();
+      const values = this.infoForm.getRawValue();
+      const doctorBio = values.doctorBio.split('\n').map(item => item.trim()).filter(Boolean);
+
       await this.store.updateClinicSettings(this.clinicId, {
-        doctorName:          v.doctorName,
-        doctorQualification: v.doctorQualification,
-        patientCount:        v.patientCount,
-        doctorBio:           v.doctorBio.split('\n').map(s => s.trim()).filter(Boolean),
+        name:                values.name.trim(),
+        doctorName:          values.doctorName,
+        doctorQualification: values.doctorQualification,
+        patientCount:        values.patientCount,
+        doctorBio,
       });
+
+      this.clinicCfg.updateConfig({
+        name:                values.name.trim(),
+        doctorName:          values.doctorName,
+        doctorQualification: values.doctorQualification || undefined,
+        patientCount:        values.patientCount || undefined,
+        doctorBio,
+      });
+
       this.clearDirty('info');
-      this.showToast('Clinic info saved.', 'success');
-    } catch { this.showToast('Failed to save. Please try again.', 'error'); }
-    finally   { this.savingInfo.set(false); }
+      this.showToast('Clinic profile saved.', 'success');
+    } catch {
+      this.showToast('Failed to save clinic profile.', 'error');
+    } finally {
+      this.savingInfo.set(false);
+    }
   }
 
   async saveContact() {
     this.contactForm.markAllAsTouched();
     if (this.contactForm.invalid || !this.guardClinicId()) return;
+
     this.savingContact.set(true);
     try {
-      const v      = this.contactForm.getRawValue();
-      const digits = v.phone.replace(/\D/g, '');
-      const e164   = digits.startsWith('91') ? digits : `91${digits}`;
+      const values = this.contactForm.getRawValue();
+      const digits = values.phone.replace(/\D/g, '');
+      const e164 = digits.startsWith('91') ? digits : `91${digits}`;
+
       await this.store.updateClinicSettings(this.clinicId, {
-        phone:            v.phone,
+        phone:            values.phone,
         phoneE164:        e164,
         whatsappNumber:   e164,
-        addressLine1:     v.addressLine1,
-        addressLine2:     v.addressLine2,
-        city:             v.city,
-        mapEmbedUrl:      v.mapEmbedUrl     || undefined,
-        mapDirectionsUrl: v.mapDirectionsUrl || undefined,
+        addressLine1:     values.addressLine1,
+        addressLine2:     values.addressLine2,
+        city:             values.city,
+        mapEmbedUrl:      values.mapEmbedUrl || undefined,
+        mapDirectionsUrl: values.mapDirectionsUrl || undefined,
       });
+
+      this.clinicCfg.updateConfig({
+        phone:            values.phone,
+        phoneE164:        e164,
+        whatsappNumber:   e164,
+        addressLine1:     values.addressLine1,
+        addressLine2:     values.addressLine2 || undefined,
+        city:             values.city,
+        mapEmbedUrl:      values.mapEmbedUrl || undefined,
+        mapDirectionsUrl: values.mapDirectionsUrl || undefined,
+      });
+
       this.clearDirty('contact');
       this.showToast('Contact details saved.', 'success');
-    } catch { this.showToast('Failed to save. Please try again.', 'error'); }
-    finally   { this.savingContact.set(false); }
+    } catch {
+      this.showToast('Failed to save contact details.', 'error');
+    } finally {
+      this.savingContact.set(false);
+    }
   }
 
   async saveHours() {
     if (!this.guardClinicId()) return;
+
     this.savingHours.set(true);
     try {
-      await this.store.updateClinicSettings(this.clinicId, {
-        hours: this.hoursForm.getRawValue().hours as ClinicHours[],
-      });
+      const hours = (this.hoursForm.getRawValue().hours as Array<{ days: string; time: string }>)
+        .filter(slot => slot.days.trim() || slot.time.trim()) as ClinicHours[];
+
+      await this.store.updateClinicSettings(this.clinicId, { hours });
+      this.clinicCfg.updateConfig({ hours });
+
       this.clearDirty('hours');
       this.showToast('Clinic hours saved.', 'success');
-    } catch { this.showToast('Failed to save. Please try again.', 'error'); }
-    finally   { this.savingHours.set(false); }
+    } catch {
+      this.showToast('Failed to save clinic hours.', 'error');
+    } finally {
+      this.savingHours.set(false);
+    }
+  }
+
+  async saveServices() {
+    this.servicesForm.markAllAsTouched();
+    if (this.servicesForm.invalid || !this.guardClinicId()) return;
+
+    this.savingServices.set(true);
+    try {
+      const services = (this.servicesForm.getRawValue().services as Array<{
+        name: string;
+        description: string;
+        benefit: string;
+        price: string;
+        iconPath: string;
+      }>)
+        .filter(service =>
+          service.name.trim() ||
+          service.description.trim() ||
+          service.benefit.trim() ||
+          service.price.trim())
+        .map(service => ({
+          ...service,
+          name:        service.name.trim(),
+          description: service.description.trim(),
+          benefit:     service.benefit.trim(),
+          price:       service.price.trim(),
+          iconPath:    service.iconPath || GENERIC_SERVICE_ICON,
+        })) as ClinicService[];
+
+      await this.store.updateClinicSettings(this.clinicId, { services });
+      this.clinicCfg.updateConfig({ services });
+
+      this.clearDirty('services');
+      this.showToast('Services saved.', 'success');
+    } catch {
+      this.showToast('Failed to save services.', 'error');
+    } finally {
+      this.savingServices.set(false);
+    }
   }
 
   async saveTestimonials() {
     this.testimonialsForm.markAllAsTouched();
     if (this.testimonialsForm.invalid || !this.guardClinicId()) return;
+
     this.savingTestimonials.set(true);
     try {
-      await this.store.updateClinicSettings(this.clinicId, {
-        testimonials: this.testimonialsForm.getRawValue().testimonials as Testimonial[],
-      });
+      const testimonials = this.testimonialsForm.getRawValue().testimonials as Testimonial[];
+      await this.store.updateClinicSettings(this.clinicId, { testimonials });
+      this.clinicCfg.updateConfig({ testimonials });
+
       this.clearDirty('testimonials');
       this.showToast('Testimonials saved.', 'success');
-    } catch { this.showToast('Failed to save. Please try again.', 'error'); }
-    finally   { this.savingTestimonials.set(false); }
+    } catch {
+      this.showToast('Failed to save testimonials.', 'error');
+    } finally {
+      this.savingTestimonials.set(false);
+    }
   }
 
   async saveSocial() {
     if (!this.guardClinicId()) return;
+
     this.savingSocial.set(true);
     try {
-      const v = this.socialForm.getRawValue();
-      await this.store.updateClinicSettings(this.clinicId, {
-        social: {
-          ...(v.facebook  ? { facebook:  v.facebook  } : {}),
-          ...(v.instagram ? { instagram: v.instagram } : {}),
-          ...(v.linkedin  ? { linkedin:  v.linkedin  } : {}),
-        },
-      });
+      const values = this.socialForm.getRawValue();
+      const social = {
+        ...(values.facebook ? { facebook: values.facebook } : {}),
+        ...(values.instagram ? { instagram: values.instagram } : {}),
+        ...(values.linkedin ? { linkedin: values.linkedin } : {}),
+      };
+
+      await this.store.updateClinicSettings(this.clinicId, { social });
+      this.clinicCfg.updateConfig({ social });
+
       this.clearDirty('social');
       this.showToast('Social links saved.', 'success');
-    } catch { this.showToast('Failed to save. Please try again.', 'error'); }
-    finally   { this.savingSocial.set(false); }
+    } catch {
+      this.showToast('Failed to save social links.', 'error');
+    } finally {
+      this.savingSocial.set(false);
+    }
   }
 
   pickTheme(theme: ClinicConfig['theme']) {
     this.selectedTheme.set(theme);
-    this.clinicCfg.updateConfig({ theme }); // live preview
+    this.clinicCfg.updateConfig({ theme });
+
+    if (theme === this.persistedTheme()) {
+      this.clearDirty('theme');
+      return;
+    }
+    this.markDirty('theme');
   }
 
   async saveTheme() {
     if (!this.guardClinicId()) return;
+
     this.savingTheme.set(true);
     try {
       await this.store.updateClinicSettings(this.clinicId, { theme: this.selectedTheme() });
+      this.persistedTheme.set(this.selectedTheme());
+      this.clinicCfg.updateConfig({ theme: this.selectedTheme() });
+      this.clearDirty('theme');
       this.showToast('Theme saved.', 'success');
-    } catch { this.showToast('Failed to save theme.', 'error'); }
-    finally   { this.savingTheme.set(false); }
+    } catch {
+      this.showToast('Failed to save theme.', 'error');
+    } finally {
+      this.savingTheme.set(false);
+    }
   }
 
-  // ── Voice Agent ───────────────────────────────────────────────────────────
   async createVoiceAgent() {
     if (!this.guardClinicId()) return;
+
     this.creatingVoiceAgent.set(true);
     try {
       const cfg = this.clinicCfg.config;
-      const res = await fetch('/api/elevenlabs-create-agent', {
-        method:  'POST',
+      const response = await fetch('/api/elevenlabs-create-agent', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clinicId:            this.clinicId,
@@ -436,21 +671,25 @@ export class AdminSettingsComponent implements OnInit {
           phone:               cfg.phone,
           doctorName:          cfg.doctorName,
           doctorQualification: cfg.doctorQualification,
-          hours:               cfg.hours    ?? [],
+          hours:               cfg.hours ?? [],
           services:            cfg.services ?? [],
         }),
       });
-      const data = await res.json() as { agentId?: string; error?: string; details?: string };
-      if (!res.ok) {
-        const msg = data.details ?? data.error ?? 'API error';
-        console.error('[createVoiceAgent]', msg);
-        throw new Error(msg);
+
+      const data = await response.json() as { agentId?: string; error?: string; details?: string };
+      if (!response.ok) {
+        const message = data.details ?? data.error ?? 'API error';
+        console.error('[createVoiceAgent]', message);
+        throw new Error(message);
       }
+
       this.clinicCfg.updateConfig({ elevenLabsAgentId: data.agentId });
-      this.showToast('Voice agent created! Your AI receptionist is live.', 'success');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      this.showToast(`Failed: ${msg.slice(0, 120)}`, 'error');
+      await this.fetchUsage();
+      await this.fetchWhatsappAccounts();
+      this.showToast('Voice agent created. Your AI receptionist is live.', 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.showToast(`Failed: ${message.slice(0, 120)}`, 'error');
     } finally {
       this.creatingVoiceAgent.set(false);
     }
@@ -459,49 +698,102 @@ export class AdminSettingsComponent implements OnInit {
   async fetchUsage() {
     this.loadingUsage.set(true);
     try {
-      const res = await fetch(`/api/elevenlabs-usage?clinicId=${this.clinicId}`);
-      if (res.ok) this.voiceUsage.set(await res.json());
-    } catch { /* silent — usage is non-critical */ }
-    finally { this.loadingUsage.set(false); }
+      const response = await fetch(`/api/elevenlabs-usage?clinicId=${this.clinicId}`);
+      if (response.ok) this.voiceUsage.set(await response.json());
+    } catch {
+      // Usage is non-critical.
+    } finally {
+      this.loadingUsage.set(false);
+    }
+  }
+
+  async fetchWhatsappAccounts() {
+    if (!this.cfg.elevenLabsAgentId || !this.clinicId || this.clinicId === 'default') return;
+
+    this.loadingWhatsappAccounts.set(true);
+    this.whatsappAccountsError.set(null);
+    try {
+      const response = await fetch(`/api/elevenlabs-whatsapp-accounts?clinicId=${encodeURIComponent(this.clinicId)}`);
+      const data = await response.json() as {
+        items?: WhatsappAccountOption[];
+        currentPhoneNumberId?: string | null;
+        error?: string;
+        details?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(data.details ?? data.error ?? 'Failed to load WhatsApp accounts');
+      }
+
+      const items = data.items ?? [];
+      const currentPhoneNumberId = data.currentPhoneNumberId ?? '';
+
+      this.whatsappAccounts.set(items);
+      this.voiceForm.controls.whatsapp.setValue(currentPhoneNumberId, { emitEvent: false });
+      this.clinicCfg.updateConfig({
+        voiceAgentWhatsapp: currentPhoneNumberId || undefined,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not load WhatsApp accounts.';
+      this.whatsappAccountsError.set(message);
+    } finally {
+      this.loadingWhatsappAccounts.set(false);
+    }
+  }
+
+  isWhatsappAccountLocked(account: WhatsappAccountOption): boolean {
+    return !!account.assignedAgentId && account.assignedAgentId !== this.cfg.elevenLabsAgentId;
   }
 
   async saveVoice() {
     if (!this.guardClinicId()) return;
+
     this.savingVoice.set(true);
     try {
-      const v = this.voiceForm.getRawValue();
-      const res = await fetch('/api/elevenlabs-update-agent', {
-        method:  'POST',
+      const values = this.voiceForm.getRawValue();
+      const response = await fetch('/api/elevenlabs-update-agent', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clinicId: this.clinicId,
-          greeting: v.greeting || undefined,
-          language: v.language,
-          persona:  v.persona  || undefined,
-          voiceId:  v.voiceId  || undefined,
-          whatsapp: v.whatsapp || undefined,
+          greeting: values.greeting.trim(),
+          language: values.language,
+          persona:  values.persona.trim(),
+          voiceId:  values.voiceId,
+          whatsappPhoneNumberId: values.whatsapp.trim(),
         }),
       });
-      if (!res.ok) throw new Error('API error');
+
+      const data = await response.json() as {
+        ok?: boolean;
+        error?: string;
+        details?: string;
+        whatsappAccountId?: string | null;
+      };
+      if (!response.ok) throw new Error(data.details ?? data.error ?? 'API error');
+
       this.clinicCfg.updateConfig({
-        voiceAgentGreeting: v.greeting || undefined,
-        voiceAgentLanguage: v.language,
-        voiceAgentPersona:  v.persona  || undefined,
-        voiceAgentVoiceId:  v.voiceId  || undefined,
-        voiceAgentWhatsapp: v.whatsapp || undefined,
+        voiceAgentGreeting: values.greeting.trim() || undefined,
+        voiceAgentLanguage: values.language,
+        voiceAgentPersona:  values.persona.trim() || undefined,
+        voiceAgentVoiceId:  values.voiceId || undefined,
+        voiceAgentWhatsapp: data.whatsappAccountId || undefined,
       });
+
+      await this.fetchWhatsappAccounts();
       this.clearDirty('voice');
       this.showToast('Voice agent updated.', 'success');
-    } catch {
-      this.showToast('Failed to update voice agent.', 'error');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update voice agent.';
+      this.showToast(message.slice(0, 140), 'error');
     } finally {
       this.savingVoice.set(false);
     }
   }
 
-  // ── Subscription / Billing ───────────────────────────────────────────────
   async upgradePlan(plan: BillingPlan) {
     if (this.upgrading()) return;
+
     this.upgrading.set(true);
     this.upgradeError.set(null);
     try {
@@ -511,28 +803,24 @@ export class AdminSettingsComponent implements OnInit {
         this.cfg.name,
         this.cfg.phone,
       );
-      // Redirect the clinic owner to the Razorpay hosted payment page
       window.open(shortUrl, '_blank', 'noopener');
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not initiate payment. Try again.';
-      this.upgradeError.set(msg);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not initiate payment. Try again.';
+      this.upgradeError.set(message);
     } finally {
       this.upgrading.set(false);
     }
   }
 
-  // ── Logo upload ───────────────────────────────────────────────────────────
-
-  /** Called when user picks a file. Compresses via canvas and sets preview. */
   async onLogoFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file  = input.files?.[0];
+    const file = input.files?.[0];
     if (!file) return;
+
     this.logoError.set(null);
 
-    // 5 MB guard
     if (file.size > 5 * 1024 * 1024) {
-      this.logoError.set('File too large — max 5 MB.');
+      this.logoError.set('File too large - max 5 MB.');
       input.value = '';
       return;
     }
@@ -550,16 +838,15 @@ export class AdminSettingsComponent implements OnInit {
     } catch {
       this.logoError.set('Could not read the image. Try a different file.');
     }
+
     input.value = '';
   }
 
-  /** Resize to max 300 × 120 px, keeping aspect ratio, then base64-encode. */
   private compressLogo(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      // SVG: just read as text → data URL directly (vector stays crisp at any size)
       if (file.type === 'image/svg+xml') {
         const reader = new FileReader();
-        reader.onload  = () => resolve(reader.result as string);
+        reader.onload = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(file);
         return;
@@ -568,23 +855,29 @@ export class AdminSettingsComponent implements OnInit {
       const img = new Image();
       const url = URL.createObjectURL(file);
       img.onload = () => {
-        const MAX_W = 400, MAX_H = 160;
-        let w = img.naturalWidth, h = img.naturalHeight;
-        const ratio = Math.min(MAX_W / w, MAX_H / h, 1); // never upscale
-        w = Math.round(w * ratio);
-        h = Math.round(h * ratio);
+        const maxWidth = 400;
+        const maxHeight = 160;
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
+        const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
 
         const canvas = document.createElement('canvas');
-        canvas.width  = w;
-        canvas.height = h;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0, w, h);
+        ctx.drawImage(img, 0, 0, width, height);
         URL.revokeObjectURL(url);
-        // PNG for transparent images, JPEG for opaque photos
+
         const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
         resolve(canvas.toDataURL(mime, 0.88));
       };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load failed')); };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('load failed'));
+      };
       img.src = url;
     });
   }
@@ -592,29 +885,36 @@ export class AdminSettingsComponent implements OnInit {
   async saveLogo(): Promise<void> {
     const dataUrl = this.logoPreview();
     if (!dataUrl || !this.guardClinicId()) return;
+
     this.savingLogo.set(true);
     try {
       await this.store.updateClinicSettings(this.clinicId, { logoDataUrl: dataUrl });
       this.clinicCfg.updateConfig({ logoDataUrl: dataUrl });
       this.logoPreview.set(null);
-      this.showToast('Logo saved — now live on your website!', 'success');
-    } catch { this.showToast('Failed to save logo. Try again.', 'error'); }
-    finally   { this.savingLogo.set(false); }
+      this.showToast('Logo saved - now live on your website.', 'success');
+    } catch {
+      this.showToast('Failed to save logo. Try again.', 'error');
+    } finally {
+      this.savingLogo.set(false);
+    }
   }
 
   async removeLogo(): Promise<void> {
     if (!this.guardClinicId()) return;
+
     this.savingLogo.set(true);
     try {
       await this.store.updateClinicSettings(this.clinicId, { logoDataUrl: null });
       this.clinicCfg.updateConfig({ logoDataUrl: undefined });
       this.logoPreview.set(null);
-      this.showToast('Logo removed — default icon restored.', 'success');
-    } catch { this.showToast('Failed to remove logo.', 'error'); }
-    finally   { this.savingLogo.set(false); }
+      this.showToast('Logo removed - default icon restored.', 'success');
+    } catch {
+      this.showToast('Failed to remove logo.', 'error');
+    } finally {
+      this.savingLogo.set(false);
+    }
   }
 
-  // ── Toast ─────────────────────────────────────────────────────────────────
   private showToast(msg: string, type: 'success' | 'error') {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toast.set({ msg, type });

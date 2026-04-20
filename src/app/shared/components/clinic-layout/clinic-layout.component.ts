@@ -141,7 +141,12 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <app-voice-agent
         [agentId]="voiceAgentId()"
         [clinicName]="clinic.config.name"
-        [services]="serviceNames()" />
+        [services]="serviceNames()"
+        [city]="clinic.config.city"
+        [phone]="clinic.config.phone"
+        [address]="clinicAddress()"
+        [hours]="clinicHours()"
+        [whatsappNumber]="clinic.config.whatsappNumber" />
     }
 
     <!-- ── PWA Install Banner (mobile only, dismissed once) ── -->
@@ -285,6 +290,14 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   /** Service names passed to the AI chat context. */
   readonly serviceNames = computed(() =>
     this.clinic.config.services?.map(s => s.name) ?? []
+  );
+  readonly clinicHours = computed(() =>
+    this.clinic.config.hours?.map(slot => `${slot.days}: ${slot.time}`) ?? []
+  );
+  readonly clinicAddress = computed(() =>
+    [this.clinic.config.addressLine1, this.clinic.config.addressLine2, this.clinic.config.city]
+      .filter(Boolean)
+      .join(', ')
   );
 
   private popupTimer:   ReturnType<typeof setTimeout> | null = null;

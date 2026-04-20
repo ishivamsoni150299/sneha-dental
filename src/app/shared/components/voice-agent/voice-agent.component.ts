@@ -481,6 +481,11 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   readonly agentId    = input<string>('');
   readonly clinicName = input<string>('');
   readonly services   = input<string[]>([]);
+  readonly city       = input<string>('');
+  readonly phone      = input<string>('');
+  readonly address    = input<string>('');
+  readonly hours      = input<string[]>([]);
+  readonly whatsappNumber = input<string>('');
 
   // ── Constants ─────────────────────────────────────────────────────────────────
   readonly BARS         = BARS;
@@ -639,6 +644,11 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
           message:    text,
           clinicName: this.clinicName(),
           services:   this.services(),
+          city:       this.city(),
+          phone:      this.phone(),
+          address:    this.address(),
+          hours:      this.hours(),
+          whatsappNumber: this.whatsappNumber(),
           history:    history.slice(0, -1),
         }),
       });

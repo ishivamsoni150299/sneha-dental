@@ -1,109 +1,233 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import {
+  buildAgentSystemPrompt,
+  normalizeVoiceLanguage,
+  resolveVoiceAgentSettings,
+  sanitizeWhatsappPhoneNumberId,
+} from './_lib/elevenlabs-agent-config';
 
 if (!getApps().length) {
   initializeApp({
     credential: cert({
-      projectId:   process.env['FIREBASE_PROJECT_ID'],
+      projectId: process.env['FIREBASE_PROJECT_ID'],
       clientEmail: process.env['FIREBASE_CLIENT_EMAIL'],
-      privateKey:  process.env['FIREBASE_PRIVATE_KEY']?.replace(/\\n/g, '\n'),
+      privateKey: process.env['FIREBASE_PRIVATE_KEY']?.replace(/\\n/g, '\n'),
     }),
   });
 }
 
 const db = getFirestore();
 
-// POST /api/elevenlabs-update-agent
-// Body: { clinicId, greeting?, language?, persona? }
-// Updates the ElevenLabs agent + saves customisation to Firestore.
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+interface WhatsappAccountResponse {
+  business_account_id: string;
+  business_account_name: string;
+  phone_number_id: string;
+  phone_number_name: string;
+  phone_number: string;
+  assigned_agent_id: string | null;
+  assigned_agent_name: string | null;
+  enable_messaging: boolean | null;
+  enable_audio_message_response: boolean | null;
+  is_token_expired?: boolean;
+}
 
-  const body     = req.body ?? {};
-  const clinicId = body.clinicId as string | undefined;
-  if (!clinicId) return res.status(400).json({ error: 'clinicId required' });
+function hasOwn(body: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(body, key);
+}
+
+function asOptionalString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+async function patchWhatsappAccount(
+  apiKey: string,
+  phoneNumberId: string,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const response = await fetch(`https://api.elevenlabs.io/v1/convai/whatsapp-accounts/${phoneNumberId}`, {
+    method: 'PATCH',
+    headers: {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(details || 'Failed to update WhatsApp account');
+  }
+}
+
+async function getWhatsappAccount(
+  apiKey: string,
+  phoneNumberId: string,
+): Promise<WhatsappAccountResponse | null> {
+  const response = await fetch(`https://api.elevenlabs.io/v1/convai/whatsapp-accounts/${phoneNumberId}`, {
+    headers: { 'xi-api-key': apiKey },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return await response.json() as WhatsappAccountResponse;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).end();
+  }
+
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const clinicId = typeof body['clinicId'] === 'string' ? body['clinicId'] : '';
+  if (!clinicId) {
+    return res.status(400).json({ error: 'clinicId required' });
+  }
 
   const apiKey = process.env['ELEVENLABS_API_KEY'];
-  if (!apiKey) return res.status(500).json({ error: 'ELEVENLABS_API_KEY not configured' });
-
-  // Fetch clinic to get existing agentId
-  const doc = await db.collection('clinics').doc(clinicId).get();
-  if (!doc.exists) return res.status(404).json({ error: 'Clinic not found' });
-  const clinic = doc.data() as Record<string, unknown>;
-  const agentId = clinic['elevenLabsAgentId'] as string | undefined;
-  if (!agentId) return res.status(400).json({ error: 'No ElevenLabs agent for this clinic. Create one first.' });
-
-  // Build PATCH payload from request body
-  const greeting: string | undefined = body.greeting;
-  const language: 'hindi' | 'english' | 'bilingual' | undefined = body.language;
-  const persona:  string | undefined = body.persona;
-  const voiceId:  string | undefined = body.voiceId;
-  const whatsapp: string | undefined = body.whatsapp; // E164 number, no + — for WhatsApp AI channel
-
-  // Map language to ElevenLabs locale
-  const langCode = language === 'english' ? 'en' : 'hi';
-
-  const agentPatch: Record<string, unknown> = {};
-  const convConfig: Record<string, unknown> = {};
-  const agentConfig: Record<string, unknown> = {};
-  const ttsConfig:   Record<string, unknown> = {};
-
-  if (greeting !== undefined) {
-    agentConfig['first_message'] = greeting.trim() || `Namaste! ${clinic['name'] ?? 'Clinic'} mein aapka swagat hai. Kaise madad kar sakti hoon?`;
-  }
-  if (language !== undefined) {
-    agentConfig['language'] = langCode;
-  }
-  if (persona !== undefined && persona.trim()) {
-    agentConfig['prompt'] = {
-      prompt: `${persona.trim()}\n\nYou are the AI receptionist for ${clinic['name'] ?? 'this dental clinic'}.`,
-    };
-  }
-  if (voiceId !== undefined && voiceId.trim()) {
-    ttsConfig['voice_id'] = voiceId.trim();
+  if (!apiKey) {
+    return res.status(500).json({ error: 'ELEVENLABS_API_KEY not configured' });
   }
 
-  if (Object.keys(agentConfig).length > 0) convConfig['agent'] = agentConfig;
-  if (Object.keys(ttsConfig).length > 0)   convConfig['tts']   = ttsConfig;
-  if (Object.keys(convConfig).length > 0)  agentPatch['conversation_config'] = convConfig;
-
-  // WhatsApp AI channel — ElevenLabs supports Twilio-based WhatsApp messaging
-  // Stored in platform_settings.phone on the agent
-  if (whatsapp !== undefined) {
-    agentPatch['platform_settings'] = {
-      phone: whatsapp
-        ? [{ provider: 'twilio', phone_number: `+${whatsapp.replace(/^\+/, '')}` }]
-        : [],
-    };
+  const clinicDoc = await db.collection('clinics').doc(clinicId).get();
+  if (!clinicDoc.exists) {
+    return res.status(404).json({ error: 'Clinic not found' });
   }
 
-  if (Object.keys(agentPatch).length === 0) {
+  const clinic = clinicDoc.data() as Record<string, unknown>;
+  const agentId = typeof clinic['elevenLabsAgentId'] === 'string' ? clinic['elevenLabsAgentId'] : '';
+  if (!agentId) {
+    return res.status(400).json({ error: 'No ElevenLabs agent for this clinic. Create one first.' });
+  }
+
+  const hasGreeting = hasOwn(body, 'greeting');
+  const hasLanguage = hasOwn(body, 'language');
+  const hasPersona = hasOwn(body, 'persona');
+  const hasVoiceId = hasOwn(body, 'voiceId');
+  const hasWhatsapp = hasOwn(body, 'whatsappPhoneNumberId') || hasOwn(body, 'whatsapp');
+
+  if (!hasGreeting && !hasLanguage && !hasPersona && !hasVoiceId && !hasWhatsapp) {
     return res.status(400).json({ error: 'Nothing to update.' });
   }
 
-  // PATCH the ElevenLabs agent
-  const elRes = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
-    method:  'PATCH',
-    headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
-    body:    JSON.stringify(agentPatch),
+  const greetingInput = hasGreeting ? asOptionalString(body['greeting']) : undefined;
+  const languageInput = hasLanguage ? normalizeVoiceLanguage(body['language']) : undefined;
+  const personaInput = hasPersona ? asOptionalString(body['persona']) : undefined;
+  const voiceIdInput = hasVoiceId ? asOptionalString(body['voiceId']) : undefined;
+  const nextWhatsappPhoneNumberId = hasWhatsapp
+    ? sanitizeWhatsappPhoneNumberId(body['whatsappPhoneNumberId'] ?? body['whatsapp'])
+    : undefined;
+  const previousWhatsappPhoneNumberId = sanitizeWhatsappPhoneNumberId(clinic['voiceAgentWhatsapp']);
+
+  const settings = resolveVoiceAgentSettings(clinic, {
+    greeting: greetingInput,
+    language: languageInput,
+    persona: personaInput,
+    voiceId: voiceIdInput,
   });
 
-  if (!elRes.ok) {
-    const err = await elRes.text();
-    console.error('[elevenlabs-update-agent] API error:', err);
-    return res.status(500).json({ error: 'Failed to update ElevenLabs agent', details: err });
+  const agentPatch = {
+    conversation_config: {
+      agent: {
+        first_message: settings.greeting,
+        language: settings.languageCode,
+        prompt: {
+          prompt: buildAgentSystemPrompt(clinic, {
+            language: settings.language,
+            persona: settings.persona,
+          }),
+          llm: 'gemini-2.0-flash',
+          temperature: 0.5,
+          max_tokens: 800,
+        },
+      },
+      tts: {
+        voice_id: settings.voiceId,
+        model_id: 'eleven_multilingual_v2',
+      },
+    },
+  };
+
+  const response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
+    method: 'PATCH',
+    headers: {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(agentPatch),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    console.error('[elevenlabs-update-agent] API error:', details);
+    return res.status(500).json({
+      error: 'Failed to update ElevenLabs agent',
+      details,
+    });
   }
 
-  // Persist customisation to Firestore so UI reflects current state
+  let whatsappAccount: WhatsappAccountResponse | null = null;
+
+  if (hasWhatsapp) {
+    if (
+      previousWhatsappPhoneNumberId &&
+      previousWhatsappPhoneNumberId !== nextWhatsappPhoneNumberId
+    ) {
+      try {
+        await patchWhatsappAccount(apiKey, previousWhatsappPhoneNumberId, {
+          assigned_agent_id: null,
+        });
+      } catch (error) {
+        console.warn('[elevenlabs-update-agent] Failed to detach previous WhatsApp account:', error);
+      }
+    }
+
+    if (nextWhatsappPhoneNumberId) {
+      try {
+        await patchWhatsappAccount(apiKey, nextWhatsappPhoneNumberId, {
+          assigned_agent_id: agentId,
+          enable_messaging: true,
+        });
+        whatsappAccount = await getWhatsappAccount(apiKey, nextWhatsappPhoneNumberId);
+      } catch (error) {
+        const details = error instanceof Error ? error.message : 'Failed to connect WhatsApp account';
+        return res.status(500).json({
+          error: 'Failed to update WhatsApp AI channel',
+          details,
+        });
+      }
+    }
+  }
+
   const firestoreUpdate: Record<string, unknown> = {};
-  if (greeting  !== undefined) firestoreUpdate['voiceAgentGreeting']  = greeting;
-  if (language  !== undefined) firestoreUpdate['voiceAgentLanguage']  = language;
-  if (persona   !== undefined) firestoreUpdate['voiceAgentPersona']   = persona;
-  if (voiceId   !== undefined) firestoreUpdate['voiceAgentVoiceId']   = voiceId;
-  if (whatsapp  !== undefined) firestoreUpdate['voiceAgentWhatsapp']  = whatsapp;
+  if (hasGreeting) firestoreUpdate['voiceAgentGreeting'] = greetingInput || null;
+  if (hasLanguage) firestoreUpdate['voiceAgentLanguage'] = settings.language;
+  if (hasPersona) firestoreUpdate['voiceAgentPersona'] = personaInput || null;
+  if (hasVoiceId) firestoreUpdate['voiceAgentVoiceId'] = settings.voiceId;
+  if (hasWhatsapp) firestoreUpdate['voiceAgentWhatsapp'] = nextWhatsappPhoneNumberId || null;
 
-  await db.collection('clinics').doc(clinicId).update(firestoreUpdate);
+  if (Object.keys(firestoreUpdate).length > 0) {
+    await db.collection('clinics').doc(clinicId).update(firestoreUpdate);
+  }
 
-  return res.status(200).json({ ok: true });
+  return res.status(200).json({
+    ok: true,
+    whatsappAccountId: nextWhatsappPhoneNumberId || null,
+    whatsappAccount: whatsappAccount
+      ? {
+          phoneNumberId: whatsappAccount.phone_number_id,
+          phoneNumber: whatsappAccount.phone_number,
+          phoneNumberName: whatsappAccount.phone_number_name,
+          businessAccountName: whatsappAccount.business_account_name,
+          assignedAgentId: whatsappAccount.assigned_agent_id,
+          assignedAgentName: whatsappAccount.assigned_agent_name,
+          enableMessaging: whatsappAccount.enable_messaging,
+          enableAudioMessageResponse: whatsappAccount.enable_audio_message_response,
+          isTokenExpired: whatsappAccount.is_token_expired ?? false,
+        }
+      : null,
+  });
 }
