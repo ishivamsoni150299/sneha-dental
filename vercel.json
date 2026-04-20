@@ -3,8 +3,8 @@
   "outputDirectory": "dist/mydentalplatform/browser",
   "framework": null,
   "rewrites": [
-    { "source": "/robots.txt",      "destination": "/api/robots" },
-    { "source": "/sitemap.xml",     "destination": "/api/sitemap" },
+    { "source": "/robots.txt",      "destination": "/api/seo?type=robots" },
+    { "source": "/sitemap.xml",     "destination": "/api/seo?type=sitemap" },
     { "source": "/business",        "destination": "/business/index.html" },
     { "source": "/business/",       "destination": "/business/index.html" },
     { "source": "/api/(.*)",         "destination": "/api/$1" },
