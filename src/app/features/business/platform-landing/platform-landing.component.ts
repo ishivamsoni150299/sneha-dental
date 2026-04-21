@@ -101,8 +101,8 @@ export class PlatformLandingComponent {
       id: 'pro' as const,
       name: 'Pro',
       tag: 'Most popular',
-      monthly: 1499,
-      yearly: 14999,
+      monthly: 2499,
+      yearly: 24999,
       trialDays: null,
       highlighted: true,
       features: [
