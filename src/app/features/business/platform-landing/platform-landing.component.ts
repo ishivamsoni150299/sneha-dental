@@ -80,8 +80,8 @@ export class PlatformLandingComponent {
       id: 'starter' as const,
       name: 'Starter',
       tag: 'For solo clinics',
-      monthly: 499,
-      yearly: 4999,
+      monthly: 999,
+      yearly: 9999,
       trialDays: null,
       highlighted: false,
       features: [
