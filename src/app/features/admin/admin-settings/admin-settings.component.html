@@ -1075,21 +1075,18 @@
 
           <!-- Current plan status card -->
           <div class="rounded-2xl border p-5 flex flex-col sm:flex-row sm:items-center gap-4"
-               [class]="isExpired ? 'border-red-200 bg-red-50' : isTrial ? 'border-blue-200 bg-blue-50' : isStarter ? 'border-blue-100 bg-white' : 'border-purple-200 bg-purple-50'">
+               [class]="isExpired ? 'border-red-200 bg-red-50' : isPending ? 'border-amber-200 bg-amber-50' : isTrial ? 'border-blue-200 bg-blue-50' : isStarter ? 'border-blue-100 bg-white' : 'border-purple-200 bg-purple-50'">
             <div class="flex-1">
               <p class="text-xs font-bold uppercase tracking-widest mb-1"
-                 [class]="isExpired ? 'text-red-500' : isTrial ? 'text-blue-600' : isStarter ? 'text-blue-600' : 'text-purple-600'">
+                 [class]="isExpired ? 'text-red-500' : isPending ? 'text-amber-600' : isTrial ? 'text-blue-600' : isStarter ? 'text-blue-600' : 'text-purple-600'">
                 Current Plan
               </p>
-              <p class="font-bold text-gray-900 text-lg leading-tight">
-                @if (isExpired)        { Trial Expired }
-                @else if (isTrial)     { Free Trial — {{ trialDaysLeft }} days left }
-                @else if (isStarter)   { Starter · ₹999/month }
-                @else if (isPro)       { Pro · ₹2,499/month }
-                @else                  { Trial }
-              </p>
+              <p class="font-bold text-gray-900 text-lg leading-tight">{{ currentPlanLabel() }}</p>
               @if (isTrial && !isExpired) {
                 <p class="text-blue-700 text-xs mt-1">Your website goes offline when the trial ends. Upgrade to keep it live.</p>
+              }
+              @if (isPending) {
+                <p class="text-amber-700 text-xs mt-1">Your plan is created but payment is still pending. Complete checkout to activate paid features and automatic renewals.</p>
               }
               @if (isExpired) {
                 <p class="text-red-600 text-xs mt-1">Your website is currently hidden from patients. Upgrade now to restore it.</p>
@@ -1102,10 +1099,10 @@
               }
             </div>
             @if (!isPro) {
-              <button type="button" (click)="upgradePlan(isStarter ? 'pro' : 'starter')"
+              <button type="button" (click)="upgradePlan(upgradeTargetPlan())"
                       [disabled]="upgrading()"
                       class="shrink-0 inline-flex items-center gap-2 font-bold text-sm px-5 py-2.5 rounded-xl transition-colors shadow-sm disabled:opacity-60 disabled:cursor-wait"
-                      [class]="isStarter ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'">
+                      [class]="upgradeTargetPlan() === 'pro' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'">
                 @if (upgrading()) {
                   <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -1116,12 +1113,31 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                   </svg>
                 }
-                {{ isStarter ? 'Upgrade to Pro — ₹2,499/mo' : 'Upgrade to Starter · ₹999/mo' }}
+                {{ upgradeButtonLabel(upgradeTargetPlan()) }}
               </button>
             }
             @if (upgradeError()) {
               <p class="text-xs text-red-600 mt-2">{{ upgradeError() }}</p>
             }
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+            <div>
+              <p class="text-sm font-semibold text-gray-900">Billing cycle</p>
+              <p class="text-xs text-gray-500 mt-0.5">Monthly is lowest entry cost. Yearly keeps billing simpler.</p>
+            </div>
+            <div class="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+              <button type="button" (click)="selectedBillingCycle.set('monthly')"
+                      class="px-3 py-2 text-xs font-semibold rounded-lg transition-colors"
+                      [class]="selectedBillingCycle() === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'">
+                Monthly
+              </button>
+              <button type="button" (click)="selectedBillingCycle.set('yearly')"
+                      class="px-3 py-2 text-xs font-semibold rounded-lg transition-colors"
+                      [class]="selectedBillingCycle() === 'yearly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'">
+                Yearly
+              </button>
+            </div>
           </div>
 
           <!-- Plan comparison cards -->
@@ -1139,15 +1155,21 @@
                     <p class="font-bold text-gray-900 text-sm">{{ p.label }}</p>
                     <p class="text-2xl font-extrabold mt-0.5"
                        [class]="p.id === 'pro' ? 'text-purple-600' : p.id === 'starter' ? 'text-blue-600' : 'text-gray-500'">
-                      {{ p.price }}<span class="text-xs font-semibold text-gray-400 ml-0.5">{{ p.period }}</span>
+                      @if (p.id === 'trial') {
+                        ₹0<span class="text-xs font-semibold text-gray-400 ml-0.5">{{ p.period }}</span>
+                      } @else {
+                        {{ planPrice(p.id === 'pro' ? 'pro' : 'starter') }}
+                      }
                     </p>
                   </div>
                   @if ((p.id === 'trial' && (isTrial || isExpired)) ||
+                       (p.id === 'starter' && plan === 'starter' && isPending) ||
+                       (p.id === 'pro' && plan === 'pro' && isPending) ||
                        (p.id === 'starter' && isStarter) ||
                        (p.id === 'pro' && isPro)) {
                     <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full"
-                          [class]="isExpired && p.id === 'trial' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'">
-                      {{ isExpired && p.id === 'trial' ? 'Expired' : 'Current' }}
+                          [class]="isExpired && p.id === 'trial' ? 'bg-red-100 text-red-600' : isPending && plan === p.id ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+                      {{ isExpired && p.id === 'trial' ? 'Expired' : isPending && plan === p.id ? 'Pending' : 'Current' }}
                     </span>
                   }
                 </div>
@@ -1178,13 +1200,13 @@
 
                 @if (!((p.id === 'trial' && isTrial) || (p.id === 'starter' && isStarter) || (p.id === 'pro' && isPro))) {
                   @if (p.id === 'starter' || p.id === 'pro') {
-                    <button type="button" (click)="upgradePlan(p.id === 'pro' ? 'pro' : 'starter')"
+                    <button type="button" (click)="upgradePlan(p.id === 'pro' ? 'pro' : 'starter', selectedBillingCycle())"
                             [disabled]="upgrading()"
                             class="block w-full text-center text-sm font-bold py-2.5 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-wait"
                             [class]="p.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'">
                       @if (upgrading()) { Processingâ€¦ }
-                      @else if (p.id === 'starter') { Upgrade to Starter · ₹999/mo }
-                      @else { Upgrade to Pro · ₹2,499/mo }
+                      @else if (p.id === 'starter') { {{ upgradeButtonLabel('starter') }} }
+                      @else { {{ upgradeButtonLabel('pro') }} }
                     </button>
                   } @else {
                     <span class="block w-full text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400 cursor-default">

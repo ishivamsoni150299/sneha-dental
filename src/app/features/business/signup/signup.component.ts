@@ -37,6 +37,7 @@ function toSlug(name: string): string {
 }
 
 type SignupPlan = 'trial' | 'starter' | 'pro';
+type SignupBillingCycle = 'monthly' | 'yearly';
 
 interface MarketingAttribution {
   plan: SignupPlan;
@@ -119,7 +120,12 @@ export class SignupComponent implements OnInit {
   readonly error      = signal<string | null>(null);
   readonly result     = signal<{
     siteUrl: string; adminUrl: string; email: string;
-    plan: string; paymentUrl: string | null; trialEndDate: string | null;
+    plan: string;
+    billingCycle: SignupBillingCycle;
+    paymentUrl: string | null;
+    manualPaymentUrl: string | null;
+    paymentMode: 'subscription' | 'manual' | null;
+    trialEndDate: string | null;
   } | null>(null);
   readonly attribution = signal<MarketingAttribution | null>(null);
 
@@ -345,6 +351,7 @@ export class SignupComponent implements OnInit {
 
   // ── Plan ─────────────────────────────────────────────────────────────────
   readonly selectedPlan = signal<SignupPlan>('trial');
+  readonly selectedBillingCycle = signal<SignupBillingCycle>('monthly');
 
   readonly plans = [
     {
@@ -367,6 +374,21 @@ export class SignupComponent implements OnInit {
                  'Priority WhatsApp support', 'Revenue & analytics dashboard'],
     },
   ];
+
+  planAmount(plan: SignupPlan): number {
+    if (plan === 'trial') return 0;
+    if (plan === 'starter') return this.selectedBillingCycle() === 'yearly' ? 9999 : 999;
+    return this.selectedBillingCycle() === 'yearly' ? 24999 : 2499;
+  }
+
+  planAmountLabel(plan: SignupPlan): string {
+    return `₹${this.planAmount(plan).toLocaleString('en-IN')}`;
+  }
+
+  planPeriodLabel(plan: SignupPlan): string {
+    if (plan === 'trial') return '30 days';
+    return this.selectedBillingCycle() === 'yearly' ? '/year' : '/month';
+  }
 
   // ── Slug availability ────────────────────────────────────────────────────
   readonly slugChecking  = signal(false);
@@ -422,6 +444,7 @@ export class SignupComponent implements OnInit {
   private captureMarketingContext(): void {
     const queryParams = this.route.snapshot.queryParamMap;
     const plan = this.normalizePlan(queryParams.get('plan'));
+    const billingCycle = queryParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly';
     const attribution: MarketingAttribution = {
       plan,
       source: queryParams.get('source') ?? 'direct',
@@ -435,6 +458,7 @@ export class SignupComponent implements OnInit {
     };
 
     this.selectedPlan.set(plan);
+    this.selectedBillingCycle.set(billingCycle);
     this.attribution.set(attribution);
   }
 
@@ -507,6 +531,7 @@ export class SignupComponent implements OnInit {
           whatsappNumber:      s1.phone.replace(/\D/g, ''),
           slug,
           plan:  this.selectedPlan(),
+          billingCycle: this.selectedBillingCycle(),
           theme: this.selectedTheme().id,
           marketing: this.attribution(),
           logoDataUrl: null,
@@ -517,7 +542,12 @@ export class SignupComponent implements OnInit {
 
       const data = await resp.json() as {
         siteUrl?: string; adminUrl?: string; email?: string;
-        plan?: string; paymentUrl?: string | null; trialEndDate?: string | null;
+        plan?: string;
+        billingCycle?: SignupBillingCycle;
+        paymentUrl?: string | null;
+        manualPaymentUrl?: string | null;
+        paymentMode?: 'subscription' | 'manual' | null;
+        trialEndDate?: string | null;
         error?: string;
       };
       if (!resp.ok) {
@@ -531,7 +561,10 @@ export class SignupComponent implements OnInit {
         adminUrl:     data.adminUrl     ?? '',
         email:        data.email        ?? '',
         plan:         data.plan         ?? 'trial',
+        billingCycle: data.billingCycle ?? this.selectedBillingCycle(),
         paymentUrl:   data.paymentUrl   ?? null,
+        manualPaymentUrl: data.manualPaymentUrl ?? null,
+        paymentMode:  data.paymentMode  ?? null,
         trialEndDate: data.trialEndDate ?? null,
       });
       this.step.set(5);

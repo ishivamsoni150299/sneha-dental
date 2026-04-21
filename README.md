@@ -1,473 +1,353 @@
 # My Dental Platform
 
-> Multi-tenant dental clinic SaaS — one codebase, unlimited clinics.  
-> **Stack:** Angular 19 · Tailwind CSS v3 · Firebase · Vercel · ElevenLabs · Claude AI · Razorpay
+Multi-tenant dental clinic SaaS for patient websites, appointment booking, clinic operations, leads, WhatsApp follow-up, and AI-assisted communication.
 
----
+Stack: Angular 19, Tailwind CSS v3, Firebase, Vercel, ElevenLabs, Anthropic, Razorpay
 
 ## Table of Contents
 
-1. [Quick Start](#1-quick-start)
-2. [System Architecture](#2-system-architecture)
-3. [Vercel — Frontend & API](#3-vercel--frontend--api)
-4. [Firebase — Auth & Database](#4-firebase--auth--database)
-5. [Firestore Data Model](#5-firestore-data-model)
-6. [Multi-Tenancy](#6-multi-tenancy)
-7. [Routing & Guards](#7-routing--guards)
-8. [Environment Variables](#8-environment-variables)
-9. [One-Time Setup](#9-one-time-setup)
-10. [Self-Service Clinic Signup](#10-self-service-clinic-signup)
-11. [AI Voice & Chat Agents](#11-ai-voice--chat-agents)
-12. [Billing — Razorpay](#12-billing--razorpay)
-13. [Deployment](#13-deployment)
-14. [Testing](#14-testing)
-
----
+1. Quick Start
+2. System Architecture
+3. Vercel Frontend and API
+4. Firebase Auth and Database
+5. Firestore Data Model
+6. Multi-Tenancy
+7. Routing and Guards
+8. Environment Variables
+9. One-Time Setup
+10. Self-Service Clinic Signup
+11. AI Voice and Chat Agents
+12. Billing and Subscriptions
+13. Deployment
+14. Testing
 
 ## 1. Quick Start
 
 ```bash
-npm install          # install dependencies (uses legacy-peer-deps via .npmrc)
-npm start            # dev server → http://localhost:4200
-npm run build        # production build → dist/mydentalplatform/browser/
-npm test             # unit tests (Karma + Jasmine)
-npm run lint         # ESLint
+npm install
+npm start
+npm run build
+npm test
+npm run lint
+```
 
-# Generate a new page component
+Generate a new standalone page component:
+
+```bash
 ng generate component features/<name>/<name> --standalone --style css
 ```
 
-> **Local API functions:** To run `/api/*` serverless functions locally, use `npx vercel dev` instead of `npm start`.
+To run `/api/*` serverless functions locally, use Vercel dev instead of the Angular dev server:
 
----
+```bash
+npx vercel dev
+```
 
 ## 2. System Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                       BROWSER (Patient / Admin)                  │
-│   clinicname.mydentalplatform.com  OR  snehadental.com           │
-└─────────────────────────┬────────────────────────────────────────┘
-                          │ HTTPS
-                          ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                         VERCEL EDGE                              │
-│  • Serves Angular SPA  (dist/mydentalplatform/browser/)          │
-│  • Routes /api/* → Node 18 serverless functions                  │
-│  • SPA catch-all: everything else → index.html                   │
-└────────────┬──────────────────────────────┬──────────────────────┘
-             │ SPA                           │ /api/*
-             ▼                              ▼
-┌───────────────────────┐     ┌─────────────────────────────────┐
-│   Angular 19 App      │     │   8 Serverless API Functions    │
-│                       │     │                                  │
-│  APP_INITIALIZER      │     │  chat.ts                         │
-│    → hostname lookup  │     │  create-subscription.ts          │
-│    → Firestore query  │     │  elevenlabs-create-agent.ts      │
-│    → load clinic doc  │     │  elevenlabs-update-agent.ts      │
-│    → render UI        │     │  elevenlabs-usage.ts             │
-│                       │     │  elevenlabs-webhook.ts           │
-│  Firebase Client SDK  │     │  razorpay-webhook.ts             │
-│  ElevenLabs SDK       │     │  self-signup.ts                  │
-└────────────┬──────────┘     └────────────┬────────────────────┘
-             │                             │
-             ▼                             ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                     FIREBASE (sneha-dental-6373b)                │
-│                                                                  │
-│  Authentication:  Email/Password + Google OAuth                  │
-│  Firestore:       clinics · appointments · leads · platform …    │
-│  Security Rules:  firestore.rules (role-based, owner-scoped)     │
-└────────────┬─────────────────────────────────────────────────────┘
-             │
-     ┌───────┴────────────────────────────┐
-     ▼                                    ▼
-┌──────────────┐                  ┌──────────────────┐
-│  ElevenLabs  │                  │    Razorpay       │
-│  Voice Agent │                  │  Subscription     │
-│  (per clinic)│                  │  Billing          │
-└──────────────┘                  └──────────────────┘
+```text
+Browser (patient or admin)
+  -> Angular SPA on Vercel
+  -> /api/* routed to Node serverless functions
+  -> Firebase Auth + Firestore for data and access control
+  -> Razorpay for subscription billing
+  -> ElevenLabs for voice-agent workflows
 ```
 
----
+High-level runtime flow:
 
-## 3. Vercel — Frontend & API
+1. The app reads the current hostname.
+2. The clinic config loader resolves that hostname to a Firestore clinic document.
+3. Theme, services, hours, doctors, and booking rules are loaded from that clinic document.
+4. Patient-facing pages and admin pages render from the same codebase with clinic-specific data.
+
+## 3. Vercel Frontend and API
 
 | Setting | Value |
-|---------|-------|
+|---|---|
 | Build command | `npm run build` |
 | Output directory | `dist/mydentalplatform/browser/` |
-| Framework | `null` (Angular custom build) |
-| Node runtime | 18.x |
-| SPA rewrite | `/*` → `index.html` |
-| API rewrite | `/api/*` → serverless functions |
+| Runtime | Node 18 |
+| Frontend routing | SPA rewrite to `index.html` |
+| API routing | `/api/*` to serverless functions |
 
-### 8 Serverless API Functions
+Current serverless endpoints are designed to stay within the Vercel Hobby plan function limit.
 
 | File | Method | Purpose |
-|------|--------|---------|
-| `api/chat.ts` | POST | Claude Haiku AI text receptionist for website chat widget |
-| `api/create-subscription.ts` | POST | Create Razorpay plan + subscription for clinic billing |
-| `api/elevenlabs-create-agent.ts` | POST | Provision ElevenLabs voice agent for a new clinic |
-| `api/elevenlabs-update-agent.ts` | POST | Sync voice agent greeting, language, persona settings |
-| `api/elevenlabs-usage.ts` | GET | Monthly voice agent usage stats (conversations, minutes) |
-| `api/elevenlabs-webhook.ts` | POST | Post-call webhook: extract booking details → Firestore |
-| `api/razorpay-webhook.ts` | POST | Payment events → update clinic subscription status |
-| `api/self-signup.ts` | POST | Full clinic onboarding: Firebase Auth + Firestore + Vercel domain + Razorpay |
+|---|---|---|
+| `api/chat.ts` | POST | Website chat receptionist backed by Anthropic |
+| `api/create-subscription.ts` | POST | Creates clinic billing checkout |
+| `api/elevenlabs-create-agent.ts` | POST | Provisions a clinic voice agent |
+| `api/elevenlabs-update-agent.ts` | POST | Updates voice agent settings |
+| `api/elevenlabs-usage.ts` | GET | Voice usage stats |
+| `api/elevenlabs-webhook.ts` | POST | Post-call appointment extraction |
+| `api/razorpay-webhook.ts` | POST | Subscription payment status updates |
+| `api/self-signup.ts` | POST | Clinic self-onboarding |
 
-All API functions use **Firebase Admin SDK** for privileged Firestore writes, and verify webhook signatures before processing.
+## 4. Firebase Auth and Database
 
----
+Project ID: `sneha-dental-6373b`
 
-## 4. Firebase — Auth & Database
+Authentication providers:
 
-**Project ID:** `sneha-dental-6373b` *(Firebase project identifier — cannot be renamed)*
+- Email/password for clinic owners and super admins
+- Google OAuth for clinic owners when enabled
 
-### Authentication
-
-| Provider | Used by |
-|----------|---------|
-| Email / Password | Clinic owners, platform super admins |
-| Google OAuth | Clinic owners (optional) |
-
-Two separate auth services:
-- `AuthService` — clinic staff login → `/business/login` → accesses `/business/clinic/*`
-- `SuperAuthService` — platform admin login → accesses `/business/clinics`, revenue, leads
-
-### Deploying Security Rules
+Deploy rules and indexes manually when they change:
 
 ```bash
 firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
 ```
 
----
-
 ## 5. Firestore Data Model
 
-```
-clinics/{clinicId}
-  Fields: name, doctorName, phone, domain, vercelDomain, active,
-          subscriptionPlan, subscriptionStatus, trialEndDate,
-          theme, bookingRefPrefix, hours, services, plans,
-          testimonials, adminUid, elevenLabsAgentId, createdAt
-  Rules:  public read · superAdmin create · owner/superAdmin update+delete
+Main collections:
 
-  └── doctors/{doctorId}
-        Fields: name, qualification, speciality, available,
-                schedule (Record<weekday, {enabled,start,end}>), createdAt
-        Rules:  public read · clinic owner write
+- `clinics`
+- `appointments`
+- `contacts`
+- `leads`
+- `superAdmins`
+- `analytics`
+- `platform`
 
-appointments/{appointmentId}
-  Fields: clinicId, bookingRef, name, phone, email, service, date, time,
-          doctorId, doctorName, message, status, source, createdAt
-  Rules:  public create+read · auth update+delete
+Typical `clinics` fields include:
 
-contacts/{docId}
-  Fields: clinicId, name, phone, email, message, createdAt
-  Rules:  public create · superAdmin manage
-
-leads/{leadId}
-  Fields: clinicName, doctorName, phone, city, source, status,
-          followUpDate, notes, referredBy, createdAt
-  Rules:  authenticated only
-
-  └── activities/{activityId}
-        Fields: type (whatsapp|called|note|status_change), note, createdAt
-        Rules:  authenticated only
-
-superAdmins/{uid}
-  Fields: (document existence = access granted)
-  Rules:  read own doc only · no client writes (seeded via Admin SDK)
-
-analytics/{docId}
-  Fields: totalBookings, monthlyBookings, ...
-  Rules:  public write (atomic increments) · auth read
-
-platform/{docId}
-  Fields: monthlyCosts (vercel, firebase, domain, other)
-  Rules:  superAdmin only
-```
-
-**Firestore indexes** (`firestore.indexes.json`):
-- `appointments`: `(clinicId, bookingRef, phone)` — patient lookup
-- `appointments`: `(clinicId, createdAt DESC)` — admin dashboard list
-
----
+- `name`
+- `doctorName`
+- `phone`
+- `domain`
+- `vercelDomain`
+- `active`
+- `subscriptionPlan`
+- `subscriptionStatus`
+- `billingCycle`
+- `trialEndDate`
+- `theme`
+- `bookingRefPrefix`
+- `hours`
+- `services`
+- `testimonials`
+- `adminUid`
+- `elevenLabsAgentId`
 
 ## 6. Multi-Tenancy
 
-One Vercel deployment, one Firebase project — serves every clinic.
+One Vercel project and one Firebase project serve every clinic.
 
-**Boot sequence:**
-```
-1. APP_INITIALIZER calls ClinicConfigService.loadFromFirestore()
-2. Reads window.location.hostname
-3. Firestore query: clinics WHERE domains array-contains hostname
-   (falls back to vercelDomain match on second attempt)
-4. Loads clinic doc → stores in ClinicConfigService signal
-5. ThemeService applies CSS vars: --accent, --accent-dk, --accent-sh
-6. All components read from ClinicConfigService.config
-```
+Boot sequence:
 
-**Adding a new clinic:**
-- Use `/business/clinics/new` in the super admin panel, OR
-- Direct to `/business/signup` for self-service (fully automated)
+1. `ClinicConfigService` reads `window.location.hostname`.
+2. Firestore resolves the hostname to a clinic document.
+3. The clinic config signal is populated.
+4. Theme variables and public website content are applied from clinic data.
 
-**Custom domains** (e.g. `snehadental.com`):
-1. Clinic owner adds CNAME → Vercel in their DNS
-2. Add `domain: 'snehadental.com'` to their Firestore doc
-3. Add domain in Vercel dashboard for this project
+Custom domain flow:
 
----
+1. Point the clinic domain to Vercel.
+2. Save that domain in the clinic Firestore document.
+3. Add the domain in the Vercel project.
 
-## 7. Routing & Guards
+## 7. Routing and Guards
 
-```
-/                        → HomeComponent          (ClinicLayout)
-/services                → ServicesComponent
-/about                   → AboutComponent
-/appointment             → AppointmentComponent
-/appointment/confirmed   → ConfirmedComponent
-/my-appointment          → MyAppointmentComponent
-/gallery                 → GalleryComponent
-/testimonials            → TestimonialsComponent
-/contact                 → ContactComponent
-/coming-soon             → ComingSoonComponent
+Public routes:
 
-/business                → PlatformLandingComponent  (public)
-/business/signup         → SignupComponent
-/business/login          → BusinessLoginComponent
+- `/`
+- `/services`
+- `/about`
+- `/appointment`
+- `/appointment/confirmed`
+- `/my-appointment`
+- `/gallery`
+- `/testimonials`
+- `/contact`
 
-/business/clinic/*       → [clinicAdminGuard]
-  /dashboard             → AdminDashboardComponent
-  /settings              → AdminSettingsComponent
-  /doctors               → AdminDoctorsComponent
+Business routes:
 
-/business/clinics        → [superAdminGuard]
-/business/revenue        → RevenueComponent
-/business/analytics      → AnalyticsComponent
-/business/leads          → LeadListComponent
-...
+- `/business`
+- `/business/signup`
+- `/business/login`
+- `/business/clinic/*`
+- `/business/clinics`
+- `/business/revenue`
+- `/business/analytics`
+- `/business/leads`
 
-/admin/login             → redirect → /business/login
-/admin                   → redirect → /business/clinic/dashboard
-```
+Security guards:
 
-**Guard chain:**
-```
-clinic-required.guard  →  blocks clinic routes when no clinic doc loaded
-clinic-admin.guard     →  /business/clinic/* — requires auth + clinicId claim
-super-admin.guard      →  /business/clinics,revenue,leads — requires superAdmins/{uid}
-```
-
----
+- `clinic-required.guard`
+- `clinic-admin.guard`
+- `super-admin.guard`
 
 ## 8. Environment Variables
 
-All set in **Vercel Dashboard → Project → Settings → Environment Variables**.  
-For local dev, copy `.env.example` → `.env.local` and fill in values.
+Set all server-side values in the Vercel project settings. For local work, copy `.env.example` to `.env.local`.
 
-| Variable | Required | Source |
-|----------|----------|--------|
-| `FIREBASE_PROJECT_ID` | Yes | Firebase Console → Service Accounts |
-| `FIREBASE_CLIENT_EMAIL` | Yes | Firebase Console → Service Accounts |
-| `FIREBASE_PRIVATE_KEY` | Yes | Firebase Console → Service Accounts |
-| `ANTHROPIC_API_KEY` | Yes | console.anthropic.com/account/keys |
-| `ELEVENLABS_API_KEY` | Yes | elevenlabs.io → Settings → API Keys |
-| `ELEVENLABS_WEBHOOK_SECRET` | Yes | Random string — set same in ElevenLabs dashboard |
-| `RAZORPAY_KEY_ID` | Yes | dashboard.razorpay.com → Settings → API Keys |
-| `RAZORPAY_KEY_SECRET` | Yes | dashboard.razorpay.com → Settings → API Keys |
-| `RAZORPAY_WEBHOOK_SECRET` | Yes | Random string — set same in Razorpay dashboard |
-| `RAZORPAY_PLAN_STARTER` | Yes | Razorpay plan ID for ₹499/mo |
-| `RAZORPAY_PLAN_PRO` | Yes | Razorpay plan ID for ₹999/mo |
-| `VERCEL_TOKEN` | Yes | vercel.com → Account Settings → Tokens |
-| `VERCEL_PROJECT_ID` | Yes | Vercel → Project → Settings → General |
-| `APP_BASE_URL` | Yes | `https://mydentalplatform.com` |
-| `GOOGLE_MAPS_API_KEY` | Optional | Google Cloud Console (Maps JS + Places API) |
+| Variable | Required | Purpose |
+|---|---|---|
+| `FIREBASE_PROJECT_ID` | Yes | Firebase Admin SDK |
+| `FIREBASE_CLIENT_EMAIL` | Yes | Firebase Admin SDK |
+| `FIREBASE_PRIVATE_KEY` | Yes | Firebase Admin SDK |
+| `ANTHROPIC_API_KEY` | Yes | Chat assistant |
+| `ELEVENLABS_API_KEY` | Yes | Voice agent API |
+| `ELEVENLABS_WEBHOOK_SECRET` | Yes | ElevenLabs webhook verification |
+| `RAZORPAY_KEY_ID` | Yes | Razorpay API |
+| `RAZORPAY_KEY_SECRET` | Yes | Razorpay API |
+| `RAZORPAY_WEBHOOK_SECRET` | Yes | Razorpay webhook verification |
+| `RAZORPAY_PLAN_STARTER` | Optional | Legacy monthly fallback for Starter |
+| `RAZORPAY_PLAN_STARTER_MONTHLY` | Yes for subscriptions | Starter monthly plan id |
+| `RAZORPAY_PLAN_STARTER_YEARLY` | Yes for subscriptions | Starter yearly plan id |
+| `RAZORPAY_PLAN_PRO` | Optional | Legacy monthly fallback for Pro |
+| `RAZORPAY_PLAN_PRO_MONTHLY` | Yes for subscriptions | Pro monthly plan id |
+| `RAZORPAY_PLAN_PRO_YEARLY` | Yes for subscriptions | Pro yearly plan id |
+| `PUBLIC_RAZORPAY_ME_URL` | Recommended | Manual backup payment link |
+| `VERCEL_TOKEN` | Yes | Vercel API for self-signup domain setup |
+| `VERCEL_PROJECT_ID` | Yes | Vercel project id |
+| `APP_BASE_URL` | Yes | Platform base URL |
+| `GOOGLE_MAPS_API_KEY` | Optional | Places autocomplete |
 
-> **Angular client-side Firebase config** (`apiKey`, `appId`, etc.) lives in  
-> `src/environments/environment.ts` — these are **public keys**, safe to commit.
-
----
+Angular Firebase client config stays in `src/environments/environment.ts`. Those browser keys are public and safe to ship.
 
 ## 9. One-Time Setup
 
 ### Firebase Service Account
 
-1. Firebase Console → Project Settings → Service Accounts → **Generate new private key**
-2. Download the JSON file
-3. Add `project_id`, `client_email`, `private_key` to Vercel env vars
+1. Firebase Console -> Project Settings -> Service Accounts
+2. Generate a new private key
+3. Copy `project_id`, `client_email`, and `private_key` into Vercel env vars
 
 ### Razorpay
 
-1. Sign up at razorpay.com and complete KYC
-2. Dashboard → Settings → API Keys → copy `Key ID` and `Key Secret`
-3. Create two subscription plans (Dashboard → Products → Subscriptions → Plans):
-   - **Starter** — ₹499/month
-   - **Pro** — ₹999/month
-4. Copy the `plan_xxx` IDs → set as `RAZORPAY_PLAN_STARTER` and `RAZORPAY_PLAN_PRO`
-5. Dashboard → Settings → Webhooks → Add webhook:
-   - URL: `https://mydentalplatform.vercel.app/api/razorpay-webhook`
-   - Events: all `subscription.*`
-   - Secret: set as `RAZORPAY_WEBHOOK_SECRET`
+1. Complete Razorpay account setup and KYC
+2. Copy `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`
+3. Create four hosted subscription plans in Razorpay:
+   - Starter monthly: Rs 999
+   - Starter yearly: Rs 9999
+   - Pro monthly: Rs 2499
+   - Pro yearly: Rs 24999
+4. Save those ids in the matching env vars
+5. Add webhook:
+   - URL: `https://www.mydentalplatform.com/api/razorpay-webhook`
+   - Events: `subscription.authenticated`, `subscription.pending`, `subscription.activated`, `subscription.charged`, `subscription.halted`, `subscription.cancelled`, `subscription.resumed`
+   - Secret: `RAZORPAY_WEBHOOK_SECRET`
+6. Set `PUBLIC_RAZORPAY_ME_URL=https://razorpay.me/@mydentalplatform` as a manual fallback payment path
+
+Recommended billing setup:
+
+- Primary: Razorpay hosted subscriptions for automatic recurring billing
+- Backup: Razorpay.me manual payment link for cases where subscription env vars are missing or you want a simple manual collection path
 
 ### ElevenLabs
 
-1. Sign up at elevenlabs.io
-2. Settings → API Keys → copy key → set as `ELEVENLABS_API_KEY`
-3. Dashboard → Webhooks → Add endpoint:
-   - URL: `https://mydentalplatform.vercel.app/api/elevenlabs-webhook`
-   - Secret: set as `ELEVENLABS_WEBHOOK_SECRET`
-4. Each clinic gets its own voice agent via the **"Create Voice Agent"** button in `/business/clinics`
+1. Create an ElevenLabs API key
+2. Set `ELEVENLABS_API_KEY`
+3. Add webhook URL `https://www.mydentalplatform.com/api/elevenlabs-webhook`
+4. Set the same shared secret in Vercel and ElevenLabs
 
 ### Vercel API Token
 
-Required for `self-signup.ts` to register new clinic subdomains programmatically:
+Used by self-signup to register clinic subdomains:
 
-1. vercel.com → Account Settings → Tokens → Create token (scope: Full Account)
-2. Set as `VERCEL_TOKEN`
-3. Vercel → mydentalplatform project → Settings → General → copy **Project ID**
-4. Set as `VERCEL_PROJECT_ID`
-
----
+1. Create a Vercel token
+2. Set `VERCEL_TOKEN`
+3. Copy the Vercel project id
+4. Set `VERCEL_PROJECT_ID`
 
 ## 10. Self-Service Clinic Signup
 
-Clinics sign up themselves at `/business/signup` — no manual work needed.
+Clinic onboarding lives at `/business/signup`.
 
-**What happens automatically:**
-1. Firebase Auth user created for clinic owner
-2. Firestore `clinics` document created with unique `clinicId`
-3. Subdomain assigned and live: `clinicname.mydentalplatform.com`
-4. 30-day free trial started
-5. If paid plan: Razorpay subscription created, payment link shown
+What happens automatically:
 
-**Infrastructure required (one-time):**
+1. Firebase Auth owner account is created
+2. Firestore clinic document is created
+3. A clinic subdomain is assigned
+4. The selected plan and billing cycle are stored
+5. For paid plans, checkout is generated through Razorpay subscriptions when configured
+6. If subscription setup is missing, the flow falls back to the Razorpay.me payment link
 
-Add a wildcard DNS record in your domain registrar (e.g. Hostinger):
+## 11. AI Voice and Chat Agents
 
-| Type | Name | Points to | TTL |
-|------|------|-----------|-----|
-| CNAME | `*` | `cname.vercel-dns.com` | 3600 |
+Text chat:
 
-This routes every `*.mydentalplatform.com` subdomain to Vercel.
+- Website widget powered by Anthropic
+- Context-aware prompt based on clinic profile and services
 
-**Your ongoing role after setup:**
-- **Custom domains** — add `domain` field to clinic's Firestore doc + configure in Vercel
-- **Content updates** — use `/business/clinics/:id/edit`
-- **Monitoring** — check `/business/revenue` and `/business/analytics`
+Voice agent:
 
----
+- Available only for Pro clinics with active access
+- Each clinic can have its own ElevenLabs agent id
+- Post-call webhook can create or enrich appointment data
 
-## 11. AI Voice & Chat Agents
+## 12. Billing and Subscriptions
 
-### Text Chat (Claude Haiku)
+| Plan | Monthly | Yearly | Notes |
+|---|---|---|---|
+| Free | Rs 0 | Rs 0 | Trial or restricted starter access depending on workflow |
+| Starter | Rs 999 | Rs 9999 | Website, booking, WhatsApp lead flow |
+| Pro | Rs 2499 | Rs 24999 | Starter plus AI voice and advanced workflows |
 
-- Widget: `VoiceAgentComponent` in `ClinicLayout` — active for all clinics
-- Backend: `POST /api/chat` → Anthropic API (`claude-haiku-4-5-20251001`)
-- System prompt scoped to clinic name + services, 250 token limit
-- Last 10 messages kept as history for context
+Current payment flow:
 
-### Voice Agent (ElevenLabs)
+1. User selects Starter or Pro and a billing cycle
+2. Frontend calls `/api/create-subscription` or `/api/self-signup`
+3. If Razorpay subscription plans are configured, the user gets a hosted subscription checkout URL
+4. If not, the API returns the `PUBLIC_RAZORPAY_ME_URL` manual payment link
+5. Razorpay webhook updates Firestore subscription state after payment events
 
-- Active only for **Pro plan** clinics with `subscriptionStatus: 'active'`
-- Each clinic has its own ElevenLabs agent (stored as `elevenLabsAgentId` in Firestore)
-- Create agent: `POST /api/elevenlabs-create-agent` (called from `/business/clinics`)
-- Post-call webhook: `POST /api/elevenlabs-webhook` → extracts name, phone, service, date/time → creates `appointments` doc
+Stored subscription state includes:
 
-**Agent configuration** (editable in `/business/clinic/settings` → Voice Agent tab):
-- Greeting message
-- Language (Hindi/English/Hinglish)
-- Persona/tone
-- Voice selection
-
----
-
-## 12. Billing — Razorpay
-
-| Plan | Price | Features |
-|------|-------|---------|
-| Free Trial | ₹0 / 30 days | Full platform access |
-| Starter | ₹499/mo | Website, booking, WhatsApp |
-| Pro | ₹999/mo | + Voice agent, advanced analytics |
-
-**Payment flow:**
-1. Super admin clicks "Send Payment Link" in `/business/clinics`
-2. `POST /api/create-subscription` creates Razorpay plan + subscription
-3. Short payment URL sent to clinic owner via WhatsApp
-4. Clinic pays → Razorpay fires `subscription.activated` webhook
-5. `POST /api/razorpay-webhook` updates Firestore: `subscriptionStatus: 'active'`
-6. If payment fails → `subscription.halted` → clinic site auto-suspends
-
----
+- `subscriptionPlan`
+- `billingCycle`
+- `subscriptionStatus`
+- `razorpaySubscriptionId`
+- `lastPaymentDate`
+- `lastPaymentAmount`
+- `subscriptionEndDate`
 
 ## 13. Deployment
 
-### Vercel (primary — auto-deploys on every push to `main`)
+Vercel auto-deploys on push to `main`.
 
 ```bash
-git push origin main   # triggers Vercel deployment automatically
+git push origin main
 ```
 
 Manual deploy:
+
 ```bash
 npx vercel --prod
 ```
 
-### Firebase (rules + indexes — deploy manually when changed)
+Firebase deploys are separate:
 
 ```bash
-firebase deploy --only firestore:rules     # after editing firestore.rules
-firebase deploy --only firestore:indexes   # after editing firestore.indexes.json
-firebase deploy --only hosting             # if using Firebase Hosting instead of Vercel
+firebase deploy --only firestore:rules
+firebase deploy --only firestore:indexes
 ```
 
-### Build verification before pushing
+Recommended validation before pushing:
 
 ```bash
-npm run build    # must succeed with zero errors
-npm run lint     # must produce zero warnings (max-warnings=0)
+npm run build
 ```
 
----
+`npm run lint` currently has substantial pre-existing repo debt, so build verification is the reliable gate for this repository right now.
 
 ## 14. Testing
 
-**Runner:** Karma + Jasmine (`npm test`)  
-**Current coverage:** Guards and key services have spec files. Components are untested.
-
-### Coverage Targets
-
-| Layer | Target |
-|-------|--------|
-| Guards | 100% — security must not regress |
-| Core services (auth, appointment, billing) | 90% |
-| Utilities / helpers | 95% |
-| Shared components | 70% |
-| Feature components | 50% |
-| **Overall** | ≥65% |
-
-### Critical Test Areas (priority order)
-
-1. **Guards** — `clinic-required.guard`, `clinic-admin.guard`, `super-admin.guard`
-2. **`appointment.service.ts`** — `bookAppointment()`, `cancelAppointment()` (24h rule), `getByRef()`
-3. **`auth.service.ts`** — login, logout, `isLoggedIn` signal, session restore
-4. **`doctor.service.ts`** — `getAvailableSlots()` (slot subtraction logic)
-5. **`clinic-config.service.ts`** — domain → Firestore → config load
-
-### Running with Firebase Emulator (integration tests)
+Primary commands:
 
 ```bash
-firebase emulators:start --only firestore,auth
 npm test
+npm run build
 ```
 
-Integration tests in `auth.service.spec.ts` are marked `pending` until emulator is available.
+Critical areas to cover when adding tests:
 
-### E2E (future — Playwright recommended)
-
-Three critical journeys to cover:
-1. Patient books appointment end-to-end
-2. Admin confirms → marks completed
-3. Clinic owner logs in → changes settings → logs out
+1. Guards
+2. Appointment booking and cancellation
+3. Auth and session restore
+4. Doctor slot calculations
+5. Clinic config loading by domain

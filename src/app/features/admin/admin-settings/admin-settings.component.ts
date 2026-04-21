@@ -15,7 +15,7 @@ import {
   ClinicConfig,
   ClinicService,
 } from '../../../core/config/clinic.config';
-import { BillingService, BillingPlan } from '../../../core/services/billing.service';
+import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 
 type TabId =
   | 'info'
@@ -118,6 +118,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   loading            = signal(true);
   upgrading          = signal(false);
   upgradeError       = signal<string | null>(null);
+  selectedBillingCycle = signal<BillingCycle>('monthly');
   activeTab          = signal<TabId>('info');
   savingInfo         = signal(false);
   savingContact      = signal(false);
@@ -265,6 +266,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   get isExpired() {
     return this.planStatus === 'expired' || (this.planStatus === 'trial' && this.trialDaysLeft <= 0);
   }
+  get isPending() { return this.planStatus === 'pending'; }
   get isTrial() { return this.planStatus === 'trial' && this.trialDaysLeft > 0; }
   get isStarter() { return this.plan === 'starter' && this.planStatus === 'active'; }
   get isPro() { return this.plan === 'pro' && this.planStatus === 'active'; }
@@ -287,6 +289,38 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   get setupDoneCount(): number { return this.setupChecklist.filter(item => item.done).length; }
   get setupScore(): number {
     return Math.round((this.setupDoneCount / this.setupChecklist.length) * 100);
+  }
+
+  planPrice(plan: BillingPlan): string {
+    const amount = this.billing.planAmount(plan, this.selectedBillingCycle());
+    const suffix = this.selectedBillingCycle() === 'yearly' ? '/year' : '/month';
+    return `₹${amount.toLocaleString('en-IN')}${suffix}`;
+  }
+
+  currentPlanLabel(): string {
+    const cycle = this.cfg.billingCycle ?? 'monthly';
+    const suffix = cycle === 'yearly' ? '/year' : '/month';
+
+    if (this.isExpired) return 'Trial expired';
+    if (this.isPending) {
+      const pendingPlan = this.plan === 'pro' ? 'Pro' : 'Starter';
+      return `${pendingPlan} pending payment`;
+    }
+    if (this.isTrial) return `Free Trial - ${this.trialDaysLeft} days left`;
+    if (this.isStarter) return `Starter - ₹999${suffix}`;
+    if (this.isPro) return `Pro - ₹2,499${suffix}`;
+    return 'Trial';
+  }
+
+  upgradeTargetPlan(): BillingPlan {
+    if (this.plan === 'pro' && this.isPending) return 'pro';
+    if (this.isStarter) return 'pro';
+    return 'starter';
+  }
+
+  upgradeButtonLabel(plan: BillingPlan): string {
+    const prefix = this.isPending && this.plan === plan ? 'Complete' : 'Upgrade to';
+    return `${prefix} ${plan === 'pro' ? 'Pro' : 'Starter'} - ${this.planPrice(plan)}`;
   }
 
   markDirty(tab: TabId) { this.dirtyTabs.update(set => new Set([...set, tab])); }
@@ -802,19 +836,20 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async upgradePlan(plan: BillingPlan) {
+  async upgradePlan(plan: BillingPlan, billingCycle: BillingCycle = this.selectedBillingCycle()) {
     if (this.upgrading()) return;
 
     this.upgrading.set(true);
     this.upgradeError.set(null);
     try {
-      const { shortUrl } = await this.billing.createSubscription(
+      const { paymentUrl } = await this.billing.createSubscription(
         this.cfg.clinicId ?? '',
         plan,
+        billingCycle,
         this.cfg.name,
         this.cfg.phone,
       );
-      window.open(shortUrl, '_blank', 'noopener');
+      window.open(paymentUrl, '_blank', 'noopener');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not initiate payment. Try again.';
       this.upgradeError.set(message);

@@ -4,7 +4,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
-import { BillingService, BillingPlan } from '../../../core/services/billing.service';
+import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 interface Toast { msg: string; type: 'success' | 'error' }
@@ -34,6 +34,7 @@ export class ClinicListComponent implements OnInit {
   // ── Billing ───────────────────────────────────────────────────────────────
   billingClinicId  = signal<string | null>(null);   // which card is showing plan picker
   billingPlan      = signal<BillingPlan>('starter'); // selected plan in picker
+  billingCycle     = signal<BillingCycle>('monthly');
   sendingPayment   = signal<string | null>(null);    // id being processed
 
   // ── Voice Agent ───────────────────────────────────────────────────────────
@@ -132,6 +133,9 @@ export class ClinicListComponent implements OnInit {
     if (status === 'active') {
       return { label: `${planLabel} · Active`, classes: 'bg-green-100 text-green-700' };
     }
+    if (status === 'pending') {
+      return { label: `${planLabel} - Pending`, classes: 'bg-amber-100 text-amber-700' };
+    }
     if (status === 'expired') {
       return { label: 'Expired', classes: 'bg-red-100 text-red-700' };
     }
@@ -153,10 +157,17 @@ export class ClinicListComponent implements OnInit {
   openBilling(clinicId: string) {
     this.billingClinicId.set(clinicId);
     this.billingPlan.set('starter');
+    this.billingCycle.set('monthly');
   }
 
   closeBilling() {
     this.billingClinicId.set(null);
+  }
+
+  billingPlanPrice(plan: BillingPlan): string {
+    const amount = this.billing.planAmount(plan, this.billingCycle());
+    const suffix = this.billingCycle() === 'yearly' ? '/year' : '/month';
+    return `₹${amount.toLocaleString('en-IN')}${suffix}`;
   }
 
   async sendPaymentLink(clinic: StoredClinic) {
@@ -166,17 +177,26 @@ export class ClinicListComponent implements OnInit {
       const result = await this.billing.createSubscription(
         clinic.id,
         this.billingPlan(),
+        this.billingCycle(),
         clinic.name,
         phone,
       );
 
       // Store subscription ID in Firestore so we can track it
-      await this.clinicStore.update(clinic.id, {
-        razorpaySubscriptionId: result.subscriptionId,
-      } as Parameters<typeof this.clinicStore.update>[1]);
+      if (result.subscriptionId) {
+        await this.clinicStore.update(clinic.id, {
+          razorpaySubscriptionId: result.subscriptionId,
+        } as Parameters<typeof this.clinicStore.update>[1]);
+      }
 
       // Open WhatsApp with payment link — clinic owner clicks once, Razorpay does the rest
-      const waUrl = this.billing.whatsappPaymentMessage(clinic.name, this.billingPlan(), result.shortUrl);
+      const waUrl = this.billing.whatsappPaymentMessage(
+        clinic.name,
+        this.billingPlan(),
+        this.billingCycle(),
+        result.paymentUrl,
+        result.paymentMode,
+      );
       window.open(waUrl, '_blank');
 
       this.billingClinicId.set(null);

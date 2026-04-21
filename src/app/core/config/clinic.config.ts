@@ -60,7 +60,7 @@ export interface ClinicConfig {
 
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';
-  subscriptionStatus?: 'trial' | 'active' | 'expired' | 'cancelled';
+  subscriptionStatus?: 'trial' | 'pending' | 'active' | 'expired' | 'cancelled';
   trialEndDate?:       string;     // ISO date e.g. "2026-05-07"
   subscriptionEndDate?: string;    // ISO date — next renewal / expiry date
   billingCycle?:       'monthly' | 'yearly';

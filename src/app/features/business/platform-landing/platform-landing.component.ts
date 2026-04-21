@@ -306,6 +306,9 @@ export class PlatformLandingComponent {
 
   signupQuery(plan: PlanId, source: string, campaign = 'sales-sprint', offer?: string): Record<string, string> {
     const query: Record<string, string> = { plan, source, campaign };
+    if (plan !== 'trial') {
+      query['cycle'] = this.billingYearly() ? 'yearly' : 'monthly';
+    }
     if (offer) query['offer'] = offer;
     return query;
   }
