@@ -140,6 +140,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
     @if (clinic.isLoaded) {
       <app-voice-agent
         [agentId]="voiceAgentId()"
+        [clinicId]="clinic.config.clinicId || ''"
+        [bookingRefPrefix]="clinic.config.bookingRefPrefix"
         [clinicName]="clinic.config.name"
         [services]="serviceNames()"
         [city]="clinic.config.city"

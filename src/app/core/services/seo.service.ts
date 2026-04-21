@@ -27,9 +27,9 @@ type SeoContext =
     };
 
 const PLATFORM_NAME = 'mydentalplatform';
-const PLATFORM_DEFAULT_TITLE = 'mydentalplatform | Dental Clinic Website Platform';
+const PLATFORM_DEFAULT_TITLE = 'mydentalplatform | Dental Clinic Websites, Booking and AI Reception';
 const PLATFORM_DEFAULT_DESCRIPTION =
-  'Professional dental clinic websites with online booking, WhatsApp integration, AI reception, and conversion-focused patient pages.';
+  'Dental clinic websites with online booking, WhatsApp integration, AI chat, and AI voice receptionist. Starter ₹999/month. Pro ₹2,499/month.';
 const INDEXABLE_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 const NOINDEX_ROBOTS = 'noindex,nofollow';
 
@@ -131,7 +131,7 @@ export class SeoService {
         '@id': `${origin}/#organization`,
         name: PLATFORM_NAME,
         url: origin,
-        logo: this.absoluteUrl('/assets/brand/mydentalplatform-logo-full.svg'),
+        logo: this.absoluteUrl('/icons/icon-512.png'),
         image,
         description: PLATFORM_DEFAULT_DESCRIPTION,
       }),

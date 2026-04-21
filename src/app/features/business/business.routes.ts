@@ -10,8 +10,8 @@ export const businessRoutes: Routes = [
     loadComponent: () =>
       import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
     data: {
-      title: 'Dental Clinic Website Platform',
-      description: 'Launch a professional dental clinic website with online booking, WhatsApp integration, and AI reception.',
+      title: 'mydentalplatform | Dental Clinic Websites, Booking and AI Reception',
+      description: 'Launch a dental clinic website with online booking, WhatsApp, AI chat, and AI voice receptionist. Starter ₹999/month. Pro ₹2,499/month.',
     },
   },
 

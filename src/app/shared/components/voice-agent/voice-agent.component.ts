@@ -479,6 +479,8 @@ const QUICK_REPLIES = [
 export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   // ── Inputs ───────────────────────────────────────────────────────────────────
   readonly agentId    = input<string>('');
+  readonly clinicId   = input<string>('');
+  readonly bookingRefPrefix = input<string>('');
   readonly clinicName = input<string>('');
   readonly services   = input<string[]>([]);
   readonly city       = input<string>('');
@@ -641,6 +643,8 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          clinicId:    this.clinicId(),
+          bookingRefPrefix: this.bookingRefPrefix(),
           message:    text,
           clinicName: this.clinicName(),
           services:   this.services(),

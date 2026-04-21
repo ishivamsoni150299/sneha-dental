@@ -49,6 +49,7 @@ export function isPlatformHost(hostname: string): boolean {
 export function getSitemapUrls(baseUrl: string, hostname: string): string[] {
   if (isPlatformHost(hostname)) {
     return [
+      `${baseUrl}/`,
       `${baseUrl}/business`,
       `${baseUrl}/business/signup`,
     ];
