@@ -254,7 +254,7 @@ export class PlatformLandingComponent {
 
   readonly testimonials = [
     {
-      text: 'We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ₹499 we spend every month.',
+      text: 'We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ₹999 we spend every month.',
       name: 'Dr. Ramesh Kumar',
       clinic: 'Indram Dental, Jhansi',
       location: 'Uttar Pradesh',

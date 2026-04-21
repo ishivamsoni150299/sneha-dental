@@ -160,15 +160,15 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     {
       id: 'trial', label: 'Free Trial', price: '₹0', period: '30 days',
       features: ['Clinic website', 'Online booking', 'WhatsApp integration', 'Patient admin dashboard', 'Free subdomain'],
-      locked: ['Custom domain', 'AI Voice Receptionist', 'Content updates'],
+      locked: ['Custom logo upload', 'Theme controls', 'Remove mydentalplatform branding', 'Custom domain'],
     },
     {
-      id: 'starter', label: 'Starter', price: '₹499', period: '/month',
-      features: ['Everything in Trial', 'Custom domain setup', 'Free SSL certificate', 'Services catalogue', 'Email + WhatsApp support', '1 content update/month (text, image, or section)'],
-      locked: ['AI Voice Receptionist', 'Voice minutes'],
+      id: 'starter', label: 'Starter', price: '₹999', period: '/month',
+      features: ['Everything in Trial', 'Custom logo & theme controls', 'Remove mydentalplatform branding', 'Custom domain setup', 'Free SSL certificate', 'Email + WhatsApp support'],
+      locked: ['AI Voice Receptionist', 'WhatsApp AI auto replies', 'Voice minutes'],
     },
     {
-      id: 'pro', label: 'Pro', price: '₹1,499', period: '/month',
+      id: 'pro', label: 'Pro', price: '₹2,499', period: '/month',
       features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English + Hinglish', '30 voice min/month included', '₹20/min after 30 min', '3 content updates/month', '1 onboarding call (20 min)', 'Revenue & analytics dashboard', 'Priority support'],
       locked: [],
     },
@@ -268,6 +268,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   get isTrial() { return this.planStatus === 'trial' && this.trialDaysLeft > 0; }
   get isStarter() { return this.plan === 'starter' && this.planStatus === 'active'; }
   get isPro() { return this.plan === 'pro' && this.planStatus === 'active'; }
+  get canManageBranding() { return this.isStarter || this.isPro; }
 
   get setupChecklist(): Array<{ label: string; done: boolean; tab: TabId; hint: string }> {
     const c = this.cfg;
@@ -626,7 +627,17 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
+  private guardBrandingAccess(feature: 'theme controls' | 'custom logo uploads'): boolean {
+    if (this.canManageBranding) return true;
+
+    this.activeTab.set('subscription');
+    this.showToast(`Upgrade to Starter to unlock ${feature}.`, 'error');
+    return false;
+  }
+
   pickTheme(theme: ClinicConfig['theme']) {
+    if (!this.guardBrandingAccess('theme controls')) return;
+
     this.selectedTheme.set(theme);
     this.clinicCfg.updateConfig({ theme });
 
@@ -638,7 +649,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async saveTheme() {
-    if (!this.guardClinicId()) return;
+    if (!this.guardClinicId() || !this.guardBrandingAccess('theme controls')) return;
 
     this.savingTheme.set(true);
     try {
@@ -813,6 +824,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async onLogoFile(event: Event): Promise<void> {
+    if (!this.guardBrandingAccess('custom logo uploads')) return;
+
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
@@ -884,7 +897,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   async saveLogo(): Promise<void> {
     const dataUrl = this.logoPreview();
-    if (!dataUrl || !this.guardClinicId()) return;
+    if (!dataUrl || !this.guardClinicId() || !this.guardBrandingAccess('custom logo uploads')) return;
 
     this.savingLogo.set(true);
     try {
@@ -900,7 +913,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async removeLogo(): Promise<void> {
-    if (!this.guardClinicId()) return;
+    if (!this.guardClinicId() || !this.guardBrandingAccess('custom logo uploads')) return;
 
     this.savingLogo.set(true);
     try {

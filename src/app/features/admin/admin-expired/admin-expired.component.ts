@@ -56,7 +56,7 @@ import { AuthService } from '../../../core/services/auth.service';
             <!-- Starter -->
             <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 hover:border-blue-300 transition-colors">
               <p class="font-bold text-gray-900 mb-0.5">Starter</p>
-              <p class="text-2xl font-extrabold text-blue-600 mb-1">₹499<span class="text-sm font-normal text-gray-400">/mo</span></p>
+              <p class="text-2xl font-extrabold text-blue-600 mb-1">₹999<span class="text-sm font-normal text-gray-400">/mo</span></p>
               <ul class="space-y-1.5 text-xs text-gray-600">
                 <li class="flex items-center gap-1.5"><svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Professional website live instantly</li>
                 <li class="flex items-center gap-1.5"><svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Online appointment booking</li>
@@ -70,7 +70,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 <span class="text-[9px] font-extrabold bg-amber-400 text-amber-900 px-2.5 py-1 rounded-full uppercase tracking-wide">Most Popular</span>
               </div>
               <p class="font-bold mb-0.5 mt-1">Pro</p>
-              <p class="text-2xl font-extrabold mb-1">₹1,499<span class="text-sm font-normal opacity-70">/mo</span></p>
+              <p class="text-2xl font-extrabold mb-1">₹2,499<span class="text-sm font-normal opacity-70">/mo</span></p>
               <ul class="space-y-1.5 text-xs opacity-90">
                 <li class="flex items-center gap-1.5"><svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Everything in Starter</li>
                 <li class="flex items-center gap-1.5"><svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>AI receptionist 24/7</li>

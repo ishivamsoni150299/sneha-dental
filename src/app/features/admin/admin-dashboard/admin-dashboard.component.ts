@@ -30,6 +30,15 @@ export const CANCEL_REASONS = [
 ] as const;
 export type CancelReason = typeof CANCEL_REASONS[number];
 
+type UpgradeTeaser = {
+  icon: 'palette' | 'badge' | 'globe' | 'mic' | 'whatsapp' | 'moon';
+  color: 'blue' | 'emerald' | 'teal' | 'purple';
+  plan: 'Starter' | 'Pro';
+  title: string;
+  desc: string;
+  cta: string;
+};
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -309,6 +318,65 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   get isStarter()       { return this.plan === 'starter' && this.status === 'active'; }
   get isPro()           { return this.plan === 'pro' && this.status === 'active'; }
   get showUpgradeBanner() { return !this.isPro; }
+  get upgradeHeading() { return this.isStarter ? 'Unlock with Pro' : 'Grow with Starter'; }
+  get upgradeLinkLabel() { return this.isStarter ? 'See Pro plan →' : 'See Starter plan →'; }
+  get upgradeTeasers(): UpgradeTeaser[] {
+    if (this.isStarter) {
+      return [
+        {
+          icon: 'mic',
+          color: 'purple',
+          plan: 'Pro',
+          title: 'AI Voice Receptionist',
+          desc: 'Answers calls in Hindi and English, books appointments, and handles after-hours enquiries.',
+          cta: 'Unlock with Pro',
+        },
+        {
+          icon: 'whatsapp',
+          color: 'emerald',
+          plan: 'Pro',
+          title: 'WhatsApp AI Replies',
+          desc: 'Let your clinic AI answer inbound WhatsApp messages from one business number automatically.',
+          cta: 'Upgrade to Pro',
+        },
+        {
+          icon: 'moon',
+          color: 'teal',
+          plan: 'Pro',
+          title: 'Missed-Call Recovery',
+          desc: 'Capture leads when the clinic is closed and convert more enquiries into booked appointments.',
+          cta: 'Get Pro Automation',
+        },
+      ];
+    }
+
+    return [
+      {
+        icon: 'badge',
+        color: 'emerald',
+        plan: 'Starter',
+        title: 'Custom Logo',
+        desc: 'Replace the default launch mark with your clinic logo across the website and booking flow.',
+        cta: 'Upgrade to Starter',
+      },
+      {
+        icon: 'palette',
+        color: 'blue',
+        plan: 'Starter',
+        title: 'Brand Theme Controls',
+        desc: 'Choose your dental color palette and make every CTA look like your own clinic brand.',
+        cta: 'Unlock Branding',
+      },
+      {
+        icon: 'globe',
+        color: 'teal',
+        plan: 'Starter',
+        title: 'Custom Domain',
+        desc: 'Move from the free subdomain to your clinic domain for better trust and stronger marketing.',
+        cta: 'Own Your Domain',
+      },
+    ];
+  }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit() { this.startRealtimeSync(); }

@@ -132,6 +132,6 @@ export const clinicConfig: ClinicConfig = {
 // ─────────────────────────────────────────────────────────────────────────────
 export const PLATFORM_PLANS = {
   trial:   { label: 'Free Trial', monthly: 0,   yearly: 0    },
-  starter: { label: 'Starter',    monthly: 499, yearly: 4999 },
-  pro:     { label: 'Pro',        monthly: 1499, yearly: 14999 },
+  starter: { label: 'Starter',    monthly: 999, yearly: 9999 },
+  pro:     { label: 'Pro',        monthly: 2499, yearly: 24999 },
 } as const;

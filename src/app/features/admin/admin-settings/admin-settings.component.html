@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50">
+﻿<div class="min-h-screen bg-gray-50">
 
   <!-- Toast -->
   @if (toast()) {
@@ -75,7 +75,7 @@
           </div>
         </div>
 
-        <!-- Checklist items — show incomplete first -->
+        <!-- Checklist items â€” show incomplete first -->
         <div class="space-y-2">
           @for (item of setupChecklist; track item.label) {
             <div class="flex items-center gap-3 py-1.5 px-3 rounded-xl transition-colors cursor-pointer group"
@@ -133,7 +133,7 @@
         }
       </div>
 
-      <!-- ── Clinic Info ──────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Clinic Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'info') {
         <form [formGroup]="infoForm" (ngSubmit)="saveInfo()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -214,7 +214,7 @@
                 {{ infoForm.get('doctorBio')?.value?.length || 0 }}/500
               </span>
             </div>
-            <textarea formControlName="doctorBio" rows="5" placeholder="Write each paragraph on a new line…"
+            <textarea formControlName="doctorBio" rows="5" placeholder="Write each paragraph on a new lineâ€¦"
                       maxlength="500"
                       class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                              focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none">
@@ -231,14 +231,14 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Profile }
             </button>
           </div>
         </form>
       }
 
-      <!-- ── Contact ─────────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Contact â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'contact') {
         <form [formGroup]="contactForm" (ngSubmit)="saveContact()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -261,7 +261,7 @@
                 <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                   @if (contactForm.get('phone')?.hasError('required')) { Phone number is required }
-                  @else { Enter a valid phone number (7–15 digits) }
+                  @else { Enter a valid phone number (7â€“15 digits) }
                 </p>
               }
               <p class="text-[11px] text-gray-400 mt-1">WhatsApp and call links are auto-generated from this number</p>
@@ -302,14 +302,14 @@
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">Google Maps Embed URL</label>
-              <input formControlName="mapEmbedUrl" type="url" placeholder="https://www.google.com/maps/embed?…"
+              <input formControlName="mapEmbedUrl" type="url" placeholder="https://www.google.com/maps/embed?â€¦"
                      class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
-              <p class="text-[11px] text-gray-400 mt-1">Google Maps → Share → Embed a map → copy the src URL</p>
+              <p class="text-[11px] text-gray-400 mt-1">Google Maps â†’ Share â†’ Embed a map â†’ copy the src URL</p>
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">Google Maps Directions URL</label>
-              <input formControlName="mapDirectionsUrl" type="url" placeholder="https://maps.google.com/…"
+              <input formControlName="mapDirectionsUrl" type="url" placeholder="https://maps.google.com/â€¦"
                      class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
             </div>
@@ -324,14 +324,14 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Contact Details }
             </button>
           </div>
         </form>
       }
 
-      <!-- ── Hours ───────────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Hours â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'hours') {
         <form [formGroup]="hoursForm" (ngSubmit)="saveHours()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -369,7 +369,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
                 </div>
-                <input formControlName="days" type="text" placeholder="Mon – Sat"
+                <input formControlName="days" type="text" placeholder="Mon â€“ Sat"
                        class="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                 <div class="flex items-center gap-1.5 shrink-0 w-5">
@@ -377,7 +377,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
                 </div>
-                <input formControlName="time" type="text" placeholder="9:00 AM – 8:00 PM"
+                <input formControlName="time" type="text" placeholder="9:00 AM â€“ 8:00 PM"
                        class="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                 <button type="button" (click)="removeHour($index)"
@@ -395,7 +395,7 @@
               <svg class="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <p class="text-[11px] text-gray-400">Example: Days → "Mon – Sat" &nbsp;|&nbsp; Time → "9:00 AM – 8:00 PM" or "Closed"</p>
+              <p class="text-[11px] text-gray-400">Example: Days â†’ "Mon â€“ Sat" &nbsp;|&nbsp; Time â†’ "9:00 AM â€“ 8:00 PM" or "Closed"</p>
             </div>
           }
 
@@ -408,14 +408,14 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Hours }
             </button>
           </div>
         </form>
       }
 
-      <!-- ── Testimonials ────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Testimonials â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'services') {
         <form [formGroup]="servicesForm" (ngSubmit)="saveServices()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -513,7 +513,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Services }
             </button>
           </div>
@@ -610,7 +610,7 @@
                     </div>
                     <textarea formControlName="review" rows="3"
                               maxlength="250"
-                              placeholder="The doctor was very gentle and explained everything clearly…"
+                              placeholder="The doctor was very gentle and explained everything clearlyâ€¦"
                               class="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 resize-none transition-colors"
                               [class]="(testimonialsArr.at($index).get('review')?.invalid && testimonialsArr.at($index).get('review')?.touched)
                                 ? 'border-red-300 focus:border-red-400 focus:ring-red-200 bg-red-50'
@@ -634,14 +634,14 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Testimonials }
             </button>
           </div>
         </form>
       }
 
-      <!-- ── Social ──────────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Social â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'social') {
         <form [formGroup]="socialForm" (ngSubmit)="saveSocial()"
               class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -710,15 +710,16 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Social Links }
             </button>
           </div>
         </form>
       }
 
-      <!-- ── Theme ────────────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'theme') {
+        @if (canManageBranding) {
         <div class="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
           <div class="flex items-start justify-between gap-4">
             <div>
@@ -805,15 +806,72 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Saving…
+                Savingâ€¦
               } @else { Save Theme }
             </button>
           </div>
         </div>
+        } @else {
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <div class="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-cyan-50 to-white p-6 sm:p-7">
+              <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div class="max-w-2xl">
+                  <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">
+                    Starter Feature
+                  </span>
+                  <h2 class="mt-4 text-xl font-bold text-gray-900">Unlock custom dental theme controls</h2>
+                  <p class="mt-2 text-sm leading-relaxed text-gray-600">
+                    Trial clinics stay on a curated theme so every launch looks clean and conversion-focused. Upgrade to Starter to choose your own palette, remove the mydentalplatform footer badge, and match the website to your clinic brand.
+                  </p>
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Choose your color palette</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Match every CTA to your clinic brand</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Remove Powered by mydentalplatform</span>
+                  </div>
+                </div>
+
+                <div class="w-full max-w-sm rounded-3xl border border-slate-200 bg-slate-950 p-5 text-white shadow-xl">
+                  <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center border border-white/10 text-lg font-bold"
+                         [style.background]="selectedThemeMeta.gradient">
+                      {{ clinicInitial }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Current Theme</p>
+                      <p class="mt-2 truncate text-lg font-bold">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
+                      <p class="mt-1 text-sm text-slate-300">{{ selectedThemeMeta.label }} · {{ selectedThemeMeta.note }}</p>
+                      <div class="mt-4 flex flex-wrap gap-2 text-xs">
+                        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">Trial branding active</span>
+                        <span class="rounded-full px-3 py-1 font-semibold text-white" [style.background]="selectedThemeMeta.primary">Book Appointment</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-xs text-blue-800">Booking, WhatsApp, services, and hours continue to work on trial. This upgrade is only for branding control.</p>
+                <button type="button"
+                        (click)="upgradePlan('starter')"
+                        [disabled]="upgrading()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">
+                  @if (upgrading()) {
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  }
+                  Upgrade to Starter · ₹999/mo
+                </button>
+              </div>
+            </div>
+          </div>
+        }
       }
 
-      <!-- ── Logo ──────────────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'logo') {
+        @if (canManageBranding) {
         <div class="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
 
           <div>
@@ -894,7 +952,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>
-                      Saving…
+                      Savingâ€¦
                     } @else {
                       <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -921,7 +979,7 @@
                     <p class="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">
                       Click to upload
                     </p>
-                    <p class="text-xs text-gray-400 mt-0.5">PNG, JPG, SVG, WebP · Max 5 MB</p>
+                    <p class="text-xs text-gray-400 mt-0.5">PNG, JPG, SVG, WebP Â· Max 5 MB</p>
                   </div>
                   <input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
                          (change)="onLogoFile($event)">
@@ -945,16 +1003,73 @@
             <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Logo tips</p>
             <ul class="space-y-1 text-xs text-amber-700 list-disc list-inside">
               <li>Use a <strong>transparent PNG or SVG</strong> for best results on both light and dark backgrounds</li>
-              <li>Horizontal/landscape logos work best — they fit the navbar without clipping</li>
-              <li>Minimum recommended resolution: <strong>400 × 160 px</strong></li>
+              <li>Horizontal/landscape logos work best â€” they fit the navbar without clipping</li>
+              <li>Minimum recommended resolution: <strong>400 Ã— 160 px</strong></li>
               <li>Logo automatically appears white on dark backgrounds (footer)</li>
             </ul>
           </div>
 
         </div>
+        } @else {
+          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+            <div class="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-6 sm:p-7">
+              <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div class="max-w-2xl">
+                  <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-700">
+                    Starter Feature
+                  </span>
+                  <h2 class="mt-4 text-xl font-bold text-gray-900">Unlock your clinic logo</h2>
+                  <p class="mt-2 text-sm leading-relaxed text-gray-600">
+                    Trial clinics use the default dental mark so every site launches fast and stays visually consistent. Upgrade to Starter to upload your clinic logo across the navbar, footer, and booking journey for stronger patient trust.
+                  </p>
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Custom logo on website header</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Branded footer and share links</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Cleaner patient recall</span>
+                  </div>
+                </div>
+
+                <div class="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-5 shadow-lg">
+                  <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-400">Current Website Mark</p>
+                  <div class="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                    <div class="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+                      @if (cfg.logoDataUrl) {
+                        <img [src]="cfg.logoDataUrl" alt="Current logo" class="h-9 max-w-[150px] object-contain">
+                      } @else {
+                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-200 bg-[color:var(--accent-lt)] text-sm font-black text-[color:var(--accent-dk)]">
+                          {{ clinicInitial }}
+                        </div>
+                      }
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-bold text-gray-900">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
+                        <p class="text-xs text-gray-500">Starter removes the default trial branding.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-xs text-emerald-800">Patients can already book on trial. Starter is where the website starts looking fully clinic-owned.</p>
+                <button type="button"
+                        (click)="upgradePlan('starter')"
+                        [disabled]="upgrading()"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60">
+                  @if (upgrading()) {
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  }
+                  Upgrade to Starter · ₹999/mo
+                </button>
+              </div>
+            </div>
+          </div>
+        }
       }
 
-      <!-- ── Subscription ─────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Subscription â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'subscription') {
         <div class="space-y-6">
 
@@ -968,9 +1083,9 @@
               </p>
               <p class="font-bold text-gray-900 text-lg leading-tight">
                 @if (isExpired)        { Trial Expired }
-                @else if (isTrial)     { Free Trial — {{ trialDaysLeft }} days left }
-                @else if (isStarter)   { Starter · ₹499/month }
-                @else if (isPro)       { Pro · ₹1,499/month }
+                @else if (isTrial)     { Free Trial â€” {{ trialDaysLeft }} days left }
+              @else if (isStarter)   { Starter Â· â‚¹999/month }
+              @else if (isPro)       { Pro Â· â‚¹2,499/month }
                 @else                  { Trial }
               </p>
               @if (isTrial && !isExpired) {
@@ -980,7 +1095,7 @@
                 <p class="text-red-600 text-xs mt-1">Your website is currently hidden from patients. Upgrade now to restore it.</p>
               }
               @if (isStarter) {
-                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro to unlock AI Voice Receptionist — answers patient calls 24/7 in Hindi & English.</p>
+                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro to unlock AI Voice Receptionist â€” answers patient calls 24/7 in Hindi & English.</p>
               }
               @if (isPro) {
                 <p class="text-purple-700 text-xs mt-1">You're on the best plan. All features are unlocked.</p>
@@ -1001,7 +1116,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                   </svg>
                 }
-                {{ isStarter ? 'Upgrade to Pro — ₹1,499/mo' : 'Upgrade to Starter — ₹499/mo' }}
+                {{ isStarter ? 'Upgrade to Pro â€” â‚¹2,499/mo' : 'Upgrade to Starter · ₹999/mo' }}
               </button>
             }
             @if (upgradeError()) {
@@ -1067,9 +1182,9 @@
                             [disabled]="upgrading()"
                             class="block w-full text-center text-sm font-bold py-2.5 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-wait"
                             [class]="p.id === 'pro' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'">
-                      @if (upgrading()) { Processing… }
-                      @else if (p.id === 'starter') { Upgrade to Starter · ₹499/mo }
-                      @else { Upgrade to Pro · ₹1,499/mo }
+                      @if (upgrading()) { Processingâ€¦ }
+                      @else if (p.id === 'starter') { Upgrade to Starter · ₹999/mo }
+                      @else { Upgrade to Pro Â· â‚¹2,499/mo }
                     </button>
                   } @else {
                     <span class="block w-full text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400 cursor-default">
@@ -1085,7 +1200,7 @@
           <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <p class="text-sm font-bold text-gray-900 mb-1">Is it worth it?</p>
             <p class="text-xs text-gray-500 leading-relaxed">
-              One extra patient booking per week = ~₹1,500–₹3,000 revenue. Pro costs ₹1,499/month.
+              One extra patient booking per week = ~â‚¹2,500â€“â‚¹5,000 revenue. Pro costs â‚¹2,499/month.
               The AI Voice Receptionist alone pays for itself if it books even <strong class="text-gray-700">one missed call</strong> a month.
             </p>
           </div>
@@ -1093,7 +1208,7 @@
         </div>
       }
 
-      <!-- ── Voice Agent ─────────────────────────────────────────────────── -->
+      <!-- â”€â”€ Voice Agent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       @if (activeTab() === 'voice') {
         <div class="space-y-6">
 
@@ -1101,14 +1216,14 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h3 class="font-bold text-gray-900 text-lg">AI Voice Receptionist</h3>
-              <p class="text-sm text-gray-500 mt-0.5">Your 24/7 Hindi & English AI — answers calls, books appointments, answers FAQs.</p>
+              <p class="text-sm text-gray-500 mt-0.5">Your 24/7 Hindi & English AI â€” answers calls, books appointments, answers FAQs.</p>
             </div>
             @if (isTabDirty('voice') && cfg.elevenLabsAgentId) {
               <span class="shrink-0 text-xs font-semibold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">Unsaved changes</span>
             }
           </div>
 
-          <!-- Not Pro — upgrade gate -->
+          <!-- Not Pro â€” upgrade gate -->
           @if (!isPro) {
             <div class="rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 p-6 text-center">
               <div class="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
@@ -1124,11 +1239,11 @@
                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-md transition-all hover:scale-105"
                       style="background: linear-gradient(135deg, #7c3aed, #9333ea)">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Upgrade to Pro — ₹1,499/mo
+                Upgrade to Pro â€” â‚¹2,499/mo
               </button>
             </div>
 
-          <!-- Pro, no agent yet — create -->
+          <!-- Pro, no agent yet â€” create -->
           } @else if (!cfg.elevenLabsAgentId) {
             <div class="rounded-2xl border border-dashed border-purple-300 bg-purple-50/50 p-8 text-center">
               <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -1147,7 +1262,7 @@
                       style="background: linear-gradient(135deg, #5b21b6, #9333ea)">
                 @if (creatingVoiceAgent()) {
                   <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  Creating…
+                  Creatingâ€¦
                 } @else {
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                   Create AI Voice Agent
@@ -1155,7 +1270,7 @@
               </button>
             </div>
 
-          <!-- Pro + agent exists — customise -->
+          <!-- Pro + agent exists â€” customise -->
           } @else {
             <!-- Agent status card -->
             <div class="rounded-xl border border-green-200 bg-green-50 p-4 flex items-center gap-3">
@@ -1183,7 +1298,7 @@
                 <button type="button" (click)="fetchUsage()"
                         [disabled]="loadingUsage()"
                         class="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                  @if (loadingUsage()) { Refreshing… } @else { Refresh ↻ }
+                  @if (loadingUsage()) { Refreshingâ€¦ } @else { Refresh â†» }
                 </button>
               </div>
               @if (voiceUsage(); as u) {
@@ -1200,7 +1315,7 @@
                          [class]="u.minutesUsed >= u.minutesLimit ? 'bg-red-500' : u.minutesUsed / u.minutesLimit > 0.8 ? 'bg-amber-500' : 'bg-purple-500'">
                     </div>
                   </div>
-                  <p class="text-[11px] text-gray-400">{{ u.conversations }} conversations · Pro plan includes 30 min/mo free · ₹20/min after</p>
+                  <p class="text-[11px] text-gray-400">{{ u.conversations }} conversations Â· Pro plan includes 30 min/mo free Â· â‚¹20/min after</p>
                 </div>
               } @else {
                 <p class="text-xs text-gray-400 italic">Usage data not loaded yet. Click Refresh.</p>
@@ -1213,7 +1328,7 @@
               <div>
                 <label class="block text-sm font-bold text-gray-800 mb-2">Conversation Language</label>
                 <div class="grid grid-cols-3 gap-3">
-                  @for (lang of [{v:'hindi',l:'Hindi',s:'हिंदी'},{v:'english',l:'English',s:'EN'},{v:'bilingual',l:'Bilingual',s:'HI+EN'}]; track lang.v) {
+                  @for (lang of [{v:'hindi',l:'Hindi',s:'à¤¹à¤¿à¤‚à¤¦à¥€'},{v:'english',l:'English',s:'EN'},{v:'bilingual',l:'Bilingual',s:'HI+EN'}]; track lang.v) {
                     <label class="relative cursor-pointer">
                       <input type="radio" formControlName="language" [value]="lang.v" class="sr-only peer">
                       <div class="rounded-xl border-2 p-3 text-center transition-all
@@ -1376,7 +1491,7 @@
                          placeholder="919876543210"
                          class="w-full px-3 py-2 rounded-lg border border-green-200 bg-white text-sm text-gray-900 placeholder-gray-400
                                 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono">
-                  <p class="text-[11px] text-green-600 mt-1">Leave blank to disable WhatsApp AI. Setup guide: elevenlabs.io → Conversational AI → Phone Numbers.</p>
+                  <p class="text-[11px] text-green-600 mt-1">Leave blank to disable WhatsApp AI. Setup guide: elevenlabs.io â†’ Conversational AI â†’ Phone Numbers.</p>
                 </div>
               </div>
               }
@@ -1390,7 +1505,7 @@
                         style="background: linear-gradient(135deg, #5b21b6, #9333ea)">
                   @if (savingVoice()) {
                     <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    Saving…
+                    Savingâ€¦
                   } @else {
                     Save Voice Settings
                   }
@@ -1407,3 +1522,4 @@
     }
   </main>
 </div>
+

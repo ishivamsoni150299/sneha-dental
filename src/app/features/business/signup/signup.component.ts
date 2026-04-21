@@ -354,13 +354,13 @@ export class SignupComponent implements OnInit {
                  'Patient admin dashboard', 'Free subdomain (yourname.mydentalplatform.com)', '30-day free trial'],
     },
     {
-      id: 'starter' as const, name: 'Starter', price: '₹499', period: '/month',
+      id: 'starter' as const, name: 'Starter', price: '₹999', period: '/month',
       desc: 'For solo clinics',
       features: ['Everything in Trial', 'Custom domain (connect your own)', 'Auto SSL certificate',
                  'Services catalogue', '1 content update/month (text, image, or section)', 'Email + WhatsApp support'],
     },
     {
-      id: 'pro' as const, name: 'Pro', price: '₹1,499', period: '/month',
+      id: 'pro' as const, name: 'Pro', price: '₹2,499', period: '/month',
       desc: 'Most popular',
       features: ['Everything in Starter', 'AI Voice Receptionist 24/7 (Hindi + English)',
                  '30 voice min/month · ₹20/min after', '3 content updates/month', '1 onboarding call (20 min)',

@@ -41,7 +41,7 @@ export class BillingService {
    * Razorpay handles all future monthly charges automatically.
    */
   whatsappPaymentMessage(clinicName: string, plan: BillingPlan, paymentUrl: string): string {
-    const planLabel = plan === 'pro' ? 'Pro (₹1,499/mo)' : 'Starter (₹499/mo)';
+    const planLabel = plan === 'pro' ? 'Pro (₹2,499/mo)' : 'Starter (₹999/mo)';
     const msg = `Hi ${clinicName} team!\n\nYour mydentalplatform subscription (${planLabel}) is ready.\n\nClick the link below to activate — your card will be saved and billed automatically each month:\n\n${paymentUrl}\n\nNo setup fee. Cancel anytime.`;
     return `https://wa.me/?text=${encodeURIComponent(msg)}`;
   }

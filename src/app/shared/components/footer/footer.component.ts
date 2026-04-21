@@ -16,6 +16,13 @@ export class FooterComponent {
   readonly year   = new Date().getFullYear();
   readonly contactEmail = this.config.billingEmail?.trim() ?? '';
   readonly brandMark = buildClinicMonogram(this.config.name, 'CL');
+  readonly platformUrl = 'https://www.mydentalplatform.com';
+
+  get showPoweredByBadge(): boolean {
+    const plan = this.config.subscriptionPlan ?? 'trial';
+    const status = this.config.subscriptionStatus ?? 'trial';
+    return plan === 'trial' || status === 'trial';
+  }
 
   quickLinks = [
     { label: 'Home',             route: '/' },
