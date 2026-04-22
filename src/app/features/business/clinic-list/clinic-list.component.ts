@@ -213,7 +213,7 @@ export class ClinicListComponent implements OnInit {
   async createVoiceAgent(clinic: StoredClinic) {
     this.creatingVoiceAgent.set(clinic.id);
     try {
-      const res = await fetch('/api/elevenlabs-create-agent', {
+      const res = await fetch('/api/elevenlabs?action=create-agent', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
