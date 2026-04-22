@@ -2,18 +2,194 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Business Admin Form Utilities ─────────────────────────────────────── */
+/* ── Design System Primitives ──────────────────────────────────────────── */
 @layer components {
   .form-label {
-    @apply block text-xs font-medium text-gray-700 mb-1;
+    @apply mb-1 block text-xs font-semibold tracking-[0.01em];
+    color: var(--color-text-soft);
   }
+
   .form-input {
-    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
-           focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors
-           bg-white text-gray-900 placeholder-gray-400;
+    @apply w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all duration-200
+           focus:outline-none;
+    min-height: var(--control-height);
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    color: var(--color-text);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
   }
+
+  .form-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .form-input:hover {
+    border-color: var(--color-line-strong);
+  }
+
+  .form-input:focus {
+    border-color: var(--color-primary);
+    box-shadow:
+      0 0 0 3px var(--color-focus-ring),
+      0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
   .input-error {
-    @apply border-red-300 focus:ring-red-200;
+    border-color: var(--color-danger);
+    background: var(--color-danger-soft);
+  }
+
+  .input-error:focus {
+    border-color: var(--color-danger);
+    box-shadow:
+      0 0 0 3px rgba(220, 38, 38, 0.14),
+      0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .ui-panel {
+    @apply rounded-[28px] border p-5 sm:p-6;
+    border-color: var(--color-line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.88) 100%);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ui-panel-muted {
+    @apply rounded-[24px] border p-5 sm:p-6;
+    border-color: var(--color-primary-border);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 64%, white) 0%, rgba(255, 255, 255, 0.92) 100%);
+    box-shadow: 0 18px 40px -28px var(--color-primary-shadow);
+  }
+
+  .ui-subpanel {
+    @apply rounded-2xl border p-4;
+    border-color: color-mix(in srgb, var(--color-line) 88%, white);
+    background: var(--color-surface-muted);
+  }
+
+  .ui-stat-card {
+    @apply rounded-2xl border px-4 py-3;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    box-shadow: 0 12px 30px -26px rgba(15, 23, 42, 0.3);
+  }
+
+  .ui-title {
+    @apply text-sm font-bold tracking-[0.01em];
+    color: var(--color-text);
+  }
+
+  .ui-body {
+    @apply text-sm leading-6;
+    color: var(--color-text-soft);
+  }
+
+  .ui-caption {
+    @apply text-xs leading-5;
+    color: var(--color-text-muted);
+  }
+
+  .ui-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200;
+    min-height: var(--control-height);
+  }
+
+  .ui-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
+  .ui-btn-primary {
+    color: #fff;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 88%, white) 0%, var(--color-primary) 100%);
+    box-shadow: 0 16px 30px -22px var(--color-primary-shadow);
+  }
+
+  .ui-btn-primary:hover {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary-hover) 82%, white) 0%, var(--color-primary-hover) 100%);
+    transform: translateY(-1px);
+  }
+
+  .ui-btn-secondary {
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 72%, white);
+  }
+
+  .ui-btn-secondary:hover {
+    border-color: color-mix(in srgb, var(--color-primary-border) 84%, var(--color-primary));
+    background: color-mix(in srgb, var(--color-primary-soft) 58%, white);
+  }
+
+  .ui-btn-ghost {
+    color: var(--color-text-soft);
+    border: 1px solid var(--color-line);
+    background: var(--color-surface-elevated);
+  }
+
+  .ui-btn-ghost:hover {
+    color: var(--color-text);
+    border-color: var(--color-line-strong);
+    background: var(--color-surface-muted);
+  }
+
+  .ui-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em];
+    border: 1px solid var(--color-line);
+    background: var(--color-surface-muted);
+    color: var(--color-text-soft);
+  }
+
+  .ui-chip-accent {
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 72%, white);
+    color: var(--color-primary);
+  }
+
+  .ui-chip-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+  }
+
+  .ui-chip-warning {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #b45309;
+  }
+
+  .ui-chip-danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  .ui-tab {
+    @apply rounded-xl px-3 py-2 text-xs font-semibold transition-colors;
+    color: var(--color-text-soft);
+    background: transparent;
+  }
+
+  .ui-tab:hover {
+    color: var(--color-text);
+    background: var(--color-surface-muted);
+  }
+
+  .ui-tab-active {
+    color: #fff;
+    background: var(--color-text);
+    box-shadow: 0 14px 26px -22px rgba(15, 23, 42, 0.72);
+  }
+
+  .ui-empty-state {
+    @apply rounded-[28px] border px-6 py-12 text-center;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    box-shadow: var(--shadow-card);
   }
 }
 
@@ -29,6 +205,10 @@
   --surface:    #ffffff;
   --surface-2:  #f8fafc;
   --shadow-card: 0 16px 40px rgba(2, 6, 23, 0.12);
+  --shadow-soft: 0 20px 44px -34px rgba(15, 23, 42, 0.28);
+  --radius-panel: 28px;
+  --radius-control: 16px;
+  --control-height: 46px;
 
   /* ── Theme accent palette — overridden by ClinicConfigService per clinic ── */
   /* Sapphire Blue (default) */
@@ -38,6 +218,31 @@
   --accent-lt: #EBF2FF;   /* light tinted bg        */
   --accent-bd: #93C5FD;   /* border / divider       */
   --accent-sh: rgba(30, 86, 220, 0.20);  /* tinted shadow */
+
+  /* Semantic tokens */
+  --color-bg: #f5f7fb;
+  --color-surface: rgba(255, 255, 255, 0.84);
+  --color-surface-elevated: #ffffff;
+  --color-surface-muted: #f8fbff;
+  --color-line: #dbe4f0;
+  --color-line-strong: #c4d3e4;
+  --color-text: #0f172a;
+  --color-text-soft: #334155;
+  --color-text-muted: #64748b;
+  --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-dk);
+  --color-primary-soft: var(--accent-lt);
+  --color-primary-border: var(--accent-bd);
+  --color-primary-shadow: var(--accent-sh);
+  --color-focus-ring: rgba(30, 86, 220, 0.16);
+  --color-success: #16a34a;
+  --color-success-soft: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-soft: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --page-orb-left: var(--accent-lt);
+  --page-orb-right: color-mix(in srgb, var(--accent-lt) 68%, white);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -52,11 +257,11 @@ html {
 
 body {
   font-family: var(--font-sans);
-  color: var(--ink);
+  color: var(--color-text);
   background:
-    radial-gradient(800px circle at 8% -10%, var(--accent-lt) 0, transparent 55%),
-    radial-gradient(900px circle at 92% -20%, var(--accent-lt) 0, transparent 55%),
-    var(--surface-2);
+    radial-gradient(800px circle at 8% -10%, var(--page-orb-left) 0, transparent 55%),
+    radial-gradient(900px circle at 92% -20%, var(--page-orb-right) 0, transparent 55%),
+    var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
@@ -73,6 +278,138 @@ body {
 }
 
 .font-display { font-family: var(--font-display); }
+
+@layer components {
+  .clinic-form-page section[id] {
+    @apply scroll-mt-24 space-y-5;
+    border-radius: var(--radius-panel);
+    border: 1px solid var(--color-line);
+    padding: 1.5rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: var(--shadow-card);
+  }
+
+  .clinic-form-page .clinic-form-nav {
+    border-bottom: 1px solid color-mix(in srgb, var(--color-primary-border) 50%, white);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 10px 22px -22px var(--color-primary-shadow);
+  }
+
+  .clinic-form-page .clinic-form-nav button {
+    @apply rounded-xl px-3 py-1.5 text-xs font-semibold transition-all;
+  }
+
+  .clinic-form-page .clinic-form-savebar {
+    border-top: 1px solid var(--color-line);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 -18px 36px -34px rgba(15, 23, 42, 0.34);
+  }
+
+  .lead-workspace .lead-stat-card {
+    @apply rounded-2xl border px-4 py-3;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    box-shadow: 0 16px 34px -30px rgba(15, 23, 42, 0.28);
+  }
+
+  .lead-workspace .lead-panel {
+    @apply rounded-[24px] border px-5 py-4;
+    border-color: var(--color-line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .lead-workspace .lead-alert {
+    @apply rounded-[24px] border px-5 py-3.5;
+    box-shadow: 0 18px 36px -28px rgba(217, 119, 6, 0.22);
+  }
+
+  .lead-workspace .lead-filters input,
+  .lead-workspace .lead-filters select,
+  .lead-workspace .lead-message-editor input,
+  .lead-workspace .lead-message-editor textarea,
+  .lead-workspace .lead-inline-note input {
+    @apply rounded-xl border px-3 py-2 text-sm focus:outline-none;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    color: var(--color-text);
+  }
+
+  .lead-workspace .lead-filters input:focus,
+  .lead-workspace .lead-filters select:focus,
+  .lead-workspace .lead-message-editor input:focus,
+  .lead-workspace .lead-message-editor textarea:focus,
+  .lead-workspace .lead-inline-note input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
+  .lead-workspace .lead-card {
+    @apply rounded-[24px] border px-4 py-4 transition-all;
+    border-color: var(--color-line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.92) 100%);
+    box-shadow: 0 18px 34px -32px rgba(15, 23, 42, 0.28);
+  }
+
+  .lead-workspace .lead-card:hover {
+    border-color: var(--color-line-strong);
+    transform: translateY(-1px);
+  }
+
+  .lead-workspace .lead-message-editor {
+    @apply rounded-2xl border p-3;
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 58%, white);
+  }
+
+  .clinic-settings-shell {
+    background:
+      radial-gradient(780px circle at 10% -8%, var(--page-orb-left) 0, transparent 52%),
+      radial-gradient(860px circle at 90% -18%, var(--page-orb-right) 0, transparent 54%),
+      var(--color-bg);
+  }
+
+  .clinic-settings-shell .clinic-settings-header {
+    border-bottom: 1px solid var(--color-line);
+    background: rgba(255, 255, 255, 0.84);
+    backdrop-filter: blur(14px);
+  }
+
+  .clinic-settings-shell .settings-progress-card,
+  .clinic-settings-shell .settings-form-card {
+    @apply rounded-[28px] border p-5 sm:p-6;
+    border-color: var(--color-line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: var(--shadow-card);
+  }
+
+  .clinic-settings-shell .settings-tab-bar {
+    @apply rounded-[22px] border p-1;
+    border-color: var(--color-line);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 16px 32px -30px rgba(15, 23, 42, 0.24);
+  }
+
+  .clinic-settings-shell .settings-form-card input:not([type='radio']):not([type='checkbox']):not([type='hidden']),
+  .clinic-settings-shell .settings-form-card select,
+  .clinic-settings-shell .settings-form-card textarea {
+    @apply rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none transition-all;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    color: var(--color-text);
+  }
+
+  .clinic-settings-shell .settings-form-card input:not([type='radio']):not([type='checkbox']):not([type='hidden']):focus,
+  .clinic-settings-shell .settings-form-card select:focus,
+  .clinic-settings-shell .settings-form-card textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+}
 
 /* ── WORLD-CLASS ANIMATIONS ──────────────────────────────────────────────── */
 

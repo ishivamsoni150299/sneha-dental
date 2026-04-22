@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50">
+<div class="clinic-settings-shell min-h-screen">
 
   <!-- Toast -->
   @if (toast()) {
@@ -18,7 +18,7 @@
   }
 
   <!-- Header -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <header class="clinic-settings-header sticky top-0 z-40">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <a routerLink="/business/clinic/dashboard"
@@ -50,7 +50,7 @@
     @if (!loading()) {
 
       <!-- Setup completion score -->
-      <div class="bg-white border border-gray-200 rounded-2xl p-5 overflow-hidden">
+      <div class="settings-progress-card overflow-hidden">
         <div class="flex items-center justify-between mb-3">
           <div>
             <p class="font-bold text-gray-900 text-sm">Setup progress</p>
@@ -116,13 +116,13 @@
       </div>
 
       <!-- Tab bar -->
-      <div class="flex gap-1 bg-white border border-gray-200 rounded-2xl p-1 overflow-x-auto">
+      <div class="settings-tab-bar flex gap-1 overflow-x-auto">
         @for (tab of tabs; track tab.id) {
           <button (click)="activeTab.set(tab.id)"
-                  class="relative shrink-0 flex-1 min-w-fit px-3 py-2 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1"
+                  class="ui-tab relative shrink-0 flex-1 min-w-fit whitespace-nowrap focus:outline-none"
                   [class]="activeTab() === tab.id
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'">
+                    ? 'ui-tab ui-tab-active'
+                    : 'ui-tab'">
             {{ tab.label }}
             <!-- Unsaved dot badge -->
             @if (isTabDirty(tab.id)) {
@@ -136,7 +136,7 @@
       <!-- ── Clinic Info ──────────────────────────────────────────────────── -->
       @if (activeTab() === 'info') {
         <form [formGroup]="infoForm" (ngSubmit)="saveInfo()"
-              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+              class="settings-form-card space-y-5">
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-sm font-semibold text-gray-900">Clinic Profile</h2>
@@ -224,8 +224,7 @@
 
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingInfo()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    class="ui-btn ui-btn-primary px-5 disabled:cursor-not-allowed disabled:opacity-50">
               @if (savingInfo()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -241,7 +240,7 @@
       <!-- ── Contact ─────────────────────────────────────────────────────── -->
       @if (activeTab() === 'contact') {
         <form [formGroup]="contactForm" (ngSubmit)="saveContact()"
-              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+              class="settings-form-card space-y-5">
           <div class="flex items-center justify-between">
             <h2 class="text-sm font-semibold text-gray-900">Contact Details</h2>
             @if (isTabDirty('contact')) {
@@ -317,8 +316,7 @@
 
           <div class="flex justify-end pt-1">
             <button type="submit" [disabled]="savingContact()"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm
-                           px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    class="ui-btn ui-btn-primary px-5 disabled:cursor-not-allowed disabled:opacity-50">
               @if (savingContact()) {
                 <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>

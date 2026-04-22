@@ -59,7 +59,28 @@ const THEME_PALETTES: Record<ClinicTheme, Record<string, string>> = {
 };
 
 const THEME_CLASS_NAMES = CLINIC_THEMES.map(theme => `theme-${theme}`);
-const THEME_CSS_VARS = Object.keys(THEME_PALETTES.blue);
+
+function buildSemanticTokens(palette: Record<string, string>): Record<string, string> {
+  return {
+    '--color-bg': '#f5f7fb',
+    '--color-surface': 'rgba(255, 255, 255, 0.84)',
+    '--color-surface-elevated': '#ffffff',
+    '--color-surface-muted': 'color-mix(in srgb, white 62%, var(--accent-lt))',
+    '--color-line': 'color-mix(in srgb, #cbd5e1 74%, var(--accent-bd))',
+    '--color-line-strong': 'color-mix(in srgb, #94a3b8 72%, var(--accent-bd))',
+    '--color-text': '#0f172a',
+    '--color-text-soft': '#334155',
+    '--color-text-muted': '#64748b',
+    '--color-primary': palette['--accent'],
+    '--color-primary-hover': palette['--accent-dk'],
+    '--color-primary-soft': palette['--accent-lt'],
+    '--color-primary-border': palette['--accent-bd'],
+    '--color-primary-shadow': palette['--accent-sh'],
+    '--color-focus-ring': 'color-mix(in srgb, transparent 84%, var(--accent))',
+    '--page-orb-left': palette['--accent-lt'],
+    '--page-orb-right': 'color-mix(in srgb, white 52%, var(--accent-lt))',
+  };
+}
 
 function normalizeTheme(theme: string | undefined): ClinicTheme {
   return CLINIC_THEMES.includes(theme as ClinicTheme) ? (theme as ClinicTheme) : 'blue';
@@ -69,12 +90,15 @@ function applyTheme(theme: string | undefined) {
   if (typeof document === 'undefined') return;
   const resolvedTheme = normalizeTheme(theme);
   const palette = THEME_PALETTES[resolvedTheme];
+  const semanticTokens = buildSemanticTokens(palette);
   const root = document.documentElement;
   root.classList.remove(...THEME_CLASS_NAMES);
   root.classList.add(`theme-${resolvedTheme}`);
   root.setAttribute('data-clinic-theme', resolvedTheme);
-  THEME_CSS_VARS.forEach(prop => root.style.removeProperty(prop));
-  Object.entries(palette).forEach(([prop, val]) => root.style.setProperty(prop, val));
+  [...new Set([...Object.keys(THEME_PALETTES.blue), ...Object.keys(semanticTokens)])]
+    .forEach(prop => root.style.removeProperty(prop));
+  Object.entries({ ...palette, ...semanticTokens })
+    .forEach(([prop, val]) => root.style.setProperty(prop, val));
 }
 
 @Injectable({ providedIn: 'root' })
