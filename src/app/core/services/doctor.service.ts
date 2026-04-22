@@ -65,9 +65,38 @@ export function generateSlots(start: string, end: string): string[] {
   return slots;
 }
 
-/** Format "HH:MM" to "h:MM AM/PM" for display. */
+export const DEFAULT_BOOKING_SLOTS = generateSlots('09:00', '19:30');
+
+/** Normalize either "HH:MM" or "h:MM AM/PM" to canonical "HH:MM". */
+export function normalizeTimeValue(time: string): string {
+  const value = time.trim();
+  if (/^\d{2}:\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) {
+    return value;
+  }
+
+  let hours = Number(match[1]);
+  const minutes = match[2];
+  const meridiem = match[3].toUpperCase();
+
+  if (meridiem === 'PM' && hours !== 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+
+  return `${String(hours).padStart(2, '0')}:${minutes}`;
+}
+
+/** Format a normalized or legacy time value to "h:MM AM/PM" for display. */
 export function formatSlotDisplay(t: string): string {
-  const [hStr, mStr] = t.split(':');
+  const normalized = normalizeTimeValue(t);
+  if (!/^\d{2}:\d{2}$/.test(normalized)) {
+    return t;
+  }
+
+  const [hStr, mStr] = normalized.split(':');
   const h = parseInt(hStr, 10);
   const period = h >= 12 ? 'PM' : 'AM';
   const h12    = h > 12 ? h - 12 : (h === 0 ? 12 : h);
@@ -115,7 +144,7 @@ export class DoctorService {
 
   /**
    * Returns available (unbooked) time slots for a given doctor on a given date.
-   * Slots are derived from the doctor's weekly schedule, minus already-booked appointments.
+   * Slots are derived from the doctor's weekly schedule, minus reserved slot docs.
    * @param clinicId  Firestore clinic ID
    * @param doctor    The doctor object (schedule already loaded)
    * @param date      "YYYY-MM-DD"
@@ -130,16 +159,19 @@ export class DoctorService {
     const allSlots = generateSlots(daySchedule.start, daySchedule.end);
     if (allSlots.length === 0) return [];
 
-    // Query booked appointments for this doctor + date (exclude cancelled)
+    // Query reserved slots for this doctor + date.
     const snap = await getDocs(query(
-      collection(db, 'appointments'),
+      collection(db, 'slots'),
       where('clinicId',  '==', clinicId),
       where('doctorId',  '==', doctor.id),
       where('date',      '==', date),
-      where('status',    'in', ['pending', 'confirmed', 'checked_in']),
     ));
 
-    const bookedTimes = new Set(snap.docs.map(d => (d.data() as { time?: string }).time ?? ''));
+    const bookedTimes = new Set(
+      snap.docs
+        .map(d => normalizeTimeValue((d.data() as { time?: string }).time ?? ''))
+        .filter(Boolean),
+    );
     return allSlots.filter(s => !bookedTimes.has(s));
   }
 }

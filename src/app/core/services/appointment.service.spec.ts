@@ -10,7 +10,7 @@
  *
  * What IS tested here (zero Firebase dependency):
  *   - canCancel()            — pure date arithmetic, business-critical rule
- *   - cancelAppointment()   — enforces 24-hour rule before touching Firestore
+ *   - cancelAppointment()    — enforces 24-hour rule before touching Firestore
  *   - bookingRef format     — regex contract for generated refs
  */
 
@@ -30,6 +30,17 @@ const MOCK_CONFIG = {
 
 describe('AppointmentService', () => {
   let service: AppointmentService;
+  const buildAppointment = (date: string) => ({
+    id: 'appt-1',
+    clinicId: 'clinic-001',
+    bookingRef: 'BK-ABCDEFGH',
+    phone: '9999999999',
+    name: 'Test Patient',
+    service: 'Cleaning',
+    time: '10:00 AM',
+    status: 'pending' as const,
+    date,
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -84,14 +95,14 @@ describe('AppointmentService', () => {
   describe('cancelAppointment() — 24-hour rule', () => {
     it('throws when appointment is within 24 hours', async () => {
       const soon = new Date(Date.now() + 23 * 60 * 60 * 1000).toISOString();
-      await expectAsync(service.cancelAppointment('id', soon))
+      await expectAsync(service.cancelAppointment(buildAppointment(soon)))
         .toBeRejectedWithError(/Cannot cancel within 24 hours/);
     });
 
     it('includes the clinic phone number in the error message', async () => {
       const soon = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
       try {
-        await service.cancelAppointment('id', soon);
+        await service.cancelAppointment(buildAppointment(soon));
         fail('expected to throw');
       } catch (e: any) {
         expect(e.message).toContain('9999999999');
@@ -100,7 +111,7 @@ describe('AppointmentService', () => {
 
     it('throws for a past appointment date', async () => {
       const past = new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString();
-      await expectAsync(service.cancelAppointment('id', past))
+      await expectAsync(service.cancelAppointment(buildAppointment(past)))
         .toBeRejectedWithError(/Cannot cancel within 24 hours/);
     });
   });

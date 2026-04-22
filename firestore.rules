@@ -22,6 +22,60 @@ service cloud.firestore {
           get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid;
     }
 
+    function clinicIsActive(clinicId) {
+      return exists(/databases/$(database)/documents/clinics/$(clinicId)) &&
+        get(/databases/$(database)/documents/clinics/$(clinicId)).data.active == true;
+    }
+
+    function appointmentPath(appointmentId) {
+      return /databases/$(database)/documents/appointments/$(appointmentId);
+    }
+
+    function canCreateAppointment() {
+      return clinicIsActive(request.resource.data.clinicId) &&
+        request.resource.id == request.resource.data.lookupKey &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.bookingRef is string &&
+        request.resource.data.phone is string &&
+        request.resource.data.date is string &&
+        request.resource.data.time is string;
+    }
+
+    function canSelfServeAppointment() {
+      let changed = request.resource.data.diff(resource.data).changedKeys();
+      return resource.data.status in ['pending', 'confirmed'] &&
+        request.resource.data.clinicId == resource.data.clinicId &&
+        request.resource.data.lookupKey == resource.data.lookupKey &&
+        request.resource.data.bookingRef == resource.data.bookingRef &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.phone == resource.data.phone &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.doctorId == resource.data.doctorId &&
+        request.resource.data.doctorName == resource.data.doctorName &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        changed.hasOnly(['service', 'date', 'time', 'message', 'status', 'updatedAt']) &&
+        request.resource.data.status in ['pending', 'cancelled'];
+    }
+
+    function canCreateSlot() {
+      let appointment = getAfter(appointmentPath(request.resource.data.appointmentId));
+      return request.resource.data.keys().hasOnly([
+        'clinicId', 'doctorId', 'date', 'time', 'appointmentId', 'createdAt', 'updatedAt'
+      ]) &&
+        appointment.data.clinicId == request.resource.data.clinicId &&
+        appointment.data.date == request.resource.data.date &&
+        appointment.data.time == request.resource.data.time &&
+        appointment.data.doctorId == request.resource.data.doctorId;
+    }
+
+    function canDeleteSlot() {
+      let appointment = getAfter(appointmentPath(resource.data.appointmentId));
+      return appointment.data.status == 'cancelled' ||
+        appointment.data.date != resource.data.date ||
+        appointment.data.time != resource.data.time ||
+        appointment.data.doctorId != resource.data.doctorId;
+    }
+
     // ── Clinics ───────────────────────────────────────────────────────────────
     // Public read is intentionally wide: APP_INITIALIZER loads clinic config on
     // every visitor's browser. Sensitive billing/auth fields are stored in the
@@ -59,9 +113,10 @@ service cloud.firestore {
     // delete: super admin only — clinic admins cancel via status update, not
     //         hard delete, so patient records are preserved.
     match /appointments/{appointmentId} {
-      allow create: if true;
-      allow read:   if true;
-      allow update: if ownsAppointmentClinic() || isSuperAdmin();
+      allow create: if canCreateAppointment();
+      allow get:    if true;
+      allow list:   if ownsAppointmentClinic() || isSuperAdmin();
+      allow update: if ownsAppointmentClinic() || isSuperAdmin() || canSelfServeAppointment();
       allow delete: if isSuperAdmin();
     }
 
@@ -121,10 +176,10 @@ service cloud.firestore {
     // form needs to check availability). Only the owning clinic admin can delete.
     match /slots/{slotId} {
       allow read:   if true;
-      allow create: if true;
-      allow delete: if request.auth != null &&
+      allow create: if canCreateSlot();
+      allow delete: if canDeleteSlot() || (request.auth != null &&
         request.auth.uid ==
-          get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid;
+          get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid);
       allow update: if false;
     }
   }

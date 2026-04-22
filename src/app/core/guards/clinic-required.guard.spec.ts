@@ -5,9 +5,16 @@ import { ClinicConfigService } from '../services/clinic-config.service';
 
 describe('clinicRequiredGuard', () => {
   let mockRouter: jasmine.SpyObj<Router>;
+  const businessTree = {} as ReturnType<Router['createUrlTree']>;
+  const comingSoonTree = {} as ReturnType<Router['createUrlTree']>;
 
   function setup(isLoaded: boolean, comingSoon = false) {
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockRouter = jasmine.createSpyObj('Router', ['createUrlTree']);
+    mockRouter.createUrlTree.and.callFake((commands: readonly unknown[]) => {
+      const path = Array.isArray(commands) ? commands.join('/') : '';
+      return path === '/coming-soon' ? comingSoonTree : businessTree;
+    });
+
     TestBed.configureTestingModule({
       providers: [
         {
@@ -22,49 +29,51 @@ describe('clinicRequiredGuard', () => {
   it('returns true when clinic is loaded and not in coming-soon mode', () => {
     setup(true, false);
     const result = TestBed.runInInjectionContext(() =>
-      clinicRequiredGuard({} as any, {} as any)
+      clinicRequiredGuard({} as never, {} as never),
     );
     expect(result).toBeTrue();
   });
 
-  it('returns false and redirects to /business when clinic is not loaded', () => {
+  it('returns a UrlTree to /business when clinic is not loaded', () => {
     setup(false);
     const result = TestBed.runInInjectionContext(() =>
-      clinicRequiredGuard({} as any, {} as any)
+      clinicRequiredGuard({} as never, {} as never),
     );
-    expect(result).toBeFalse();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/business']);
+    expect(result).toBe(businessTree);
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/business']);
   });
 
-  it('returns false and redirects to /coming-soon when comingSoon is true', () => {
+  it('returns a UrlTree to /coming-soon when comingSoon is true', () => {
     setup(true, true);
     const result = TestBed.runInInjectionContext(() =>
-      clinicRequiredGuard({} as any, {} as any)
+      clinicRequiredGuard({} as never, {} as never),
     );
-    expect(result).toBeFalse();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/coming-soon']);
+    expect(result).toBe(comingSoonTree);
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/coming-soon']);
   });
 
-  it('does not navigate at all when clinic is loaded and live', () => {
+  it('does not create a redirect when clinic is loaded and live', () => {
     setup(true, false);
     TestBed.runInInjectionContext(() =>
-      clinicRequiredGuard({} as any, {} as any)
+      clinicRequiredGuard({} as never, {} as never),
     );
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.createUrlTree).not.toHaveBeenCalled();
   });
 
-  it('checks isLoaded before comingSoon — never reads config when not loaded', () => {
-    // config is undefined — if guard reads config before checking isLoaded it would throw
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+  it('checks isLoaded before accessing config', () => {
+    mockRouter = jasmine.createSpyObj('Router', ['createUrlTree']);
+    mockRouter.createUrlTree.and.returnValue(businessTree);
+
     TestBed.configureTestingModule({
       providers: [
         { provide: ClinicConfigService, useValue: { isLoaded: false, config: undefined } },
         { provide: Router, useValue: mockRouter },
       ],
     });
+
     expect(() =>
-      TestBed.runInInjectionContext(() => clinicRequiredGuard({} as any, {} as any))
+      TestBed.runInInjectionContext(() => clinicRequiredGuard({} as never, {} as never)),
     ).not.toThrow();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/business']);
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/business']);
   });
 });

@@ -240,9 +240,7 @@
                                 [class]="isInvalid('time') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                           <option value="">Select time…</option>
                           @for (t of timeSlots; track t) {
-                            <option [value]="t">
-                              {{ selectedDoctorId() ? formatSlotDisplay(t) : t }}
-                            </option>
+                            <option [value]="t">{{ formatSlotDisplay(t) }}</option>
                           }
                         </select>
                         <svg class="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment } from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import { DEFAULT_BOOKING_SLOTS, formatSlotDisplay } from '../../core/services/doctor.service';
 
 type View = 'lookup' | 'detail' | 'edit' | 'cancelled';
 
@@ -27,15 +28,10 @@ export class MyAppointmentComponent {
   saving      = signal(false);
   cancelling  = signal(false);
   showConfirm = signal(false);
+  readonly formatSlotDisplay = formatSlotDisplay;
 
   services = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
-
-  timeSlots = [
-    '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-    '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
-    '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM',
-    '6:00 PM', '6:30 PM', '7:00 PM',
-  ];
+  timeSlots = DEFAULT_BOOKING_SLOTS;
 
   lookupForm = this.fb.group({
     bookingRef: ['', [Validators.required, Validators.pattern(new RegExp(`^${this.prefix}-[A-Z0-9]{8}$`))]],
@@ -80,7 +76,14 @@ export class MyAppointmentComponent {
 
   canCancel(): boolean {
     const appt = this.appointment();
-    return appt ? this.appointmentService.canCancel(appt.date) : false;
+    return appt
+      ? ['pending', 'confirmed'].includes(appt.status) && this.appointmentService.canCancel(appt.date)
+      : false;
+  }
+
+  canEdit(): boolean {
+    const appt = this.appointment();
+    return appt ? ['pending', 'confirmed'].includes(appt.status) : false;
   }
 
   async onLookup() {
@@ -129,13 +132,20 @@ export class MyAppointmentComponent {
     try {
       const appt = this.appointment()!;
       const val  = this.editForm.value;
-      await this.appointmentService.updateAppointment(appt.id!, {
+      await this.appointmentService.updateAppointment(appt, {
         service: val.service!,
         date:    val.date!,
         time:    val.time!,
         message: val.message || undefined,
       });
-      this.appointment.set({ ...appt, service: val.service!, date: val.date!, time: val.time!, message: val.message || undefined });
+      this.appointment.set({
+        ...appt,
+        service: val.service!,
+        date: val.date!,
+        time: val.time!,
+        message: val.message || undefined,
+        status: 'pending',
+      });
       this.view.set('detail');
     } catch (e) {
       console.error('[MyAppointment] Update failed:', e);
@@ -151,7 +161,7 @@ export class MyAppointmentComponent {
     this.showConfirm.set(false);
 
     try {
-      await this.appointmentService.cancelAppointment(appt.id!, appt.date);
+      await this.appointmentService.cancelAppointment(appt);
       this.view.set('cancelled');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : `Could not cancel. Please call ${this.config.phone}.`;

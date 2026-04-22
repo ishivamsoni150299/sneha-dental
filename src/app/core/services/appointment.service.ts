@@ -1,16 +1,15 @@
 import { Injectable, inject, NgZone } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
+import { normalizeTimeValue } from './doctor.service';
 import {
   collection,
-  addDoc,
   query,
   where,
   getDocs,
+  getDoc,
   orderBy,
   doc,
-  setDoc,
   updateDoc,
-  deleteDoc,
   onSnapshot,
   runTransaction,
   serverTimestamp,
@@ -25,6 +24,7 @@ export type PaymentMethod = 'cash' | 'upi' | 'card' | 'insurance' | 'other';
 export interface Appointment {
   id?: string;
   clinicId: string;      // scopes this appointment to its clinic
+  lookupKey?: string;    // deterministic ID used for public self-service lookup
   bookingRef: string;
   name: string;
   phone: string;
@@ -32,8 +32,8 @@ export interface Appointment {
   service: string;
   date: string;          // "YYYY-MM-DD"
   time: string;
-  doctorId?: string;     // optional — set when patient picks a specific doctor
-  doctorName?: string;   // denormalized for display without extra lookup
+  doctorId?: string | null;     // optional — set when patient picks a specific doctor
+  doctorName?: string | null;   // denormalized for display without extra lookup
   message?: string;
   status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
   // Clinical record (filled by clinic after the visit)
@@ -63,6 +63,40 @@ export class AppointmentService {
 
   private get prefix(): string {
     return this.clinic.config.bookingRefPrefix;
+  }
+
+  private normalizePhone(phone: string): string {
+    return phone.replace(/\D/g, '').slice(-10);
+  }
+
+  private normalizeBookingRef(bookingRef: string): string {
+    return bookingRef.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+  }
+
+  private buildLookupKey(bookingRef: string, phone: string): string {
+    return [
+      this.clinicId,
+      this.normalizeBookingRef(bookingRef),
+      this.normalizePhone(phone),
+    ].join('__');
+  }
+
+  private buildSlotKey(clinicId: string, date: string, time: string, doctorId?: string | null): string {
+    const normalizedDoctor = (doctorId ?? 'any').replace(/[^a-zA-Z0-9_-]/g, '');
+    const normalizedTime = normalizeTimeValue(time).replace(/[^0-9A-Za-z]/g, '');
+    return `${clinicId}_${normalizedDoctor}_${date}_${normalizedTime}`;
+  }
+
+  private mapAppointment(id: string, data: Appointment): Appointment {
+    return {
+      ...data,
+      id,
+      time: normalizeTimeValue(data.time),
+    };
+  }
+
+  private slotRefFor(data: Pick<Appointment, 'clinicId' | 'date' | 'time' | 'doctorId'>) {
+    return doc(db, 'slots', this.buildSlotKey(data.clinicId, data.date, data.time, data.doctorId));
   }
 
   private generateBookingRef(): string {
@@ -97,20 +131,35 @@ export class AppointmentService {
   ): Promise<string> {
     const bookingRef = this.generateBookingRef();
     const clinicId   = this.clinicId;
+    const lookupKey  = this.buildLookupKey(bookingRef, data.phone);
+    const normalizedTime = normalizeTimeValue(data.time);
     const appointmentPayload = this.stripUndefined({
       ...data,
       clinicId,
+      lookupKey,
       bookingRef,
+      time: normalizedTime,
+      doctorId: data.doctorId ?? null,
+      doctorName: data.doctorName ?? null,
       status: 'pending' as const,
       createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
 
-    // Build a deterministic slot ID — normalise time to avoid space issues
-    const slotKey  = `${clinicId}_${data.doctorId ?? 'any'}_${data.date}_${data.time.replace(/[:\s]/g, '')}`;
-    const slotRef  = doc(db, 'slots', slotKey);
-    const apptRef  = doc(collection(db, this.COLLECTION));
+    const slotRef = this.slotRefFor({
+      clinicId,
+      doctorId: data.doctorId,
+      date: data.date,
+      time: normalizedTime,
+    });
+    const apptRef = doc(db, this.COLLECTION, lookupKey);
 
     await runTransaction(db, async (tx) => {
+      const apptSnap = await tx.get(apptRef);
+      if (apptSnap.exists()) {
+        throw new Error('A booking with these details already exists. Please contact the clinic if you need help.');
+      }
+
       const slotSnap = await tx.get(slotRef);
       if (slotSnap.exists()) {
         throw new Error('This time slot has just been taken. Please choose another time.');
@@ -121,9 +170,10 @@ export class AppointmentService {
         clinicId,
         doctorId:    data.doctorId ?? null,
         date:        data.date,
-        time:        data.time,
+        time:        normalizedTime,
         appointmentId: apptRef.id,
         createdAt:   serverTimestamp(),
+        updatedAt:   serverTimestamp(),
       });
 
       // Create the appointment
@@ -135,24 +185,74 @@ export class AppointmentService {
 
   /** Fetch appointment by bookingRef + phone — scoped to this clinic. */
   async getAppointmentByRef(bookingRef: string, phone: string): Promise<Appointment | null> {
-    const q        = query(
-      collection(db, this.COLLECTION),
-      where('clinicId',   '==', this.clinicId),
-      where('bookingRef', '==', bookingRef),
-      where('phone',      '==', phone),
-    );
-    const snapshot = await getDocs(q);
-    if (snapshot.empty) return null;
-    const snap = snapshot.docs[0];
-    return { id: snap.id, ...snap.data() } as Appointment;
+    const lookupKey = this.buildLookupKey(bookingRef, phone);
+    const snap = await getDoc(doc(db, this.COLLECTION, lookupKey));
+    if (!snap.exists()) return null;
+    const data = snap.data() as Appointment;
+    if (
+      data.clinicId !== this.clinicId ||
+      this.normalizeBookingRef(data.bookingRef) !== this.normalizeBookingRef(bookingRef) ||
+      this.normalizePhone(data.phone) !== this.normalizePhone(phone)
+    ) {
+      return null;
+    }
+    return this.mapAppointment(snap.id, data);
   }
 
   /** Update editable fields: service, date, time, message. */
   async updateAppointment(
-    id: string,
+    appointment: Appointment,
     data: Partial<Pick<Appointment, 'service' | 'date' | 'time' | 'message'>>
   ): Promise<void> {
-    await updateDoc(doc(db, this.COLLECTION, id), this.stripUndefined({ ...data }));
+    if (!appointment.id) {
+      throw new Error('Appointment reference is missing.');
+    }
+    if (!['pending', 'confirmed'].includes(appointment.status)) {
+      throw new Error('This appointment can no longer be changed online. Please contact the clinic.');
+    }
+
+    const nextDate = data.date ?? appointment.date;
+    const nextTime = normalizeTimeValue(data.time ?? appointment.time);
+    const nextSlotRef = this.slotRefFor({
+      clinicId: appointment.clinicId,
+      doctorId: appointment.doctorId,
+      date: nextDate,
+      time: nextTime,
+    });
+    const currentSlotRef = this.slotRefFor({
+      clinicId: appointment.clinicId,
+      doctorId: appointment.doctorId,
+      date: appointment.date,
+      time: appointment.time,
+    });
+    const appointmentRef = doc(db, this.COLLECTION, appointment.id);
+    const slotChanged = nextDate !== appointment.date || nextTime !== appointment.time;
+
+    await runTransaction(db, async (tx) => {
+      if (slotChanged) {
+        const nextSlotSnap = await tx.get(nextSlotRef);
+        if (nextSlotSnap.exists()) {
+          throw new Error('That new time slot is no longer available. Please choose another slot.');
+        }
+        tx.delete(currentSlotRef);
+        tx.set(nextSlotRef, {
+          clinicId: appointment.clinicId,
+          doctorId: appointment.doctorId ?? null,
+          date: nextDate,
+          time: nextTime,
+          appointmentId: appointment.id,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      tx.update(appointmentRef, this.stripUndefined({
+        ...data,
+        time: nextTime,
+        status: 'pending',
+        updatedAt: serverTimestamp(),
+      }));
+    });
   }
 
   /**
@@ -179,7 +279,7 @@ export class AppointmentService {
       q,
       (snapshot) => {
         const appointments = snapshot.docs.map(
-          d => ({ id: d.id, ...d.data() } as Appointment),
+          d => this.mapAppointment(d.id, d.data() as Appointment),
         );
         // Re-enter Angular zone so OnPush components update
         this.zone.run(() => onNext(appointments));
@@ -202,7 +302,7 @@ export class AppointmentService {
       orderBy('createdAt', 'desc'),
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Appointment));
+    return snapshot.docs.map(d => this.mapAppointment(d.id, d.data() as Appointment));
   }
 
   /** Set status directly (admin use). */
@@ -210,7 +310,23 @@ export class AppointmentService {
     id: string,
     status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled',
   ): Promise<void> {
-    await updateDoc(doc(db, this.COLLECTION, id), { status });
+    const appointmentRef = doc(db, this.COLLECTION, id);
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(appointmentRef);
+      if (!snap.exists()) {
+        throw new Error('Appointment not found.');
+      }
+      const appointment = { id: snap.id, ...snap.data() } as Appointment;
+      if (status === 'cancelled' && appointment.status !== 'cancelled') {
+        tx.delete(this.slotRefFor({
+          clinicId: appointment.clinicId,
+          doctorId: appointment.doctorId,
+          date: appointment.date,
+          time: appointment.time,
+        }));
+      }
+      tx.update(appointmentRef, { status, updatedAt: serverTimestamp() });
+    });
   }
 
   /** Save clinical record fields (notes, treatment, payment). Strips undefined. */
@@ -226,13 +342,35 @@ export class AppointmentService {
     }
   }
 
-  /** Cancel appointment — enforces 24-hour rule. */
-  async cancelAppointment(id: string, date: string): Promise<void> {
-    if (!this.canCancel(date)) {
+  /** Cancel appointment — enforces 24-hour rule and releases the reserved slot. */
+  async cancelAppointment(appointment: Appointment): Promise<void> {
+    if (!this.canCancel(appointment.date)) {
       throw new Error(
         `Cannot cancel within 24 hours of your appointment. Please call ${this.clinic.config.phone}.`,
       );
     }
-    await deleteDoc(doc(db, this.COLLECTION, id));
+    if (!appointment.id) {
+      throw new Error('Appointment reference is missing.');
+    }
+
+    const appointmentRef = doc(db, this.COLLECTION, appointment.id);
+    const slotRef = this.slotRefFor({
+      clinicId: appointment.clinicId,
+      doctorId: appointment.doctorId,
+      date: appointment.date,
+      time: appointment.time,
+    });
+
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(appointmentRef);
+      if (!snap.exists()) {
+        throw new Error('Appointment not found.');
+      }
+      tx.delete(slotRef);
+      tx.update(appointmentRef, {
+        status: 'cancelled',
+        updatedAt: serverTimestamp(),
+      });
+    });
   }
 }
