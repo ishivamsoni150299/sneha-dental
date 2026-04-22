@@ -409,6 +409,107 @@ body {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px var(--color-focus-ring);
   }
+
+  .mobile-app-shell {
+    @apply rounded-[30px] border;
+    border-color: color-mix(in srgb, var(--color-primary-border) 46%, white);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 255, 0.96) 100%);
+    box-shadow: 0 28px 68px -38px rgba(15, 23, 42, 0.28);
+  }
+
+  .mobile-app-hero {
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary-soft) 82%, white) 0%, transparent 48%),
+      linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 88%, #082f49) 0%, #0f172a 58%, #0b1220 100%);
+  }
+
+  .mobile-app-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-info-card {
+    @apply rounded-2xl border px-4 py-3.5;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    box-shadow: 0 18px 34px -30px rgba(15, 23, 42, 0.2);
+  }
+
+  .mobile-action-tile {
+    @apply flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-sm font-semibold transition-all;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    color: var(--color-text-soft);
+  }
+
+  .mobile-action-tile:active {
+    transform: scale(0.98);
+  }
+
+  .mobile-action-tile-primary {
+    border-color: color-mix(in srgb, var(--color-primary-border) 80%, white);
+    background: color-mix(in srgb, var(--color-primary-soft) 64%, white);
+    color: var(--color-primary-hover);
+  }
+
+  .mobile-compact-stat {
+    @apply rounded-2xl border px-3 py-3;
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-booking-shell {
+    @apply overflow-hidden rounded-[1.9rem] border bg-white shadow-sm;
+    border-color: color-mix(in srgb, var(--color-line) 86%, white);
+    box-shadow: 0 26px 56px -42px rgba(15, 23, 42, 0.3);
+  }
+
+  .mobile-booking-status {
+    background:
+      radial-gradient(circle at top right, rgba(45, 212, 191, 0.24) 0%, transparent 35%),
+      linear-gradient(160deg, #0f172a 0%, #111827 54%, color-mix(in srgb, var(--color-primary) 34%, #0f172a) 100%);
+  }
+
+  .mobile-booking-summary {
+    @apply rounded-[1.4rem] border px-4 py-3.5;
+    border-color: color-mix(in srgb, var(--color-primary-border) 58%, white);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 62%, white) 0%, rgba(255, 255, 255, 0.96) 100%);
+  }
+
+  .mobile-dock-shell {
+    @apply rounded-[2rem] border p-2;
+    border-color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 22px 50px -28px rgba(15, 23, 42, 0.28);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-dock-link {
+    @apply flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2.5 text-[10px] font-semibold transition-all;
+    color: var(--color-text-muted);
+  }
+
+  .mobile-dock-link:active {
+    transform: scale(0.97);
+  }
+
+  .mobile-dock-link-active {
+    background: color-mix(in srgb, var(--color-primary-soft) 68%, white);
+    color: var(--color-primary-hover);
+  }
+
+  .mobile-dock-book {
+    @apply flex items-center justify-center gap-2 rounded-[1.35rem] px-4 py-3 text-sm font-bold text-white transition-all;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 88%, white) 0%, var(--color-primary) 100%);
+    box-shadow: 0 18px 32px -20px var(--color-primary-shadow);
+  }
 }
 
 /* ── WORLD-CLASS ANIMATIONS ──────────────────────────────────────────────── */
