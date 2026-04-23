@@ -89,6 +89,40 @@ export function normalizeTimeValue(time: string): string {
   return `${String(hours).padStart(2, '0')}:${minutes}`;
 }
 
+function toTimeMinutes(value: string): number | null {
+  const normalized = normalizeTimeValue(value);
+  if (!/^\d{2}:\d{2}$/.test(normalized)) return null;
+
+  const [hours, minutes] = normalized.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+export function isPastDate(date: string, now = new Date()): boolean {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const selected = new Date(`${date}T00:00:00`);
+  return selected.getTime() < today.getTime();
+}
+
+export function isBookableDateTime(date: string, time: string, now = new Date()): boolean {
+  if (!date || !time) return false;
+  if (isPastDate(date, now)) return false;
+
+  const selected = new Date(`${date}T00:00:00`);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (selected.getTime() > today.getTime()) return true;
+
+  const slotMinutes = toTimeMinutes(time);
+  if (slotMinutes == null) return false;
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  return slotMinutes >= nowMinutes;
+}
+
+export function filterBookableSlots(date: string, slots: string[], now = new Date()): string[] {
+  if (!date) return [];
+  return slots.filter(slot => isBookableDateTime(date, slot, now));
+}
+
 /** Format a normalized or legacy time value to "h:MM AM/PM" for display. */
 export function formatSlotDisplay(t: string): string {
   const normalized = normalizeTimeValue(t);
@@ -151,6 +185,7 @@ export class DoctorService {
    */
   async getAvailableSlots(clinicId: string, doctor: Doctor, date: string): Promise<string[]> {
     if (!doctor.available) return [];
+    if (isPastDate(date)) return [];
 
     const dayOfWeek = DAY_INDEX_MAP[new Date(date + 'T00:00:00').getDay()];
     const daySchedule = doctor.schedule[dayOfWeek];
@@ -172,6 +207,6 @@ export class DoctorService {
         .map(d => normalizeTimeValue((d.data() as { time?: string }).time ?? ''))
         .filter(Boolean),
     );
-    return allSlots.filter(s => !bookedTimes.has(s));
+    return filterBookableSlots(date, allSlots.filter(s => !bookedTimes.has(s)));
   }
 }

@@ -91,6 +91,25 @@ describe('AppointmentService', () => {
     });
   });
 
+  describe('isBookable()', () => {
+    it('allows a future date', () => {
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      expect(service.isBookable(tomorrow, '09:00')).toBeTrue();
+    });
+
+    it('rejects a past date', () => {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      expect(service.isBookable(yesterday, '09:00')).toBeFalse();
+    });
+
+    it('rejects a past time on the current date', () => {
+      jasmine.clock().install();
+      jasmine.clock().mockDate(new Date('2026-04-23T14:15:00'));
+      expect(service.isBookable('2026-04-23', '14:00')).toBeFalse();
+      jasmine.clock().uninstall();
+    });
+  });
+
   // ── cancelAppointment() — 24-hour enforcement (no Firestore needed) ───────
   describe('cancelAppointment() — 24-hour rule', () => {
     it('throws when appointment is within 24 hours', async () => {

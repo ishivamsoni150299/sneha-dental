@@ -1,6 +1,6 @@
 import { Injectable, inject, NgZone } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
-import { normalizeTimeValue } from './doctor.service';
+import { isBookableDateTime, normalizeTimeValue } from './doctor.service';
 import {
   collection,
   query,
@@ -112,6 +112,10 @@ export class AppointmentService {
     return diffHours > 24;
   }
 
+  isBookable(date: string, time: string): boolean {
+    return isBookableDateTime(date, time);
+  }
+
   /**
    * Save a new appointment with atomic slot reservation.
    *
@@ -129,6 +133,10 @@ export class AppointmentService {
   async bookAppointment(
     data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>
   ): Promise<string> {
+    if (!this.isBookable(data.date, data.time)) {
+      throw new Error('Please choose a current or future appointment slot.');
+    }
+
     const bookingRef = this.generateBookingRef();
     const clinicId   = this.clinicId;
     const lookupKey  = this.buildLookupKey(bookingRef, data.phone);
@@ -213,6 +221,9 @@ export class AppointmentService {
 
     const nextDate = data.date ?? appointment.date;
     const nextTime = normalizeTimeValue(data.time ?? appointment.time);
+    if (!this.isBookable(nextDate, nextTime)) {
+      throw new Error('Please choose a current or future appointment slot.');
+    }
     const nextSlotRef = this.slotRefFor({
       clinicId: appointment.clinicId,
       doctorId: appointment.doctorId,

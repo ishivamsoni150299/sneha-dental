@@ -10,7 +10,9 @@ import {
   DoctorService,
   Doctor,
   DEFAULT_BOOKING_SLOTS,
+  filterBookableSlots,
   formatSlotDisplay,
+  isPastDate,
 } from '../../core/services/doctor.service';
 
 @Component({
@@ -130,7 +132,15 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
     // When date or selected doctor changes, reload available slots
     this.subs.add(
-      this.form.get('date')!.valueChanges.subscribe(() => void this.refreshSlots())
+      this.form.get('date')!.valueChanges.subscribe(() => {
+        this.form.patchValue({ time: '' }, { emitEvent: false });
+        this.validateScheduleFields();
+        void this.refreshSlots();
+      })
+    );
+
+    this.subs.add(
+      this.form.get('time')!.valueChanges.subscribe(() => this.validateScheduleFields())
     );
   }
 
@@ -139,13 +149,18 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   selectDoctor(doctorId: string) {
     this.selectedDoctorId.set(doctorId);
     this.form.patchValue({ time: '' }); // clear time when switching doctor
+    this.validateScheduleFields();
     void this.refreshSlots();
   }
 
   private async refreshSlots() {
     const doctorId = this.selectedDoctorId();
     const date     = this.form.get('date')!.value;
-    if (!doctorId || !date) { this.availableSlots.set([]); return; }
+    if (!doctorId || !date) {
+      this.availableSlots.set([]);
+      this.validateScheduleFields();
+      return;
+    }
 
     const doctor = this.doctors().find(d => d.id === doctorId);
     if (!doctor) return;
@@ -160,6 +175,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
       this.availableSlots.set([]);
     } finally {
       this.slotsLoading.set(false);
+      this.validateScheduleFields();
     }
   }
 
@@ -171,7 +187,8 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     // Show doctor's specific slots when available, else fallback
     const slots = this.availableSlots();
     if (this.selectedDoctorId() && slots.length > 0) return slots;
-    return this.fallbackSlots;
+    const date = String(this.form.get('date')?.value ?? '');
+    return date ? filterBookableSlots(date, this.fallbackSlots) : this.fallbackSlots;
   }
 
   get selectedServiceLabel(): string {
@@ -266,6 +283,30 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     return ctrl?.invalid && ctrl?.touched;
   }
 
+  private validateScheduleFields() {
+    const dateCtrl = this.form.get('date');
+    const timeCtrl = this.form.get('time');
+    if (!dateCtrl || !timeCtrl) return;
+
+    const date = String(dateCtrl.value ?? '');
+    const time = String(timeCtrl.value ?? '');
+
+    if (date && isPastDate(date)) {
+      dateCtrl.setErrors({ ...(dateCtrl.errors ?? {}), pastDate: true });
+    } else if (dateCtrl.errors?.['pastDate']) {
+      const { pastDate, ...rest } = dateCtrl.errors;
+      dateCtrl.setErrors(Object.keys(rest).length ? rest : null);
+    }
+
+    const slotOptions = this.timeSlots;
+    if (time && date && !slotOptions.includes(time)) {
+      timeCtrl.setErrors({ ...(timeCtrl.errors ?? {}), pastTime: true });
+    } else if (timeCtrl.errors?.['pastTime']) {
+      const { pastTime, ...rest } = timeCtrl.errors;
+      timeCtrl.setErrors(Object.keys(rest).length ? rest : null);
+    }
+  }
+
   get whatsappUrl(): string {
     const { name, service, date } = this.form.value;
     let msg = `Hi ${this.config.name}! `;
@@ -278,6 +319,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
   async onSubmit() {
     this.form.markAllAsTouched();
+    this.validateScheduleFields();
     if (this.form.invalid) return;
 
     this.submitting.set(true);
