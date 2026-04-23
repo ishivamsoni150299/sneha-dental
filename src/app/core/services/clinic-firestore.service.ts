@@ -101,6 +101,16 @@ export class ClinicFirestoreService {
     return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
   }
 
+  async getByVercelDomain(vercelDomain: string): Promise<StoredClinic | null> {
+    const q = query(
+      collection(db, this.COL),
+      where('vercelDomain', '==', vercelDomain),
+      limit(1),
+    );
+    const snap = await getDocs(q);
+    return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
+  }
+
   async getByAdminUid(uid: string): Promise<StoredClinic | null> {
     const q = query(
       collection(db, this.COL),

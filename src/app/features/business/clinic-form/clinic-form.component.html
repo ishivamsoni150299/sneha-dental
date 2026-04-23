@@ -406,8 +406,10 @@
           <!-- Preview Address -->
           <div>
             <label class="form-label">Preview Website Address <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="vercelDomain" type="text" placeholder="sneha-dental.vercel.app" class="form-input">
-            <p class="text-xs text-gray-400 mt-1">Temporary website address used before the final custom domain is connected.</p>
+            <input formControlName="vercelDomain" type="text" placeholder="arogyamdental.mydentalplatform.com" class="form-input"
+                   (input)="markPreviewDomainManual()"
+                   (blur)="normalizePreviewDomain()">
+            <p class="text-xs text-gray-400 mt-1">Auto-generated from clinic name. You can edit the first part if needed.</p>
           </div>
 
           <!-- Active toggle -->

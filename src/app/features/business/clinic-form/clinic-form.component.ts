@@ -67,6 +67,22 @@ const CLINIC_THEME_OPTIONS = [
   },
 ] as const;
 
+function toSubdomainSlug(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
+}
+
+function normalizeHostedDomain(value: string): string {
+  const clean = value.trim().toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/.*$/, '');
+
+  if (!clean) return '';
+  if (clean.endsWith('.mydentalplatform.com')) return clean;
+
+  const slug = toSubdomainSlug(clean);
+  return slug ? `${slug}.mydentalplatform.com` : '';
+}
+
 @Component({
   selector: 'app-clinic-form',
   standalone: true,
@@ -98,6 +114,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   readonly SECTIONS = ['identity', 'contact', 'hours', 'brand', 'services', 'plans', 'testimonials', 'billing'];
 
   private intersectionObserver: IntersectionObserver | null = null;
+  private previewDomainManuallyEdited = false;
   // syncing   = signal(false);   // TODO: Uncomment with Google Maps API
   // syncError = signal<string | null>(null);
 
@@ -241,6 +258,11 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           .join('')
           .slice(0, 4);
         if (prefix) this.form.controls.bookingRefPrefix.setValue(prefix, { emitEvent: false });
+
+        const slug = toSubdomainSlug(name);
+        if (slug && !this.previewDomainManuallyEdited) {
+          this.form.controls.vercelDomain.setValue(`${slug}.mydentalplatform.com`, { emitEvent: false });
+        }
       }));
     }
 
@@ -420,6 +442,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
     try {
       const v = this.form.getRawValue();
+      const hostedDomain = await this.resolveHostedDomain(v.name, v.vercelDomain);
 
       // Firestore rejects `undefined` — use null for optional fields so
       // existing values are cleared when the admin empties them.
@@ -448,7 +471,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         billingEmail:        v.billingEmail         || null,
         billingNotes:        v.billingNotes         || null,
         domain:              v.domain               || null,
-        vercelDomain:        v.vercelDomain         || null,
+        vercelDomain:        hostedDomain           || null,
         active:              v.active,
         theme:               v.theme as 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose',
         bookingRefPrefix:    v.bookingRefPrefix,
@@ -507,6 +530,46 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   /** Scrolls to a section by id — avoids Angular router intercepting hash links */
   scrollToSection(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  markPreviewDomainManual() {
+    this.previewDomainManuallyEdited = true;
+  }
+
+  normalizePreviewDomain() {
+    const normalized = normalizeHostedDomain(this.form.controls.vercelDomain.value);
+    if (normalized) {
+      this.form.controls.vercelDomain.setValue(normalized, { emitEvent: false });
+    }
+  }
+
+  private async generateAvailableSubdomain(name: string): Promise<string> {
+    const baseSlug = toSubdomainSlug(name);
+    if (!baseSlug) return '';
+
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const suffix = attempt === 0 ? '' : String(attempt + 1);
+      const candidate = `${baseSlug}${suffix}.mydentalplatform.com`;
+      const existing = await this.clinicStore.getByVercelDomain(candidate);
+      if (!existing || existing.id === this.clinicId) return candidate;
+    }
+
+    return `${baseSlug}${Date.now().toString(36).slice(-4)}.mydentalplatform.com`;
+  }
+
+  private async resolveHostedDomain(name: string, value: string): Promise<string> {
+    const normalized = normalizeHostedDomain(value);
+    if (!normalized) return this.generateAvailableSubdomain(name);
+
+    const existing = await this.clinicStore.getByVercelDomain(normalized);
+    if (!existing || existing.id === this.clinicId) return normalized;
+
+    if (this.isEdit) {
+      throw new Error('This preview website address is already used by another clinic.');
+    }
+
+    const slug = normalized.replace(/\.mydentalplatform\.com$/, '');
+    return this.generateAvailableSubdomain(slug);
   }
 
   /** Uses IntersectionObserver to track which section is currently in view */
