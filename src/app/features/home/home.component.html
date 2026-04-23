@@ -1,7 +1,7 @@
 <!-- ===== HERO ===== -->
-<section class="bg-white min-h-[calc(100svh-4rem)] md:min-h-[92vh] flex items-center">
-  <div class="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 pt-8 pb-10 sm:py-16 lg:py-0">
-    <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-20 lg:min-h-[88vh]">
+<section class="bg-white py-10 sm:py-14 lg:min-h-[92vh] lg:flex lg:items-center">
+  <div class="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+    <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-20">
 
       <!-- Text side -->
       <div class="flex-1 text-left">
@@ -96,90 +96,28 @@
               </div>
             </div>
 
-            <div class="space-y-4 px-4 py-4">
-              <div class="grid grid-cols-[1.6fr_1fr] gap-3">
-                <div class="overflow-hidden rounded-[1.4rem] border border-gray-100 bg-gray-50">
-                  <div class="aspect-[1.12/1]">
-                    <img [src]="clinicMoments[1].src || clinicMoments[0].src"
-                         [alt]="clinicMoments[1].alt || clinicMoments[0].alt"
-                         class="h-full w-full object-cover">
-                  </div>
+            <div class="px-4 pb-4 pt-3 space-y-2.5">
+              @if (heroHours[0]) {
+                <div class="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5 text-xs">
+                  <span class="font-medium text-gray-500">{{ heroHours[0].days }}</span>
+                  <span class="font-semibold text-gray-800">{{ heroHours[0].time }}</span>
                 </div>
-                <div class="flex flex-col gap-3">
-                  <div class="mobile-info-card flex-1">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Clinic hours</p>
-                    <p class="mt-2 text-sm font-semibold text-gray-900">{{ heroHours[0].days || 'Mon - Sat' }}</p>
-                    <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ heroHours[0].time || '9:00 AM - 7:00 PM' }}</p>
-                  </div>
-                  <div class="mobile-info-card flex-1">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Best for</p>
-                    <p class="mt-2 text-sm font-semibold text-gray-900">Fast, simple bookings</p>
-                    <p class="mt-1 text-xs leading-relaxed text-gray-500">Call, WhatsApp, or book in under a minute.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
+              }
+              <div class="grid grid-cols-2 gap-2.5">
                 <a routerLink="/appointment"
-                   class="mobile-action-tile mobile-action-tile-primary">
+                   class="flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] px-3 py-3 text-sm font-bold text-white shadow-sm shadow-[var(--accent-sh)] active:scale-[0.98] transition-transform">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
                   Book Now
                 </a>
                 <a [href]="'tel:+' + config.phoneE164"
-                   class="mobile-action-tile">
+                   class="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-sm font-semibold text-gray-800 active:scale-[0.98] transition-transform">
                   <svg class="h-4 w-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                   </svg>
                   Call
                 </a>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                @if (config.mapDirectionsUrl) {
-                  <a [href]="config.mapDirectionsUrl"
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     class="mobile-action-tile">
-                    <svg class="h-4 w-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Directions
-                  </a>
-                } @else {
-                  <div class="mobile-action-tile">
-                    <svg class="h-4 w-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    {{ clinicLocationLabel }}
-                  </div>
-                }
-                <a [href]="clinic.bookingWhatsappUrl"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="mobile-action-tile">
-                  <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-                  </svg>
-                  WhatsApp
-                </a>
-              </div>
-
-              <div class="mobile-info-card">
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Why patients book here</p>
-                    <p class="mt-2 text-sm font-semibold text-gray-900">Professional care, simple mobile booking</p>
-                    <p class="mt-1 text-xs leading-relaxed text-gray-500">Everything important is visible immediately: doctor, hours, trust, and one clear next step.</p>
-                  </div>
-                  <div class="rounded-2xl border border-[var(--color-primary-border)] bg-[var(--color-primary-soft)] px-3 py-2 text-right">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Confirm</p>
-                    <p class="mt-1 text-sm font-semibold text-gray-900">Within 2 hrs</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -369,15 +307,15 @@
 
 
 <!-- ===== DOCTOR BIO ===== -->
-<section class="bg-white py-16 md:py-24 border-b border-gray-50">
+<section class="bg-white py-10 md:py-24 border-b border-gray-50">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
       <!-- Avatar column -->
       <div reveal revealDir="left" class="flex flex-col items-center lg:items-start">
-        <div class="relative w-48 h-48 sm:w-56 sm:h-56 mb-8">
+        <div class="relative w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 mb-6">
           <div class="w-full h-full rounded-full bg-[var(--accent-lt)] border border-[var(--accent-bd)] flex items-center justify-center">
-            <span class="text-[var(--accent)] font-black text-4xl tracking-[0.16em] select-none">{{ doctorMonogram }}</span>
+            <span class="text-[var(--accent)] font-black text-2xl sm:text-4xl tracking-[0.16em] select-none">{{ doctorMonogram }}</span>
           </div>
           <div class="absolute -bottom-2 -right-2 bg-[var(--accent)] text-white text-xs font-bold px-3 py-1.5 rounded-full border-2 border-white">
             {{ doctorTitle }}
@@ -433,7 +371,7 @@
 
 
 <!-- ===== SERVICES PREVIEW ===== -->
-<section class="bg-gray-50 py-16 md:py-24">
+<section class="bg-gray-50 py-12 md:py-24">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
     <!-- Section header -->
@@ -458,7 +396,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="service.iconPath"/>
               </svg>
             </div>
-            <span class="text-[11px] font-semibold text-gray-700 text-center leading-tight">{{ service.name }}</span>
+            <span class="text-xs font-semibold text-gray-700 text-center leading-tight">{{ service.name }}</span>
           </a>
         }
       </div>
@@ -502,12 +440,12 @@
 <app-treatment-finder />
 
 <!-- ===== WHY CHOOSE US ===== -->
-<section class="bg-white py-16 md:py-24">
+<section class="bg-white py-12 md:py-24">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
 
-      <!-- Image column -->
-      <div reveal revealDir="left" class="relative">
+      <!-- Image column — shows below text on mobile, left on desktop -->
+      <div reveal revealDir="left" class="relative order-2 lg:order-1">
         <div class="rounded-3xl overflow-hidden aspect-[4/3] bg-gray-50">
           <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=700&q=80"
                [attr.alt]="'Modern ' + config.name"
@@ -527,8 +465,8 @@
         </div>
       </div>
 
-      <!-- Features column -->
-      <div reveal revealDir="right">
+      <!-- Features column — shows first on mobile, right on desktop -->
+      <div reveal revealDir="right" class="order-1 lg:order-2">
         <div class="flex items-center gap-2 mb-6">
           <span class="block w-5 h-px bg-[var(--accent)]"></span>
           <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Why Choose Us</span>
@@ -571,7 +509,7 @@
 
 <!-- ===== TESTIMONIALS ===== -->
 @if (hasTestimonials) {
-  <section class="bg-gray-50 py-16 md:py-24 border-y border-gray-100 overflow-hidden">
+  <section class="bg-gray-50 py-12 md:py-24 border-y border-gray-100 overflow-hidden">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
       <!-- Section header -->
@@ -629,7 +567,7 @@
 }
 
 <!-- ===== FAQ ===== -->
-<section class="bg-white py-16 md:py-24">
+<section class="bg-white py-12 md:py-24">
   <div class="max-w-2xl mx-auto px-5 sm:px-8 lg:px-10">
 
     <div reveal revealDir="up" class="text-center mb-12">
