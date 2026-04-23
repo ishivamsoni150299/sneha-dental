@@ -29,7 +29,9 @@ interface MessageDraft {
 }
 
 const DEMO_WEBSITE_URL = 'https://indram-dental.vercel.app';
-const DEMO_VIDEO_URL = 'https://youtu.be/R7d1KqfdH6U';
+const DEMO_VIDEO_TITLE = 'mydentalplatform - Demo of client dental website';
+const DEMO_VIDEO_URL = 'https://www.youtube.com/watch?v=cJGhGCDmyAk';
+const DEMO_VIDEO_LINE = `Demo video: ${DEMO_VIDEO_TITLE}\n${DEMO_VIDEO_URL}`;
 
 @Component({
   selector: 'app-lead-list',
@@ -697,7 +699,8 @@ I help dental clinics get a *${speciality}* with:
 ✅ Mobile-friendly, fast & secure
 
 🎬 *Watch how it works (2 min):*
-https://youtu.be/R7d1KqfdH6U
+${DEMO_VIDEO_TITLE}
+${DEMO_VIDEO_URL}
 
 👉 Live example: ${demo}
 
@@ -715,7 +718,9 @@ Your patients can book *anytime, even at midnight* — without calling you.
 
 Most clinics see their first online booking within *48 hours* of going live.
 
-🎬 2-min walkthrough: https://youtu.be/R7d1KqfdH6U
+🎬 2-min walkthrough:
+${DEMO_VIDEO_TITLE}
+${DEMO_VIDEO_URL}
 
 Would a quick 10-min call work for you? Completely free, no pressure 🙏`,
 
@@ -837,7 +842,7 @@ ${speciality ? `\nFor ${clinic}, I would position the site around ${speciality}.
 If useful, I can share a sample page idea tailored for *${clinic}*${locationLine}.
 
 Demo website: ${DEMO_WEBSITE_URL}
-2-minute walkthrough: ${DEMO_VIDEO_URL}
+${DEMO_VIDEO_LINE}
 
 Would you like me to send the sample?`,
       },
@@ -860,7 +865,7 @@ The reason clinics usually respond is simple:
 If you want, I can share a sample idea for *${clinic}* and explain the setup in 10 minutes.
 
 Demo website: ${DEMO_WEBSITE_URL}
-Walkthrough: ${DEMO_VIDEO_URL}
+${DEMO_VIDEO_LINE}
 
 Would a quick WhatsApp call this week work for you?`,
       },
@@ -886,7 +891,7 @@ ${proofLine ? `\n${proofLine}` : ''}
 I can send a clinic-specific sample structure for *${clinic}* today itself if you want.
 
 Demo website: ${DEMO_WEBSITE_URL}
-Walkthrough: ${DEMO_VIDEO_URL}
+${DEMO_VIDEO_LINE}
 
 What time suits you for a short demo?`,
       },
@@ -907,6 +912,9 @@ Quick recap of what goes live:
 - mobile-friendly admin dashboard
 - launch support from our side
 ${proofLine ? `\n${proofLine}` : ''}
+
+For reference, here is the client website demo again:
+${DEMO_VIDEO_LINE}
 
 If you reply with *YES*, I can move ahead with the setup for *${clinic}*.`,
       },
@@ -950,7 +958,7 @@ ${referredBy ? `\nSince ${referredBy} had referred this earlier, I wanted to rec
 If timing is better now, I can share a fresh sample for *${clinic}*.
 
 Demo website: ${DEMO_WEBSITE_URL}
-Walkthrough: ${DEMO_VIDEO_URL}
+${DEMO_VIDEO_LINE}
 
 Should I send the updated sample?`,
       },
