@@ -108,6 +108,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   saving         = signal(false);
   error          = signal<string | null>(null);
   success        = signal(false);
+  ownerLoginSynced = signal<{ email: string; passwordChanged: boolean } | null>(null);
   activeSection  = signal<string>('identity');
   ownedClinic    = signal<StoredClinic | null>(null);
 
@@ -156,6 +157,8 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     lastPaymentRef:      [''],
     billingEmail:        [''],
     billingNotes:        [''],
+    ownerLoginEmail:     [''],
+    ownerLoginPassword:  [''],
 
     // Brand
     theme:            ['blue', Validators.required],
@@ -361,6 +364,8 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       lastPaymentRef:      c.lastPaymentRef       ?? '',
       billingEmail:        c.billingEmail         ?? '',
       billingNotes:        c.billingNotes         ?? '',
+      ownerLoginEmail:     c.adminEmail           ?? c.billingEmail ?? '',
+      ownerLoginPassword:  '',
       theme: c.theme, bookingRefPrefix: c.bookingRefPrefix,
       facebook:  c.social?.facebook  ?? '',
       instagram: c.social?.instagram ?? '',
@@ -439,10 +444,23 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
     this.saving.set(true);
     this.error.set(null);
+    this.ownerLoginSynced.set(null);
 
     try {
       const v = this.form.getRawValue();
       const hostedDomain = await this.resolveHostedDomain(v.name, v.vercelDomain);
+      const ownerEmail = v.ownerLoginEmail.trim().toLowerCase();
+      const ownerPassword = v.ownerLoginPassword.trim();
+
+      if (!this.isEdit && (!ownerEmail || !ownerPassword)) {
+        throw new Error('Enter the clinic owner login email and temporary password before creating the clinic.');
+      }
+      if (ownerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
+        throw new Error('Enter a valid clinic owner login email.');
+      }
+      if (ownerPassword && ownerPassword.length < 8) {
+        throw new Error('Temporary password must be at least 8 characters.');
+      }
 
       // Firestore rejects `undefined` — use null for optional fields so
       // existing values are cleared when the admin empties them.
@@ -468,7 +486,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         lastPaymentDate:     v.lastPaymentDate      || null,
         lastPaymentAmount:   v.lastPaymentAmount    ?? null,   // ?? keeps 0 as valid
         lastPaymentRef:      v.lastPaymentRef       || null,
-        billingEmail:        v.billingEmail         || null,
+        billingEmail:        v.billingEmail || ownerEmail || null,
         billingNotes:        v.billingNotes         || null,
         domain:              v.domain               || null,
         vercelDomain:        hostedDomain           || null,
@@ -495,8 +513,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const firestorePayload = payload as any;
+      let savedClinicId = this.clinicId;
       if (this.isEdit) {
         await this.clinicStore.update(this.clinicId!, firestorePayload);
+        savedClinicId = this.clinicId!;
         await this.registerHostedDomain(hostedDomain);
       } else {
         await this.superAuth.authReady;
@@ -505,17 +525,13 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           throw new Error('You must be signed in to create a clinic.');
         }
 
-        const existingClinic = this.ownedClinic() ?? await this.clinicStore.getByAdminUid(user.uid);
-        if (existingClinic) {
-          this.ownedClinic.set(existingClinic);
-          throw new Error('This account already has a clinic. Open the existing clinic instead of creating another one.');
-        }
-
-        firestorePayload.adminUid = user.uid;
-        firestorePayload.adminEmail = user.email?.trim() || null;
         firestorePayload.rating = '4.9';
-        await this.clinicStore.create(firestorePayload);
+        savedClinicId = await this.clinicStore.create(firestorePayload);
         await this.registerHostedDomain(hostedDomain);
+      }
+
+      if (ownerEmail) {
+        await this.createOrUpdateClinicOwner(savedClinicId!, ownerEmail, ownerPassword, v.name);
       }
 
       this.success.set(true);
@@ -527,6 +543,36 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private async createOrUpdateClinicOwner(
+    clinicId: string,
+    email: string,
+    password: string,
+    clinicName: string,
+  ): Promise<void> {
+    await this.superAuth.authReady;
+    const user = this.superAuth.currentUser();
+    if (!user) throw new Error('You must be signed in to create the clinic owner login.');
+
+    const response = await fetch('/api/clinic-owner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken: await user.getIdToken(),
+        clinicId,
+        email,
+        password: password || undefined,
+        clinicName,
+      }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(`Clinic saved, but owner login was not configured: ${data.error ?? 'Unknown error'}`);
+    }
+
+    this.ownerLoginSynced.set({ email, passwordChanged: !!password });
   }
 
   /** Scrolls to a section by id — avoids Angular router intercepting hash links */
@@ -642,6 +688,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
 
   get accountAlreadyLinked(): boolean {
-    return !this.isEdit && !!this.ownedClinic();
+    return !this.isEdit && !this.superAuth.isSuperAdmin() && !!this.ownedClinic();
   }
 }

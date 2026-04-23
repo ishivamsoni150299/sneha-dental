@@ -848,6 +848,42 @@
             <input formControlName="billingEmail" type="email" placeholder="owner@clinic.com" class="form-input">
           </div>
 
+          <div class="sm:col-span-2 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
+            <div class="mb-3">
+              <p class="text-sm font-bold text-slate-900">Clinic Owner Login</p>
+              <p class="mt-1 text-xs leading-5 text-sky-700">
+                The clinic owner uses these details at /business/login to open appointments, patients and settings.
+                @if (isEdit) {
+                  <span>Leave password blank unless you want to create or reset the login.</span>
+                } @else {
+                  <span>Email and temporary password are required for a new manually-created clinic.</span>
+                }
+              </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="ownerLoginEmail" class="form-label">
+                  Owner Login Email
+                  @if (!isEdit) {
+                    <span class="text-red-400">*</span>
+                  }
+                </label>
+                <input id="ownerLoginEmail" formControlName="ownerLoginEmail" type="email" placeholder="doctor@clinic.com" class="form-input">
+              </div>
+              <div>
+                <label for="ownerLoginPassword" class="form-label">
+                  Temporary Password
+                  @if (!isEdit) {
+                    <span class="text-red-400">*</span>
+                  } @else {
+                    <span class="text-gray-400 font-normal text-[11px]">optional reset</span>
+                  }
+                </label>
+                <input id="ownerLoginPassword" formControlName="ownerLoginPassword" type="text" placeholder="Minimum 8 characters" class="form-input">
+              </div>
+            </div>
+          </div>
+
           <!-- Notes -->
           <div class="sm:col-span-2">
             <label class="form-label">Internal Notes</label>
@@ -865,6 +901,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
           {{ error() }}
+        </div>
+      }
+
+      @if (ownerLoginSynced()) {
+        <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          Clinic owner login is ready: <span class="font-semibold">{{ ownerLoginSynced()!.email }}</span>
+          @if (ownerLoginSynced()!.passwordChanged) {
+            <span>with the temporary password you entered.</span>
+          }
         </div>
       }
 
