@@ -683,6 +683,106 @@ body {
   opacity: 0.6;
 }
 
+.mobile-menu-toggle {
+  position: relative;
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 255, 0.96) 100%);
+  color: var(--color-text-soft);
+  box-shadow: 0 14px 28px -24px rgba(15, 23, 42, 0.45);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.97);
+}
+
+.mobile-menu-toggle-open {
+  border-color: var(--color-primary-border);
+  background: color-mix(in srgb, var(--color-primary-soft) 72%, white);
+  box-shadow: 0 16px 30px -22px var(--color-primary-shadow);
+}
+
+.mobile-menu-line {
+  position: absolute;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition:
+    transform 220ms ease,
+    opacity 160ms ease,
+    background-color 180ms ease;
+}
+
+.mobile-menu-line:nth-child(1) {
+  transform: translateY(-6px);
+}
+
+.mobile-menu-line:nth-child(2) {
+  transform: translateY(0);
+}
+
+.mobile-menu-line:nth-child(3) {
+  transform: translateY(6px);
+}
+
+.mobile-menu-toggle-open .mobile-menu-line {
+  background: var(--color-primary-hover);
+}
+
+.mobile-menu-toggle-open .mobile-menu-line:nth-child(1) {
+  transform: rotate(45deg);
+}
+
+.mobile-menu-toggle-open .mobile-menu-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.4);
+}
+
+.mobile-menu-toggle-open .mobile-menu-line:nth-child(3) {
+  transform: rotate(-45deg);
+}
+
+.mobile-menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  border: 0;
+  background: rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(2px);
+}
+
+.mobile-menu-sheet {
+  position: fixed;
+  left: 0.75rem;
+  right: 0.75rem;
+  top: calc(68px + env(safe-area-inset-top, 0px));
+  z-index: 60;
+  animation: mobileMenuEnter 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes mobileMenuEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .footer-glow {
   position: relative;
 }

@@ -29,6 +29,14 @@ export class NavbarComponent {
   @HostListener('window:scroll')
   onScroll() { this.scrolled.set(window.scrollY > 24); }
 
+  @HostListener('window:resize')
+  onResize() {
+    if (window.innerWidth >= 768) this.close();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() { this.close(); }
+
   toggle() { this.menuOpen.update(v => !v); }
   close()  { this.menuOpen.set(false); }
 }
