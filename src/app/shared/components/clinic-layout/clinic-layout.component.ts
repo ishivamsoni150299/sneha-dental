@@ -55,8 +55,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       </main>
       <app-footer />
 
-      <!-- Spacer for mobile dock -->
-      <div class="md:hidden" style="height: calc(92px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
+      <!-- Spacer so page content is not hidden under the fixed dock -->
+      <div class="md:hidden" style="height: calc(80px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
 
       <!-- Desktop speed dial -->
       <div class="hidden md:flex fixed bottom-8 right-6 z-50 flex-col items-end gap-2.5">
@@ -107,7 +107,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @if (showBackToTop()) {
         <button (click)="scrollToTop()"
                 aria-label="Back to top"
-                class="fixed bottom-[110px] left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:bottom-28 md:left-6">
+                class="fixed bottom-24 left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:bottom-28 md:left-6">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
           </svg>
@@ -160,7 +160,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
       <!-- PWA install banner -->
       @if (showInstallBanner()) {
-        <div class="fixed bottom-[108px] left-3 right-3 z-50 animate-slide-up md:hidden">
+        <div class="fixed bottom-24 left-3 right-3 z-50 animate-slide-up md:hidden">
           <div class="flex items-center gap-3 rounded-2xl bg-gray-900 px-4 py-3.5 text-white shadow-2xl">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
               <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -202,8 +202,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         </div>
       }
 
-      <!-- Mobile action dock -->
-      <div class="fixed bottom-3 inset-x-3 z-40 md:hidden" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+      <!-- Mobile action dock — anchored flush to viewport bottom -->
+      <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden" style="padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;">
         <div class="mobile-dock-shell">
           <div class="grid grid-cols-5 gap-1.5">
             <a routerLink="/"

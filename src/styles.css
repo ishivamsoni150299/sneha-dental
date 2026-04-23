@@ -253,13 +253,13 @@ html {
   overscroll-behavior: none;
   /* Use dvh so viewport accounts for retractable browser chrome on mobile */
   height: 100%;
-  /* Clip horizontal overflow at the root so no section can ever cause a
-     horizontal scrollbar or shift visible content left on mobile.
-     clip (unlike hidden) does not affect position:fixed elements. */
-  overflow-x: clip;
 }
 
 body {
+  /* Clip horizontal overflow here (not on html) so position:fixed elements
+     remain anchored to the viewport. overflow:clip does not propagate from
+     body to the viewport the way overflow:hidden does. */
+  overflow-x: clip;
   font-family: var(--font-sans);
   color: var(--color-text);
   background:
