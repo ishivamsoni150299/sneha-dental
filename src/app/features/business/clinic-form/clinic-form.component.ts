@@ -497,6 +497,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       const firestorePayload = payload as any;
       if (this.isEdit) {
         await this.clinicStore.update(this.clinicId!, firestorePayload);
+        await this.registerHostedDomain(hostedDomain);
       } else {
         await this.superAuth.authReady;
         const user = this.superAuth.currentUser();
@@ -514,6 +515,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         firestorePayload.adminEmail = user.email?.trim() || null;
         firestorePayload.rating = '4.9';
         await this.clinicStore.create(firestorePayload);
+        await this.registerHostedDomain(hostedDomain);
       }
 
       this.success.set(true);
@@ -570,6 +572,28 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
     const slug = normalized.replace(/\.mydentalplatform\.com$/, '');
     return this.generateAvailableSubdomain(slug);
+  }
+
+  private async registerHostedDomain(domain: string): Promise<void> {
+    if (!domain.endsWith('.mydentalplatform.com')) return;
+
+    await this.superAuth.authReady;
+    const user = this.superAuth.currentUser();
+    if (!user) throw new Error('You must be signed in to register the clinic subdomain.');
+
+    const response = await fetch('/api/domain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain,
+        idToken: await user.getIdToken(),
+      }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(`Clinic saved, but ${domain} was not registered on Vercel: ${data.error ?? 'Unknown error'}`);
+    }
   }
 
   /** Uses IntersectionObserver to track which section is currently in view */
