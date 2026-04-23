@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { formatPlatformPlanPrice, getPlatformPlanAmount } from '../config/clinic.config';
 
 export type BillingPlan = 'starter' | 'pro';
 export type BillingCycle = 'monthly' | 'yearly';
@@ -38,15 +39,12 @@ export class BillingService {
   }
 
   planAmount(plan: BillingPlan, billingCycle: BillingCycle): number {
-    if (plan === 'pro') return billingCycle === 'yearly' ? 24999 : 2499;
-    return billingCycle === 'yearly' ? 9999 : 999;
+    return getPlatformPlanAmount(plan, billingCycle);
   }
 
   planLabel(plan: BillingPlan, billingCycle: BillingCycle): string {
-    const amount = this.planAmount(plan, billingCycle).toLocaleString('en-IN');
     const title = plan === 'pro' ? 'Pro' : 'Starter';
-    const suffix = billingCycle === 'yearly' ? '/year' : '/month';
-    return `${title} (₹${amount}${suffix})`;
+    return `${title} (${formatPlatformPlanPrice(plan, billingCycle)})`;
   }
 
   whatsappPaymentMessage(

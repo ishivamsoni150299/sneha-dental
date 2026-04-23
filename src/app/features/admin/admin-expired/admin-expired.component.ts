@@ -1,7 +1,9 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { RouterLink, Router } from '@angular/router';
-import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { formatPlatformPlanPrice } from '../../../core/config/clinic.config';
 import { AuthService } from '../../../core/services/auth.service';
+import { BillingPlan, BillingService } from '../../../core/services/billing.service';
+import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-admin-expired',
@@ -10,13 +12,11 @@ import { AuthService } from '../../../core/services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
-
-      <!-- Header -->
-      <header class="border-b border-gray-100 bg-white/90 backdrop-blur sticky top-0 z-30">
-        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <header class="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur">
+        <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <a routerLink="/business" class="flex items-center gap-2 group">
-            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-              <svg class="w-[15px] h-[15px] text-white" viewBox="0 0 24 24" fill="currentColor">
+            <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
+              <svg class="h-[15px] w-[15px] text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z"/>
               </svg>
             </div>
@@ -24,102 +24,154 @@ import { AuthService } from '../../../core/services/auth.service';
               <span class="text-gray-900">mydental</span><span class="text-blue-600">platform</span>
             </span>
           </a>
-          <button (click)="logout()" class="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          <button (click)="logout()" class="text-xs text-gray-400 transition-colors hover:text-gray-600">
             Sign out
           </button>
         </div>
       </header>
 
-      <!-- Content -->
-      <main class="flex-1 flex items-center justify-center px-4 py-16">
-        <div class="max-w-lg w-full text-center">
-
-          <!-- Icon -->
-          <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-10 h-10 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <main class="flex flex-1 items-center justify-center px-4 py-16">
+        <div class="w-full max-w-xl text-center">
+          <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
+            <svg class="h-10 w-10 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
             </svg>
           </div>
 
-          <h1 class="text-2xl font-extrabold text-gray-900 mb-2">
+          <h1 class="mb-2 text-2xl font-extrabold text-gray-900">
             Your subscription has ended
           </h1>
-          <p class="text-gray-500 text-sm mb-2">
+          <p class="mb-2 text-sm text-gray-500">
             {{ clinicName }} · {{ statusLabel }}
           </p>
-          <p class="text-gray-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-            Your clinic website is currently offline. Upgrade to reactivate it instantly — all your data is safe and waiting.
+          <p class="mx-auto mb-8 max-w-sm text-sm leading-relaxed text-gray-500">
+            Your clinic website is currently offline. Choose a plan below to reopen checkout instantly and bring the site back online.
           </p>
 
-          <!-- Plans -->
-          <div class="grid sm:grid-cols-2 gap-3 mb-6 text-left">
-            <!-- Starter -->
-            <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 hover:border-blue-300 transition-colors">
-              <p class="font-bold text-gray-900 mb-0.5">Starter</p>
-              <p class="text-2xl font-extrabold text-blue-600 mb-1">₹999<span class="text-sm font-normal text-gray-400">/mo</span></p>
+          <div class="mb-6 grid gap-3 text-left sm:grid-cols-2">
+            <div class="rounded-2xl border-2 border-gray-200 bg-white p-5 transition-colors hover:border-blue-300">
+              <p class="mb-0.5 font-bold text-gray-900">Starter</p>
+              <p class="mb-1 text-2xl font-extrabold text-blue-600">{{ starterPrice }}</p>
               <ul class="space-y-1.5 text-xs text-gray-600">
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Professional website live instantly</li>
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Online appointment booking</li>
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Custom domain setup</li>
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>WhatsApp booking alerts</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Professional website live instantly</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Online appointment booking</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Custom domain setup</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>WhatsApp booking alerts</li>
               </ul>
+              <button
+                type="button"
+                (click)="reactivate('starter')"
+                [disabled]="upgrading() !== null"
+                class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">
+                @if (upgrading() === 'starter') {
+                  <span class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></span>
+                  Opening checkout...
+                } @else {
+                  Reactivate with Starter
+                }
+              </button>
             </div>
-            <!-- Pro -->
-            <div class="bg-blue-600 border-2 border-blue-600 rounded-2xl p-5 text-white relative overflow-hidden">
+
+            <div class="relative overflow-hidden rounded-2xl border-2 border-blue-600 bg-blue-600 p-5 text-white">
               <div class="absolute -top-3 left-4">
-                <span class="text-[9px] font-extrabold bg-amber-400 text-amber-900 px-2.5 py-1 rounded-full uppercase tracking-wide">Most Popular</span>
+                <span class="rounded-full bg-amber-400 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide text-amber-900">Most Popular</span>
               </div>
-              <p class="font-bold mb-0.5 mt-1">Pro</p>
-              <p class="text-2xl font-extrabold mb-1">₹2,499<span class="text-sm font-normal opacity-70">/mo</span></p>
+              <p class="mb-0.5 mt-1 font-bold">Pro</p>
+              <p class="mb-1 text-2xl font-extrabold">{{ proPrice }}</p>
               <ul class="space-y-1.5 text-xs opacity-90">
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Everything in Starter</li>
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>AI receptionist 24/7</li>
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>SEO-optimised pages</li>
-                <li class="flex items-center gap-1.5"><svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Priority support</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Everything in Starter</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>AI receptionist 24/7</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>SEO-optimised pages</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Priority support</li>
               </ul>
+              <button
+                type="button"
+                (click)="reactivate('pro')"
+                [disabled]="upgrading() !== null"
+                class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-blue-700 transition-all hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60">
+                @if (upgrading() === 'pro') {
+                  <span class="h-4 w-4 rounded-full border-2 border-blue-200 border-t-blue-700 animate-spin"></span>
+                  Opening checkout...
+                } @else {
+                  Reactivate with Pro
+                }
+              </button>
             </div>
           </div>
 
-          <!-- CTA -->
-          <a href="https://wa.me/919999999999?text={{ waMsg }}" target="_blank" rel="noopener"
-             class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl
-                    text-sm transition-all hover:shadow-lg hover:-translate-y-0.5 mb-3">
-            Upgrade now — reactivate instantly
-          </a>
+          @if (checkoutError()) {
+            <p class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-700">
+              {{ checkoutError() }}
+            </p>
+          }
+
+          <p class="mb-3 text-xs text-gray-500">
+            Secure Razorpay checkout opens in a new tab. Your website reactivates after payment confirmation.
+          </p>
           <p class="text-xs text-gray-400">
             Questions? Email
             <a href="mailto:mydentalplatform@zohomail.in" class="text-blue-500 hover:underline">mydentalplatform&#64;zohomail.in</a>
-            — we respond within 2 hours.
+            and we will help quickly.
           </p>
-
         </div>
       </main>
     </div>
   `,
 })
 export class AdminExpiredComponent {
-  private clinicCfg = inject(ClinicConfigService);
-  private auth      = inject(AuthService);
-  private router    = inject(Router);
+  private readonly clinicCfg = inject(ClinicConfigService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly billing = inject(BillingService);
 
-  get clinicName() { return this.clinicCfg.config.name || 'Your clinic'; }
+  readonly upgrading = signal<BillingPlan | null>(null);
+  readonly checkoutError = signal<string | null>(null);
+
+  get clinicName(): string {
+    return this.clinicCfg.config.name || 'Your clinic';
+  }
+
+  get starterPrice(): string {
+    return formatPlatformPlanPrice('starter', 'monthly');
+  }
+
+  get proPrice(): string {
+    return formatPlatformPlanPrice('pro', 'monthly');
+  }
 
   get statusLabel(): string {
-    const s = this.clinicCfg.config.subscriptionStatus;
-    if (s === 'cancelled') return 'Subscription cancelled';
-    if (s === 'expired')   return 'Subscription expired';
+    const status = this.clinicCfg.config.subscriptionStatus;
+    if (status === 'cancelled') return 'Subscription cancelled';
+    if (status === 'expired') return 'Subscription expired';
+
     const end = this.clinicCfg.config.trialEndDate;
     return end ? `Free trial ended ${end}` : 'Trial expired';
   }
 
-  get waMsg(): string {
-    return encodeURIComponent(
-      `Hi! I'd like to upgrade my clinic "${this.clinicName}" on mydentalplatform. Please send me the payment link.`
-    );
+  async reactivate(plan: BillingPlan): Promise<void> {
+    if (this.upgrading()) return;
+
+    this.upgrading.set(plan);
+    this.checkoutError.set(null);
+
+    try {
+      const { paymentUrl } = await this.billing.createSubscription(
+        this.clinicCfg.config.clinicId ?? '',
+        plan,
+        'monthly',
+        this.clinicName,
+        this.clinicCfg.config.phone,
+      );
+      window.open(paymentUrl, '_blank', 'noopener');
+    } catch (error) {
+      this.checkoutError.set(error instanceof Error ? error.message : 'Could not open checkout. Please try again.');
+    } finally {
+      this.upgrading.set(null);
+    }
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     await this.auth.logout();
-    this.router.navigate(['/business/login']);
+    void this.router.navigate(['/business/login']);
   }
 }

@@ -15,7 +15,7 @@ import {
 } from 'firebase/auth';
 import { initializeApp, getApps } from 'firebase/app';
 import { environment } from '../../../../environments/environment';
-import type { ClinicTheme } from '../../../core/config/clinic.config';
+import { getPlatformPlanAmount, type ClinicTheme } from '../../../core/config/clinic.config';
 
 // ── Firebase client ───────────────────────────────────────────────────────────
 const app  = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
@@ -377,8 +377,7 @@ export class SignupComponent implements OnInit {
 
   planAmount(plan: SignupPlan): number {
     if (plan === 'trial') return 0;
-    if (plan === 'starter') return this.selectedBillingCycle() === 'yearly' ? 9999 : 999;
-    return this.selectedBillingCycle() === 'yearly' ? 24999 : 2499;
+    return getPlatformPlanAmount(plan, this.selectedBillingCycle());
   }
 
   planAmountLabel(plan: SignupPlan): string {

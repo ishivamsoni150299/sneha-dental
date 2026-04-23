@@ -135,3 +135,24 @@ export const PLATFORM_PLANS = {
   starter: { label: 'Starter',    monthly: 999, yearly: 9999 },
   pro:     { label: 'Pro',        monthly: 2499, yearly: 24999 },
 } as const;
+
+export type PlatformPlanId = keyof typeof PLATFORM_PLANS;
+export type PaidPlatformPlanId = Exclude<PlatformPlanId, 'trial'>;
+export type PlatformBillingCycle = 'monthly' | 'yearly';
+
+export function getPlatformPlanAmount(
+  plan: PlatformPlanId,
+  billingCycle: PlatformBillingCycle,
+): number {
+  return PLATFORM_PLANS[plan][billingCycle];
+}
+
+export function formatPlatformPlanPrice(
+  plan: PlatformPlanId,
+  billingCycle: PlatformBillingCycle,
+  includePeriod = true,
+): string {
+  const amount = getPlatformPlanAmount(plan, billingCycle).toLocaleString('en-IN');
+  const suffix = billingCycle === 'yearly' ? '/year' : '/month';
+  return includePeriod ? `₹${amount}${suffix}` : `₹${amount}`;
+}

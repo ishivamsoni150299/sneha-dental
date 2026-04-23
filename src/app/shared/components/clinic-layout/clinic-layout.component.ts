@@ -263,27 +263,29 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly clinic = inject(ClinicConfigService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   @ViewChild(VoiceAgentComponent) private voiceAgent?: VoiceAgentComponent;
 
-  openAiChat() {
+  openAiChat(): void {
     this.voiceAgent?.startText();
   }
 
   readonly showWaPopup = signal(false);
   readonly speedDialOpen = signal(false);
   readonly showBackToTop = signal(false);
-  readonly showCallBanner = signal(!sessionStorage.getItem('call_banner_dismissed'));
+  readonly showCallBanner = signal(false);
   readonly showInstallBanner = signal(false);
 
   readonly isIos = (() => {
-    if (!isPlatformBrowser(this.platformId)) {
+    if (!this.isBrowser) {
       return false;
     }
     return /iphone|ipad|ipod/i.test(navigator.userAgent);
   })();
 
   private deferredInstallPrompt: (Event & { prompt?: () => Promise<void> }) | null = null;
+  private beforeInstallPromptHandler: ((event: Event) => void) | null = null;
 
   readonly voiceAgentId = computed(() => {
     const cfg = this.clinic.config;
@@ -304,11 +306,18 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   private installTimer: ReturnType<typeof setTimeout> | null = null;
 
   @HostListener('window:scroll')
-  onScroll() {
+  onScroll(): void {
+    if (!this.isBrowser) return;
     this.showBackToTop.set(window.scrollY > 400);
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    this.showCallBanner.set(!sessionStorage.getItem('call_banner_dismissed'));
+
     if (!sessionStorage.getItem('wa_popup_dismissed')) {
       this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
     }
@@ -318,11 +327,12 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
     if (!alreadyInstalled && !localStorage.getItem('pwa_install_dismissed')) {
-      window.addEventListener('beforeinstallprompt', (event) => {
+      this.beforeInstallPromptHandler = (event: Event) => {
         event.preventDefault();
         this.deferredInstallPrompt = event as Event & { prompt?: () => Promise<void> };
         this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 4_000);
-      });
+      };
+      window.addEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
 
       if (this.isIos) {
         this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 4_000);
@@ -330,31 +340,38 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     if (this.popupTimer) {
       clearTimeout(this.popupTimer);
     }
     if (this.installTimer) {
       clearTimeout(this.installTimer);
     }
+    if (this.isBrowser && this.beforeInstallPromptHandler) {
+      window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
+    }
   }
 
-  dismissPopup() {
+  dismissPopup(): void {
+    if (!this.isBrowser) return;
     this.showWaPopup.set(false);
     sessionStorage.setItem('wa_popup_dismissed', '1');
   }
 
-  dismissCallBanner() {
+  dismissCallBanner(): void {
+    if (!this.isBrowser) return;
     this.showCallBanner.set(false);
     sessionStorage.setItem('call_banner_dismissed', '1');
   }
 
-  dismissInstallBanner() {
+  dismissInstallBanner(): void {
+    if (!this.isBrowser) return;
     this.showInstallBanner.set(false);
     localStorage.setItem('pwa_install_dismissed', '1');
   }
 
-  async triggerInstall() {
+  async triggerInstall(): Promise<void> {
+    if (!this.isBrowser) return;
     if (!this.deferredInstallPrompt?.prompt) {
       return;
     }
@@ -362,7 +379,8 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     this.dismissInstallBanner();
   }
 
-  scrollToTop() {
+  scrollToTop(): void {
+    if (!this.isBrowser) return;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

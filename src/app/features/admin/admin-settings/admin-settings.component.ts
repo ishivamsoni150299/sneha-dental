@@ -14,6 +14,7 @@ import {
   ClinicHours,
   ClinicConfig,
   ClinicService,
+  formatPlatformPlanPrice,
 } from '../../../core/config/clinic.config';
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 
@@ -271,6 +272,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   get isStarter() { return this.plan === 'starter' && this.planStatus === 'active'; }
   get isPro() { return this.plan === 'pro' && this.planStatus === 'active'; }
   get canManageBranding() { return this.isStarter || this.isPro; }
+  get canManageVoice() { return this.isPro; }
 
   get setupChecklist(): Array<{ label: string; done: boolean; tab: TabId; hint: string }> {
     const c = this.cfg;
@@ -292,8 +294,9 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   planPrice(plan: BillingPlan): string {
-    const amount = this.billing.planAmount(plan, this.selectedBillingCycle());
-    const suffix = this.selectedBillingCycle() === 'yearly' ? '/year' : '/month';
+    return formatPlatformPlanPrice(plan, this.selectedBillingCycle());
+    const amount = 0;
+    const suffix = '';
     return `₹${amount.toLocaleString('en-IN')}${suffix}`;
   }
 
@@ -669,6 +672,15 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  private guardVoiceAccess(): boolean {
+    if (this.canManageVoice) return true;
+
+    this.activeTab.set('subscription');
+    this.upgradeError.set('Upgrade to Pro to unlock the AI Voice Receptionist.');
+    this.showToast('Upgrade to Pro to unlock AI Voice Receptionist.', 'error');
+    return false;
+  }
+
   pickTheme(theme: ClinicConfig['theme']) {
     if (!this.guardBrandingAccess('theme controls')) return;
 
@@ -700,7 +712,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async createVoiceAgent() {
-    if (!this.guardClinicId()) return;
+    if (!this.guardClinicId() || !this.guardVoiceAccess()) return;
 
     this.creatingVoiceAgent.set(true);
     try {
@@ -741,6 +753,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async fetchUsage() {
+    if (!this.canManageVoice) return;
+
     this.loadingUsage.set(true);
     try {
       const response = await fetch(`/api/elevenlabs?action=usage&clinicId=${this.clinicId}`);
@@ -753,7 +767,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async fetchWhatsappAccounts() {
-    if (!this.cfg.elevenLabsAgentId || !this.clinicId || this.clinicId === 'default') return;
+    if (!this.canManageVoice || !this.cfg.elevenLabsAgentId || !this.clinicId || this.clinicId === 'default') return;
 
     this.loadingWhatsappAccounts.set(true);
     this.whatsappAccountsError.set(null);
@@ -791,7 +805,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async saveVoice() {
-    if (!this.guardClinicId()) return;
+    if (!this.guardClinicId() || !this.guardVoiceAccess()) return;
 
     this.savingVoice.set(true);
     try {
