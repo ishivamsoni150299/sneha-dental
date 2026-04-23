@@ -1,5 +1,5 @@
 <!-- ===== HERO ===== -->
-<section class="relative overflow-hidden bg-white py-16 md:py-20 border-b border-gray-100">
+<section class="relative overflow-hidden bg-white py-10 md:py-20 border-b border-gray-100">
   <div class="absolute inset-0 pointer-events-none">
     <div class="absolute -top-24 -right-24 w-96 h-96 bg-[var(--accent-lt)] opacity-40 rounded-full blur-3xl"></div>
     <div class="absolute top-16 -left-16 w-72 h-72 bg-yellow-50 opacity-80 rounded-full blur-2xl"></div>
@@ -9,7 +9,7 @@
       <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
       Patient Reviews
     </span>
-    <h1 class="font-display text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">
+    <h1 class="font-display text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">
       Real Patients,<br>
       <span class="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-dk)] bg-clip-text text-transparent">Real Stories</span>
     </h1>
@@ -19,12 +19,12 @@
 
     @if (hasTestimonials) {
       <!-- Rating summary -->
-      <div class="inline-flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 mb-8">
+      <div class="flex flex-wrap justify-center items-center gap-4 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 mb-8">
         <div>
           <p class="text-4xl font-extrabold text-gray-900 leading-none">{{ config.rating || '4.9' }}</p>
           <p class="text-xs text-gray-400 mt-1">out of 5</p>
         </div>
-        <div class="w-px h-10 bg-gray-200"></div>
+        <div class="hidden sm:block w-px h-10 bg-gray-200"></div>
         <div>
           <div class="flex gap-1 mb-1">
             @for (s of [1,2,3,4,5]; track s) {
@@ -35,7 +35,7 @@
           </div>
           <p class="text-xs text-gray-400">Based on {{ config.patientCount }} patients</p>
         </div>
-        <div class="w-px h-10 bg-gray-200"></div>
+        <div class="hidden sm:block w-px h-10 bg-gray-200"></div>
         <!-- Platform badges -->
         <div class="flex flex-col gap-1">
           @if (config.googlePlaceId) {
@@ -70,7 +70,7 @@
 
 <!-- ===== FEATURED REVIEW ===== -->
 @if (hasTestimonials) {
-  <section class="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dk)] py-14">
+  <section class="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dk)] py-10 md:py-14">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <div class="text-5xl text-white/30 font-serif mb-4 leading-none">"</div>
       <p class="text-white text-xl md:text-2xl font-display leading-relaxed mb-6 italic">
@@ -97,7 +97,7 @@
 }
 
 <!-- ===== ALL REVIEWS ===== -->
-<section class="bg-gray-50 py-16 md:py-20">
+<section class="bg-gray-50 py-10 md:py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     @if (hasTestimonials) {
       <div class="text-center mb-10">
@@ -156,7 +156,7 @@
 </section>
 
 <!-- ===== CTA ===== -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-16">
+<section class="relative overflow-hidden bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-10 md:py-16">
   <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-md"></div>
   <div class="relative max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl md:text-4xl text-white mb-4">Join Our Happy Patients</h2>

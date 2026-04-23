@@ -1,5 +1,5 @@
 <!-- ===== HERO ===== -->
-<section class="relative overflow-hidden bg-white pt-16 pb-0 md:pt-20">
+<section class="relative overflow-hidden bg-white pt-10 pb-0 sm:pt-16 md:pt-20">
   <!-- Background mesh -->
   <div class="absolute inset-0 pointer-events-none">
     <div class="absolute -top-32 -right-32 w-[500px] h-[500px] bg-[var(--accent-lt)] rounded-full opacity-40 blur-3xl"></div>
@@ -15,7 +15,7 @@
           <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
           Our Story
         </span>
-        <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-gray-900 mb-6 leading-tight">
+        <h1 class="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-gray-900 mb-5 leading-tight">
           The Clinic That<br>
           <span class="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-dk)] bg-clip-text text-transparent">Puts You First</span>
         </h1>
@@ -84,25 +84,25 @@
 </section>
 
 <!-- ===== DOCTOR PROFILE ===== -->
-<section class="bg-gray-50 py-20 md:py-24">
+<section class="bg-gray-50 py-12 md:py-24 overflow-x-clip">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
 
       <!-- Photo + credential cards -->
       <div class="relative flex justify-center lg:justify-start">
         <div class="relative">
-          <div class="w-72 h-80 md:w-80 md:h-96 bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] rounded-3xl overflow-hidden shadow-xl">
+          <div class="w-60 h-72 sm:w-72 sm:h-80 md:w-80 md:h-96 bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] rounded-3xl overflow-hidden shadow-xl">
             <img src="https://placehold.co/320x384/EFF6FF/2563EB?text=Dr.+Photo"
                  [alt]="config.doctorName"
                  class="w-full h-full object-cover">
           </div>
           <!-- Credential badge -->
-          <div class="absolute -top-4 -right-4 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dk)] text-white rounded-2xl shadow-lg px-4 py-3 text-center">
+          <div class="hidden sm:block absolute -top-4 -right-4 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dk)] text-white rounded-2xl shadow-lg px-4 py-3 text-center">
             <p class="text-2xl font-extrabold leading-none">{{ config.doctorQualification || 'BDS' }}</p>
             <p class="text-[10px] opacity-80 mt-0.5 uppercase tracking-wider">Certified</p>
           </div>
           <!-- Rating card -->
-          <div class="absolute -bottom-4 -right-6 bg-white rounded-2xl shadow-xl border border-gray-100 p-3.5 min-w-[130px]">
+          <div class="hidden sm:block absolute -bottom-4 -right-6 bg-white rounded-2xl shadow-xl border border-gray-100 p-3.5 min-w-[130px]">
             <div class="flex items-center gap-1 mb-1">
               @for (s of [1,2,3,4,5]; track s) {
                 <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -115,7 +115,7 @@
           </div>
           <!-- University badge -->
           @if (config.doctorUniversity) {
-            <div class="absolute -bottom-4 -left-6 bg-white rounded-2xl shadow-xl border border-gray-100 p-3.5">
+            <div class="hidden sm:block absolute -bottom-4 -left-6 bg-white rounded-2xl shadow-xl border border-gray-100 p-3.5">
               <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Graduated from</p>
               <p class="text-xs font-bold text-gray-800 max-w-[120px] leading-snug">{{ config.doctorUniversity }}</p>
             </div>
@@ -142,18 +142,18 @@
         </div>
 
         <!-- Stat grid -->
-        <div class="grid grid-cols-3 gap-3">
-          <div class="bg-white rounded-2xl p-4 text-center border border-gray-100 shadow-sm">
-            <p class="text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.patientCount || '1000+' }}</p>
-            <p class="text-xs text-gray-500 mt-1.5">Patients Treated</p>
+        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+          <div class="bg-white rounded-2xl p-3 sm:p-4 text-center border border-gray-100 shadow-sm">
+            <p class="text-lg sm:text-2xl font-extrabold text-[var(--accent)] leading-none truncate">{{ config.patientCount || '1000+' }}</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 mt-1.5 leading-tight">Patients Treated</p>
           </div>
-          <div class="bg-white rounded-2xl p-4 text-center border border-gray-100 shadow-sm">
-            <p class="text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.rating || '4.9' }}</p>
-            <p class="text-xs text-gray-500 mt-1.5">Avg. Rating</p>
+          <div class="bg-white rounded-2xl p-3 sm:p-4 text-center border border-gray-100 shadow-sm">
+            <p class="text-lg sm:text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.rating || '4.9' }}</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 mt-1.5 leading-tight">Avg. Rating</p>
           </div>
-          <div class="bg-white rounded-2xl p-4 text-center border border-gray-100 shadow-sm">
-            <p class="text-2xl font-extrabold text-[var(--accent)] leading-none">{{ config.doctorQualification || 'BDS' }}</p>
-            <p class="text-xs text-gray-500 mt-1.5">Qualification</p>
+          <div class="bg-white rounded-2xl p-3 sm:p-4 text-center border border-gray-100 shadow-sm overflow-hidden">
+            <p class="text-lg sm:text-2xl font-extrabold text-[var(--accent)] leading-none truncate">{{ config.doctorQualification || 'BDS' }}</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 mt-1.5 leading-tight">Qualification</p>
           </div>
         </div>
       </div>
@@ -163,7 +163,7 @@
 </section>
 
 <!-- ===== VALUES ===== -->
-<section class="bg-white py-20 md:py-24">
+<section class="bg-white py-12 md:py-24">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-14">
       <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
@@ -194,7 +194,7 @@
 </section>
 
 <!-- ===== WHY PATIENTS CHOOSE US — trust checklist ===== -->
-<section class="bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-16 md:py-20 relative overflow-hidden">
+<section class="bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-10 md:py-20 relative overflow-hidden">
   <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-md"></div>
   <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full pointer-events-none"></div>
   <div class="absolute -bottom-24 -left-16 w-96 h-96 bg-white/5 rounded-full pointer-events-none"></div>
