@@ -108,7 +108,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   saving         = signal(false);
   error          = signal<string | null>(null);
   success        = signal(false);
-  ownerLoginSynced = signal<{ email: string; passwordChanged: boolean } | null>(null);
+  ownerLoginSynced = signal<{ email: string; password: string } | null>(null);
   activeSection  = signal<string>('identity');
   ownedClinic    = signal<StoredClinic | null>(null);
 
@@ -535,7 +535,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       }
 
       this.success.set(true);
-      setTimeout(() => this.router.navigate(['/business/clinics']), 1200);
+      if (!ownerEmail) {
+        setTimeout(() => this.router.navigate(['/business/clinics']), 1200);
+      }
+      // When credentials were set, navigation is triggered by the modal dismiss button
     } catch (err) {
       console.error('[ClinicForm] save failed:', err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -572,7 +575,16 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       throw new Error(`Clinic saved, but owner login was not configured: ${data.error ?? 'Unknown error'}`);
     }
 
-    this.ownerLoginSynced.set({ email, passwordChanged: !!password });
+    this.ownerLoginSynced.set({ email, password: password || '' });
+  }
+
+  dismissCredentials() {
+    this.ownerLoginSynced.set(null);
+    this.router.navigate(['/business/clinics']);
+  }
+
+  copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).catch(() => {});
   }
 
   /** Scrolls to a section by id — avoids Angular router intercepting hash links */
