@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { formatPlatformPlanPrice } from '../../../core/config/clinic.config';
 type PlanId = 'trial' | 'starter' | 'pro';
 
 @Component({
@@ -10,6 +11,8 @@ type PlanId = 'trial' | 'starter' | 'pro';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlatformLandingComponent {
+  readonly starterMonthlyPrice = formatPlatformPlanPrice('starter', 'monthly');
+  readonly proMonthlyPrice = formatPlatformPlanPrice('pro', 'monthly');
 
   ngOnInit() { /* no-op — portfolio uses curated showcase data, not live Firestore */ }
 
@@ -254,7 +257,7 @@ export class PlatformLandingComponent {
 
   readonly testimonials = [
     {
-      text: 'We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ₹999 we spend every month.',
+      text: `We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ${this.starterMonthlyPrice} we spend for patient growth.`,
       name: 'Dr. Ramesh Kumar',
       clinic: 'Indram Dental, Jhansi',
       location: 'Uttar Pradesh',

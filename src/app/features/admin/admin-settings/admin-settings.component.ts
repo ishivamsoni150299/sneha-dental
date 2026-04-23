@@ -295,14 +295,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   planPrice(plan: BillingPlan): string {
     return formatPlatformPlanPrice(plan, this.selectedBillingCycle());
-    const amount = 0;
-    const suffix = '';
-    return `₹${amount.toLocaleString('en-IN')}${suffix}`;
   }
 
   currentPlanLabel(): string {
     const cycle = this.cfg.billingCycle ?? 'monthly';
-    const suffix = cycle === 'yearly' ? '/year' : '/month';
 
     if (this.isExpired) return 'Trial expired';
     if (this.isPending) {
@@ -310,8 +306,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       return `${pendingPlan} pending payment`;
     }
     if (this.isTrial) return `Free Trial - ${this.trialDaysLeft} days left`;
-    if (this.isStarter) return `Starter - ₹999${suffix}`;
-    if (this.isPro) return `Pro - ₹2,499${suffix}`;
+    if (this.isStarter) return `Starter - ${formatPlatformPlanPrice('starter', cycle)}`;
+    if (this.isPro) return `Pro - ${formatPlatformPlanPrice('pro', cycle)}`;
     return 'Trial';
   }
 
