@@ -10,9 +10,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
           </div>
-          <p class="font-bold text-lg">Clinic Owner Login Created</p>
+          <p class="font-bold text-lg">Client Login Ready</p>
         </div>
-        <p class="text-green-100 text-sm">Share these credentials with the clinic owner. They cannot be retrieved again.</p>
+        <p class="text-green-100 text-sm">Share these with your client (the clinic owner). They log in at the URL below — this is their dashboard, not your admin panel. Credentials cannot be retrieved again.</p>
       </div>
 
       <!-- Credentials -->
@@ -922,21 +922,38 @@
           </div>
 
           <div class="sm:col-span-2 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
-            <div class="mb-3">
-              <p class="text-sm font-bold text-slate-900">Clinic Owner Login</p>
-              <p class="mt-1 text-xs leading-5 text-sky-700">
-                The clinic owner uses these details at /business/login to open appointments, patients and settings.
+            <div class="mb-3 flex items-start gap-3">
+              <div class="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-0.5">
+                  <p class="text-sm font-bold text-slate-900">Client Login Credentials</p>
+                  <span class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">For Clinic Owner</span>
+                </div>
+                <p class="text-xs leading-5 text-sky-700">
+                  Create a login for your client (the clinic owner / doctor) so they can access <strong>their own clinic dashboard</strong> — view appointments, patients, and settings. This is <em>not</em> your platform admin account.
+                </p>
+                <a href="https://www.mydentalplatform.com/business/login" target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-1 mt-1 text-[11px] font-semibold text-sky-600 hover:underline">
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  mydentalplatform.com/business/login
+                </a>
                 @if (isEdit) {
-                  <span>Leave password blank unless you want to create or reset the login.</span>
+                  <p class="text-[11px] text-sky-600 mt-1">Leave password blank unless you need to reset the client's login.</p>
                 } @else {
-                  <span>Email and temporary password are required for a new manually-created clinic.</span>
+                  <p class="text-[11px] text-sky-600 mt-1">Email and temporary password are required — share these with your client after saving.</p>
                 }
-              </p>
+              </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label for="ownerLoginEmail" class="form-label">
-                  Owner Login Email
+                  Client Email (Login Username)
                   @if (!isEdit) {
                     <span class="text-red-400">*</span>
                   }
