@@ -19,7 +19,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
       <!-- Mobile status banner -->
       @if (showCallBanner()) {
-        <div class="md:hidden border-b border-[var(--accent-bd)] bg-[var(--accent-lt)]/70 backdrop-blur-sm animate-slide-up">
+        <div class="md:hidden border-b border-[var(--accent-bd)] bg-[var(--accent-lt)] animate-slide-up">
           <div class="flex items-center justify-between gap-3 px-4 py-2.5">
             <div class="min-w-0 flex-1">
               <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--accent)]">Fast booking support</p>
@@ -62,7 +62,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <div class="hidden md:flex fixed bottom-8 right-6 z-50 flex-col items-end gap-2.5">
         @if (speedDialOpen()) {
           <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:180ms">
-            <span class="rounded-full bg-gray-900/80 px-3 py-1.5 text-xs font-semibold text-white shadow backdrop-blur-sm whitespace-nowrap">Book Appointment</span>
+            <span class="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow whitespace-nowrap">Book Appointment</span>
             <a routerLink="/appointment" (click)="speedDialOpen.set(false)"
                aria-label="Book appointment"
                class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-lg transition-all hover:scale-110 hover:bg-[var(--accent-dk)]">
@@ -72,7 +72,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             </a>
           </div>
           <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:220ms">
-            <span class="rounded-full bg-gray-900/80 px-3 py-1.5 text-xs font-semibold text-white shadow backdrop-blur-sm whitespace-nowrap">{{ clinic.config.phone }}</span>
+            <span class="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow whitespace-nowrap">{{ clinic.config.phone }}</span>
             <a [href]="'tel:+' + clinic.config.phoneE164"
                [attr.aria-label]="'Call ' + (clinic.config.phone || 'clinic')"
                class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-white shadow-lg transition-all hover:scale-110 hover:bg-gray-900">
@@ -82,7 +82,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             </a>
           </div>
           <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:260ms">
-            <span class="rounded-full bg-gray-900/80 px-3 py-1.5 text-xs font-semibold text-white shadow backdrop-blur-sm whitespace-nowrap">WhatsApp</span>
+            <span class="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow whitespace-nowrap">WhatsApp</span>
             <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" (click)="speedDialOpen.set(false)"
                aria-label="Chat on WhatsApp"
                class="flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-all hover:scale-110 hover:bg-green-600">
