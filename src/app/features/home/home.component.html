@@ -1,10 +1,10 @@
 <!-- ===== HERO ===== -->
-<section class="bg-white py-10 sm:py-14 lg:min-h-[92vh] lg:flex lg:items-center overflow-x-hidden">
+<section class="overflow-x-clip bg-white py-10 sm:py-14 lg:flex lg:min-h-[92vh] lg:items-center">
   <div class="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-    <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-20">
+    <div class="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:gap-20">
 
       <!-- Text side -->
-      <div class="flex-1 text-left">
+      <div class="min-w-0 flex-1 text-left">
 
         <!-- Eyebrow -->
         <div class="anim-fade-up flex items-center gap-2 mb-5 sm:mb-7">
@@ -52,7 +52,7 @@
 
         <!-- Mobile: clinic dashboard -->
         <div class="anim-fade-up anim-d5 mt-7 lg:hidden">
-          <div class="mobile-app-shell overflow-hidden">
+          <div class="mobile-app-shell w-full overflow-hidden">
             <div class="mobile-app-hero relative overflow-hidden px-4 pb-5 pt-4">
               <div class="absolute inset-0">
                 <img [src]="clinicMoments[0].src" [alt]="clinicMoments[0].alt" class="h-full w-full object-cover opacity-20">

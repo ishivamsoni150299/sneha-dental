@@ -41,9 +41,9 @@ const QUICK_REPLIES = [
   template: `
     <!-- ── Error toast ─────────────────────────────────────────────────────── -->
     @if (errorMsg()) {
-      <div class="fixed z-[70] left-1/2 -translate-x-1/2
-                  bottom-[160px] md:bottom-36
-                  w-[calc(100%-2rem)] max-w-sm
+      <div class="fixed z-[70] left-4 right-4
+                  bottom-[148px] md:bottom-36 md:left-1/2 md:right-auto md:-translate-x-1/2
+                  max-w-sm md:w-[calc(100%-2rem)]
                   rounded-2xl px-4 py-3.5 shadow-2xl
                   animate-in slide-in-from-bottom-4 duration-300"
            style="background: rgba(20,6,6,0.97); border: 1px solid rgba(248,113,113,0.35);">
@@ -140,8 +140,8 @@ const QUICK_REPLIES = [
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'voice') {
       <div class="fixed z-[60]
-                  bottom-[106px] md:bottom-8
-                  left-1/2 -translate-x-1/2
+                  bottom-[102px] md:bottom-8
+                  left-3 right-3 md:left-1/2 md:right-auto md:-translate-x-1/2
                   flex items-center gap-3 rounded-full px-4 py-3
                   transition-all duration-500"
            [style.box-shadow]="voicePhase() === 'speaking'
@@ -251,15 +251,15 @@ const QUICK_REPLIES = [
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'text') {
       <div class="fixed z-[60]
-                  bottom-0 left-0 right-0
+                  bottom-[84px] left-3 right-3
                   md:bottom-6 md:left-auto md:right-6 md:w-[400px]
-                  flex flex-col rounded-t-[28px] md:rounded-[24px]
+                  flex flex-col rounded-[24px] md:rounded-[24px]
                   overflow-hidden animate-slide-up"
            style="background: #0d0d12;
                   border: 1px solid rgba(255,255,255,0.09);
                   box-shadow: 0 -8px 80px rgba(0,0,0,0.7),
                               0 0 0 1px rgba(255,255,255,0.04) inset;
-                  height: min(580px, 78vh);">
+                  height: min(560px, 68vh);">
 
         <!-- Pull handle (mobile only) -->
         <div class="md:hidden flex justify-center pt-3 pb-1 shrink-0">

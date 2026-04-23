@@ -253,6 +253,8 @@ html {
   overscroll-behavior: none;
   /* Use dvh so viewport accounts for retractable browser chrome on mobile */
   height: 100%;
+  width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -260,6 +262,7 @@ body {
      remain anchored to the viewport. overflow:clip does not propagate from
      body to the viewport the way overflow:hidden does. */
   overflow-x: clip;
+  width: 100%;
   font-family: var(--font-sans);
   color: var(--color-text);
   background:

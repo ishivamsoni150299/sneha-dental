@@ -50,13 +50,13 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         </div>
       }
 
-      <main class="min-h-[60vh] bg-gradient-to-b from-slate-50 via-white to-slate-100 md:bg-none">
+      <main class="min-h-[60vh] overflow-x-clip bg-gradient-to-b from-slate-50 via-white to-slate-100 md:bg-none">
         <router-outlet />
       </main>
       <app-footer />
 
       <!-- Spacer so page content is not hidden under the fixed dock -->
-      <div class="md:hidden" style="height: calc(80px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
+      <div class="md:hidden" style="height: calc(96px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
 
       <!-- Desktop speed dial -->
       <div class="hidden md:flex fixed bottom-8 right-6 z-50 flex-col items-end gap-2.5">
