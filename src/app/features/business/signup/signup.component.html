@@ -509,7 +509,7 @@
             <button type="button" (click)="back()"
                     class="flex-1 border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50
                            font-semibold py-3 rounded-xl text-sm transition-all">
-              ? Back
+              Back
             </button>
             <button type="button" (click)="next()"
                     class="flex-[2] text-white font-bold py-3.5 rounded-xl text-sm transition-all
@@ -623,9 +623,9 @@
                 <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                 Creating your website…
               } @else if (selectedPlan() === 'trial') {
-                ?? Launch my free website
+                Launch my free website
               } @else {
-                Create website &amp; pay ?
+                Create website and pay
               }
             </button>
           </div>
@@ -771,7 +771,7 @@
               <div>
                 <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-green-700">Payment</p>
                 <p class="mt-1 text-sm font-semibold text-gray-900">
-                  {{ result()!.plan === 'pro' ? 'Pro' : 'Starter' }} ? {{ result()!.billingCycle === 'yearly' ? 'Yearly' : 'Monthly' }}
+                  {{ result()!.plan === 'pro' ? 'Pro' : 'Starter' }} - {{ result()!.billingCycle === 'yearly' ? 'Yearly' : 'Monthly' }}
                 </p>
                 <p class="mt-1 text-xs text-gray-600">
                   @if (result()!.paymentMode === 'subscription') {
@@ -790,7 +790,7 @@
             <a [href]="result()!.paymentUrl" target="_blank" rel="noopener"
                class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl
                       text-sm transition-all hover:shadow-lg text-center">
-              {{ result()!.paymentMode === 'subscription' ? 'Activate plan with Razorpay ->' : 'Pay now on Razorpay.me ->' }}
+              {{ result()!.paymentMode === 'subscription' ? 'Activate plan with Razorpay' : 'Pay now on Razorpay.me' }}
             </a>
 
             @if (result()!.paymentMode === 'subscription' && result()!.manualPaymentUrl) {
