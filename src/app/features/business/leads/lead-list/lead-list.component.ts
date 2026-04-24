@@ -860,6 +860,13 @@ No pressure at all — if the timing works better now, I am happy to do a fresh 
     };
 
     const basePlan = plans[forceStatus ?? lead.status] ?? plans.new;
+
+    // When forceStatus is given (template quick-switch), always use the fresh template — ignore any saved custom message
+    if (forceStatus) {
+      const previewLine = basePlan.message.split('\n').find(line => line.trim())?.trim() ?? basePlan.preview;
+      return { ...basePlan, preview: previewLine };
+    }
+
     const customLabel = lead.whatsappTemplateLabel?.trim();
     const customMessage = lead.whatsappMessage?.trim();
     const resolvedMessage = customMessage || basePlan.message;
