@@ -331,6 +331,20 @@
 
             @if (messageDraft()?.leadId === lead.id) {
               <div class="lead-message-editor mt-2">
+                <!-- Template quick-switch -->
+                <div class="mb-2">
+                  <p class="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-blue-900">Load template</p>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (t of templateOptions; track t.status) {
+                      <button (click)="loadTemplate(t.status, lead)"
+                              [class.ring-2]="messageDraft()!.label === t.label"
+                              [class.ring-[var(--color-primary)]]="messageDraft()!.label === t.label"
+                              class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-600 transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]">
+                        {{ t.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
                 <div class="grid gap-2 sm:grid-cols-[170px_minmax(0,1fr)] sm:items-start">
                   <div>
                     <label class="mb-1 block text-[11px] font-semibold text-blue-900">Template label</label>
@@ -341,7 +355,7 @@
                   </div>
                   <div>
                     <label class="mb-1 block text-[11px] font-semibold text-blue-900">WhatsApp message</label>
-                    <textarea rows="8"
+                    <textarea rows="10"
                               [ngModel]="messageDraft()!.message"
                               (ngModelChange)="updateMessageBody($event)"
                               class="w-full text-xs leading-5 text-gray-700"></textarea>
