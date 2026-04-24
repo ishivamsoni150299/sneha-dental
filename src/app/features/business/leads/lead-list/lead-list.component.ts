@@ -718,6 +718,7 @@ Nothing complicated — just:
 • Patients can request appointments anytime
 • You get instant WhatsApp alerts
 • A clean page showing your services, timings, and contact
+• Regular updates as per your requirements — you ask, we update
 
 I actually put together a quick demo so you can see what I mean:
 ${DEMO_WEBSITE_URL}
@@ -763,6 +764,7 @@ Here is what I would set up:
 • Appointment form — patients fill it and you get a WhatsApp alert instantly
 • Mobile-first so patients on phones can book without calling
 • Simple dashboard to manage and confirm from anywhere
+• Regular updates as per your requirements — just let us know what you need
 ${speciality ? `\nThe focus would be on ${speciality}.` : ''}
 
 The whole thing can be live within 24 hours.
@@ -789,6 +791,7 @@ Quick recap of what goes live:
 • Patients book directly, you get WhatsApp alerts for each one
 • Works on phone and laptop — nothing to install
 • We handle the full setup, no tech work from your side
+• Regular updates as per your requirements, anytime
 
 Demo for reference:
 ${DEMO_WEBSITE_URL}
