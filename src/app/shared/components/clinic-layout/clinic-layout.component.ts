@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
@@ -172,7 +172,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <!-- Mobile action dock — anchored flush to viewport bottom -->
       <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden" style="padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;">
         <div class="mobile-dock-shell">
-          <div class="grid grid-cols-5 gap-1.5">
+          <div class="grid grid-cols-4 gap-1.5">
             <a routerLink="/"
                routerLinkActive="mobile-dock-link-active"
                [routerLinkActiveOptions]="{ exact: true }"
@@ -201,18 +201,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
               <span class="leading-none">Book</span>
             </a>
 
-            <button (click)="openAiChat()"
-                    class="mobile-dock-link">
-              <div class="relative">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15M14.25 3.104c.251.023.501.05.75.082M19.8 15a2.25 2.25 0 01.1 2.3L17.7 21H6.3l-2.2-3.7A2.25 2.25 0 014.2 15m15.6 0H4.2"/>
-                </svg>
-                <span class="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-white"></span>
-              </div>
-              <span class="leading-none">Chat</span>
-            </button>
-
             <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
                class="mobile-dock-link">
               <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -231,12 +219,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly clinic = inject(ClinicConfigService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
-
-  @ViewChild(VoiceAgentComponent) private voiceAgent?: VoiceAgentComponent;
-
-  openAiChat(): void {
-    this.voiceAgent?.startText();
-  }
 
   readonly showWaPopup = signal(false);
   readonly speedDialOpen = signal(false);
@@ -294,12 +276,12 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
       this.beforeInstallPromptHandler = (event: Event) => {
         event.preventDefault();
         this.deferredInstallPrompt = event as Event & { prompt?: () => Promise<void> };
-        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 4_000);
+        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 20_000);
       };
       window.addEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
 
       if (this.isIos) {
-        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 4_000);
+        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 20_000);
       }
     }
   }
