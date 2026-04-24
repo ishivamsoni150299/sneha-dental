@@ -28,16 +28,12 @@ interface MessageDraft {
   message: string;
 }
 
-const SENDER_NAME  = 'Shivam Soni';
 const SENDER_PHONE = '9140210648';
-const PLATFORM_URL = 'https://www.mydentalplatform.com';
-const SENDER_SIG   = `\n\n— ${SENDER_NAME}\n📞 ${SENDER_PHONE}\n🌐 ${PLATFORM_URL}`;
+const SENDER_SIG   = `\n\n— Shivam\n📞 ${SENDER_PHONE}`;
 
 const DEMO_WEBSITE_URL = 'https://arogyamdental.mydentalplatform.com';
 const DEMO_VIDEO_URL   = 'https://youtu.be/cJGhGCDmyAk?si=lzHGpFTOp9WtMxMX';
-const DEMO_VIDEO_LINE  = `🎬 See a live client dental website:\n${DEMO_VIDEO_URL}`;
 const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
-const SETUP_VIDEO_LINE = `🔧 How to set up your free dental website:\n${SETUP_VIDEO_URL}`;
 
 @Component({
   selector: 'app-lead-list',
@@ -715,24 +711,22 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
 ${sourceIntro}
 
-I help dental clinics like *${clinic}*${locationLine} get more patient bookings with a complete website and WhatsApp-first booking flow — no tech work needed from your side.
+I work with a few clinics locally, helping them turn those Google visitors into actual bookings using a simple website + WhatsApp enquiry setup.
 
-What is included:
-- Patients book appointments 24/7 directly from your site
-- Instant WhatsApp alert to you for every new enquiry
-- Mobile-friendly clinic page with services, timing and contact
-- Dashboard to confirm, follow up and manage from anywhere
-${speciality ? `\nFor *${clinic}*, I would build the site around ${speciality}.` : ''}
-${proofLine ? `\n${proofLine}` : ''}
+Nothing complicated — just:
+• Patients can request appointments anytime
+• You get instant WhatsApp alerts
+• A clean page showing your services, timings, and contact
 
-👉 *Live demo clinic (same as what your clinic would look like):*
+I actually put together a quick demo so you can see what I mean:
 ${DEMO_WEBSITE_URL}
 
-${DEMO_VIDEO_LINE}
+Also sharing a short video of how it looks for a clinic:
+${DEMO_VIDEO_URL}
 
-${SETUP_VIDEO_LINE}
+If you feel this could help, I can create a quick sample idea specifically for *${clinic}* — no commitment.
 
-Can I put together a quick sample idea specifically for *${clinic}* in ${city}?${SENDER_SIG}`,
+Let me know 🙂${SENDER_SIG}`,
       },
       contacted: {
         template: 'Follow-up',
@@ -742,75 +736,62 @@ Can I put together a quick sample idea specifically for *${clinic}* in ${city}?$
         message:
 `${greeting} ${contactName},
 
-Following up on my earlier message about helping *${clinic}*${locationLine} get more patients online.
-${proofLine ? `\n${proofLine}` : ''}
+Just following up on my earlier message about the website setup for *${clinic}*.
 
-Three things that make a difference for clinics in ${city}:
-- Patients can enquire after clinic hours without calling
-- You get a WhatsApp alert the moment someone requests a booking
-- Your clinic looks more trusted to new patients searching online
+Totally understand if you have been busy — wanted to check if you had a moment to look at the demo I shared.
 
-👉 *Live demo clinic:*
 ${DEMO_WEBSITE_URL}
 
-${DEMO_VIDEO_LINE}
+Happy to keep it to a 10-minute WhatsApp call if that is easier.
 
-Would a quick 10-minute WhatsApp call work for you this week? No pressure — just happy to walk you through it.${SENDER_SIG}`,
+Let me know 🙂${SENDER_SIG}`,
       },
       interested: {
         template: 'Proposal Push',
         buttonLabel: 'Send proposal',
-        preview: `Proposal for interested lead ${clinicShort}`,
+        preview: `Proposal for ${clinicShort}`,
         activityNote: `Sent proposal WhatsApp for ${clinicShort}`,
         message:
 `${greeting} ${contactName},
 
-Great to know you are open to this for *${clinic}*${locationLine}. Let me share exactly what I would set up.
+Great to hear you are open to this for *${clinic}*${locationLine}.
 
-What goes live:
-- Branded dental website with your clinic name, logo and colours
-- Appointment booking form connected directly to your WhatsApp
-- Separate pages for each service — cleanings, fillings, implants, cosmetics and more
-- Mobile-first design so patients on phones can book in seconds
-- Admin dashboard to confirm and manage from your phone or laptop
-${speciality ? `\nThe site would focus on ${speciality}.` : ''}
-${proofLine ? `\n${proofLine}` : ''}
+Here is what I would set up:
+• A clean dental website with your clinic name, services and timings
+• Appointment form — patients fill it and you get a WhatsApp alert instantly
+• Mobile-first so patients on phones can book without calling
+• Simple dashboard to manage and confirm from anywhere
+${speciality ? `\nThe focus would be on ${speciality}.` : ''}
 
-*Your website can be live within 24 hours.*
+The whole thing can be live within 24 hours.
 
-👉 *Live demo clinic:*
 ${DEMO_WEBSITE_URL}
 
-${DEMO_VIDEO_LINE}
+Also sharing the setup walkthrough video if helpful:
+${SETUP_VIDEO_URL}
 
-${SETUP_VIDEO_LINE}
-
-When are you free for a quick 10-minute demo call?${SENDER_SIG}`,
+When are you free for a quick 10-minute call to go through it?${SENDER_SIG}`,
       },
       demo: {
         template: 'Demo Close',
         buttonLabel: 'Close lead',
-        preview: `Post-demo close message for ${clinicShort}`,
+        preview: `Post-demo close for ${clinicShort}`,
         activityNote: `Sent post-demo WhatsApp for ${clinicShort}`,
         message:
 `${greeting} ${contactName},
 
-Thank you for your time today — it was great showing you what *${clinic}*${locationLine} could look like.
+Thank you for your time today — it was great showing you what *${clinic}* could look like online.
 
-Quick summary of what is included:
-- Professional dental website — live within 24 hours
-- Patients book directly from your site, any time of day
-- Instant WhatsApp alert for every new booking request
-- Admin dashboard — works on phone and laptop
-- Full setup handled by us — no work from your side
-${proofLine ? `\n${proofLine}` : ''}
+Quick recap of what goes live:
+• Professional dental website — ready in 24 hours
+• Patients book directly, you get WhatsApp alerts for each one
+• Works on phone and laptop — nothing to install
+• We handle the full setup, no tech work from your side
 
-👉 *Demo clinic again for reference:*
+Demo for reference:
 ${DEMO_WEBSITE_URL}
 
-${DEMO_VIDEO_LINE}
-
-Just reply *YES* and I will move ahead with the setup for *${clinic}* today.${SENDER_SIG}`,
+Just reply *YES* and I will move ahead with the setup for *${clinic}*.${SENDER_SIG}`,
       },
       converted: {
         template: 'Welcome Onboard',
@@ -820,15 +801,14 @@ Just reply *YES* and I will move ahead with the setup for *${clinic}* today.${SE
         message:
 `${greeting} ${contactName},
 
-Welcome to mydentalplatform — we are excited to get *${clinic}*${locationLine} live!
+Welcome — really glad to have *${clinic}*${locationLine} on board.
 
 Here is what happens next:
-- We prepare your clinic website with your branding
-- Connect the booking form to your WhatsApp number
-- Share the live link with you to review and approve
-- Go live — patients in ${city} can start booking online
+• We build your clinic website with your branding
+• Connect the booking form to your WhatsApp number
+• Share the live link with you to review before going live
 
-If you have your logo, doctor photo, services list or clinic timing ready, please share them here and we will get started right away.
+If you have your logo, doctor photo, services list or clinic timings ready, please send them over and we will get started right away.
 
 Your website will be live within 24 hours.${SENDER_SIG}`,
       },
@@ -842,21 +822,16 @@ Your website will be live within 24 hours.${SENDER_SIG}`,
 
 Hope things are going well at *${clinic}*${locationLine}.
 
-Reaching out again because a few things have improved on mydentalplatform:
-- Same-day setup — your clinic can be live today
-- AI receptionist that handles patient queries after clinic hours
-- Better booking experience for patients on mobile
-- Several clinics in ${city} are already live and getting bookings
-- Still free for the first 30 days, no card needed
-${proofLine ? `\n${proofLine}` : ''}
-${referredBy ? `\nSince ${referredBy} had mentioned your clinic earlier, I wanted to reconnect.` : ''}
+I know we spoke a while back — just wanted to check in. A few things have improved since then:
+• Same-day setup — your clinic can be live today
+• AI receptionist that handles patient queries after clinic hours
+• Several clinics in ${city} are already live and getting online bookings
+• Still free for the first 30 days
+${referredBy ? `\n${referredBy} had mentioned your clinic earlier so I wanted to reconnect.` : ''}
 
-👉 *Updated live demo:*
 ${DEMO_WEBSITE_URL}
 
-${DEMO_VIDEO_LINE}
-
-No pressure at all — if the timing works better now, I am happy to do a fresh 10-minute demo.${SENDER_SIG}`,
+No pressure at all — if the timing is better now, happy to do a fresh quick demo.${SENDER_SIG}`,
       },
     };
 
@@ -916,21 +891,29 @@ No pressure at all — if the timing works better now, I am happy to do a fresh 
   }
 
   private sourceIntro(lead: StoredLead, clinic: string, locationLine: string): string {
+    const loc = [lead.area?.trim(), lead.city?.trim()].filter(Boolean).join(', ');
     switch (lead.source) {
-      case 'google_maps':
-        return `I came across *${clinic}*${locationLine} while reviewing dental clinics on Google Maps.`;
+      case 'google_maps': {
+        const locPart = loc ? `in ${loc} ` : '';
+        const ratingPart = lead.rating && lead.reviewCount
+          ? ` — your ${lead.rating} rating with ${lead.reviewCount} reviews really stood out`
+          : lead.rating
+          ? ` — your ${lead.rating} star rating caught my attention`
+          : '';
+        return `I was checking dental clinics ${locPart}and came across *${clinic}*${ratingPart}.`;
+      }
       case 'instagram':
-        return `I found *${clinic}* through social media and wanted to reach out with a simple growth idea.`;
+        return `I came across *${clinic}* on Instagram and wanted to share a simple idea for getting more patient bookings.`;
       case 'referral':
         return lead.referredBy
-          ? `${lead.referredBy} suggested I speak with you about helping *${clinic}* improve patient enquiries online.`
-          : `A referral suggested I connect with *${clinic}* about improving patient enquiries online.`;
+          ? `${lead.referredBy} suggested I reach out to you at *${clinic}*.`
+          : `A contact suggested I reach out to *${clinic}*.`;
       case 'ida':
-        return 'I am reaching out because many IDA-connected clinics are now moving bookings and follow-up to a website plus WhatsApp flow.';
+        return `I came across *${clinic}*${locationLine} through IDA and wanted to share a simple booking setup idea.`;
       case 'walkin':
-        return `I noticed *${clinic}*${locationLine} and thought your clinic could benefit from a stronger online booking setup.`;
+        return `I noticed *${clinic}*${locationLine} and thought the clinic could benefit from a simple online booking setup.`;
       default:
-        return `I wanted to reach out regarding *${clinic}*${locationLine} and share a simple patient booking setup idea.`;
+        return `I wanted to reach out to *${clinic}*${locationLine} about a simple patient booking setup.`;
     }
   }
 }
