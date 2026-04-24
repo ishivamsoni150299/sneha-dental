@@ -8,8 +8,41 @@ export interface ClinicService { iconPath: string; name: string; description: st
 export interface HealthPlan    { tag: string; name: string; subtitle: string; price: string; period: string; highlighted: boolean; features: string[] }
 export interface Testimonial   { name: string; location: string; rating: number; review: string }
 export interface ClinicHours   { days: string; time: string }
+export interface ClinicImage   { src: string; alt: string; label?: string }
+export interface ClinicFaq     { q: string; a: string }
 export const CLINIC_THEMES = ['blue', 'teal', 'emerald', 'purple', 'rose', 'caramel'] as const;
 export type ClinicTheme = typeof CLINIC_THEMES[number];
+
+export interface ClinicHomeCustomization {
+  eyebrow?: string;
+  heroTitle?: string;
+  heroHighlight?: string;
+  heroSubtitle?: string;
+  trustPills?: string[];
+  doctorQuote?: string;
+  whyTitle?: string;
+  whyBody?: string;
+  finalCtaTitle?: string;
+  finalCtaSubtitle?: string;
+  faqs?: ClinicFaq[];
+}
+
+export interface ClinicCustomization {
+  /**
+   * Public per-clinic website overrides. Clinic docs are public for domain
+   * based rendering, so do not store secrets or private notes here.
+   */
+  content?: {
+    home?: ClinicHomeCustomization;
+  };
+  media?: {
+    clinicImages?: ClinicImage[];
+  };
+  communication?: {
+    firstTouchWhatsapp?: string;
+    followupWhatsapp?: string;
+  };
+}
 
 export interface ClinicConfig {
   // ── Identity ──────────────────────────────────────────────────────────────
@@ -78,6 +111,7 @@ export interface ClinicConfig {
   theme: ClinicTheme;            // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"
   logoDataUrl?: string;           // base64 compressed logo (≤200×200 px) — overrides default tooth icon
+  customization?: ClinicCustomization; // public per-clinic website overrides
 
   // ── Social ────────────────────────────────────────────────────────────────
   social: { facebook?: string; instagram?: string; linkedin?: string };

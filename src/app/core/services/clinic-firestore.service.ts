@@ -4,7 +4,7 @@ import {
   deleteDoc, doc, query, orderBy, where, serverTimestamp,
   type Timestamp, type UpdateData, type DocumentData, limit,
 } from 'firebase/firestore';
-import type { ClinicConfig, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
+import type { ClinicConfig, ClinicCustomization, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
 import { db } from '../firebase';
 
 // ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
@@ -29,6 +29,7 @@ export interface ClinicSettingsPayload {
   social?:              { facebook?: string; instagram?: string; linkedin?: string };
   theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
   logoDataUrl?:         string | null;   // null = remove logo
+  customization?:       ClinicCustomization;
   comingSoon?:          boolean;
   launchDate?:          string;
 }

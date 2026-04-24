@@ -9,18 +9,18 @@
         <!-- Eyebrow -->
         <div class="anim-fade-up flex items-center gap-2 mb-5 sm:mb-7">
           <span class="block w-6 h-px bg-[var(--accent)]"></span>
-          <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Dental Excellence</span>
+          <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">{{ heroEyebrow }}</span>
         </div>
 
         <!-- Headline -->
         <h1 class="anim-fade-up anim-d1 font-display text-[2.6rem] sm:text-5xl lg:text-[3.6rem] xl:text-[4rem] text-gray-900 leading-[1.08] mb-6 tracking-tight">
-          Pain-Free Care<br>
-          <span class="text-[var(--accent)]">You Can Trust</span>
+          {{ heroTitle }}<br>
+          <span class="text-[var(--accent)]">{{ heroHighlight }}</span>
         </h1>
 
         <!-- Subtitle -->
         <p class="anim-fade-up anim-d2 text-gray-500 text-base sm:text-lg leading-relaxed mb-7 max-w-xl">
-          Modern equipment, sterilized tools, and honest pricing — for every age, every visit.
+          {{ heroSubtitle }}
         </p>
 
         <!-- CTAs -->
@@ -40,7 +40,7 @@
 
         <!-- Trust pills -->
         <div class="anim-fade-up anim-d4 hidden sm:flex flex-wrap gap-2 mb-6">
-          @for (t of ['Same-day slots', 'No hidden charges', 'Gentle treatment']; track t) {
+          @for (t of trustPills; track t) {
             <span class="flex items-center gap-1.5 text-xs text-gray-500 px-3 py-1.5 rounded-full border border-gray-100 bg-gray-50">
               <svg class="w-3 h-3 text-[var(--accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -79,7 +79,7 @@
                 </div>
 
                 <div class="mt-5 flex flex-wrap gap-2">
-                  @for (pill of ['Same-day slots', 'Transparent pricing', 'Sterilised care']; track pill) {
+                  @for (pill of trustPills; track pill) {
                     <span class="rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white/78">
                       {{ pill }}
                     </span>
@@ -346,8 +346,7 @@
         <p class="text-[var(--accent)] font-medium text-sm mb-6">{{ config.doctorQualification || 'BDS' }} · Dental Surgeon</p>
 
         <p class="text-gray-500 leading-relaxed mb-8 text-base">
-          "I believe every patient deserves honest, pain-free care in a clean, modern environment.
-          My goal is simple — give you the healthiest smile possible while making every visit comfortable."
+          "{{ doctorQuote }}"
         </p>
 
         <!-- Credential chips -->
@@ -473,10 +472,10 @@
           <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Why Choose Us</span>
         </div>
         <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-5 leading-tight">
-          Dental Care That Puts You First
+          {{ whyTitle }}
         </h2>
         <p class="text-gray-500 leading-relaxed mb-10">
-          We built {{ config.name || 'our clinic' }} around one belief: every patient deserves honest, gentle care with no surprises.
+          {{ whyBody }}
         </p>
 
         <div class="space-y-6">
@@ -621,10 +620,10 @@
   <div class="max-w-2xl mx-auto px-5 sm:px-8 text-center">
     <div reveal revealDir="up">
       <h2 class="font-display text-3xl md:text-4xl text-white mb-4 leading-tight">
-        Ready for a Healthier Smile?
+        {{ finalCtaTitle }}
       </h2>
       <p class="text-white/75 text-base mb-9">
-        Same-day slots available. Confirmed within 2 hours. No hidden charges.
+        {{ finalCtaSubtitle }}
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a routerLink="/appointment"

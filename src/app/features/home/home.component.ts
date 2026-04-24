@@ -4,6 +4,7 @@ import { ServiceCardComponent } from '../../shared/components/service-card/servi
 import { TestimonialCardComponent } from '../../shared/components/testimonial-card/testimonial-card.component';
 import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import type { ClinicFaq, ClinicHomeCustomization, ClinicImage } from '../../core/config/clinic.config';
 import { RevealDirective } from '../../shared/directives/reveal.directive';
 import {
   buildClinicMonogram,
@@ -25,7 +26,7 @@ export class HomeComponent {
   readonly doctorMonogram = buildDoctorMonogram(this.config.doctorName, this.config.name);
   readonly displayDoctorName = buildDoctorLabel(this.config.doctorName, this.config.name);
 
-  readonly clinicMoments = [
+  readonly defaultClinicMoments: ClinicImage[] = [
     {
       src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=900&q=80',
       alt: 'Modern treatment room',
@@ -42,6 +43,8 @@ export class HomeComponent {
       label: 'Hygiene',
     },
   ];
+
+  readonly defaultTrustPills = ['Same-day slots', 'No hidden charges', 'Gentle treatment'];
 
   readonly trustStats = [
     { value: this.config.patientCount,        label: 'Happy Patients',    icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' },
@@ -72,7 +75,7 @@ export class HomeComponent {
     sessionStorage.setItem('emergency_banner_seen', '1');
   }
 
-  readonly faqs = [
+  readonly defaultFaqs: ClinicFaq[] = [
     { q: 'Will the treatment be painful?',            a: 'We use modern anaesthesia and gentle techniques so the vast majority of treatments are completely painless. For anxious patients we take extra time to make you comfortable before we begin.' },
     { q: 'How much does a typical treatment cost?',   a: 'Costs vary by treatment — a cleaning starts around ₹500, fillings from ₹800, and root canals from ₹3,000. We always tell you the exact price before starting. No hidden charges, ever.' },
     { q: 'Do you see children?',                      a: 'Yes! We welcome patients of all ages. We have a child-friendly approach and can treat kids from age 3 onwards for check-ups, cleanings, and early orthodontic guidance.' },
@@ -87,4 +90,26 @@ export class HomeComponent {
   get doctorTitle()           { return this.config.doctorQualification || 'Dental Care Team'; }
   get heroHours()             { return this.config.hours.length ? this.config.hours.slice(0, 3) : [{ days: 'Mon - Sat', time: '9:00 AM - 7:00 PM' }]; }
   get clinicLocationLabel()   { return this.config.city || 'Trusted local clinic'; }
+  get homeContent(): ClinicHomeCustomization { return this.config.customization?.content?.home ?? {}; }
+  get clinicMoments(): ClinicImage[] {
+    const images = this.config.customization?.media?.clinicImages?.filter(image => image.src && image.alt) ?? [];
+    return images.length ? images.slice(0, 3) : this.defaultClinicMoments;
+  }
+  get heroEyebrow()        { return this.homeContent.eyebrow || 'Dental Excellence'; }
+  get heroTitle()          { return this.homeContent.heroTitle || 'Pain-Free Care'; }
+  get heroHighlight()      { return this.homeContent.heroHighlight || 'You Can Trust'; }
+  get heroSubtitle()       { return this.homeContent.heroSubtitle || 'Modern equipment, sterilized tools, and honest pricing - for every age, every visit.'; }
+  get trustPills() {
+    const pills = this.homeContent.trustPills?.filter(Boolean).slice(0, 4) ?? [];
+    return pills.length ? pills : this.defaultTrustPills;
+  }
+  get doctorQuote()        { return this.homeContent.doctorQuote || 'I believe every patient deserves honest, pain-free care in a clean, modern environment. My goal is simple - give you the healthiest smile possible while making every visit comfortable.'; }
+  get whyTitle()           { return this.homeContent.whyTitle || 'Dental Care That Puts You First'; }
+  get whyBody()            { return this.homeContent.whyBody || `We built ${this.config.name || 'our clinic'} around one belief: every patient deserves honest, gentle care with no surprises.`; }
+  get finalCtaTitle()      { return this.homeContent.finalCtaTitle || 'Ready for a Healthier Smile?'; }
+  get finalCtaSubtitle()   { return this.homeContent.finalCtaSubtitle || 'Same-day slots available. Confirmed within 2 hours. No hidden charges.'; }
+  get faqs(): ClinicFaq[] {
+    const faqs = this.homeContent.faqs?.filter(faq => faq.q && faq.a).slice(0, 8) ?? [];
+    return faqs.length ? faqs : this.defaultFaqs;
+  }
 }

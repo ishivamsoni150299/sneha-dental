@@ -112,11 +112,12 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   activeSection  = signal<string>('identity');
   ownedClinic    = signal<StoredClinic | null>(null);
 
-  readonly SECTIONS = ['identity', 'contact', 'hours', 'brand', 'services', 'plans', 'testimonials', 'billing'];
+  readonly SECTIONS = ['identity', 'contact', 'hours', 'brand', 'services', 'plans', 'content', 'testimonials', 'billing'];
 
   private intersectionObserver: IntersectionObserver | null = null;
   private previewDomainManuallyEdited = false;
   private originalHostedDomain = '';
+  private existingCustomization: StoredClinic['customization'] | undefined;
   // syncing   = signal(false);   // TODO: Uncomment with Google Maps API
   // syncError = signal<string | null>(null);
 
@@ -170,12 +171,26 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     instagram: [''],
     linkedin:  [''],
 
+    // Public website customization
+    homeEyebrow:        [''],
+    homeHeroTitle:      [''],
+    homeHeroHighlight:  [''],
+    homeHeroSubtitle:   [''],
+    homeDoctorQuote:    [''],
+    homeWhyTitle:       [''],
+    homeWhyBody:        [''],
+    homeFinalCtaTitle:  [''],
+    homeFinalCtaSubtitle: [''],
+    firstTouchWhatsapp: [''],
+    followupWhatsapp:  [''],
+
     // Arrays
     doctorBio:    this.fb.nonNullable.array<string>([]),
     hours:        this.fb.nonNullable.array<FormGroup>([]),
     services:     this.fb.nonNullable.array<FormGroup>([]),
     plans:        this.fb.nonNullable.array<FormGroup>([]),
     testimonials: this.fb.nonNullable.array<FormGroup>([]),
+    clinicImages: this.fb.nonNullable.array<FormGroup>([]),
   });
 
   // ── FormArray getters ─────────────────────────────────────────────────────
@@ -184,6 +199,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   get servicesArr()     { return this.form.controls.services     as FormArray; }
   get plansArr()        { return this.form.controls.plans        as FormArray; }
   get testimonialsArr() { return this.form.controls.testimonials as FormArray; }
+  get clinicImagesArr() { return this.form.controls.clinicImages as FormArray; }
 
   planFeaturesArr(planIndex: number): FormArray {
     return (this.plansArr.at(planIndex) as FormGroup).controls['features'] as FormArray;
@@ -345,6 +361,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   // ── Patch from Firestore ──────────────────────────────────────────────────
   private patchForm(c: StoredClinic) {
     this.originalHostedDomain = normalizeHostedDomain(c.vercelDomain ?? '');
+    this.existingCustomization = c.customization;
+    const home = c.customization?.content?.home ?? {};
+    const communication = c.customization?.communication ?? {};
 
     this.form.patchValue({
       name: c.name, doctorName: c.doctorName,
@@ -373,6 +392,17 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       facebook:  c.social?.facebook  ?? '',
       instagram: c.social?.instagram ?? '',
       linkedin:  c.social?.linkedin  ?? '',
+      homeEyebrow:        home.eyebrow ?? '',
+      homeHeroTitle:      home.heroTitle ?? '',
+      homeHeroHighlight:  home.heroHighlight ?? '',
+      homeHeroSubtitle:   home.heroSubtitle ?? '',
+      homeDoctorQuote:    home.doctorQuote ?? '',
+      homeWhyTitle:       home.whyTitle ?? '',
+      homeWhyBody:        home.whyBody ?? '',
+      homeFinalCtaTitle:  home.finalCtaTitle ?? '',
+      homeFinalCtaSubtitle: home.finalCtaSubtitle ?? '',
+      firstTouchWhatsapp: communication.firstTouchWhatsapp ?? '',
+      followupWhatsapp:  communication.followupWhatsapp ?? '',
     });
 
     (c.doctorBio ?? []).forEach(p => this.addBio(p));
@@ -380,6 +410,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     (c.services ?? []).forEach(s => this.addService(s));
     (c.plans ?? []).forEach(p => this.addPlan(p));
     (c.testimonials ?? []).forEach(t => this.addTestimonial(t));
+    (c.customization?.media?.clinicImages ?? []).forEach(image => this.addClinicImage(image));
   }
 
   // ── Add rows ──────────────────────────────────────────────────────────────
@@ -437,6 +468,15 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
   removeTestimonial(i: number) { this.testimonialsArr.removeAt(i); }
 
+  addClinicImage(image?: { src?: string; alt?: string; label?: string }) {
+    this.clinicImagesArr.push(this.fb.nonNullable.group({
+      src:   [image?.src   ?? ''],
+      alt:   [image?.alt   ?? ''],
+      label: [image?.label ?? ''],
+    }));
+  }
+  removeClinicImage(i: number) { this.clinicImagesArr.removeAt(i); }
+
   // ── Submit ────────────────────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
@@ -455,6 +495,16 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       const shouldRegisterHostedDomain = !this.isEdit || hostedDomain !== this.originalHostedDomain;
       const ownerEmail = v.ownerLoginEmail.trim().toLowerCase();
       const ownerPassword = v.ownerLoginPassword.trim();
+      const optionalText = (value: string) => value.trim() || null;
+      const existingCustomization = this.existingCustomization ?? {};
+      const existingHome = existingCustomization.content?.home ?? {};
+      const clinicImages = (v.clinicImages as Array<{ src: string; alt: string; label: string }>)
+        .map(image => ({
+          src: image.src.trim(),
+          alt: image.alt.trim(),
+          label: image.label.trim(),
+        }))
+        .filter(image => image.src && image.alt);
 
       if (!this.isEdit && (!ownerEmail || !ownerPassword)) {
         throw new Error('Enter the clinic owner login email and temporary password before creating the clinic.');
@@ -513,6 +563,33 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           features: p['features'] as string[],
         })) as StoredClinic['plans'],
         testimonials: v.testimonials as StoredClinic['testimonials'],
+        customization: {
+          ...existingCustomization,
+          content: {
+            ...(existingCustomization.content ?? {}),
+            home: {
+              ...existingHome,
+              eyebrow: optionalText(v.homeEyebrow),
+              heroTitle: optionalText(v.homeHeroTitle),
+              heroHighlight: optionalText(v.homeHeroHighlight),
+              heroSubtitle: optionalText(v.homeHeroSubtitle),
+              doctorQuote: optionalText(v.homeDoctorQuote),
+              whyTitle: optionalText(v.homeWhyTitle),
+              whyBody: optionalText(v.homeWhyBody),
+              finalCtaTitle: optionalText(v.homeFinalCtaTitle),
+              finalCtaSubtitle: optionalText(v.homeFinalCtaSubtitle),
+            },
+          },
+          media: {
+            ...(existingCustomization.media ?? {}),
+            clinicImages,
+          },
+          communication: {
+            ...(existingCustomization.communication ?? {}),
+            firstTouchWhatsapp: optionalText(v.firstTouchWhatsapp),
+            followupWhatsapp: optionalText(v.followupWhatsapp),
+          },
+        },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
