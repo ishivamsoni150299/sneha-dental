@@ -722,8 +722,9 @@ Nothing complicated — just:
 I actually put together a quick demo so you can see what I mean:
 ${DEMO_WEBSITE_URL}
 
-Also sharing a short video of how it looks for a clinic:
-${DEMO_VIDEO_URL}
+Also sharing two short videos:
+▶ How it looks for a clinic: ${DEMO_VIDEO_URL}
+▶ How to set up your clinic: ${SETUP_VIDEO_URL}
 
 If you feel this could help, I can create a quick sample idea specifically for *${clinic}* — no commitment.
 
