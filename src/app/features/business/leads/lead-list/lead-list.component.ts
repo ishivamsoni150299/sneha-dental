@@ -28,8 +28,9 @@ interface MessageDraft {
   message: string;
 }
 
-const SENDER_PHONE = '9140210648';
-const SENDER_SIG   = `\n\n— Shivam\n📞 ${SENDER_PHONE}`;
+const SENDER_PHONE    = '9140210648';
+const PLATFORM_URL    = 'https://www.mydentalplatform.com';
+const SENDER_SIG      = `\n\n— Shivam\n📞 ${SENDER_PHONE}\n🌐 ${PLATFORM_URL}`;
 
 const DEMO_WEBSITE_URL = 'https://arogyamdental.mydentalplatform.com';
 const DEMO_VIDEO_URL   = 'https://youtu.be/cJGhGCDmyAk?si=lzHGpFTOp9WtMxMX';
