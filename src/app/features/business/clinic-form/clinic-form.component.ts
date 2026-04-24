@@ -116,6 +116,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   private intersectionObserver: IntersectionObserver | null = null;
   private previewDomainManuallyEdited = false;
+  private originalHostedDomain = '';
   // syncing   = signal(false);   // TODO: Uncomment with Google Maps API
   // syncError = signal<string | null>(null);
 
@@ -343,6 +344,8 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   // ── Patch from Firestore ──────────────────────────────────────────────────
   private patchForm(c: StoredClinic) {
+    this.originalHostedDomain = normalizeHostedDomain(c.vercelDomain ?? '');
+
     this.form.patchValue({
       name: c.name, doctorName: c.doctorName,
       doctorQualification: c.doctorQualification ?? '',
@@ -449,6 +452,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     try {
       const v = this.form.getRawValue();
       const hostedDomain = await this.resolveHostedDomain(v.name, v.vercelDomain);
+      const shouldRegisterHostedDomain = !this.isEdit || hostedDomain !== this.originalHostedDomain;
       const ownerEmail = v.ownerLoginEmail.trim().toLowerCase();
       const ownerPassword = v.ownerLoginPassword.trim();
 
@@ -517,7 +521,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       if (this.isEdit) {
         await this.clinicStore.update(this.clinicId!, firestorePayload);
         savedClinicId = this.clinicId!;
-        await this.registerHostedDomain(hostedDomain);
+        if (shouldRegisterHostedDomain) {
+          await this.registerHostedDomain(hostedDomain);
+          this.originalHostedDomain = hostedDomain;
+        }
       } else {
         await this.superAuth.authReady;
         const user = this.superAuth.currentUser();
@@ -528,6 +535,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         firestorePayload.rating = '4.9';
         savedClinicId = await this.clinicStore.create(firestorePayload);
         await this.registerHostedDomain(hostedDomain);
+        this.originalHostedDomain = hostedDomain;
       }
 
       if (ownerEmail) {
