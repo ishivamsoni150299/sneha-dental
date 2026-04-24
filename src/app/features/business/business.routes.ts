@@ -21,8 +21,9 @@ export const businessRoutes: Routes = [
     loadComponent: () =>
       import('./signup/signup.component').then(m => m.SignupComponent),
     data: {
-      title: 'Create Your Dental Clinic Website',
-      description: 'Start your dental clinic website setup in minutes and launch with bookings, WhatsApp, and patient-ready pages.',
+      title: 'Create or Access Your Dental Clinic Website',
+      description: 'Create your dental clinic website or sign in to manage bookings, leads, and settings from one flow.',
+      authMode: 'signup',
     },
   },
 
@@ -30,10 +31,11 @@ export const businessRoutes: Routes = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./business-login/business-login.component').then(m => m.BusinessLoginComponent),
+      import('./signup/signup.component').then(m => m.SignupComponent),
     data: {
-      title: 'Business Login',
+      title: 'Business Access',
       description: 'Sign in to manage clinics, leads, revenue, and settings in the mydentalplatform business portal.',
+      authMode: 'signin',
       noIndex: true,
     },
   },

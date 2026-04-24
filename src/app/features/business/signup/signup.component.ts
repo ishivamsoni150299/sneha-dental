@@ -3,11 +3,11 @@ import {
   inject, DestroyRef, OnInit, NgZone,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import {
-  getFirestore, collection, query, where, limit, getDocs,
+  getFirestore, collection, query, where, limit, getDocs, doc, getDoc,
 } from 'firebase/firestore';
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
@@ -16,6 +16,8 @@ import {
 import { initializeApp, getApps } from 'firebase/app';
 import { environment } from '../../../../environments/environment';
 import { getPlatformPlanAmount, type ClinicTheme } from '../../../core/config/clinic.config';
+import { SuperAuthService } from '../../../core/services/super-auth.service';
+import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
 // ── Firebase client ───────────────────────────────────────────────────────────
 const app  = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
@@ -111,8 +113,11 @@ declare const google: any;
 export class SignupComponent implements OnInit {
   private readonly fb         = inject(FormBuilder);
   private readonly route      = inject(ActivatedRoute);
+  private readonly router     = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone       = inject(NgZone);
+  private readonly superAuth  = inject(SuperAuthService);
+  private readonly clinicCfg  = inject(ClinicConfigService);
 
   // ── Step: 0=auth, 1=clinic, 2=services, 4=plan, 5=success ───────────────
   readonly step       = signal<0 | 1 | 2 | 4 | 5>(0);
@@ -178,11 +183,12 @@ export class SignupComponent implements OnInit {
       let user: User;
       if (this.authMode() === 'signup') {
         user = (await createUserWithEmailAndPassword(auth, email, password)).user;
+        this.authUser.set(user);
+        this.step.set(1);
       } else {
         user = (await signInWithEmailAndPassword(auth, email, password)).user;
+        await this.routeSignedInUser(user);
       }
-      this.authUser.set(user);
-      this.step.set(1);
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? '';
       if (code === 'auth/email-already-in-use') {
@@ -205,8 +211,13 @@ export class SignupComponent implements OnInit {
     this.authError.set(null);
     try {
       const cred = await signInWithPopup(auth, new GoogleAuthProvider());
-      this.authUser.set(cred.user);
-      this.step.set(1);
+      const user = cred.user;
+      if (this.authMode() === 'signin') {
+        await this.routeSignedInUser(user);
+      } else {
+        this.authUser.set(user);
+        this.step.set(1);
+      }
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? '';
       if (!code.includes('popup-closed') && !code.includes('cancelled')) {
@@ -412,6 +423,9 @@ export class SignupComponent implements OnInit {
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit(): void {
+    const routeMode = this.route.snapshot.data['authMode'] === 'signin' ? 'signin' : 'signup';
+    this.authMode.set(routeMode);
+
     this.captureMarketingContext();
     this.loadPlacesApi();
 
@@ -464,6 +478,27 @@ export class SignupComponent implements OnInit {
   private normalizePlan(value: string | null): SignupPlan {
     if (value === 'starter' || value === 'pro') return value;
     return 'trial';
+  }
+
+  private async routeSignedInUser(user: User): Promise<void> {
+    const superSnap = await getDoc(doc(db, 'superAdmins', user.uid));
+    if (superSnap.exists()) {
+      this.superAuth.currentUser.set(user);
+      this.superAuth.isSuperAdmin.set(true);
+      await this.router.navigate(['/business/clinics']);
+      return;
+    }
+
+    const loadedClinic = await this.clinicCfg.loadByUid(user.uid);
+    if (loadedClinic) {
+      await this.router.navigate(['/business/clinic/dashboard']);
+      return;
+    }
+
+    this.authUser.set(user);
+    this.authMode.set('signup');
+    this.authError.set('No clinic setup found for this account yet. Continue below to create your website.');
+    this.step.set(1);
   }
 
   next(): void {
