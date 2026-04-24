@@ -17,39 +17,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
     } @else {
       <app-navbar />
 
-      <!-- Mobile status banner -->
-      @if (showCallBanner()) {
-        <div class="md:hidden border-b border-[var(--accent-bd)] bg-[var(--accent-lt)] animate-slide-up">
-          <div class="flex items-center justify-between gap-3 px-4 py-2.5">
-            <div class="min-w-0 flex-1">
-              <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--accent)]">Fast booking support</p>
-              <a [href]="'tel:+' + clinic.config.phoneE164"
-                 class="mt-1 flex items-center gap-2 text-sm font-semibold text-gray-800 truncate">
-                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[var(--accent)] shadow-sm">
-                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                  </svg>
-                </span>
-                <span class="truncate">Same-day slots. Tap to call {{ clinic.config.phone }}</span>
-              </a>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="inline-flex items-center gap-1 rounded-full border border-white bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-gray-700">
-                <span class="h-1.5 w-1.5 rounded-full" [class]="clinic.isOpenNow ? 'bg-emerald-500' : 'bg-amber-400'"></span>
-                {{ clinic.isOpenNow ? 'Open now' : 'Quick reply' }}
-              </span>
-              <button (click)="dismissCallBanner()"
-                      aria-label="Dismiss"
-                      class="rounded-full bg-white/80 p-1.5 text-gray-400 transition-colors hover:text-gray-700">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-
       <main class="min-h-[60vh] overflow-x-clip bg-gradient-to-b from-slate-50 via-white to-slate-100 md:bg-none">
         <router-outlet />
       </main>
@@ -274,7 +241,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly showWaPopup = signal(false);
   readonly speedDialOpen = signal(false);
   readonly showBackToTop = signal(false);
-  readonly showCallBanner = signal(false);
   readonly showInstallBanner = signal(false);
 
   readonly isIos = (() => {
@@ -316,8 +282,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.showCallBanner.set(!sessionStorage.getItem('call_banner_dismissed'));
-
     if (!sessionStorage.getItem('wa_popup_dismissed')) {
       this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
     }
@@ -356,12 +320,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     if (!this.isBrowser) return;
     this.showWaPopup.set(false);
     sessionStorage.setItem('wa_popup_dismissed', '1');
-  }
-
-  dismissCallBanner(): void {
-    if (!this.isBrowser) return;
-    this.showCallBanner.set(false);
-    sessionStorage.setItem('call_banner_dismissed', '1');
   }
 
   dismissInstallBanner(): void {
