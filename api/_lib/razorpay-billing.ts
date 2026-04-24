@@ -19,7 +19,7 @@ const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
       label: 'Starter',
       cycleLabel: 'monthly',
       periodLabel: 'month',
-      envKeys: ['RAZORPAY_PLAN_STARTER_MONTHLY', 'RAZORPAY_PLAN_STARTER'],
+      envKeys: ['RAZORPAY_PLAN_STARTER_MONTHLY'],
     },
     yearly: {
       amount: 9999,
@@ -35,7 +35,7 @@ const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
       label: 'Pro',
       cycleLabel: 'monthly',
       periodLabel: 'month',
-      envKeys: ['RAZORPAY_PLAN_PRO_MONTHLY', 'RAZORPAY_PLAN_PRO'],
+      envKeys: ['RAZORPAY_PLAN_PRO_MONTHLY'],
     },
     yearly: {
       amount: 24999,
@@ -101,9 +101,7 @@ export function getBillingPlanDetails(plan: BillingPlan, billingCycle: BillingCy
 }
 
 export function getManualPaymentUrl(): string | null {
-  return process.env['PUBLIC_RAZORPAY_ME_URL']?.trim()
-    || process.env['RAZORPAY_ME_URL']?.trim()
-    || null;
+  return firstEnvValue(['PUBLIC_RAZORPAY_ME_URL', 'RAZORPAY_ME_URL']);
 }
 
 export function nextBillingDateIso(billingCycle: BillingCycle, from = new Date()): string {
@@ -135,7 +133,7 @@ export async function createRazorpayCheckout(input: CreateCheckoutInput): Promis
 
     const missing = !process.env['RAZORPAY_KEY_ID'] || !process.env['RAZORPAY_KEY_SECRET']
       ? 'RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET'
-      : details.missingEnvKey;
+      : (details.missingEnvKey ?? 'RAZORPAY_PLAN_*');
     throw new Error(`Payment not configured. Set ${missing}.`);
   }
 
