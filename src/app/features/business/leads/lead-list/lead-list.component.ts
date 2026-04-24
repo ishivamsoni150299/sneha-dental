@@ -1,4 +1,4 @@
-import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, effect, ChangeDetectionStrategy, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
@@ -48,9 +48,13 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   leads           = signal<StoredLead[]>([]);
   loading         = signal(true);
-  activeTab       = signal<LeadStatus | 'all'>('all');
+  activeTab       = signal<LeadStatus | 'all'>(
+    (sessionStorage.getItem('leads_tab') as LeadStatus | 'all') || 'all'
+  );
   search          = signal('');
-  sortBy          = signal<'newest' | 'followup' | 'score'>('newest');
+  sortBy          = signal<'newest' | 'followup' | 'score'>(
+    (sessionStorage.getItem('leads_sort') as 'newest' | 'followup' | 'score') || 'newest'
+  );
   deleting        = signal<string | null>(null);
   confirmDelete   = signal<string | null>(null);
   updatingStatus  = signal<string | null>(null);
@@ -66,6 +70,11 @@ export class LeadListComponent implements OnInit, OnDestroy {
   messageDraft    = signal<MessageDraft | null>(null);
   savingMessage   = signal(false);
   private copyTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    effect(() => sessionStorage.setItem('leads_tab',  this.activeTab()));
+    effect(() => sessionStorage.setItem('leads_sort', this.sortBy()));
+  }
 
   // ── Computed ──────────────────────────────────────────────────────────────
   filteredLeads = computed(() => {
