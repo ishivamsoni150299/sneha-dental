@@ -212,7 +212,7 @@ export class PlatformLandingComponent {
   ];
 
   planPrice(plan: { monthly: number; yearly: number }): number {
-    return this.billingYearly() ? Math.round(plan.yearly / 12) : plan.monthly;
+    return plan.monthly;
   }
 
   readonly roiPlanDetails = computed(() =>
@@ -310,7 +310,7 @@ export class PlatformLandingComponent {
   signupQuery(plan: PlanId, source: string, campaign = 'sales-sprint', offer?: string): Record<string, string> {
     const query: Record<string, string> = { plan, source, campaign };
     if (plan !== 'trial') {
-      query['cycle'] = this.billingYearly() ? 'yearly' : 'monthly';
+      query['cycle'] = 'monthly';
     }
     if (offer) query['offer'] = offer;
     return query;

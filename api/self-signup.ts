@@ -143,6 +143,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!['monthly', 'yearly'].includes(billingCycle)) {
     return res.status(400).json({ error: 'Invalid billing cycle.' });
   }
+  if (plan !== 'trial' && billingCycle !== 'monthly') {
+    return res.status(400).json({ error: 'Yearly billing is temporarily disabled. Please choose monthly.' });
+  }
 
   const rawMarketing = (marketing ?? {}) as MarketingPayload;
   const marketingAttribution = {

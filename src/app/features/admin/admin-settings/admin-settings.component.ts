@@ -846,7 +846,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async upgradePlan(plan: BillingPlan, billingCycle: BillingCycle = this.selectedBillingCycle()) {
+  async upgradePlan(plan: BillingPlan, billingCycle: BillingCycle = 'monthly') {
     if (this.upgrading()) return;
 
     this.upgrading.set(true);

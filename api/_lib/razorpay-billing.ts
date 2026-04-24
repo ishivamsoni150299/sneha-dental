@@ -10,6 +10,7 @@ interface BillingPlanMeta {
   cycleLabel: string;
   periodLabel: string;
   envKeys: string[];
+  defaultPlanId?: string;
 }
 
 const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
@@ -20,6 +21,7 @@ const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
       cycleLabel: 'monthly',
       periodLabel: 'month',
       envKeys: ['RAZORPAY_PLAN_STARTER_MONTHLY'],
+      defaultPlanId: 'plan_ShGxRJzXZynEts',
     },
     yearly: {
       amount: 9999,
@@ -36,6 +38,7 @@ const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
       cycleLabel: 'monthly',
       periodLabel: 'month',
       envKeys: ['RAZORPAY_PLAN_PRO_MONTHLY'],
+      defaultPlanId: 'plan_ShGumDVvGT5kJz',
     },
     yearly: {
       amount: 24999,
@@ -86,7 +89,7 @@ function firstEnvValue(keys: string[]): string | null {
 
 export function getBillingPlanDetails(plan: BillingPlan, billingCycle: BillingCycle): BillingPlanDetails {
   const meta = PLAN_META[plan][billingCycle];
-  const planId = firstEnvValue(meta.envKeys);
+  const planId = firstEnvValue(meta.envKeys) ?? meta.defaultPlanId ?? null;
 
   return {
     plan,
@@ -115,6 +118,10 @@ export function nextBillingDateIso(billingCycle: BillingCycle, from = new Date()
 }
 
 export async function createRazorpayCheckout(input: CreateCheckoutInput): Promise<RazorpayCheckoutResult> {
+  if (input.billingCycle !== 'monthly') {
+    throw new Error('Yearly Razorpay subscriptions are temporarily disabled. Use monthly billing.');
+  }
+
   const details = getBillingPlanDetails(input.plan, input.billingCycle);
   const manualPaymentUrl = getManualPaymentUrl();
 

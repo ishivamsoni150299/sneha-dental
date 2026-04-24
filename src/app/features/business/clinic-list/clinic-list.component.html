@@ -241,10 +241,10 @@
                         [class]="billingCycle() === 'monthly' ? 'bg-blue-600 text-white' : 'text-blue-700 hover:text-blue-900'">
                   Monthly
                 </button>
-                <button (click)="billingCycle.set('yearly')"
-                        class="px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors"
-                        [class]="billingCycle() === 'yearly' ? 'bg-blue-600 text-white' : 'text-blue-700 hover:text-blue-900'">
-                  Yearly
+                <button disabled
+                        class="px-2.5 py-1 text-[11px] font-semibold rounded-md text-blue-300 cursor-not-allowed"
+                        title="Yearly billing is temporarily disabled">
+                  Yearly soon
                 </button>
               </div>
               <div class="flex gap-2">

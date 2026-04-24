@@ -457,7 +457,7 @@ export class SignupComponent implements OnInit {
   private captureMarketingContext(): void {
     const queryParams = this.route.snapshot.queryParamMap;
     const plan = this.normalizePlan(queryParams.get('plan'));
-    const billingCycle = queryParams.get('cycle') === 'yearly' ? 'yearly' : 'monthly';
+    const billingCycle: SignupBillingCycle = 'monthly';
     const attribution: MarketingAttribution = {
       plan,
       source: queryParams.get('source') ?? 'direct',

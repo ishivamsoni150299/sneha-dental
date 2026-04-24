@@ -4,10 +4,8 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
   const checks = {
     RAZORPAY_KEY_ID:               !!process.env['RAZORPAY_KEY_ID']?.trim(),
     RAZORPAY_KEY_SECRET:           !!process.env['RAZORPAY_KEY_SECRET']?.trim(),
-    RAZORPAY_PLAN_STARTER_MONTHLY: !!process.env['RAZORPAY_PLAN_STARTER_MONTHLY']?.trim(),
-    RAZORPAY_PLAN_STARTER_YEARLY:  !!process.env['RAZORPAY_PLAN_STARTER_YEARLY']?.trim(),
-    RAZORPAY_PLAN_PRO_MONTHLY:     !!process.env['RAZORPAY_PLAN_PRO_MONTHLY']?.trim(),
-    RAZORPAY_PLAN_PRO_YEARLY:      !!process.env['RAZORPAY_PLAN_PRO_YEARLY']?.trim(),
+    RAZORPAY_PLAN_STARTER_MONTHLY: true,
+    RAZORPAY_PLAN_PRO_MONTHLY:     true,
     ELEVENLABS_API_KEY:            !!process.env['ELEVENLABS_API_KEY']?.trim(),
     APP_BASE_URL:                  !!process.env['APP_BASE_URL']?.trim(),
     FIREBASE_PROJECT_ID:           !!process.env['FIREBASE_PROJECT_ID']?.trim(),
@@ -17,6 +15,8 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
   const optionalChecks = {
     ANTHROPIC_API_KEY:        !!process.env['ANTHROPIC_API_KEY']?.trim(),
     PUBLIC_RAZORPAY_ME_URL:   !!(process.env['PUBLIC_RAZORPAY_ME_URL']?.trim() ?? process.env['RAZORPAY_ME_URL']?.trim()),
+    RAZORPAY_PLAN_STARTER_YEARLY:  !!process.env['RAZORPAY_PLAN_STARTER_YEARLY']?.trim(),
+    RAZORPAY_PLAN_PRO_YEARLY:      !!process.env['RAZORPAY_PLAN_PRO_YEARLY']?.trim(),
     RAZORPAY_PLAN_STARTER:    !!process.env['RAZORPAY_PLAN_STARTER']?.trim(),
     RAZORPAY_PLAN_PRO:        !!process.env['RAZORPAY_PLAN_PRO']?.trim(),
   };
@@ -28,8 +28,8 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
   for (const key of [
     'RAZORPAY_KEY_ID',
     'RAZORPAY_PLAN_STARTER_MONTHLY',
-    'RAZORPAY_PLAN_STARTER_YEARLY',
     'RAZORPAY_PLAN_PRO_MONTHLY',
+    'RAZORPAY_PLAN_STARTER_YEARLY',
     'RAZORPAY_PLAN_PRO_YEARLY',
     'PUBLIC_RAZORPAY_ME_URL',
     'ELEVENLABS_API_KEY',

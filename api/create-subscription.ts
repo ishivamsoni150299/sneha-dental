@@ -5,29 +5,55 @@ import {
   type BillingPlan,
 } from './_lib/razorpay-billing';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+interface CreateSubscriptionBody {
+  clinicId?: unknown;
+  plan?: unknown;
+  billingCycle?: unknown;
+  clinicName?: unknown;
+  phone?: unknown;
+}
+
+function errorDetail(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err !== 'object' || err === null) return String(err);
+
+  const record = err as Record<string, unknown>;
+  const nested = record['error'];
+  if (typeof nested === 'object' && nested !== null) {
+    const description = (nested as Record<string, unknown>)['description'];
+    if (typeof description === 'string') return description;
+  }
+
+  const message = record['message'];
+  return typeof message === 'string' ? message : 'Unknown Razorpay error';
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse> {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const {
-    clinicId,
-    plan,
-    billingCycle = 'monthly',
-    clinicName,
-    phone,
-  } = req.body ?? {};
+  const body = (req.body ?? {}) as CreateSubscriptionBody;
+  const clinicId = typeof body.clinicId === 'string' ? body.clinicId.trim() : '';
+  const plan = body.plan === 'starter' || body.plan === 'pro' ? body.plan : null;
+  const billingCycle = body.billingCycle ?? 'monthly';
+  const clinicName = typeof body.clinicName === 'string' && body.clinicName.trim()
+    ? body.clinicName.trim()
+    : clinicId;
+  const phone = typeof body.phone === 'string' && body.phone.trim()
+    ? body.phone.trim()
+    : undefined;
 
-  if (!clinicId || (plan !== 'starter' && plan !== 'pro')) {
+  if (!clinicId || !plan) {
     return res.status(400).json({ error: 'Missing or invalid clinicId / plan.' });
   }
 
-  if (billingCycle !== 'monthly' && billingCycle !== 'yearly') {
-    return res.status(400).json({ error: 'Invalid billing cycle.' });
+  if (billingCycle !== 'monthly') {
+    return res.status(400).json({ error: 'Yearly billing is temporarily disabled. Please use monthly billing.' });
   }
 
   try {
     const checkout = await createRazorpayCheckout({
       clinicId,
-      clinicName: clinicName ?? clinicId,
+      clinicName,
       plan: plan as BillingPlan,
       billingCycle: billingCycle as BillingCycle,
       phone,
@@ -43,10 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       amount: checkout.amount,
     });
   } catch (err: unknown) {
-    const rzpErr = err as Record<string, unknown>;
-    const detail = (rzpErr['error'] as Record<string, unknown>)?.['description']
-      ?? (rzpErr['message'] as string)
-      ?? JSON.stringify(err);
+    const detail = errorDetail(err);
     console.error('[create-subscription] Razorpay error:', detail, err);
     return res.status(500).json({ error: `Razorpay: ${detail}` });
   }

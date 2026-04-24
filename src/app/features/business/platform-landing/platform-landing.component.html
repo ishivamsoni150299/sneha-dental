@@ -808,11 +808,10 @@
                   [class]="!billingYearly() ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'">
             Monthly
           </button>
-          <button (click)="billingYearly.set(true)"
-                  class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
-                  [class]="billingYearly() ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'">
-            Yearly
-            <span class="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Save 2 months</span>
+          <button disabled
+                  class="px-4 py-1.5 rounded-lg text-sm font-semibold text-gray-300 cursor-not-allowed flex items-center gap-2"
+                  title="Yearly billing is temporarily disabled">
+            Yearly soon
           </button>
         </div>
       </div>
@@ -866,13 +865,7 @@
                     ₹50/day — less than one cleaning fee
                   </p>
                 }
-                @if (billingYearly()) {
-                  <p class="text-xs" [class]="plan.highlighted ? 'text-blue-400' : 'text-green-600'">
-                    Billed ₹{{ plan.yearly }}/year — 2 months free
-                  </p>
-                } @else {
-                  <p class="text-xs text-gray-400">or ₹{{ plan.yearly }}/year and save 2 months</p>
-                }
+                <p class="text-xs text-gray-400">Monthly Razorpay subscription only right now</p>
               }
             </div>
 
