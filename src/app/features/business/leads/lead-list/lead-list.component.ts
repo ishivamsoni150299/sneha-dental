@@ -63,15 +63,23 @@ export class LeadListComponent implements OnInit, OnDestroy {
   error           = signal<string | null>(null);
 
   // ── New interaction state ─────────────────────────────────────────────────
-  copiedId        = signal<string | null>(null);   // feedback after copy
-  savedId         = signal<string | null>(null);   // "✓ Saved" after status update
-  sendingWa       = signal<string | null>(null);   // WA button loading state
+  copiedId        = signal<string | null>(null);
+  savedId         = signal<string | null>(null);
+  sendingWa       = signal<string | null>(null);
   inlineNote      = signal<{ leadId: string; text: string } | null>(null);
   savingNote      = signal(false);
   messageDraft    = signal<MessageDraft | null>(null);
   savingMessage   = signal(false);
   private copyTimer:  ReturnType<typeof setTimeout> | null = null;
   private savedTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // ── Blast mode ────────────────────────────────────────────────────────────
+  blastQueue   = signal<StoredLead[]>([]);
+  blastIndex   = signal(0);
+  blastActive  = signal(false);
+  blastSending = signal(false);
+  blastDone    = signal(0);
+  blastSkipped = signal(0);
 
   constructor() {
     effect(() => sessionStorage.setItem('leads_tab',  this.activeTab()));
@@ -144,6 +152,16 @@ export class LeadListComponent implements OnInit, OnDestroy {
       .slice(0, 6);
   });
 
+  newLeadsWithPhone = computed(() =>
+    this.leads().filter(l => l.status === 'new' && !!l.phone)
+  );
+
+  blastCurrent = computed(() => {
+    const q = this.blastQueue();
+    const i = this.blastIndex();
+    return i < q.length ? q[i] : null;
+  });
+
   overdueLeads = computed(() => {
     const today = new Date().toISOString().split('T')[0];
     return this.leads().filter(l =>
@@ -166,6 +184,64 @@ export class LeadListComponent implements OnInit, OnDestroy {
   }
 
   reload() { this.ngOnInit(); }
+
+  // ── Blast mode ────────────────────────────────────────────────────────────
+  startBlast() {
+    const queue = this.newLeadsWithPhone();
+    if (!queue.length) return;
+    this.blastQueue.set([...queue]);
+    this.blastIndex.set(0);
+    this.blastDone.set(0);
+    this.blastSkipped.set(0);
+    this.blastActive.set(true);
+  }
+
+  stopBlast() { this.blastActive.set(false); }
+
+  blastSkip() {
+    this.blastSkipped.update(n => n + 1);
+    this.blastIndex.update(i => i + 1);
+  }
+
+  async blastSend() {
+    const lead = this.blastCurrent();
+    if (!lead?.phone || this.blastSending()) return;
+    this.blastSending.set(true);
+
+    // Open popup before await so browser doesn't block it as non-user-gesture
+    const waWindow = window.open('about:blank', '_blank');
+    if (waWindow) waWindow.opener = null;
+
+    try {
+      const followUp = new Date();
+      followUp.setDate(followUp.getDate() + 2);
+      const updates: Partial<StoredLead> = {
+        status: 'contacted',
+        followUpDate: followUp.toISOString().split('T')[0],
+      };
+      await this.leadStore.update(lead.id, updates);
+      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
+
+      try {
+        await this.leadStore.addActivity(lead.id, {
+          type: 'whatsapp',
+          note: `Blast: sent First Touch — status → contacted`,
+        });
+      } catch { /* activity log failure is non-fatal */ }
+
+      if (waWindow) waWindow.location.href = this.whatsappLink(lead);
+      else window.open(this.whatsappLink(lead), '_blank');
+
+      this.blastDone.update(n => n + 1);
+      this.blastIndex.update(i => i + 1);
+    } catch (err) {
+      console.error('[Blast] send failed:', err);
+      if (waWindow) waWindow.close();
+      this.error.set('Could not update status — please try again.');
+    } finally {
+      this.blastSending.set(false);
+    }
+  }
 
   ngOnDestroy() {
     if (this.copyTimer)  clearTimeout(this.copyTimer);
@@ -722,7 +798,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
     return this.buildWhatsAppPlan(lead).message;
   }
 
-  private buildWhatsAppPlan(lead: StoredLead, forceStatus?: LeadStatus): WhatsAppPlan {
+  buildWhatsAppPlan(lead: StoredLead, forceStatus?: LeadStatus): WhatsAppPlan {
     const clinic = lead.clinicName.trim();
     const contactName = this.contactName(lead);
     const greeting = this.timeGreeting();
