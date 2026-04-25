@@ -27,6 +27,47 @@ service cloud.firestore {
         get(/databases/$(database)/documents/clinics/$(clinicId)).data.active == true;
     }
 
+    function clinicAdminAllowedClinicFields() {
+      return [
+        'name',
+        'doctorName',
+        'doctorQualification',
+        'patientCount',
+        'doctorBio',
+        'phone',
+        'phoneE164',
+        'whatsappNumber',
+        'addressLine1',
+        'addressLine2',
+        'city',
+        'mapEmbedUrl',
+        'mapDirectionsUrl',
+        'hours',
+        'services',
+        'testimonials',
+        'social',
+        'theme',
+        'logoDataUrl',
+        'onboardingDismissed',
+        'onboardingSharedWebsite'
+      ];
+    }
+
+    function clinicAdminCanManageBranding() {
+      return resource.data.subscriptionStatus == 'active' &&
+        resource.data.subscriptionPlan in ['starter', 'pro'];
+    }
+
+    function canClinicAdminUpdateClinic(clinicId) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return isClinicAdmin(clinicId) &&
+        changed.hasOnly(clinicAdminAllowedClinicFields()) &&
+        (
+          !changed.hasAny(['theme', 'logoDataUrl']) ||
+          clinicAdminCanManageBranding()
+        );
+    }
+
     function appointmentPath(appointmentId) {
       return /databases/$(database)/documents/appointments/$(appointmentId);
     }
@@ -87,7 +128,7 @@ service cloud.firestore {
     match /clinics/{clinicId} {
       allow read:   if true;
       allow create: if isSuperAdmin();
-      allow update: if isClinicAdmin(clinicId) || isSuperAdmin();
+      allow update: if isSuperAdmin() || canClinicAdminUpdateClinic(clinicId);
       allow delete: if isSuperAdmin();
 
       // ── Sensitive billing / auth data (never exposed to patients) ─────────

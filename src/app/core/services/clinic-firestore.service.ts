@@ -4,11 +4,12 @@ import {
   deleteDoc, doc, query, orderBy, where, serverTimestamp,
   type Timestamp, type UpdateData, type DocumentData, limit,
 } from 'firebase/firestore';
-import type { ClinicConfig, ClinicCustomization, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
+import type { ClinicConfig, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
 import { db } from '../firebase';
 
 // ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
-// Billing, subscription, domain, active, and theme are intentionally excluded.
+// Billing, subscription, domain, active, admin ownership, and AI provider config
+// are intentionally excluded. Keep this in sync with firestore.rules.
 export interface ClinicSettingsPayload {
   name?:                string;
   doctorName?:          string;
@@ -29,10 +30,33 @@ export interface ClinicSettingsPayload {
   social?:              { facebook?: string; instagram?: string; linkedin?: string };
   theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
   logoDataUrl?:         string | null;   // null = remove logo
-  customization?:       ClinicCustomization;
-  comingSoon?:          boolean;
-  launchDate?:          string;
+  onboardingDismissed?: boolean;
+  onboardingSharedWebsite?: boolean;
 }
+
+const CLINIC_SETTINGS_ALLOWED_KEYS = new Set<keyof ClinicSettingsPayload>([
+  'name',
+  'doctorName',
+  'doctorQualification',
+  'patientCount',
+  'doctorBio',
+  'phone',
+  'phoneE164',
+  'whatsappNumber',
+  'addressLine1',
+  'addressLine2',
+  'city',
+  'mapEmbedUrl',
+  'mapDirectionsUrl',
+  'hours',
+  'services',
+  'testimonials',
+  'social',
+  'theme',
+  'logoDataUrl',
+  'onboardingDismissed',
+  'onboardingSharedWebsite',
+]);
 
 export interface PlatformCosts {
   vercel:   number;
@@ -186,9 +210,16 @@ export class ClinicFirestoreService {
   // ── Clinic self-service (whitelist-enforced) ───────────────────────────────
   async updateClinicSettings(id: string, data: ClinicSettingsPayload): Promise<void> {
     if (!id || id === 'default') throw new Error('Invalid clinic ID');
+    const safeData = Object.fromEntries(
+      Object.entries(data).filter(([key]) => CLINIC_SETTINGS_ALLOWED_KEYS.has(key as keyof ClinicSettingsPayload)),
+    ) as Record<string, unknown>;
+    if (Object.keys(safeData).length === 0) {
+      throw new Error('No clinic settings fields to update');
+    }
+
     await updateDoc(
       doc(db, this.COL, id),
-      toFirestoreData(data as unknown as Record<string, unknown>),
+      toFirestoreData(safeData),
     );
   }
 }
