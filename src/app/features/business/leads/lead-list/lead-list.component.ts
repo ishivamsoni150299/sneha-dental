@@ -208,8 +208,9 @@ export class LeadListComponent implements OnInit, OnDestroy {
     if (!lead?.phone || this.blastSending()) return;
     this.blastSending.set(true);
 
-    // Open popup before await so browser doesn't block it as non-user-gesture
-    const waWindow = window.open('about:blank', '_blank');
+    // Open popup before await so browser doesn't block it as non-user-gesture (desktop only)
+    const mobile   = this.isMobile();
+    const waWindow = mobile ? null : window.open('about:blank', '_blank');
     if (waWindow) waWindow.opener = null;
 
     try {
@@ -229,8 +230,14 @@ export class LeadListComponent implements OnInit, OnDestroy {
         });
       } catch { /* activity log failure is non-fatal */ }
 
-      if (waWindow) waWindow.location.href = this.whatsappLink(lead);
-      else window.open(this.whatsappLink(lead), '_blank');
+      const waUrl = this.whatsappLink(lead);
+      if (mobile) {
+        window.location.href = waUrl;
+      } else if (waWindow) {
+        waWindow.location.href = waUrl;
+      } else {
+        window.open(waUrl, '_blank', 'noopener');
+      }
 
       this.blastDone.update(n => n + 1);
       this.blastIndex.update(i => i + 1);
@@ -342,8 +349,9 @@ export class LeadListComponent implements OnInit, OnDestroy {
     if (!lead.phone) return;
     this.sendingWa.set(lead.id);
     this.error.set(null);
-    const plan = this.buildWhatsAppPlan(lead);
-    const whatsappWindow = window.open('about:blank', '_blank');
+    const plan    = this.buildWhatsAppPlan(lead);
+    const mobile  = this.isMobile();
+    const whatsappWindow = mobile ? null : window.open('about:blank', '_blank');
     if (whatsappWindow) whatsappWindow.opener = null;
 
     try {
@@ -374,10 +382,13 @@ export class LeadListComponent implements OnInit, OnDestroy {
       }
 
       const updatedLead = { ...lead, ...updates };
-      if (whatsappWindow) {
-        whatsappWindow.location.href = this.whatsappLink(updatedLead);
+      const waUrl = this.whatsappLink(updatedLead);
+      if (mobile) {
+        window.location.href = waUrl;
+      } else if (whatsappWindow) {
+        whatsappWindow.location.href = waUrl;
       } else {
-        window.location.href = this.whatsappLink(updatedLead);
+        window.open(waUrl, '_blank', 'noopener');
       }
     } catch (err) {
       if (whatsappWindow) whatsappWindow.close();
@@ -778,8 +789,16 @@ export class LeadListComponent implements OnInit, OnDestroy {
     });
   }
 
+  private isMobile(): boolean {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
   whatsappLink(lead: StoredLead): string {
-    return `https://wa.me/${lead.phone}?text=${encodeURIComponent(this.buildDynamicMessage(lead))}`;
+    const phone = lead.phone ?? '';
+    const text  = encodeURIComponent(this.buildDynamicMessage(lead));
+    return this.isMobile()
+      ? `whatsapp://send?phone=${phone}&text=${text}`
+      : `https://wa.me/${phone}?text=${text}`;
   }
 
   messageTemplate(lead: StoredLead): string {
