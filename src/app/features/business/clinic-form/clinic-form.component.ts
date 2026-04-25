@@ -11,6 +11,10 @@ import {
 } from '../../../core/services/clinic-firestore.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 import { SuperAuthService } from '../../../core/services/super-auth.service';
+import {
+  buildClinicFirestorePayload,
+  type ClinicFormRawValue,
+} from './clinic-form.mapper';
 
 const CLINIC_THEME_OPTIONS = [
   {
@@ -435,14 +439,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
   removeClinicImage(i: number) { this.clinicImagesArr.removeAt(i); }
 
-  private splitList(value: string): string[] {
-    return value
-      .split(',')
-      .map(item => item.trim())
-      .filter(Boolean)
-      .slice(0, 12);
-  }
-
   // ── Submit ────────────────────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
@@ -461,16 +457,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       const shouldRegisterHostedDomain = !this.isEdit || hostedDomain !== this.originalHostedDomain;
       const ownerEmail = v.ownerLoginEmail.trim().toLowerCase();
       const ownerPassword = v.ownerLoginPassword.trim();
-      const optionalText = (value: string): string | null => value.trim() || null;
-      const existingCustomization = this.existingCustomization ?? {};
-      const existingHome = existingCustomization.content?.home ?? {};
-      const clinicImages = (v.clinicImages as { src: string; alt: string; label: string }[])
-        .map(image => ({
-          src: image.src.trim(),
-          alt: image.alt.trim(),
-          label: image.label.trim(),
-        }))
-        .filter(image => image.src && image.alt);
 
       if (!this.isEdit && (!ownerEmail || !ownerPassword)) {
         throw new Error('Enter the clinic owner login email and temporary password before creating the clinic.');
@@ -484,99 +470,18 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
       // Firestore rejects `undefined` — use null for optional fields so
       // existing values are cleared when the admin empties them.
-      const payload = {
-        name:                v.name,
-        doctorName:          v.doctorName,
-        doctorQualification: v.doctorQualification || null,
-        patientCount:        v.patientCount        || null,
-        phone:               v.phone,
-        phoneE164:           v.phoneE164           || null,
-        whatsappNumber:      v.whatsappNumber      || null,
-        addressLine1:        v.addressLine1,
-        addressLine2:        v.addressLine2        || null,
-        city:                v.city,
-        mapEmbedUrl:         v.mapEmbedUrl         || null,
-        mapDirectionsUrl:    v.mapDirectionsUrl    || null,
-        googlePlaceId:       v.googlePlaceId       || null,
-        subscriptionPlan:    v.subscriptionPlan    as 'trial' | 'starter' | 'pro',
-        subscriptionStatus:  v.subscriptionStatus  as 'trial' | 'active' | 'expired' | 'cancelled',
-        billingCycle:        v.billingCycle         as 'monthly' | 'yearly',
-        trialEndDate:        v.trialEndDate         || null,
-        subscriptionEndDate: v.subscriptionEndDate  || null,
-        lastPaymentDate:     v.lastPaymentDate      || null,
-        lastPaymentAmount:   v.lastPaymentAmount    ?? null,   // ?? keeps 0 as valid
-        lastPaymentRef:      v.lastPaymentRef       || null,
-        billingEmail:        v.billingEmail || ownerEmail || null,
-        billingNotes:        v.billingNotes         || null,
-        domain:              v.domain               || null,
-        vercelDomain:        hostedDomain           || null,
-        active:              v.active,
-        theme:               v.theme as 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose',
-        bookingRefPrefix:    v.bookingRefPrefix,
-        social: {
-          facebook:  v.facebook  || null,
-          instagram: v.instagram || null,
-          linkedin:  v.linkedin  || null,
-        },
-        doctorBio: (v.doctorBio as string[])
-          .map(paragraph => paragraph.trim())
-          .filter(Boolean),
-        hours: (v.hours as { days: string; time: string }[])
-          .filter(slot => slot.days.trim() || slot.time.trim()),
-        services:     v.services as StoredClinic['services'],
-        plans:        (v.plans as Record<string, unknown>[]).map(p => ({
-          ...p,
-          features: p['features'] as string[],
-        })) as StoredClinic['plans'],
-        testimonials: v.testimonials as StoredClinic['testimonials'],
-        customization: {
-          ...existingCustomization,
-          content: {
-            ...(existingCustomization.content ?? {}),
-            home: {
-              ...existingHome,
-              eyebrow: optionalText(v.homeEyebrow),
-              heroTitle: optionalText(v.homeHeroTitle),
-              heroHighlight: optionalText(v.homeHeroHighlight),
-              heroSubtitle: optionalText(v.homeHeroSubtitle),
-              doctorQuote: optionalText(v.homeDoctorQuote),
-              whyTitle: optionalText(v.homeWhyTitle),
-              whyBody: optionalText(v.homeWhyBody),
-              finalCtaTitle: optionalText(v.homeFinalCtaTitle),
-              finalCtaSubtitle: optionalText(v.homeFinalCtaSubtitle),
-            },
-          },
-          media: {
-            ...(existingCustomization.media ?? {}),
-            clinicImages,
-          },
-          communication: {
-            ...(existingCustomization.communication ?? {}),
-            firstTouchWhatsapp: optionalText(v.firstTouchWhatsapp),
-            followupWhatsapp: optionalText(v.followupWhatsapp),
-          },
-          knowledge: {
-            ...(existingCustomization.knowledge ?? {}),
-            treatmentFocus: this.splitList(v.knowledgeTreatmentFocus),
-            languages: this.splitList(v.knowledgeLanguages),
-            consultationFee: optionalText(v.knowledgeConsultationFee),
-            priceGuidance: optionalText(v.knowledgePriceGuidance),
-            paymentOptions: this.splitList(v.knowledgePaymentOptions),
-            emergencyPolicy: optionalText(v.knowledgeEmergencyPolicy),
-            appointmentPolicy: optionalText(v.knowledgeAppointmentPolicy),
-            insurancePolicy: optionalText(v.knowledgeInsurancePolicy),
-            parkingInfo: optionalText(v.knowledgeParkingInfo),
-            accessibilityInfo: optionalText(v.knowledgeAccessibilityInfo),
-            patientNotes: optionalText(v.knowledgePatientNotes),
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const firestorePayload = payload as any;
+      const firestorePayload = buildClinicFirestorePayload({
+        values: v as unknown as ClinicFormRawValue,
+        hostedDomain,
+        ownerEmail,
+        existingCustomization: this.existingCustomization,
+      });
       let savedClinicId = this.clinicId;
       if (this.isEdit) {
-        await this.clinicStore.update(this.clinicId!, firestorePayload);
+        await this.clinicStore.update(
+          this.clinicId!,
+          firestorePayload as Partial<Omit<StoredClinic, 'id' | 'createdAt'>>,
+        );
         savedClinicId = this.clinicId!;
         if (shouldRegisterHostedDomain) {
           await this.registerHostedDomain(hostedDomain);
@@ -589,8 +494,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           throw new Error('You must be signed in to create a clinic.');
         }
 
-        firestorePayload.rating = '4.9';
-        savedClinicId = await this.clinicStore.create(firestorePayload);
+        firestorePayload['rating'] = '4.9';
+        savedClinicId = await this.clinicStore.create(
+          firestorePayload as Omit<StoredClinic, 'id' | 'createdAt'>,
+        );
         await this.registerHostedDomain(hostedDomain);
         this.originalHostedDomain = hostedDomain;
       }
