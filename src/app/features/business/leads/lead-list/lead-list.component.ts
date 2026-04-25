@@ -64,12 +64,14 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   // ── New interaction state ─────────────────────────────────────────────────
   copiedId        = signal<string | null>(null);   // feedback after copy
+  savedId         = signal<string | null>(null);   // "✓ Saved" after status update
   sendingWa       = signal<string | null>(null);   // WA button loading state
   inlineNote      = signal<{ leadId: string; text: string } | null>(null);
   savingNote      = signal(false);
   messageDraft    = signal<MessageDraft | null>(null);
   savingMessage   = signal(false);
-  private copyTimer: ReturnType<typeof setTimeout> | null = null;
+  private copyTimer:  ReturnType<typeof setTimeout> | null = null;
+  private savedTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => sessionStorage.setItem('leads_tab',  this.activeTab()));
@@ -166,7 +168,8 @@ export class LeadListComponent implements OnInit, OnDestroy {
   reload() { this.ngOnInit(); }
 
   ngOnDestroy() {
-    if (this.copyTimer) clearTimeout(this.copyTimer);
+    if (this.copyTimer)  clearTimeout(this.copyTimer);
+    if (this.savedTimer) clearTimeout(this.savedTimer);
   }
 
   // ── Quick inline status update ────────────────────────────────────────────
@@ -190,7 +193,12 @@ export class LeadListComponent implements OnInit, OnDestroy {
     this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
     try {
       await this.leadStore.update(lead.id, updates);
-    } catch {
+      // Show "✓ Saved" confirmation for 2.5 s
+      this.savedId.set(lead.id);
+      if (this.savedTimer) clearTimeout(this.savedTimer);
+      this.savedTimer = setTimeout(() => this.savedId.set(null), 2500);
+    } catch (err) {
+      console.error('[Leads] Status update failed:', err);
       // Revert on failure
       this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, status: lead.status } : l));
       this.error.set('Could not update status — please try again.');

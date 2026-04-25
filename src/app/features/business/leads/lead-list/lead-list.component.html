@@ -260,34 +260,16 @@
           <!-- Info -->
           <div class="flex-1 min-w-0">
 
-            <!-- Row 1: name + status + overdue badge -->
+            <!-- Row 1: name + badges (no status here) -->
             <div class="flex items-center gap-2 flex-wrap">
               <p class="font-semibold text-gray-900 text-sm truncate max-w-[200px] sm:max-w-sm" [title]="lead.clinicName">{{ lead.clinicName }}</p>
               @if (isHotLead(lead)) {
                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600"
                       [title]="'Score: ' + leadScore(lead)">🔥 Hot</span>
               }
-
-              <!-- Inline status select -->
-              <select [value]="lead.status"
-                      (change)="quickStatus(lead, $any($event.target).value)"
-                      [disabled]="updatingStatus() === lead.id"
-                      class="text-xs font-medium px-2 py-0.5 rounded-full border-0 cursor-pointer
-                             focus:outline-none focus:ring-1 focus:ring-offset-0 transition-opacity"
-                      [class]="statusClasses(lead.status)"
-                      [class.opacity-50]="updatingStatus() === lead.id">
-                @for (s of statuses; track s.value) {
-                  <option [value]="s.value">{{ s.label }}</option>
-                }
-              </select>
-
               @if (isOverdue(lead)) {
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-                  Overdue
-                </span>
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">Overdue</span>
               }
-
-              <!-- Google rating badge -->
               @if (lead.rating) {
                 <span class="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                   <svg class="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20">
@@ -298,6 +280,29 @@
                     <span class="text-amber-500">({{ lead.reviewCount }})</span>
                   }
                 </span>
+              }
+            </div>
+
+            <!-- Status row — prominent, labeled, with save feedback -->
+            <div class="mt-1.5 flex items-center gap-2">
+              <span class="shrink-0 text-[10px] font-bold uppercase tracking-wider text-gray-400">Status</span>
+              <div class="relative flex items-center">
+                <select [value]="lead.status"
+                        (change)="quickStatus(lead, $any($event.target).value)"
+                        [disabled]="updatingStatus() === lead.id"
+                        [class]="'appearance-none cursor-pointer rounded-lg border py-1 pl-2.5 pr-6 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ' + statusClasses(lead.status) + (updatingStatus() === lead.id ? ' opacity-50 cursor-not-allowed' : '')">
+                  @for (s of statuses; track s.value) {
+                    <option [value]="s.value">{{ s.label }}</option>
+                  }
+                </select>
+                <svg class="pointer-events-none absolute right-1.5 h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
+              @if (updatingStatus() === lead.id) {
+                <span class="text-[11px] text-gray-400 animate-pulse">Saving…</span>
+              } @else if (savedId() === lead.id) {
+                <span class="text-[11px] font-semibold text-green-600">✓ Saved</span>
               }
             </div>
 
