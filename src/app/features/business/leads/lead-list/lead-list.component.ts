@@ -152,6 +152,8 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
+    this.loading.set(true);
+    this.error.set(null);
     try {
       this.leads.set(await this.leadStore.getAll());
     } catch {
@@ -160,6 +162,8 @@ export class LeadListComponent implements OnInit, OnDestroy {
       this.loading.set(false);
     }
   }
+
+  reload() { this.ngOnInit(); }
 
   ngOnDestroy() {
     if (this.copyTimer) clearTimeout(this.copyTimer);
@@ -170,22 +174,26 @@ export class LeadListComponent implements OnInit, OnDestroy {
     if (lead.status === status) return;
     this.updatingStatus.set(lead.id);
     this.error.set(null);
+
+    const autoFollowUp: Partial<Record<LeadStatus, number>> = {
+      contacted: 2, interested: 1, demo: 3,
+    };
+    const daysAhead = autoFollowUp[status];
+    const updates: Partial<StoredLead> = { status };
+    if (daysAhead && !lead.followUpDate) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysAhead);
+      updates.followUpDate = d.toISOString().split('T')[0];
+    }
+
+    // Optimistic update — UI reflects change immediately
+    this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
     try {
-      const updates: Partial<StoredLead> = { status };
-      // Auto-set follow-up date when advancing the pipeline (only if not already set)
-      const autoFollowUp: Partial<Record<LeadStatus, number>> = {
-        contacted: 2, interested: 1, demo: 3,
-      };
-      const daysAhead = autoFollowUp[status];
-      if (daysAhead && !lead.followUpDate) {
-        const d = new Date();
-        d.setDate(d.getDate() + daysAhead);
-        updates.followUpDate = d.toISOString().split('T')[0];
-      }
       await this.leadStore.update(lead.id, updates);
-      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
     } catch {
-      this.error.set('Could not update status.');
+      // Revert on failure
+      this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, status: lead.status } : l));
+      this.error.set('Could not update status — please try again.');
     } finally {
       this.updatingStatus.set(null);
     }

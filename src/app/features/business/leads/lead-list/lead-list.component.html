@@ -219,7 +219,7 @@
           </svg>
           <p class="text-sm font-semibold text-gray-700">Failed to load leads</p>
           <p class="text-xs text-gray-400 mt-1">{{ error() }}</p>
-          <button (click)="ngOnInit()" class="mt-4 text-xs font-semibold text-[var(--color-primary)] hover:underline">
+          <button (click)="reload()" class="mt-4 text-xs font-semibold text-[var(--color-primary)] hover:underline">
             Retry
           </button>
         } @else if (leads().length === 0) {
@@ -351,9 +351,10 @@
                   <div class="flex flex-wrap gap-1.5">
                     @for (t of templateOptions; track t.status) {
                       <button (click)="loadTemplate(t.status, lead)"
-                              [class.ring-2]="messageDraft()!.label === t.label"
-                              [class.ring-[var(--color-primary)]]="messageDraft()!.label === t.label"
-                              class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-600 transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]">
+                              class="rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                              [class]="messageDraft()!.label === t.label
+                                ? 'border-[var(--color-primary)] bg-[var(--accent-lt)] text-[var(--color-primary)]'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'">
                         {{ t.label }}
                       </button>
                     }
