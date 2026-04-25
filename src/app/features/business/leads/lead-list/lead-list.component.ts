@@ -169,6 +169,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
   async quickStatus(lead: StoredLead, status: LeadStatus) {
     if (lead.status === status) return;
     this.updatingStatus.set(lead.id);
+    this.error.set(null);
     try {
       const updates: Partial<StoredLead> = { status };
       // Auto-set follow-up date when advancing the pipeline (only if not already set)
@@ -248,8 +249,10 @@ export class LeadListComponent implements OnInit, OnDestroy {
   async sendWhatsApp(lead: StoredLead) {
     if (!lead.phone) return;
     this.sendingWa.set(lead.id);
+    this.error.set(null);
     const plan = this.buildWhatsAppPlan(lead);
-    window.open(this.whatsappLink(lead), '_blank', 'noopener,noreferrer');
+    const whatsappWindow = window.open('about:blank', '_blank');
+    if (whatsappWindow) whatsappWindow.opener = null;
 
     try {
       const nextStatus: Partial<Record<LeadStatus, LeadStatus>> = { new: 'contacted' };
@@ -266,17 +269,28 @@ export class LeadListComponent implements OnInit, OnDestroy {
         ...(next ? { status: next } : {}),
       };
 
-      await Promise.all([
-        this.leadStore.update(lead.id, updates),
-        this.leadStore.addActivity(lead.id, {
-          type: 'whatsapp',
-          note: `${plan.activityNote}${next ? ` — status → ${next}` : ''}`,
-        }),
-      ]);
-
+      await this.leadStore.update(lead.id, updates);
       this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
-    } catch {
-      // Non-fatal — the WA message was already opened
+
+      try {
+        await this.leadStore.addActivity(lead.id, {
+          type: 'whatsapp',
+          note: `${plan.activityNote}${next ? ` - status -> ${next}` : ''}`,
+        });
+      } catch (activityErr) {
+        console.warn('[Leads] WhatsApp activity log failed:', activityErr);
+      }
+
+      const updatedLead = { ...lead, ...updates };
+      if (whatsappWindow) {
+        whatsappWindow.location.href = this.whatsappLink(updatedLead);
+      } else {
+        window.location.href = this.whatsappLink(updatedLead);
+      }
+    } catch (err) {
+      if (whatsappWindow) whatsappWindow.close();
+      console.error('[Leads] WhatsApp status update failed:', err);
+      this.error.set('Could not mark this lead as contacted. Please try again.');
     } finally {
       this.sendingWa.set(null);
     }
