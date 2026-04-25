@@ -91,7 +91,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
               </svg>
               <span class="text-sm font-bold text-white">{{ clinic.config.name || 'Clinic' }} on WhatsApp</span>
             </div>
-            <button (click)="dismissPopup()" aria-label="Close" class="text-white/70 transition-colors hover:text-white">
+            <button (click)="dismissPopup()" aria-label="Close WhatsApp popup"
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
               </svg>
