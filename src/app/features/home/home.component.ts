@@ -60,12 +60,6 @@ export class HomeComponent {
     { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', title: 'Modern & Hygienic',   desc: 'Latest equipment with fully sterilized tools in a spotless clinic.' },
   ];
 
-  readonly howItWorks = [
-    { num: 1, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', title: 'Choose Your Service', desc: 'Browse our treatments or use the symptom finder. Pick what you need — no guesswork.' },
-    { num: 2, icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',        title: 'Pick a Slot',         desc: 'Select a date and time that works for you. Same-day slots available on most days.'  },
-    { num: 3, icon: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',          title: 'Smile Confidently', desc: 'Arrive, get treated by an expert, and leave with a healthier smile. Zero surprises.'  },
-  ];
-
   readonly openFaq = signal<number | null>(null);
   toggleFaq(i: number) { this.openFaq.update(v => v === i ? null : i); }
 
@@ -89,7 +83,6 @@ export class HomeComponent {
   get duplicatedTestimonials(){ return [...(this.config.testimonials ?? []), ...(this.config.testimonials ?? [])]; }
   get doctorTitle()           { return this.config.doctorQualification || 'Dental Care Team'; }
   get heroHours()             { return this.config.hours.length ? this.config.hours.slice(0, 3) : [{ days: 'Mon - Sat', time: '9:00 AM - 7:00 PM' }]; }
-  get clinicLocationLabel()   { return this.config.city || 'Trusted local clinic'; }
   get homeContent(): ClinicHomeCustomization { return this.config.customization?.content?.home ?? {}; }
   get clinicMoments(): ClinicImage[] {
     const images = this.config.customization?.media?.clinicImages?.filter(image => image.src && image.alt) ?? [];

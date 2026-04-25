@@ -416,26 +416,6 @@ body {
     box-shadow: 0 0 0 3px var(--color-focus-ring);
   }
 
-  .mobile-app-shell {
-    @apply rounded-[30px] border;
-    border-color: color-mix(in srgb, var(--color-primary-border) 46%, white);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 255, 0.96) 100%);
-    box-shadow: 0 28px 68px -38px rgba(15, 23, 42, 0.28);
-  }
-
-  .mobile-app-hero {
-    background:
-      radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary-soft) 82%, white) 0%, transparent 48%),
-      linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 88%, #082f49) 0%, #0f172a 58%, #0b1220 100%);
-  }
-
-  .mobile-app-pill {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.14);
-    color: rgba(255, 255, 255, 0.92);
-  }
 
   .mobile-info-card {
     @apply rounded-2xl border px-4 py-3.5;
