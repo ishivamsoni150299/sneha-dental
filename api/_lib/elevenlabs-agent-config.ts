@@ -16,7 +16,7 @@ function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-function joinParts(parts: Array<string | undefined>): string {
+function joinParts(parts: (string | undefined)[]): string {
   return parts.map(part => (part ?? '').trim()).filter(Boolean).join(', ');
 }
 
@@ -74,6 +74,44 @@ function buildServicesLine(clinic: ClinicRecord): string {
     .filter(Boolean);
 
   return formatted.length > 0 ? formatted.join(', ') : 'General dentistry and routine consultations.';
+}
+
+function asStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(item => asTrimmedString(item))
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function getClinicKnowledge(clinic: ClinicRecord): ClinicRecord {
+  const customization = clinic['customization'];
+  if (!customization || typeof customization !== 'object') return {};
+
+  const knowledge = (customization as ClinicRecord)['knowledge'];
+  return knowledge && typeof knowledge === 'object' ? knowledge as ClinicRecord : {};
+}
+
+function buildKnowledgeSection(clinic: ClinicRecord): string {
+  const knowledge = getClinicKnowledge(clinic);
+  const rows: string[] = [];
+  const treatmentFocus = asStringList(knowledge['treatmentFocus']);
+  const languages = asStringList(knowledge['languages']);
+  const paymentOptions = asStringList(knowledge['paymentOptions']);
+
+  if (treatmentFocus.length) rows.push(`- Treatment focus: ${treatmentFocus.join(', ')}`);
+  if (languages.length) rows.push(`- Languages spoken: ${languages.join(', ')}`);
+  if (asTrimmedString(knowledge['consultationFee'])) rows.push(`- Consultation fee: ${asTrimmedString(knowledge['consultationFee'])}`);
+  if (asTrimmedString(knowledge['priceGuidance'])) rows.push(`- Price guidance: ${asTrimmedString(knowledge['priceGuidance'])}`);
+  if (paymentOptions.length) rows.push(`- Payment options: ${paymentOptions.join(', ')}`);
+  if (asTrimmedString(knowledge['emergencyPolicy'])) rows.push(`- Emergency policy: ${asTrimmedString(knowledge['emergencyPolicy'])}`);
+  if (asTrimmedString(knowledge['appointmentPolicy'])) rows.push(`- Appointment policy: ${asTrimmedString(knowledge['appointmentPolicy'])}`);
+  if (asTrimmedString(knowledge['insurancePolicy'])) rows.push(`- Insurance or EMI policy: ${asTrimmedString(knowledge['insurancePolicy'])}`);
+  if (asTrimmedString(knowledge['parkingInfo'])) rows.push(`- Parking: ${asTrimmedString(knowledge['parkingInfo'])}`);
+  if (asTrimmedString(knowledge['accessibilityInfo'])) rows.push(`- Accessibility: ${asTrimmedString(knowledge['accessibilityInfo'])}`);
+  if (asTrimmedString(knowledge['patientNotes'])) rows.push(`- Patient notes: ${asTrimmedString(knowledge['patientNotes'])}`);
+
+  return rows.length ? `\nPATIENT KNOWLEDGE BASE:\n${rows.join('\n')}\n` : '';
 }
 
 function buildPersonaSection(persona: string): string {
@@ -146,6 +184,7 @@ export function buildAgentSystemPrompt(
   const services = buildServicesLine(clinic);
   const settings = resolveVoiceAgentSettings(clinic, overrides);
   const personaSection = buildPersonaSection(settings.persona);
+  const knowledgeSection = buildKnowledgeSection(clinic);
   const doctorLine = doctorQualification ? `${doctorName} (${doctorQualification})` : doctorName;
 
   return `You are the AI receptionist for ${name}, a dental clinic.
@@ -158,6 +197,7 @@ CLINIC FACTS:
 - Clinic phone: ${clinicPhone}
 - Hours: ${hours}
 - Services and pricing: ${services}
+${knowledgeSection}
 ${personaSection}
 STRICT BOUNDARIES:
 - Only discuss ${name}, its team, services, timings, booking flow, pricing shared above, and how to contact the clinic.

@@ -13,6 +13,20 @@ export interface ClinicFaq     { q: string; a: string }
 export const CLINIC_THEMES = ['blue', 'teal', 'emerald', 'purple', 'rose', 'caramel'] as const;
 export type ClinicTheme = typeof CLINIC_THEMES[number];
 
+export interface ClinicKnowledgeBase {
+  treatmentFocus?: string[];
+  languages?: string[];
+  consultationFee?: string;
+  priceGuidance?: string;
+  paymentOptions?: string[];
+  emergencyPolicy?: string;
+  appointmentPolicy?: string;
+  insurancePolicy?: string;
+  parkingInfo?: string;
+  accessibilityInfo?: string;
+  patientNotes?: string;
+}
+
 export interface ClinicHomeCustomization {
   eyebrow?: string;
   heroTitle?: string;
@@ -42,6 +56,7 @@ export interface ClinicCustomization {
     firstTouchWhatsapp?: string;
     followupWhatsapp?: string;
   };
+  knowledge?: ClinicKnowledgeBase;
 }
 
 export interface ClinicConfig {

@@ -816,6 +816,62 @@
           </div>
         </div>
 
+        <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-4 space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900">Clinic Knowledge Base</h3>
+            <p class="mt-1 text-xs text-blue-700">Public patient-facing facts used by the website, WhatsApp content, and AI voice receptionist. Keep this factual and safe for patients.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Treatment Focus</label>
+              <input formControlName="knowledgeTreatmentFocus" type="text" placeholder="Root canal, Implants, Aligners" class="form-input">
+              <p class="mt-1 text-xs text-gray-400">Comma-separated.</p>
+            </div>
+            <div>
+              <label class="form-label">Languages Spoken</label>
+              <input formControlName="knowledgeLanguages" type="text" placeholder="Hindi, English" class="form-input">
+              <p class="mt-1 text-xs text-gray-400">Comma-separated.</p>
+            </div>
+            <div>
+              <label class="form-label">Consultation Fee</label>
+              <input formControlName="knowledgeConsultationFee" type="text" placeholder="₹300 consultation, adjusted in treatment" class="form-input">
+            </div>
+            <div>
+              <label class="form-label">Payment Options</label>
+              <input formControlName="knowledgePaymentOptions" type="text" placeholder="UPI, Cash, Card" class="form-input">
+              <p class="mt-1 text-xs text-gray-400">Comma-separated.</p>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">Price Guidance</label>
+              <textarea formControlName="knowledgePriceGuidance" rows="2" placeholder="Exact treatment cost is confirmed after consultation. Basic cleaning starts from..." class="form-input resize-none text-sm"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">Emergency Policy</label>
+              <textarea formControlName="knowledgeEmergencyPolicy" rows="2" placeholder="Dental pain emergencies are prioritised during clinic hours. Call before visiting." class="form-input resize-none text-sm"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">Appointment Policy</label>
+              <textarea formControlName="knowledgeAppointmentPolicy" rows="2" placeholder="Appointment requests are confirmed by clinic staff on WhatsApp or call." class="form-input resize-none text-sm"></textarea>
+            </div>
+            <div>
+              <label class="form-label">Insurance / EMI Policy</label>
+              <textarea formControlName="knowledgeInsurancePolicy" rows="2" placeholder="EMI available for selected treatments, if applicable." class="form-input resize-none text-sm"></textarea>
+            </div>
+            <div>
+              <label class="form-label">Parking Info</label>
+              <textarea formControlName="knowledgeParkingInfo" rows="2" placeholder="Street parking available near clinic." class="form-input resize-none text-sm"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">Accessibility Info</label>
+              <textarea formControlName="knowledgeAccessibilityInfo" rows="2" placeholder="Lift access / ground floor / wheelchair support if available." class="form-input resize-none text-sm"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">Patient Notes</label>
+              <textarea formControlName="knowledgePatientNotes" rows="3" placeholder="Any public instructions patients should know before visiting." class="form-input resize-none text-sm"></textarea>
+            </div>
+          </div>
+        </div>
+
         <div formArrayName="clinicImages" class="space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">Clinic Photos</h3>

@@ -183,6 +183,17 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     homeFinalCtaSubtitle: [''],
     firstTouchWhatsapp: [''],
     followupWhatsapp:  [''],
+    knowledgeTreatmentFocus: [''],
+    knowledgeLanguages:      [''],
+    knowledgeConsultationFee: [''],
+    knowledgePriceGuidance:  [''],
+    knowledgePaymentOptions: [''],
+    knowledgeEmergencyPolicy: [''],
+    knowledgeAppointmentPolicy: [''],
+    knowledgeInsurancePolicy: [''],
+    knowledgeParkingInfo:    [''],
+    knowledgeAccessibilityInfo: [''],
+    knowledgePatientNotes:   [''],
 
     // Arrays
     doctorBio:    this.fb.nonNullable.array<string>([]),
@@ -364,6 +375,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     this.existingCustomization = c.customization;
     const home = c.customization?.content?.home ?? {};
     const communication = c.customization?.communication ?? {};
+    const knowledge = c.customization?.knowledge ?? {};
 
     this.form.patchValue({
       name: c.name, doctorName: c.doctorName,
@@ -403,6 +415,17 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       homeFinalCtaSubtitle: home.finalCtaSubtitle ?? '',
       firstTouchWhatsapp: communication.firstTouchWhatsapp ?? '',
       followupWhatsapp:  communication.followupWhatsapp ?? '',
+      knowledgeTreatmentFocus: (knowledge.treatmentFocus ?? []).join(', '),
+      knowledgeLanguages:      (knowledge.languages ?? []).join(', '),
+      knowledgeConsultationFee: knowledge.consultationFee ?? '',
+      knowledgePriceGuidance:  knowledge.priceGuidance ?? '',
+      knowledgePaymentOptions: (knowledge.paymentOptions ?? []).join(', '),
+      knowledgeEmergencyPolicy: knowledge.emergencyPolicy ?? '',
+      knowledgeAppointmentPolicy: knowledge.appointmentPolicy ?? '',
+      knowledgeInsurancePolicy: knowledge.insurancePolicy ?? '',
+      knowledgeParkingInfo:    knowledge.parkingInfo ?? '',
+      knowledgeAccessibilityInfo: knowledge.accessibilityInfo ?? '',
+      knowledgePatientNotes:   knowledge.patientNotes ?? '',
     });
 
     (c.doctorBio ?? []).forEach(p => this.addBio(p));
@@ -477,6 +500,14 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
   removeClinicImage(i: number) { this.clinicImagesArr.removeAt(i); }
 
+  private splitList(value: string): string[] {
+    return value
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean)
+      .slice(0, 12);
+  }
+
   // ── Submit ────────────────────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
@@ -495,10 +526,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       const shouldRegisterHostedDomain = !this.isEdit || hostedDomain !== this.originalHostedDomain;
       const ownerEmail = v.ownerLoginEmail.trim().toLowerCase();
       const ownerPassword = v.ownerLoginPassword.trim();
-      const optionalText = (value: string) => value.trim() || null;
+      const optionalText = (value: string): string | null => value.trim() || null;
       const existingCustomization = this.existingCustomization ?? {};
       const existingHome = existingCustomization.content?.home ?? {};
-      const clinicImages = (v.clinicImages as Array<{ src: string; alt: string; label: string }>)
+      const clinicImages = (v.clinicImages as { src: string; alt: string; label: string }[])
         .map(image => ({
           src: image.src.trim(),
           alt: image.alt.trim(),
@@ -555,10 +586,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         doctorBio: (v.doctorBio as string[])
           .map(paragraph => paragraph.trim())
           .filter(Boolean),
-        hours: (v.hours as Array<{ days: string; time: string }>)
+        hours: (v.hours as { days: string; time: string }[])
           .filter(slot => slot.days.trim() || slot.time.trim()),
         services:     v.services as StoredClinic['services'],
-        plans:        (v.plans as Array<Record<string, unknown>>).map(p => ({
+        plans:        (v.plans as Record<string, unknown>[]).map(p => ({
           ...p,
           features: p['features'] as string[],
         })) as StoredClinic['plans'],
@@ -588,6 +619,20 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
             ...(existingCustomization.communication ?? {}),
             firstTouchWhatsapp: optionalText(v.firstTouchWhatsapp),
             followupWhatsapp: optionalText(v.followupWhatsapp),
+          },
+          knowledge: {
+            ...(existingCustomization.knowledge ?? {}),
+            treatmentFocus: this.splitList(v.knowledgeTreatmentFocus),
+            languages: this.splitList(v.knowledgeLanguages),
+            consultationFee: optionalText(v.knowledgeConsultationFee),
+            priceGuidance: optionalText(v.knowledgePriceGuidance),
+            paymentOptions: this.splitList(v.knowledgePaymentOptions),
+            emergencyPolicy: optionalText(v.knowledgeEmergencyPolicy),
+            appointmentPolicy: optionalText(v.knowledgeAppointmentPolicy),
+            insurancePolicy: optionalText(v.knowledgeInsurancePolicy),
+            parkingInfo: optionalText(v.knowledgeParkingInfo),
+            accessibilityInfo: optionalText(v.knowledgeAccessibilityInfo),
+            patientNotes: optionalText(v.knowledgePatientNotes),
           },
         },
       };
