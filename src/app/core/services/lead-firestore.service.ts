@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
-  collection, getDocs, getDoc, addDoc, updateDoc,
+  collection, getDocs, getDocsFromServer, getDoc, addDoc, updateDoc,
   deleteDoc, doc, query, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -51,7 +51,7 @@ export class LeadFirestoreService {
 
   async getAll(): Promise<StoredLead[]> {
     const q    = query(collection(db, this.COL), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
+    const snap = await getDocsFromServer(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredLead));
   }
 
