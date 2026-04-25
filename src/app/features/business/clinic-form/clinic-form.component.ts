@@ -12,22 +12,6 @@ import {
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 import { SuperAuthService } from '../../../core/services/super-auth.service';
 
-// TODO: Uncomment when Google Maps API key is ready in environment.ts
-// import { environment } from '../../../../environments/environment';
-// let _mapsApiPromise: Promise<void> | null = null;
-// function loadGoogleMapsScript(apiKey: string): Promise<void> {
-//   if (_mapsApiPromise) return _mapsApiPromise;
-//   _mapsApiPromise = new Promise((resolve, reject) => {
-//     if ((window as any).google?.maps?.places) { resolve(); return; }
-//     const s = document.createElement('script');
-//     s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-//     s.onload  = () => resolve();
-//     s.onerror = () => { _mapsApiPromise = null; reject(new Error('Maps API load failed')); };
-//     document.head.appendChild(s);
-//   });
-//   return _mapsApiPromise;
-// }
-
 const CLINIC_THEME_OPTIONS = [
   {
     value: 'blue',
@@ -97,7 +81,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   private superAuth   = inject(SuperAuthService);
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
-  // private ngZone   = inject(NgZone); // TODO: Uncomment with Google Maps API
 
   readonly platformPlans = PLATFORM_PLANS;
   readonly themeOptions  = CLINIC_THEME_OPTIONS;
@@ -118,8 +101,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   private previewDomainManuallyEdited = false;
   private originalHostedDomain = '';
   private existingCustomization: StoredClinic['customization'] | undefined;
-  // syncing   = signal(false);   // TODO: Uncomment with Google Maps API
-  // syncError = signal<string | null>(null);
 
   isEdit   = false;
   clinicId: string | null = null;
@@ -322,52 +303,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     this._subs.add(this.form.controls.lastPaymentDate.valueChanges.subscribe(updateEndDate));
     this._subs.add(this.form.controls.billingCycle.valueChanges.subscribe(updateEndDate));
   }
-
-  // TODO: Uncomment autoFillMapUrls + syncGoogleReviews when Google Maps API key is ready
-  // /** Auto-fills map embed URL and directions URL from the Google Place ID */
-  // autoFillMapUrls() {
-  //   const placeId = this.form.controls.googlePlaceId.value?.trim();
-  //   const apiKey  = environment.googleMapsApiKey;
-  //   if (!placeId) { this.syncError.set('Enter a Google Place ID first.'); return; }
-  //   const embedUrl = apiKey
-  //     ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=place_id:${placeId}`
-  //     : `https://maps.google.com/maps?q=place_id:${placeId}&output=embed`;
-  //   const directionsUrl = `https://www.google.com/maps/search/?api=1&query=place_id:${placeId}`;
-  //   this.form.controls.mapEmbedUrl.setValue(embedUrl);
-  //   this.form.controls.mapDirectionsUrl.setValue(directionsUrl);
-  //   this.syncError.set(null);
-  // }
-
-  // /** Fetches up to 5 Google reviews for the clinic and populates the testimonials array */
-  // async syncGoogleReviews() {
-  //   const placeId = this.form.controls.googlePlaceId.value?.trim();
-  //   const apiKey  = environment.googleMapsApiKey;
-  //   if (!placeId) { this.syncError.set('Enter a Google Place ID first.'); return; }
-  //   if (!apiKey)  { this.syncError.set('Add googleMapsApiKey to environment.ts first.'); return; }
-  //   this.syncing.set(true);
-  //   this.syncError.set(null);
-  //   try { await loadGoogleMapsScript(apiKey); } catch {
-  //     this.syncing.set(false);
-  //     this.syncError.set('Failed to load Google Maps API. Check your API key.');
-  //     return;
-  //   }
-  //   const div = document.createElement('div');
-  //   const service = new (window as any).google.maps.places.PlacesService(div);
-  //   service.getDetails({ placeId, fields: ['reviews'] }, (result: any, status: string) => {
-  //     this.ngZone.run(() => {
-  //       this.syncing.set(false);
-  //       if (status !== 'OK' || !result?.reviews?.length) {
-  //         this.syncError.set(`No reviews found (status: ${status}). Verify the Place ID.`);
-  //         return;
-  //       }
-  //       this.testimonialsArr.clear();
-  //       (result.reviews as any[]).slice(0, 5).forEach((r: any) => {
-  //         this.addTestimonial({ name: r.author_name || 'Patient', location: 'Google Review',
-  //           rating: r.rating ?? 5, review: r.text || '' });
-  //       });
-  //     });
-  //   });
-  // }
 
   // ── Patch from Firestore ──────────────────────────────────────────────────
   private patchForm(c: StoredClinic) {

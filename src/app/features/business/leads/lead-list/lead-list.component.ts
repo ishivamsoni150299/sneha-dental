@@ -461,9 +461,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
       const rawHeaders = this.parseCSVLine(lines[0]);
       const headers    = rawHeaders.map(h => this.normalizeHeader(h));
 
-      // Log headers in dev to help debug mismatches
-      console.debug('[CSV import] detected columns:', headers);
-
       // ── Build dedup sets from existing leads (one load, no extra queries) ──
       const existing   = this.leads();
       const usedPhones = new Set(existing.map(l => l.phone).filter(Boolean));
