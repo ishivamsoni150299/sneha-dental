@@ -195,6 +195,12 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     return String(this.form.get('service')?.value || 'Choose a service');
   }
 
+  get selectedServicePrice(): string {
+    const name = this.form.get('service')?.value;
+    if (!name) return '';
+    return this.config.services.find(s => s.name === name)?.price ?? '';
+  }
+
   get selectedDateLabel(): string {
     const value = this.form.get('date')?.value;
     if (!value) return 'Pick a preferred date';
