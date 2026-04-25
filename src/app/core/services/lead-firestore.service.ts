@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
-  collection, getDocs, getDocsFromServer, getDoc, addDoc, updateDoc,
-  deleteDoc, doc, query, orderBy, serverTimestamp, Timestamp,
+  collection, getDocs, getDocsFromServer, getDoc, getDocFromServer,
+  addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -56,7 +56,7 @@ export class LeadFirestoreService {
   }
 
   async getById(id: string): Promise<StoredLead | null> {
-    const snap = await getDoc(doc(db, this.COL, id));
+    const snap = await getDocFromServer(doc(db, this.COL, id));
     return snap.exists() ? ({ id: snap.id, ...snap.data() } as StoredLead) : null;
   }
 

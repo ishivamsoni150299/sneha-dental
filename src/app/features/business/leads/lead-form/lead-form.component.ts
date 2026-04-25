@@ -25,7 +25,7 @@ export class LeadFormComponent implements OnInit {
 
   form = this.fb.nonNullable.group({
     clinicName:   ['', Validators.required],
-    doctorName:   ['', Validators.required],
+    doctorName:   [''],
     phone:        ['', Validators.required],
     city:         ['', Validators.required],
     source:       ['google_maps' as LeadSource],

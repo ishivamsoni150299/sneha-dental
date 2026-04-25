@@ -495,6 +495,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
       const existing   = this.leads();
       const usedPhones = new Set(existing.map(l => l.phone).filter(Boolean));
       const usedLinks  = new Set(existing.map(l => l.mapsLink).filter(Boolean) as string[]);
+      const usedNames  = new Set(existing.map(l => `${l.clinicName.toLowerCase().trim()}|${l.city.toLowerCase().trim()}`));
 
       for (const line of lines.slice(1)) {
         const vals: Record<string, string> = {};
@@ -509,17 +510,18 @@ export class LeadListComponent implements OnInit, OnDestroy {
         const phone    = this.normalizePhone(vals['phone'] ?? '');
         const mapsLink = vals['mapsLink'] ?? '';
 
-        // ── Duplicate check ──────────────────────────────────────────────
-        // Primary key: Google Maps link (unique per listing)
-        // Secondary key: phone number
-        const isDuplicate =
-          (mapsLink && usedLinks.has(mapsLink)) ||
-          (phone    && usedPhones.has(phone));
-
-        if (isDuplicate) { stats.skipped++; continue; }
-
         // Use `area` as city fallback when no separate city column
         const city = vals['city'] || vals['area'] || '';
+
+        // ── Duplicate check ──────────────────────────────────────────────
+        // Primary: Google Maps link · Secondary: phone · Tertiary: name+city
+        const nameKey = `${vals['clinicName'].toLowerCase().trim()}|${city.toLowerCase().trim()}`;
+        const isDuplicate =
+          (mapsLink && usedLinks.has(mapsLink)) ||
+          (phone    && usedPhones.has(phone))   ||
+          usedNames.has(nameKey);
+
+        if (isDuplicate) { stats.skipped++; continue; }
 
         const ratingRaw      = parseFloat(vals['rating'] ?? '');
         const reviewCountRaw = parseInt(vals['reviewCount'] ?? '', 10);
@@ -546,6 +548,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
           // Add to dedup sets so same-file duplicates are caught
           if (phone)    usedPhones.add(phone);
           if (mapsLink) usedLinks.add(mapsLink);
+          usedNames.add(nameKey);
 
           stats.imported++;
         } catch (writeErr: unknown) {
@@ -697,10 +700,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
     return new Date(lead.followUpDate + 'T00:00:00').toLocaleDateString('en-IN', {
       day: 'numeric', month: 'short',
     });
-  }
-
-  ratingStars(rating: number): number[] {
-    return Array.from({ length: 5 }, (_, i) => i + 1);
   }
 
   whatsappLink(lead: StoredLead): string {
