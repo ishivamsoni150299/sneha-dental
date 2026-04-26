@@ -24,18 +24,48 @@
         </p>
 
         <!-- CTAs -->
-        <div class="anim-fade-up anim-d3 flex flex-col sm:flex-row gap-3 mb-5 sm:mb-7">
-          <a routerLink="/appointment"
-             class="bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-6 sm:px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-base transition-colors text-center shadow-sm shadow-[var(--accent-bd)]">
-            Book Appointment
-          </a>
-          <a [href]="'tel:+' + config.phoneE164"
-             class="border border-gray-200 hover:border-gray-300 text-gray-700 px-5 sm:px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-base transition-colors flex items-center justify-center gap-2 bg-white">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            Call Now
-          </a>
+        <div class="anim-fade-up anim-d3 mb-4 sm:mb-7">
+          <!-- Mobile: full-width Book button + subtle Call link below -->
+          <div class="sm:hidden">
+            <a routerLink="/appointment"
+               class="flex items-center justify-center gap-2 w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-6 py-4 rounded-xl font-bold text-base transition-colors shadow-md shadow-[var(--accent-bd)] active:scale-[0.98]">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              Book Appointment
+            </a>
+            <div class="flex items-center justify-center gap-3 mt-3">
+              <a [href]="'tel:+' + config.phoneE164"
+                 class="inline-flex items-center gap-1.5 text-sm text-gray-500 font-semibold hover:text-gray-800 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                or call us
+              </a>
+              <span class="text-gray-300">·</span>
+              <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-1.5 text-sm text-green-600 font-semibold hover:text-green-700 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+                </svg>
+                WhatsApp
+              </a>
+            </div>
+          </div>
+          <!-- Desktop: two side-by-side equal buttons -->
+          <div class="hidden sm:flex gap-3">
+            <a routerLink="/appointment"
+               class="bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-colors text-center shadow-sm shadow-[var(--accent-bd)]">
+              Book Appointment
+            </a>
+            <a [href]="'tel:+' + config.phoneE164"
+               class="border border-gray-200 hover:border-gray-300 text-gray-700 px-7 py-3.5 rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2 bg-white">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+              Call Now
+            </a>
+          </div>
         </div>
 
         <!-- Trust pills -->
@@ -213,7 +243,7 @@
 
 
 <!-- ===== SERVICES PREVIEW ===== -->
-<section class="bg-gray-50 py-12 md:py-24">
+<section class="bg-gray-50 py-10 md:py-24">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
     <!-- Section header -->
@@ -232,13 +262,14 @@
       <div class="grid grid-cols-3 gap-2.5">
         @for (service of previewServices; track service.name) {
           <a routerLink="/appointment" [queryParams]="{service: service.name}"
-             class="flex flex-col items-center gap-2.5 bg-white rounded-2xl border border-gray-100 px-2 py-4 active:scale-95 transition-transform">
+             class="flex flex-col items-center gap-2 bg-white rounded-2xl border border-gray-100 px-2 py-4 active:scale-95 transition-all duration-200 active:bg-[var(--accent-lt)]">
             <div class="w-10 h-10 rounded-xl bg-[var(--accent-lt)] flex items-center justify-center">
               <svg class="w-5 h-5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="service.iconPath"/>
               </svg>
             </div>
             <span class="text-xs font-semibold text-gray-700 text-center leading-tight">{{ service.name }}</span>
+            <span class="text-[10px] font-bold text-[var(--accent)] uppercase tracking-wider">Book →</span>
           </a>
         }
       </div>
@@ -280,7 +311,7 @@
 
 
 <!-- ===== WHY CHOOSE US ===== -->
-<section class="bg-white py-12 md:py-24">
+<section class="bg-white py-10 md:py-24">
   <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
     <div reveal revealDir="up" class="text-center mb-10 md:mb-14">
@@ -304,7 +335,7 @@
         </div>
         <div>
           <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Pain-Free Treatment</h3>
-          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">Modern anaesthesia and gentle techniques so even nervous patients feel completely at ease.</p>
+          <p class="text-gray-500 text-sm leading-relaxed">Modern anaesthesia and gentle techniques so even nervous patients feel completely at ease.</p>
         </div>
       </div>
 
@@ -317,7 +348,7 @@
         </div>
         <div>
           <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Honest Advice</h3>
-          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">We only recommend what your teeth actually need. Your best interest, not our revenue, comes first.</p>
+          <p class="text-gray-500 text-sm leading-relaxed">We only recommend what your teeth actually need. Your best interest, not our revenue, comes first.</p>
         </div>
       </div>
 
@@ -330,7 +361,7 @@
         </div>
         <div>
           <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Transparent Pricing</h3>
-          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">Exact cost confirmed before we begin. No surprise bills, no hidden charges — ever.</p>
+          <p class="text-gray-500 text-sm leading-relaxed">Exact cost confirmed before we begin. No surprise bills, no hidden charges — ever.</p>
         </div>
       </div>
 
@@ -343,7 +374,7 @@
         </div>
         <div>
           <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Clean &amp; Sterilized</h3>
-          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">Medical-grade sterilization. Every instrument is fresh and verified before every patient.</p>
+          <p class="text-gray-500 text-sm leading-relaxed">Medical-grade sterilization. Every instrument is fresh and verified before every patient.</p>
         </div>
       </div>
 
@@ -354,7 +385,7 @@
 
 <!-- ===== TESTIMONIALS ===== -->
 @if (hasTestimonials) {
-  <section class="bg-gray-50 py-12 md:py-24 border-y border-gray-100 overflow-hidden">
+  <section class="bg-gray-50 py-10 md:py-24 border-y border-gray-100 overflow-hidden">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
       <!-- Section header -->
@@ -414,7 +445,7 @@
 }
 
 <!-- ===== FAQ ===== -->
-<section class="bg-white py-12 md:py-24">
+<section class="bg-white py-10 md:py-24">
   <div class="max-w-2xl mx-auto px-5 sm:px-8 lg:px-10">
 
     <div reveal revealDir="up" class="text-center mb-12">
@@ -466,7 +497,7 @@
 </section>
 
 <!-- ===== CTA BANNER ===== -->
-<section class="bg-[var(--accent)] py-16 md:py-20">
+<section class="bg-[var(--accent)] py-12 md:py-20">
   <div class="max-w-2xl mx-auto px-5 sm:px-8 text-center">
     <div reveal revealDir="up">
       <h2 class="font-display text-3xl md:text-4xl text-white mb-4 leading-tight">
