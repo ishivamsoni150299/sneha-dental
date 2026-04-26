@@ -74,7 +74,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @if (showBackToTop()) {
         <button (click)="scrollToTop()"
                 aria-label="Back to top"
-                class="fixed bottom-24 left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:bottom-28 md:left-6">
+                class="fixed bottom-[7rem] right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:bottom-28 md:right-6">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
           </svg>
