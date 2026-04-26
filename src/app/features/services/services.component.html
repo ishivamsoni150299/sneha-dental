@@ -38,16 +38,20 @@
       <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Browse Every Treatment</h2>
       <p class="text-gray-500 max-w-lg mx-auto">Every price you see is what you pay. No surprise bills — confirmed before we begin.</p>
     </div>
-    <!-- Category filter tabs -->
+    <!-- Category filter tabs — horizontal scroll on mobile, wrap on desktop -->
     @if (config.services.length > 0) {
-      <div class="flex gap-2 flex-wrap justify-center mb-10">
-        @for (cat of categories; track cat) {
-          <button (click)="activeCategory.set(cat)"
-                  class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-                  [class]="activeCategory() === cat ? 'bg-[var(--accent)] text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'">
-            {{ cat }}
-          </button>
-        }
+      <div class="relative mb-10">
+        <!-- fade hint on mobile -->
+        <div class="pointer-events-none absolute bottom-0 right-0 top-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden z-10"></div>
+        <div class="flex gap-2 overflow-x-auto pr-8 sm:pr-0 sm:flex-wrap sm:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          @for (cat of categories; track cat) {
+            <button (click)="activeCategory.set(cat)"
+                    class="shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
+                    [class]="activeCategory() === cat ? 'bg-[var(--accent)] text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'">
+              {{ cat }}
+            </button>
+          }
+        </div>
       </div>
     }
     @if (config.services.length > 0) {

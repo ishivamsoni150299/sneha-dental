@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { formatSlotDisplay } from '../../../core/services/doctor.service';
 
 @Component({
   selector: 'app-confirmed',
@@ -26,6 +27,10 @@ export class ConfirmedComponent implements OnInit {
     this.date.set(p.get('date') ?? '');
     this.time.set(p.get('time') ?? '');
     this.service.set(p.get('service') ?? '');
+  }
+
+  get formattedTime(): string {
+    return this.time() ? formatSlotDisplay(this.time()) : '';
   }
 
   get formattedDate(): string {
