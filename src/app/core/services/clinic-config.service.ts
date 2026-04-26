@@ -279,6 +279,14 @@ export class ClinicConfigService {
     );
   }
 
+  /** Deep-link that opens the WhatsApp app directly on mobile (skips wa.me redirect). */
+  get bookingWhatsappDeepLink(): string {
+    const msg = encodeURIComponent(
+      `Hi ${this.config.name}! I would like to book an appointment. Please confirm an available slot.`
+    );
+    return `whatsapp://send?phone=${this.config.whatsappNumber}&text=${msg}`;
+  }
+
   /**
    * Returns true if the clinic is currently open based on `config.hours`.
    *

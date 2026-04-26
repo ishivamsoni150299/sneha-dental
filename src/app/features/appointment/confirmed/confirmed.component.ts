@@ -16,6 +16,7 @@ export class ConfirmedComponent implements OnInit {
   bookingRef = signal('');
   name = signal('');
   date = signal('');
+  time = signal('');
   service = signal('');
 
   ngOnInit() {
@@ -23,6 +24,7 @@ export class ConfirmedComponent implements OnInit {
     this.bookingRef.set(p.get('ref') ?? '');
     this.name.set(p.get('name') ?? '');
     this.date.set(p.get('date') ?? '');
+    this.time.set(p.get('time') ?? '');
     this.service.set(p.get('service') ?? '');
   }
 
@@ -39,11 +41,39 @@ export class ConfirmedComponent implements OnInit {
 
   get calendarUrl(): string {
     if (!this.date()) return '';
-    const d = this.date().replace(/-/g, '');
-    const title = encodeURIComponent(`Dental Appointment - ${this.clinic.config.name}`);
-    const details = encodeURIComponent(`Booking Ref: ${this.bookingRef()}\nService: ${this.service()}\nAddress: ${this.clinic.address}`);
+    const title    = encodeURIComponent(`Dental Appointment – ${this.clinic.config.name}`);
+    const details  = encodeURIComponent(`Booking Ref: ${this.bookingRef()}\nService: ${this.service()}\nAddress: ${this.clinic.address}`);
     const location = encodeURIComponent(this.clinic.address);
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${d}/${d}&details=${details}&location=${location}`;
+
+    // Build a timed event (YYYYMMDDTHHMMSS) when we have a time value,
+    // otherwise fall back to an all-day event so the URL is still valid.
+    let dates: string;
+    const timeStr = this.time(); // e.g. "09:30" or "09:30 AM"
+    if (timeStr) {
+      // Normalise "09:30 AM" / "9:30AM" / "09:30" → 24-h HH:MM
+      const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+      if (match) {
+        let h = parseInt(match[1], 10);
+        const m = match[2];
+        const period = (match[3] ?? '').toUpperCase();
+        if (period === 'PM' && h !== 12) h += 12;
+        if (period === 'AM' && h === 12) h = 0;
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const dateBase = this.date().replace(/-/g, '');
+        const startTime = `${pad(h)}${m}00`;
+        const endH = h + 1 < 24 ? h + 1 : 23;
+        const endTime = `${pad(endH)}${m}00`;
+        dates = `${dateBase}T${startTime}/${dateBase}T${endTime}`;
+      } else {
+        const d = this.date().replace(/-/g, '');
+        dates = `${d}/${d}`;
+      }
+    } else {
+      const d = this.date().replace(/-/g, '');
+      dates = `${d}/${d}`;
+    }
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
   }
 
   get phoneHref(): string {

@@ -355,6 +355,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
           ref,
           name:    val.name,
           date:    val.date,
+          time:    val.time,
           service: val.service,
         },
       });

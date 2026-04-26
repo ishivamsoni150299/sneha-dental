@@ -23,6 +23,7 @@ export class ContactComponent {
 
   submitted  = signal(false);
   submitting = signal(false);
+  sendError  = signal(false);
 
   private fb = inject(FormBuilder);
   form = this.fb.group({
@@ -41,6 +42,7 @@ export class ContactComponent {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     this.submitting.set(true);
+    this.sendError.set(false);
     try {
       await addDoc(collection(db, 'contacts'), {
         clinicId:  this.config.clinicId ?? 'default',
@@ -50,11 +52,11 @@ export class ContactComponent {
         message:   this.form.value.message,
         createdAt: serverTimestamp(),
       });
+      this.submitted.set(true);
     } catch {
-      // fail silently — user still sees success to avoid frustration
+      this.sendError.set(true);
     } finally {
       this.submitting.set(false);
-      this.submitted.set(true);
     }
   }
 }
