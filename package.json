@@ -25,7 +25,7 @@
     "@angular/platform-server": "^19.2.20",
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.20",
-    "@sentry/angular": "^10.49.0",
+    "@sentry/angular": "^10.50.0",
     "@types/nodemailer": "^8.0.0",
     "firebase": "^10.14.1",
     "firebase-admin": "^13.7.0",

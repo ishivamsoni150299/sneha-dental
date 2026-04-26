@@ -111,19 +111,21 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         </div>
       }
 
-      <!-- AI receptionist -->
-      @if (clinic.isLoaded) {
-        <app-voice-agent
-          [agentId]="voiceAgentId()"
-          [clinicId]="clinic.config.clinicId || ''"
-          [bookingRefPrefix]="clinic.config.bookingRefPrefix"
-          [clinicName]="clinic.config.name"
-          [services]="serviceNames()"
-          [city]="clinic.config.city"
-          [phone]="clinic.config.phone"
-          [address]="clinicAddress()"
-          [hours]="clinicHours()"
-          [whatsappNumber]="clinic.config.whatsappNumber" />
+      <!-- AI receptionist — deferred so it never blocks initial paint -->
+      @defer (on idle) {
+        @if (clinic.isLoaded) {
+          <app-voice-agent
+            [agentId]="voiceAgentId()"
+            [clinicId]="clinic.config.clinicId || ''"
+            [bookingRefPrefix]="clinic.config.bookingRefPrefix"
+            [clinicName]="clinic.config.name"
+            [services]="serviceNames()"
+            [city]="clinic.config.city"
+            [phone]="clinic.config.phone"
+            [address]="clinicAddress()"
+            [hours]="clinicHours()"
+            [whatsappNumber]="clinic.config.whatsappNumber" />
+        }
       }
 
       <!-- PWA install banner -->
