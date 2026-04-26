@@ -83,6 +83,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
   // ── Doctor state ──────────────────────────────────────────────────────────
   doctors          = signal<Doctor[]>([]);
+  doctorsLoading   = signal(true);
   selectedDoctorId = signal<string>('');
   availableSlots   = signal<string[]>([]);
   slotsLoading     = signal(false);
@@ -127,7 +128,11 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     if (clinicId) {
       this.doctorSvc.getDoctors(clinicId).then(docs => {
         this.doctors.set(docs.filter(d => d.available));
-      }).catch(() => { /* silently fall back to time-range selection */ });
+      }).catch(() => { /* silently fall back to time-range selection */ }).finally(() => {
+        this.doctorsLoading.set(false);
+      });
+    } else {
+      this.doctorsLoading.set(false);
     }
 
     // When date or selected doctor changes, reload available slots

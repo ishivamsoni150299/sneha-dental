@@ -175,7 +175,27 @@
                 </div>
 
                 <!-- Doctor (optional) -->
-                @if (doctors().length > 0) {
+                @if (doctorsLoading()) {
+                  <div>
+                    <div class="h-4 w-32 bg-gray-200 rounded-md animate-pulse mb-3"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 min-h-[52px]">
+                        <div class="w-9 h-9 rounded-lg bg-gray-200 animate-pulse shrink-0"></div>
+                        <div class="flex-1 space-y-1.5">
+                          <div class="h-3.5 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                          <div class="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 min-h-[52px]">
+                        <div class="w-9 h-9 rounded-lg bg-gray-200 animate-pulse shrink-0"></div>
+                        <div class="flex-1 space-y-1.5">
+                          <div class="h-3.5 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                          <div class="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                } @else if (doctors().length > 0) {
                   <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">
                       Choose Doctor
@@ -250,12 +270,17 @@
                     </label>
                     <div class="relative">
                       @if (slotsLoading()) {
-                        <div class="w-full py-3.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-400 flex items-center gap-2">
-                          <svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                          </svg>
-                          Checking availability…
+                        <div class="w-full py-3 px-4 rounded-xl border border-gray-100 bg-gray-50 space-y-2" aria-busy="true" aria-label="Loading available slots">
+                          <div class="flex gap-2">
+                            <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse"></div>
+                            <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse [animation-delay:80ms]"></div>
+                            <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse [animation-delay:160ms]"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse [animation-delay:240ms]"></div>
+                            <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse [animation-delay:320ms]"></div>
+                          </div>
+                          <p class="text-[11px] text-gray-400 pt-0.5">Checking availability…</p>
                         </div>
                       } @else if (selectedDoctorId() && form.get('date')?.value && availableSlots().length === 0) {
                         <div class="w-full py-3.5 px-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-700 flex items-center gap-2">

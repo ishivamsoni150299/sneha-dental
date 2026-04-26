@@ -17,7 +17,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
     } @else {
       <app-navbar />
 
-      <main class="min-h-[60vh] overflow-x-clip bg-gradient-to-b from-slate-50 via-white to-slate-100 md:bg-none">
+      <main id="main-content" class="min-h-[60vh] overflow-x-clip bg-gradient-to-b from-slate-50 via-white to-slate-100 md:bg-none">
         <router-outlet />
       </main>
       <app-footer />

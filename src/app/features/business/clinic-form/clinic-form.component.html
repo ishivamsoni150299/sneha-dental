@@ -135,31 +135,30 @@
     </div>
   }
 
-  <!-- ── Section quick-nav ─────────────────────────────────────────────────── -->
+  <!-- ── Tab navigation ────────────────────────────────────────────────────── -->
   @if (!loading()) {
-    <div class="clinic-form-nav sticky top-14 z-20 -mx-4 mb-5 overflow-x-auto px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div class="clinic-form-nav sticky top-14 z-20 -mx-4 mb-1 overflow-x-auto px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div class="flex items-center gap-0.5 min-w-max">
-        @for (sec of [
-          {id:'identity',      label:'Identity'},
-          {id:'contact',       label:'Contact'},
-          {id:'hours',         label:'Hours'},
-          {id:'brand',         label:'Brand'},
-          {id:'services',      label:'Services'},
-          {id:'plans',         label:'Health Plans'},
-          {id:'content',       label:'Website Content'},
-          {id:'testimonials',  label:'Testimonials'},
-          {id:'billing',       label:'Billing'}
-        ]; track sec.id) {
-          <button type="button" (click)="scrollToSection(sec.id)"
-                  class="whitespace-nowrap"
-                  [class]="activeSection() === sec.id
-                    ? 'ui-tab ui-tab-active shadow-sm'
-                    : 'ui-tab'">
-            {{ sec.label }}
+        @for (tab of TABS; track tab.num) {
+          <button type="button" (click)="activeTab.set(tab.num)"
+                  class="whitespace-nowrap flex items-center gap-1.5"
+                  [class]="activeTab() === tab.num ? 'ui-tab ui-tab-active shadow-sm' : 'ui-tab'">
+            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                  [class]="activeTab() === tab.num ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-200 text-gray-500'">
+              {{ tab.num }}
+            </span>
+            {{ tab.label }}
+            @if (!tab.required) {
+              <span class="hidden sm:inline text-[10px] font-normal text-gray-400">opt</span>
+            }
           </button>
         }
       </div>
     </div>
+    <!-- Current tab hint -->
+    <p class="mb-5 px-1 text-xs text-gray-500">
+      @for (tab of TABS; track tab.num) { @if (activeTab() === tab.num) { {{ tab.hint }} } }
+    </p>
   }
 
   <!-- ── Loading ───────────────────────────────────────────────────────────── -->
@@ -175,6 +174,11 @@
 
   @if (!loading()) {
     <form id="clinicForm" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-6">
+
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 1 — ESSENTIALS                                                    -->
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      @if (activeTab() === 1) {
 
       <!-- ── IDENTITY ───────────────────────────────────────────────────────── -->
       <section id="identity" class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5 scroll-mt-24">
@@ -416,6 +420,19 @@
         </div>
       </section>
 
+      <!-- Tab 1 nav -->
+      <div class="flex items-center justify-end pt-2">
+        <button type="button" (click)="activeTab.set(2)"
+                class="ui-btn ui-btn-primary text-sm">Continue to Brand →</button>
+      </div>
+
+      } <!-- /tab 1 -->
+
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 2 — BRAND                                                         -->
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      @if (activeTab() === 2) {
+
       <!-- ── BRAND & PLATFORM ────────────────────────────────────────────────── -->
       <section id="brand" class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5 scroll-mt-24">
         <div class="flex items-center gap-2.5">
@@ -536,6 +553,19 @@
           </div>
         </div>
       </section>
+
+      <!-- Tab 2 nav -->
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" (click)="activeTab.set(1)" class="ui-btn ui-btn-ghost text-sm">← Essentials</button>
+        <button type="button" (click)="activeTab.set(3)" class="ui-btn ui-btn-primary text-sm">Continue to Services →</button>
+      </div>
+
+      } <!-- /tab 2 -->
+
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 3 — SERVICES                                                      -->
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      @if (activeTab() === 3) {
 
       <!-- ── SERVICES ────────────────────────────────────────────────────────── -->
       <section id="services" class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 scroll-mt-24">
@@ -744,6 +774,19 @@
           }
         </div>
       </section>
+
+      <!-- Tab 3 nav -->
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" (click)="activeTab.set(2)" class="ui-btn ui-btn-ghost text-sm">← Brand</button>
+        <button type="button" (click)="activeTab.set(4)" class="ui-btn ui-btn-primary text-sm">Continue to Website Content →</button>
+      </div>
+
+      } <!-- /tab 3 -->
+
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 4 — WEBSITE CONTENT                                               -->
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      @if (activeTab() === 4) {
 
       <!-- Website Content -->
       <section id="content" class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5 scroll-mt-24">
@@ -992,6 +1035,19 @@
         </div>
       </section>
 
+      <!-- Tab 4 nav -->
+      <div class="flex items-center justify-between pt-2">
+        <button type="button" (click)="activeTab.set(3)" class="ui-btn ui-btn-ghost text-sm">← Services</button>
+        <button type="button" (click)="activeTab.set(5)" class="ui-btn ui-btn-primary text-sm">Continue to Billing →</button>
+      </div>
+
+      } <!-- /tab 4 -->
+
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 5 — BILLING & ACCESS                                              -->
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      @if (activeTab() === 5) {
+
       <!-- ── SUBSCRIPTION & BILLING ─────────────────────────────────────────── -->
       <section id="billing" class="rounded-2xl border border-indigo-200 bg-indigo-50/30 p-6 space-y-5 scroll-mt-24">
         <div class="flex items-start gap-3">
@@ -1148,6 +1204,13 @@
           </div>
         </div>
       </section>
+
+      <!-- Tab 5 nav -->
+      <div class="flex items-center justify-start pt-2">
+        <button type="button" (click)="activeTab.set(4)" class="ui-btn ui-btn-ghost text-sm">← Website Content</button>
+      </div>
+
+      } <!-- /tab 5 -->
 
       <!-- ── Inline error ───────────────────────────────────────────────────── -->
       @if (error()) {

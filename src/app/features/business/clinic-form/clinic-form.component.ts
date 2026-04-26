@@ -1,5 +1,5 @@
 import {
-  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy, NgZone,
+  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import {
@@ -89,19 +89,22 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   readonly platformPlans = PLATFORM_PLANS;
   readonly themeOptions  = CLINIC_THEME_OPTIONS;
 
-  private zone = inject(NgZone);
-
   loading        = signal(false);
   saving         = signal(false);
   error          = signal<string | null>(null);
   success        = signal(false);
   ownerLoginSynced = signal<{ email: string; password: string } | null>(null);
-  activeSection  = signal<string>('identity');
+  activeTab      = signal<number>(1);
   ownedClinic    = signal<StoredClinic | null>(null);
 
-  readonly SECTIONS = ['identity', 'contact', 'hours', 'brand', 'services', 'plans', 'content', 'testimonials', 'billing'];
+  readonly TABS = [
+    { num: 1, label: 'Essentials',       required: true,  hint: 'Clinic name, contact details, and opening hours — needed to go live.' },
+    { num: 2, label: 'Brand',            required: false, hint: 'Theme colour, website address, and social links.' },
+    { num: 3, label: 'Services',         required: false, hint: 'Treatment menu and patient health plans.' },
+    { num: 4, label: 'Website Content',  required: false, hint: 'Homepage copy, clinic photos, and patient testimonials.' },
+    { num: 5, label: 'Billing & Access', required: true,  hint: 'Subscription plan and the clinic owner login credentials.' },
+  ];
 
-  private intersectionObserver: IntersectionObserver | null = null;
   private previewDomainManuallyEdited = false;
   private originalHostedDomain = '';
   private existingCustomization: StoredClinic['customization'] | undefined;
@@ -249,7 +252,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     }
 
     this.setupAutoFills();
-    setTimeout(() => this.setupSectionObserver(), 300);
   }
 
   // ── Auto-fill helpers ─────────────────────────────────────────────────────
@@ -559,11 +561,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     navigator.clipboard.writeText(text).catch(() => {});
   }
 
-  /** Scrolls to a section by id — avoids Angular router intercepting hash links */
-  scrollToSection(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   markPreviewDomainManual() {
     this.previewDomainManuallyEdited = true;
   }
@@ -626,24 +623,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Uses IntersectionObserver to track which section is currently in view */
-  private setupSectionObserver() {
-    this.intersectionObserver?.disconnect();
-    this.intersectionObserver = new IntersectionObserver(
-      entries => {
-        const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible.length) {
-          this.zone.run(() => this.activeSection.set(visible[0].target.id));
-        }
-      },
-      { rootMargin: '-20% 0px -60% 0px', threshold: 0 },
-    );
-    this.SECTIONS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) this.intersectionObserver!.observe(el);
-    });
-  }
-
   /** Quick-fill: populate standard dental services in one click */
   fillDentalServices() {
     this.servicesArr.clear();
@@ -667,7 +646,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.intersectionObserver?.disconnect();
     this._subs.unsubscribe();
   }
 
