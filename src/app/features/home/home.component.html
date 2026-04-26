@@ -13,7 +13,7 @@
         </div>
 
         <!-- Headline -->
-        <h1 class="anim-fade-up anim-d1 font-display text-[1.85rem] sm:text-5xl lg:text-[3.6rem] xl:text-[4rem] text-gray-900 leading-[1.1] mb-4 sm:mb-6 tracking-tight">
+        <h1 class="anim-fade-up anim-d1 font-display text-[2.05rem] sm:text-5xl lg:text-[3.6rem] xl:text-[4rem] text-gray-900 leading-[1.1] mb-4 sm:mb-6 tracking-tight">
           {{ heroTitle }}<br>
           <span class="text-[var(--accent)]">{{ heroHighlight }}</span>
         </h1>
@@ -279,6 +279,79 @@
 </section>
 
 
+<!-- ===== WHY CHOOSE US ===== -->
+<section class="bg-white py-12 md:py-24">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+
+    <div reveal revealDir="up" class="text-center mb-10 md:mb-14">
+      <div class="flex items-center gap-2 justify-center mb-4">
+        <span class="block w-5 h-px bg-[var(--accent)]"></span>
+        <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Why Choose Us</span>
+        <span class="block w-5 h-px bg-[var(--accent)]"></span>
+      </div>
+      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3 leading-tight">Care That Puts You First</h2>
+      <p class="text-gray-500 text-base max-w-md mx-auto">We built our practice around what patients actually want: comfort, honesty, and clear pricing.</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+
+      <div reveal revealDir="up" [revealDelay]="0"
+           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Pain-Free Treatment</h3>
+          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">Modern anaesthesia and gentle techniques so even nervous patients feel completely at ease.</p>
+        </div>
+      </div>
+
+      <div reveal revealDir="up" [revealDelay]="70"
+           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Honest Advice</h3>
+          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">We only recommend what your teeth actually need. Your best interest, not our revenue, comes first.</p>
+        </div>
+      </div>
+
+      <div reveal revealDir="up" [revealDelay]="140"
+           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Transparent Pricing</h3>
+          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">Exact cost confirmed before we begin. No surprise bills, no hidden charges — ever.</p>
+        </div>
+      </div>
+
+      <div reveal revealDir="up" [revealDelay]="210"
+           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Clean &amp; Sterilized</h3>
+          <p class="text-gray-500 text-xs sm:text-sm leading-relaxed">Medical-grade sterilization. Every instrument is fresh and verified before every patient.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
 <!-- ===== TESTIMONIALS ===== -->
 @if (hasTestimonials) {
   <section class="bg-gray-50 py-12 md:py-24 border-y border-gray-100 overflow-hidden">
@@ -296,8 +369,26 @@
 
     </div>
 
-    <!-- Responsive grid: 1 col mobile → 3 col desktop -->
-    <div class="px-5 sm:px-0 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <!-- Mobile: horizontal scroll strip; sm+: standard grid -->
+    <div class="sm:hidden">
+      <div class="flex gap-4 overflow-x-auto px-5 pb-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+        @for (t of config.testimonials.slice(0, 5); track t.name) {
+          <div class="snap-start shrink-0 w-[78vw] max-w-[320px]">
+            <app-testimonial-card
+              [name]="t.name"
+              [location]="t.location"
+              [rating]="t.rating"
+              [review]="t.review"
+            />
+          </div>
+        }
+      </div>
+      <p class="text-center text-[11px] text-gray-400 mt-1.5 px-5">
+        <svg class="inline-block w-3 h-3 mr-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        Swipe to read more stories
+      </p>
+    </div>
+    <div class="hidden sm:grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       @for (t of config.testimonials.slice(0, 3); track t.name; let i = $index) {
         <div reveal [revealDelay]="i * 80" revealDir="up">
           <app-testimonial-card
