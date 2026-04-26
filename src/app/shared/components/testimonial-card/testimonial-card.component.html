@@ -16,8 +16,8 @@
     }
   </div>
 
-  <!-- Review text -->
-  <p class="relative text-gray-700 text-sm leading-relaxed mb-5 flex-1 italic group-hover:text-gray-800 transition-colors duration-200">"{{ review() }}"</p>
+  <!-- Review text — clamped to 5 lines on mobile to keep cards equal height in scroll strip -->
+  <p class="relative text-gray-700 text-sm leading-relaxed mb-5 flex-1 italic group-hover:text-gray-800 transition-colors duration-200 line-clamp-5">"{{ review() }}"</p>
 
   <!-- Author row -->
   <div class="flex items-center gap-3 mt-auto pt-4 border-t border-gray-100">
