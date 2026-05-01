@@ -133,6 +133,46 @@ const QUICK_REPLIES = [
           </button>
         </div>
       </div>
+
+      <div class="fixed bottom-[98px] left-3 right-3 z-[60] md:hidden">
+        <div class="flex items-center gap-2.5 rounded-[1.45rem] border border-slate-200/80 bg-white/95 p-2.5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.55)] backdrop-blur-xl">
+          <button (click)="startText()"
+                  class="flex min-w-0 flex-1 items-center gap-3 rounded-[1.1rem] px-1.5 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30">
+            <span class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent-sh)]/30">
+              <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-300 ring-2 ring-white"></span>
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.5c3.314 0 6-2.239 6-5V8.5c0-2.761-2.686-5-6-5s-6 2.239-6 5v5c0 2.761 2.686 5 6 5z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 10h.01M15 10h.01M9.75 14c.7.55 1.45.82 2.25.82s1.55-.27 2.25-.82"/>
+              </svg>
+            </span>
+            <span class="min-w-0">
+              <span class="block truncate text-sm font-extrabold text-slate-950">AI receptionist</span>
+              <span class="block truncate text-[11px] font-semibold text-slate-500">
+                {{ agentId() ? 'Talk or chat for booking help' : 'Ask clinic questions instantly' }}
+              </span>
+            </span>
+          </button>
+
+          @if (agentId()) {
+            <button (click)="startVoice()"
+                    aria-label="Start voice receptionist"
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm transition active:scale-95">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m7 7v3m-3 0h6"/>
+              </svg>
+            </button>
+          }
+
+          <button (click)="startText()"
+                  aria-label="Open AI chat"
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg transition active:scale-95">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m8-2c0 4.418-4.03 8-9 8a10.3 10.3 0 01-3.6-.64L3 20l1.18-3.15A7.02 7.02 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     }
 
     <!-- ══════════════════════════════════════════════════════════════════════

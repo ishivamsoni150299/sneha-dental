@@ -23,7 +23,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <app-footer />
 
       <!-- Spacer so page content is not hidden under the fixed dock -->
-      <div class="md:hidden" style="height: calc(96px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
+      <div class="md:hidden" style="height: calc(164px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
 
       <!-- Desktop speed dial -->
       <div class="hidden md:flex fixed bottom-8 right-6 z-50 flex-col items-end gap-2.5">
@@ -130,7 +130,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
       <!-- PWA install banner -->
       @if (showInstallBanner()) {
-        <div class="fixed bottom-24 left-3 right-3 z-50 animate-slide-up md:hidden">
+        <div class="fixed bottom-[170px] left-3 right-3 z-[70] animate-slide-up md:hidden">
           <div class="flex items-center gap-3 rounded-2xl bg-gray-900 px-4 py-3.5 text-white shadow-2xl">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
               <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -141,6 +141,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
               <p class="text-sm font-bold leading-tight">Add to Home Screen</p>
               @if (isIos) {
                 <p class="mt-0.5 text-xs leading-tight text-gray-400">Tap <strong class="text-gray-300">Share</strong> then <strong class="text-gray-300">Add to Home Screen</strong> for the full app</p>
+              } @else if (!installPromptReady()) {
+                <p class="mt-0.5 text-xs leading-tight text-gray-400">Use browser menu, then choose <strong class="text-gray-300">Add to Home screen</strong></p>
               } @else {
                 <p class="mt-0.5 text-xs leading-tight text-gray-400">Get the full-screen app with no browser chrome</p>
               }
@@ -152,10 +154,18 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
               </button>
-            } @else {
+            } @else if (installPromptReady()) {
               <button (click)="triggerInstall()"
                       class="shrink-0 rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--accent-dk)]">
                 Install
+              </button>
+            } @else {
+              <button (click)="dismissInstallBanner()"
+                      class="shrink-0 p-1 text-gray-400 transition-colors hover:text-white"
+                      aria-label="Close install help">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
               </button>
             }
           </div>
@@ -175,7 +185,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <!-- Mobile action dock — anchored flush to viewport bottom -->
       <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden" style="padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;">
         <div class="mobile-dock-shell">
-          <div class="grid grid-cols-4 gap-1.5">
+          <div class="grid grid-cols-5 gap-1">
             <a routerLink="/"
                routerLinkActive="mobile-dock-link-active"
                [routerLinkActiveOptions]="{ exact: true }"
@@ -211,6 +221,16 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
               </svg>
               <span class="leading-none">WA</span>
             </a>
+
+            <button type="button"
+                    (click)="openInstallBanner()"
+                    class="mobile-dock-link">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v11m0 0l-4-4m4 4l4-4"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 17v1.5A2.5 2.5 0 007.5 21h9a2.5 2.5 0 002.5-2.5V17"/>
+              </svg>
+              <span class="leading-none">App</span>
+            </button>
           </div>
         </div>
       </div>
@@ -227,6 +247,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly speedDialOpen = signal(false);
   readonly showBackToTop = signal(false);
   readonly showInstallBanner = signal(false);
+  readonly installPromptReady = signal(false);
 
   readonly isIos = (() => {
     if (!this.isBrowser) {
@@ -279,6 +300,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
       this.beforeInstallPromptHandler = (event: Event) => {
         event.preventDefault();
         this.deferredInstallPrompt = event as Event & { prompt?: () => Promise<void> };
+        this.installPromptReady.set(true);
         this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 20_000);
       };
       window.addEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
@@ -313,12 +335,19 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     localStorage.setItem('pwa_install_dismissed', '1');
   }
 
+  openInstallBanner(): void {
+    if (!this.isBrowser) return;
+    this.showInstallBanner.set(true);
+  }
+
   async triggerInstall(): Promise<void> {
     if (!this.isBrowser) return;
     if (!this.deferredInstallPrompt?.prompt) {
       return;
     }
     await this.deferredInstallPrompt.prompt();
+    this.deferredInstallPrompt = null;
+    this.installPromptReady.set(false);
     this.dismissInstallBanner();
   }
 
