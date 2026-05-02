@@ -19,6 +19,7 @@ const db = getFirestore();
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW = 60_000;
+const MYDENTAL_RETELL_AGENT_ID = 'agent_347c0cd630b6ae7810d4c9b1fe';
 
 function cleanText(value: unknown, maxLength = 160): string {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
@@ -88,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   const apiKey = process.env['RETELL_API_KEY']?.trim();
   const fromNumber = normalizeConfiguredE164(process.env['RETELL_FROM_NUMBER']);
-  const overrideAgentId = process.env['RETELL_AGENT_ID']?.trim();
+  const overrideAgentId = process.env['RETELL_AGENT_ID']?.trim() ?? MYDENTAL_RETELL_AGENT_ID;
 
   if (!apiKey || !fromNumber) {
     return res.status(500).json({
@@ -162,9 +163,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     },
   };
 
-  if (overrideAgentId) {
-    payload['override_agent_id'] = overrideAgentId;
-  }
+  payload['override_agent_id'] = overrideAgentId;
 
   try {
     const retellRes = await fetch('https://api.retellai.com/v2/create-phone-call', {
