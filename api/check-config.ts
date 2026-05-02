@@ -22,6 +22,7 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
     RETELL_API_KEY:           !!process.env['RETELL_API_KEY']?.trim(),
     RETELL_FROM_NUMBER:       !!process.env['RETELL_FROM_NUMBER']?.trim(),
     RETELL_AGENT_ID:          !!process.env['RETELL_AGENT_ID']?.trim(),
+    VOBIZ_WEBHOOK_SECRET:     !!process.env['VOBIZ_WEBHOOK_SECRET']?.trim(),
   };
 
   const missing = Object.entries(checks).filter(([, value]) => !value).map(([key]) => key);
@@ -39,6 +40,7 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
     'RETELL_API_KEY',
     'RETELL_FROM_NUMBER',
     'RETELL_AGENT_ID',
+    'VOBIZ_WEBHOOK_SECRET',
     'ANTHROPIC_API_KEY',
   ]) {
     const value = process.env[key]?.trim() ?? '';

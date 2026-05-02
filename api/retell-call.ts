@@ -20,6 +20,7 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW = 60_000;
 const MYDENTAL_RETELL_AGENT_ID = 'agent_347c0cd630b6ae7810d4c9b1fe';
+const VOBIZ_WEBHOOK_ACTION = 'vobiz-webhook';
 
 function cleanText(value: unknown, maxLength = 160): string {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
@@ -73,7 +74,43 @@ function addDaysIso(daysAhead: number): string {
   return d.toISOString().split('T')[0];
 }
 
+function isAuthorizedVobizWebhook(req: VercelRequest): boolean {
+  const secret = process.env['VOBIZ_WEBHOOK_SECRET']?.trim();
+  if (!secret) return true;
+
+  const headerValue = req.headers['x-vobiz-webhook-secret'] ?? req.headers['x-webhook-secret'];
+  const provided = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  return provided === secret;
+}
+
+function handleVobizWebhook(req: VercelRequest, res: VercelResponse): VercelResponse {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!isAuthorizedVobizWebhook(req)) {
+    return res.status(401).json({ error: 'Unauthorized webhook.' });
+  }
+
+  const event = (req.body ?? {}) as Record<string, unknown>;
+  const callSid = cleanText(event['call_sid'] ?? event['callSid'] ?? event['sid'], 120);
+  const status = cleanText(event['status'] ?? event['call_status'] ?? event['callStatus'], 80);
+  const duration = typeof event['duration'] === 'number' ? event['duration'] : event['call_duration'];
+
+  console.warn('[vobiz-webhook] call event', {
+    callSid: callSid || 'unknown',
+    status: status || 'unknown',
+    duration: typeof duration === 'string' || typeof duration === 'number' ? duration : undefined,
+  });
+
+  return res.status(200).json({ ok: true });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse> {
+  if (req.query['action'] === VOBIZ_WEBHOOK_ACTION) {
+    return handleVobizWebhook(req, res);
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
