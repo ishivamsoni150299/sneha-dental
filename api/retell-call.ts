@@ -24,13 +24,20 @@ function cleanText(value: unknown, maxLength = 160): string {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
 
-function normalizeE164(value: unknown): string {
+function normalizeIndianLeadPhone(value: unknown): string {
   const raw = cleanText(value, 32);
   if (!raw) return '';
   const digits = raw.replace(/\D/g, '');
   if (!digits) return '';
   const withCountry = digits.startsWith('91') ? digits : `91${digits}`;
   return `+${withCountry}`;
+}
+
+function normalizeConfiguredE164(value: unknown): string {
+  const raw = cleanText(value, 32);
+  if (!raw) return '';
+  const digits = raw.replace(/\D/g, '');
+  return digits ? `+${digits}` : '';
 }
 
 function isRateLimited(ip: string): boolean {
@@ -79,13 +86,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return res.status(429).json({ error: 'Too many AI call requests. Please wait a minute.' });
   }
 
-  const apiKey = process.env['BOLNA_API_KEY']?.trim();
-  const agentId = process.env['BOLNA_AGENT_ID']?.trim();
-  const fromPhoneNumber = normalizeE164(process.env['BOLNA_FROM_PHONE_NUMBER']);
+  const apiKey = process.env['RETELL_API_KEY']?.trim();
+  const fromNumber = normalizeConfiguredE164(process.env['RETELL_FROM_NUMBER']);
+  const overrideAgentId = process.env['RETELL_AGENT_ID']?.trim();
 
-  if (!apiKey || !agentId) {
+  if (!apiKey || !fromNumber) {
     return res.status(500).json({
-      error: 'Bolna is not configured. Set BOLNA_API_KEY and BOLNA_AGENT_ID in Vercel environment variables.',
+      error: 'Retell AI is not configured. Set RETELL_API_KEY and RETELL_FROM_NUMBER in Vercel environment variables.',
     });
   }
 
@@ -110,35 +117,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   const lead = leadSnap.data() ?? {};
-  const recipientPhoneNumber = normalizeE164(lead['phone']);
-  if (!recipientPhoneNumber) {
+  const toNumber = normalizeIndianLeadPhone(lead['phone']);
+  if (!toNumber) {
     return res.status(400).json({ error: 'Lead phone number is missing or invalid.' });
   }
 
-  const clinicName = cleanText(lead['clinicName']) || 'the clinic';
+  const clinicName = cleanText(lead['clinicName']);
   const doctorName = cleanText(lead['doctorName']);
   const city = cleanText(lead['city']);
   const area = cleanText(lead['area']);
   const categories = cleanText(lead['categories']);
   const rating = typeof lead['rating'] === 'number' ? String(lead['rating']) : '';
   const reviewCount = typeof lead['reviewCount'] === 'number' ? String(lead['reviewCount']) : '';
+  const currentStatus = cleanText(lead['status'], 40);
   const followUpDate = addDaysIso(1);
   const appBaseUrl = process.env['APP_BASE_URL']?.trim();
 
   const payload: Record<string, unknown> = {
-    agent_id: agentId,
-    recipient_phone_number: recipientPhoneNumber,
-    user_data: {
+    from_number: fromNumber,
+    to_number: toNumber,
+    metadata: {
+      lead_id: leadId,
+      source: 'mydentalplatform_leads',
+    },
+    retell_llm_dynamic_variables: {
       timezone: 'Asia/Kolkata',
       lead_id: leadId,
-      clinic_name: clinicName,
+      clinic_name: clinicName || 'the clinic',
       doctor_name: doctorName || 'Doctor',
       city,
       area,
       categories,
       rating,
       review_count: reviewCount,
-      current_status: cleanText(lead['status'], 40) || 'new',
+      current_status: currentStatus || 'new',
       platform_name: 'mydentalplatform',
       platform_url: appBaseUrl ?? 'https://www.mydentalplatform.com',
       demo_website_url: 'https://arogyamdental.mydentalplatform.com',
@@ -150,12 +162,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     },
   };
 
-  if (fromPhoneNumber) {
-    payload['from_phone_number'] = fromPhoneNumber;
+  if (overrideAgentId) {
+    payload['override_agent_id'] = overrideAgentId;
   }
 
   try {
-    const bolnaRes = await fetch('https://api.bolna.ai/call', {
+    const retellRes = await fetch('https://api.retellai.com/v2/create-phone-call', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -164,29 +176,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       body: JSON.stringify(payload),
     });
 
-    const responseText = await bolnaRes.text();
-    let bolnaBody: Record<string, unknown> = {};
+    const responseText = await retellRes.text();
+    let retellBody: Record<string, unknown> = {};
     try {
-      bolnaBody = responseText ? JSON.parse(responseText) as Record<string, unknown> : {};
+      retellBody = responseText ? JSON.parse(responseText) as Record<string, unknown> : {};
     } catch {
-      bolnaBody = { raw: responseText };
+      retellBody = { raw: responseText };
     }
 
-    if (!bolnaRes.ok) {
-      console.error('[bolna-call] Bolna API failed:', bolnaRes.status, bolnaBody);
+    if (!retellRes.ok) {
+      console.error('[retell-call] Retell API failed:', retellRes.status, retellBody);
       return res.status(502).json({
-        error: 'Bolna could not queue the call.',
-        details: bolnaBody,
+        error: 'Retell AI could not queue the call.',
+        details: retellBody,
       });
     }
 
-    const executionId = cleanText(
-      bolnaBody['execution_id'] ?? bolnaBody['call_id'] ?? bolnaBody['id'],
-      120,
-    );
-    const bolnaStatus = cleanText(bolnaBody['status'], 80) || 'queued';
-    const currentStatus = cleanText(lead['status'], 40);
-    const nextLeadStatus = currentStatus === 'new' ? 'contacted' : currentStatus;
+    const callId = cleanText(retellBody['call_id'], 120);
+    const retellStatus = cleanText(retellBody['call_status'], 80) || 'registered';
+    const nextLeadStatus = currentStatus === 'new' || !currentStatus ? 'contacted' : currentStatus;
 
     await leadRef.update({
       status: nextLeadStatus,
@@ -195,21 +203,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     await leadRef.collection('activities').add({
       type: 'called',
-      note: `Bolna AI call ${bolnaStatus}${executionId ? ` - execution ${executionId}` : ''}`,
+      note: `Retell AI call ${retellStatus}${callId ? ` - call ${callId}` : ''}`,
       createdAt: FieldValue.serverTimestamp(),
       createdBy: uid,
     });
 
     return res.status(200).json({
       ok: true,
-      status: bolnaStatus,
-      executionId,
+      status: retellStatus,
+      callId,
       leadStatus: nextLeadStatus,
       followUpDate,
     });
   } catch (error) {
-    console.error('[bolna-call] failed:', error);
-    const message = error instanceof Error ? error.message : 'Failed to start Bolna AI call.';
+    console.error('[retell-call] failed:', error);
+    const message = error instanceof Error ? error.message : 'Failed to start Retell AI call.';
     return res.status(500).json({ error: message });
   }
 }

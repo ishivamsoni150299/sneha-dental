@@ -435,7 +435,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
       }
 
       const idToken = await user.getIdToken();
-      const response = await fetch('/api/bolna-call', {
+      const response = await fetch('/api/retell-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken, leadId: lead.id }),
@@ -443,13 +443,13 @@ export class LeadListComponent implements OnInit, OnDestroy {
       const result = await response.json().catch(() => ({})) as {
         error?: string;
         status?: string;
-        executionId?: string;
+        callId?: string;
         leadStatus?: LeadStatus;
         followUpDate?: string;
       };
 
       if (!response.ok) {
-        throw new Error(result.error || 'Could not start the Bolna AI call.');
+        throw new Error(result.error || 'Could not start the Retell AI call.');
       }
 
       const updates: Partial<StoredLead> = {
@@ -463,7 +463,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
       if (this.savedTimer) clearTimeout(this.savedTimer);
       this.savedTimer = setTimeout(() => this.savedId.set(null), 2500);
     } catch (err) {
-      console.error('[Leads] Bolna AI call failed:', err);
+      console.error('[Leads] Retell AI call failed:', err);
       const message = err instanceof Error ? err.message : 'Could not start the AI call. Please try again.';
       this.error.set(message);
     } finally {
