@@ -28,6 +28,16 @@ interface MessageDraft {
   message: string;
 }
 
+interface SalesCallPlan {
+  opener: string;
+  valuePitch: string;
+  qualifyQuestions: string[];
+  objectionReplies: Array<{ objection: string; reply: string }>;
+  closeLine: string;
+  nextStep: string;
+  script: string;
+}
+
 const SENDER_PHONE    = '9140210648';
 const PLATFORM_URL    = 'https://www.mydentalplatform.com';
 const SENDER_SIG      = `\n\n— Shivam\n📞 ${SENDER_PHONE}\n🌐 ${PLATFORM_URL}`;
@@ -70,6 +80,9 @@ export class LeadListComponent implements OnInit, OnDestroy {
   savingNote      = signal(false);
   messageDraft    = signal<MessageDraft | null>(null);
   savingMessage   = signal(false);
+  salesCallerLead = signal<StoredLead | null>(null);
+  loggingCall     = signal<string | null>(null);
+  copiedCallId    = signal<string | null>(null);
   private copyTimer:  ReturnType<typeof setTimeout> | null = null;
   private savedTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -396,6 +409,93 @@ export class LeadListComponent implements OnInit, OnDestroy {
       this.error.set('Could not mark this lead as contacted. Please try again.');
     } finally {
       this.sendingWa.set(null);
+    }
+  }
+
+  openSalesCaller(lead: StoredLead) {
+    if (!lead.phone) return;
+    this.salesCallerLead.set(lead);
+  }
+
+  closeSalesCaller() {
+    this.salesCallerLead.set(null);
+  }
+
+  async startAssistedCall(lead: StoredLead) {
+    if (!lead.phone || this.loggingCall() === lead.id) return;
+    this.loggingCall.set(lead.id);
+    this.error.set(null);
+
+    try {
+      const followUp = new Date();
+      followUp.setDate(followUp.getDate() + 1);
+      const updates: Partial<StoredLead> = {
+        status: lead.status === 'new' ? 'contacted' : lead.status,
+        followUpDate: followUp.toISOString().split('T')[0],
+      };
+
+      await this.leadStore.update(lead.id, updates);
+      this.leads.update(list => list.map(item => item.id === lead.id ? { ...item, ...updates } : item));
+
+      try {
+        await this.leadStore.addActivity(lead.id, {
+          type: 'called',
+          note: `AI sales caller: started assisted call for ${lead.clinicName} - follow-up set for tomorrow`,
+        });
+      } catch (activityErr) {
+        console.warn('[Leads] Call activity log failed:', activityErr);
+      }
+
+      window.location.href = `tel:+${lead.phone}`;
+    } catch (err) {
+      console.error('[Leads] Assisted call failed:', err);
+      this.error.set('Could not log the assisted call. Please try again.');
+    } finally {
+      this.loggingCall.set(null);
+    }
+  }
+
+  async copySalesCallScript(lead: StoredLead) {
+    try {
+      await navigator.clipboard.writeText(this.buildSalesCallPlan(lead).script);
+      if (this.copyTimer) clearTimeout(this.copyTimer);
+      this.copiedCallId.set(lead.id);
+      this.copyTimer = setTimeout(() => this.copiedCallId.set(null), 2000);
+    } catch {
+      this.error.set('Call script copy failed. Please copy manually.');
+    }
+  }
+
+  async logSalesCallOutcome(lead: StoredLead, status: LeadStatus) {
+    this.updatingStatus.set(lead.id);
+    this.error.set(null);
+
+    const followUp = new Date();
+    followUp.setDate(followUp.getDate() + (status === 'demo' ? 3 : status === 'interested' ? 1 : 2));
+    const updates: Partial<StoredLead> = {
+      status,
+      followUpDate: status === 'lost' || status === 'converted'
+        ? lead.followUpDate
+        : followUp.toISOString().split('T')[0],
+    };
+
+    try {
+      await this.leadStore.update(lead.id, updates);
+      this.leads.update(list => list.map(item => item.id === lead.id ? { ...item, ...updates } : item));
+      await this.leadStore.addActivity(lead.id, {
+        type: 'called',
+        note: `AI sales caller: outcome marked ${this.statusLabel(status)}`,
+      });
+      const refreshed = { ...lead, ...updates };
+      this.salesCallerLead.set(refreshed);
+      this.savedId.set(lead.id);
+      if (this.savedTimer) clearTimeout(this.savedTimer);
+      this.savedTimer = setTimeout(() => this.savedId.set(null), 2500);
+    } catch (err) {
+      console.error('[Leads] Call outcome update failed:', err);
+      this.error.set('Could not save the call outcome.');
+    } finally {
+      this.updatingStatus.set(null);
     }
   }
 
@@ -811,6 +911,79 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   messagePreview(lead: StoredLead): string {
     return this.buildWhatsAppPlan(lead).preview;
+  }
+
+  buildSalesCallPlan(lead: StoredLead): SalesCallPlan {
+    const clinic = lead.clinicName.trim();
+    const contactName = this.contactName(lead);
+    const location = this.fullLocation(lead) || lead.city || 'your area';
+    const city = lead.city || lead.area || 'your city';
+    const proofLine = this.proofLine(lead);
+    const speciality = this.specialityLine(lead);
+    const demoLine = `I can show a live dental website demo here: ${DEMO_WEBSITE_URL}`;
+    const opener =
+      `Good ${this.timeGreeting().toLowerCase().replace('good ', '')}, ${contactName}. ` +
+      `I am Shivam from mydentalplatform. I came across ${clinic}${location ? ` in ${location}` : ''} and wanted to share a quick patient booking idea.`;
+    const valuePitch =
+      `We help dental clinics get a clean mobile website, online appointment requests, WhatsApp alerts, and an AI receptionist so patients can enquire even after clinic hours. ` +
+      `The goal is simple: more booked appointments without adding extra front-desk work.`;
+    const qualifyQuestions = [
+      'Are most patient enquiries currently coming through calls, WhatsApp, or Google Maps?',
+      'Do you miss appointment enquiries after clinic hours or during busy treatment time?',
+      `Would a simple mobile website focused on ${speciality} help ${clinic}?`,
+      'If I share a 2-minute demo, who should review it before we set up your sample?',
+    ];
+    const objectionReplies = [
+      {
+        objection: 'We already have a website.',
+        reply: 'That is good. My question is whether it is converting mobile visitors into appointment requests and WhatsApp enquiries. If not, we can improve that without making it complicated.',
+      },
+      {
+        objection: 'Send details on WhatsApp.',
+        reply: 'Sure. I will send the demo link and a short setup video. If it looks useful, we can do a 10-minute walkthrough.',
+      },
+      {
+        objection: 'Not interested right now.',
+        reply: 'No problem. I will only send a short demo. If later you want more online appointment enquiries, you can review it anytime.',
+      },
+      {
+        objection: 'What is the price?',
+        reply: 'Starter is Rs 999 per month and Pro is Rs 2499 per month with AI receptionist features. Setup is kept simple and we can go live quickly.',
+      },
+    ];
+    const closeLine =
+      `Would it be okay if I send the demo website and video on WhatsApp, then you can tell me if ${clinic} needs something similar?`;
+    const nextStep =
+      `If positive: mark Interested and send the proposal WhatsApp. If they ask for walkthrough: mark Demo. If not now: mark Lost and follow up later.`;
+    const script = [
+      'AI Sales Caller Script',
+      '',
+      `Lead: ${clinic}`,
+      `Contact: ${contactName}`,
+      `Location: ${location}`,
+      proofLine ? `Context: ${proofLine}` : '',
+      '',
+      'Opening:',
+      opener,
+      '',
+      'Value pitch:',
+      valuePitch,
+      '',
+      'Questions:',
+      ...qualifyQuestions.map((q, index) => `${index + 1}. ${q}`),
+      '',
+      'Demo:',
+      demoLine,
+      `Setup video: ${SETUP_VIDEO_URL}`,
+      '',
+      'Close:',
+      closeLine,
+      '',
+      'Next step:',
+      nextStep,
+    ].filter(Boolean).join('\n');
+
+    return { opener, valuePitch, qualifyQuestions, objectionReplies, closeLine, nextStep, script };
   }
 
   private buildDynamicMessage(lead: StoredLead): string {
