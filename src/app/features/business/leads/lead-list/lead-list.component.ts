@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   LeadFirestoreService, StoredLead, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-firestore.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 interface ImportStats {
   imported:    number;
@@ -55,6 +56,7 @@ const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
 })
 export class LeadListComponent implements OnInit, OnDestroy {
   private leadStore = inject(LeadFirestoreService);
+  private auth = inject(AuthService);
 
   leads           = signal<StoredLead[]>([]);
   loading         = signal(true);
@@ -427,29 +429,43 @@ export class LeadListComponent implements OnInit, OnDestroy {
     this.error.set(null);
 
     try {
-      const followUp = new Date();
-      followUp.setDate(followUp.getDate() + 1);
-      const updates: Partial<StoredLead> = {
-        status: lead.status === 'new' ? 'contacted' : lead.status,
-        followUpDate: followUp.toISOString().split('T')[0],
-      };
-
-      await this.leadStore.update(lead.id, updates);
-      this.leads.update(list => list.map(item => item.id === lead.id ? { ...item, ...updates } : item));
-
-      try {
-        await this.leadStore.addActivity(lead.id, {
-          type: 'called',
-          note: `AI sales caller: started assisted call for ${lead.clinicName} - follow-up set for tomorrow`,
-        });
-      } catch (activityErr) {
-        console.warn('[Leads] Call activity log failed:', activityErr);
+      const user = this.auth.currentUser();
+      if (!user) {
+        throw new Error('Please sign in again before starting an AI call.');
       }
 
-      window.location.href = `tel:+${lead.phone}`;
+      const idToken = await user.getIdToken();
+      const response = await fetch('/api/bolna-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken, leadId: lead.id }),
+      });
+      const result = await response.json().catch(() => ({})) as {
+        error?: string;
+        status?: string;
+        executionId?: string;
+        leadStatus?: LeadStatus;
+        followUpDate?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Could not start the Bolna AI call.');
+      }
+
+      const updates: Partial<StoredLead> = {
+        status: result.leadStatus ?? (lead.status === 'new' ? 'contacted' : lead.status),
+        followUpDate: result.followUpDate,
+      };
+
+      this.leads.update(list => list.map(item => item.id === lead.id ? { ...item, ...updates } : item));
+      this.salesCallerLead.set({ ...lead, ...updates });
+      this.savedId.set(lead.id);
+      if (this.savedTimer) clearTimeout(this.savedTimer);
+      this.savedTimer = setTimeout(() => this.savedId.set(null), 2500);
     } catch (err) {
-      console.error('[Leads] Assisted call failed:', err);
-      this.error.set('Could not log the assisted call. Please try again.');
+      console.error('[Leads] Bolna AI call failed:', err);
+      const message = err instanceof Error ? err.message : 'Could not start the AI call. Please try again.';
+      this.error.set(message);
     } finally {
       this.loggingCall.set(null);
     }

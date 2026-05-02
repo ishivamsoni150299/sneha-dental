@@ -19,6 +19,9 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
     RAZORPAY_PLAN_PRO_YEARLY:      !!process.env['RAZORPAY_PLAN_PRO_YEARLY']?.trim(),
     RAZORPAY_PLAN_STARTER:    !!process.env['RAZORPAY_PLAN_STARTER']?.trim(),
     RAZORPAY_PLAN_PRO:        !!process.env['RAZORPAY_PLAN_PRO']?.trim(),
+    BOLNA_API_KEY:            !!process.env['BOLNA_API_KEY']?.trim(),
+    BOLNA_AGENT_ID:           !!process.env['BOLNA_AGENT_ID']?.trim(),
+    BOLNA_FROM_PHONE_NUMBER:  !!process.env['BOLNA_FROM_PHONE_NUMBER']?.trim(),
   };
 
   const missing = Object.entries(checks).filter(([, value]) => !value).map(([key]) => key);
@@ -33,6 +36,9 @@ export default function handler(_req: VercelRequest, res: VercelResponse): Verce
     'RAZORPAY_PLAN_PRO_YEARLY',
     'PUBLIC_RAZORPAY_ME_URL',
     'ELEVENLABS_API_KEY',
+    'BOLNA_API_KEY',
+    'BOLNA_AGENT_ID',
+    'BOLNA_FROM_PHONE_NUMBER',
     'ANTHROPIC_API_KEY',
   ]) {
     const value = process.env[key]?.trim() ?? '';
