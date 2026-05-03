@@ -74,6 +74,49 @@ function addDaysIso(daysAhead: number): string {
   return d.toISOString().split('T')[0];
 }
 
+function joinParts(parts: string[]): string {
+  return parts.filter(Boolean).join(', ');
+}
+
+function buildClinicLocation(area: string, city: string): string {
+  return joinParts([area, city]) || 'your city';
+}
+
+function buildClinicContextLine(clinicName: string, area: string, city: string): string {
+  const location = buildClinicLocation(area, city);
+  const name = clinicName || 'aapka clinic';
+  return `${name} ${location} mein patients serve karta hai`;
+}
+
+function buildClinicProofLine(rating: string, reviewCount: string, categories: string): string {
+  const category = categories ? `Category: ${categories}. ` : '';
+  if (rating && reviewCount) {
+    return `${category}Online profile par ${rating} rating aur ${reviewCount} reviews dikh rahe hain`;
+  }
+  if (rating) {
+    return `${category}Online profile par ${rating} rating dikh rahi hai`;
+  }
+  if (reviewCount) {
+    return `${category}Online profile par ${reviewCount} patient reviews dikh rahe hain`;
+  }
+  return `${category}Patients clinic details online check karke appointment decide karte hain`;
+}
+
+function buildLeadPriorityLine(rating: string, reviewCount: string): string {
+  const reviews = Number(reviewCount);
+  const stars = Number(rating);
+
+  if (reviews >= 100 || stars >= 4.5) {
+    return 'Aapke clinic ki online trust strong hai, isliye booking flow aur follow-up system aur important ho jata hai';
+  }
+
+  if (reviews > 0 || stars > 0) {
+    return 'Aapki online presence already visible hai, ab patient enquiry ko appointment mein convert karna important hai';
+  }
+
+  return 'Aapke clinic ke liye clear website aur simple booking flow online trust build karne mein help karega';
+}
+
 function isAuthorizedVobizWebhook(req: VercelRequest): boolean {
   const secret = process.env['VOBIZ_WEBHOOK_SECRET']?.trim();
   if (!secret) return true;
@@ -167,9 +210,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const categories = cleanText(lead['categories']);
   const rating = typeof lead['rating'] === 'number' ? String(lead['rating']) : '';
   const reviewCount = typeof lead['reviewCount'] === 'number' ? String(lead['reviewCount']) : '';
+  const source = cleanText(lead['source'], 40);
   const currentStatus = cleanText(lead['status'], 40);
   const followUpDate = addDaysIso(1);
   const appBaseUrl = process.env['APP_BASE_URL']?.trim();
+  const clinicLocation = buildClinicLocation(area, city);
+  const clinicContextLine = buildClinicContextLine(clinicName, area, city);
+  const clinicProofLine = buildClinicProofLine(rating, reviewCount, categories);
+  const leadPriorityLine = buildLeadPriorityLine(rating, reviewCount);
 
   const payload: Record<string, unknown> = {
     from_number: fromNumber,
@@ -185,10 +233,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       doctor_name: doctorName || 'Doctor',
       city,
       area,
+      clinic_location: clinicLocation,
       categories,
       rating,
       review_count: reviewCount,
+      lead_source: source || 'manual',
       current_status: currentStatus || 'new',
+      agent_name: 'Amritanshu',
+      clinic_context_line: clinicContextLine,
+      clinic_proof_line: clinicProofLine,
+      lead_priority_line: leadPriorityLine,
       platform_name: 'mydentalplatform',
       platform_url: appBaseUrl ?? 'https://www.mydentalplatform.com',
       demo_website_url: 'https://arogyamdental.mydentalplatform.com',
