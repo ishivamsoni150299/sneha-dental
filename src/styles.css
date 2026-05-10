@@ -495,36 +495,30 @@ body {
   }
 
   .mobile-dock-shell {
-    @apply rounded-[2rem] border p-2;
+    @apply rounded-[1.5rem] border p-2;
+    width: 100%;
+    max-width: calc(100vw - 24px);
     border-color: rgba(226, 232, 240, 0.8);
     background: #ffffff;
-    box-shadow: 0 22px 50px -28px rgba(15, 23, 42, 0.28);
+    box-shadow: 0 18px 42px -30px rgba(15, 23, 42, 0.28);
   }
 
   .mobile-dock-link {
-    @apply flex flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2.5 text-[10px] font-semibold transition-all;
+    @apply flex items-center justify-center gap-1.5 rounded-2xl px-2 py-3 text-[11px] font-semibold transition-all;
     color: var(--color-text-muted);
-    min-height: 54px;
+    min-height: 48px;
   }
 
   .mobile-dock-link:active {
     transform: scale(0.95);
   }
 
-  .mobile-dock-link-active {
-    background: color-mix(in srgb, var(--color-primary-soft) 68%, white);
-    color: var(--color-primary-hover);
-  }
-
   .mobile-dock-book {
-    @apply flex flex-col items-center justify-center gap-1 rounded-[1.35rem] px-1.5 text-[10px] font-extrabold text-white transition-all;
-    min-height: 56px;
-    margin-top: -8px;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    @apply flex items-center justify-center gap-1.5 rounded-2xl px-3 py-3 text-[11px] font-extrabold text-white transition-all;
+    min-height: 48px;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 88%, white) 0%, var(--color-primary) 100%);
-    box-shadow: 0 14px 28px -16px var(--color-primary-shadow);
+    box-shadow: 0 12px 24px -16px var(--color-primary-shadow);
   }
 }
 
@@ -700,18 +694,20 @@ body {
 }
 
 .mobile-menu-toggle {
-  position: relative;
+  position: fixed;
+  top: 0.625rem;
+  right: 0.75rem;
+  z-index: 70;
   display: inline-flex;
   min-width: 44px;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  border: 1px solid var(--color-line);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 255, 0.96) 100%);
-  color: var(--color-text-soft);
-  box-shadow: 0 14px 28px -24px rgba(15, 23, 42, 0.45);
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 14px 28px -22px var(--color-primary-shadow);
   transition:
     border-color 180ms ease,
     background 180ms ease,

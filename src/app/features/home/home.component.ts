@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { NgClass, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, PLATFORM_ID, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
@@ -25,7 +25,7 @@ import { TestimonialCardComponent } from '../../shared/components/testimonial-ca
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, ServiceCardComponent, TestimonialCardComponent, RevealDirective],
+  imports: [RouterLink, NgClass, ServiceCardComponent, TestimonialCardComponent, RevealDirective],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

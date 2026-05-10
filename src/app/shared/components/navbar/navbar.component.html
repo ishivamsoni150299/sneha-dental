@@ -16,7 +16,7 @@
             <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white"
                   [ngClass]="brandStatusDotClass"></span>
           </div>
-          <span class="truncate font-semibold tracking-tight text-gray-900 transition-all duration-300 group-hover:opacity-80"
+          <span class="hidden truncate font-semibold tracking-tight text-gray-900 transition-all duration-300 group-hover:opacity-80 sm:inline"
                 [ngClass]="brandNameClass">{{ config.name }}</span>
         }
       </a>
@@ -64,17 +64,9 @@
         </a>
       </div>
 
-      <div class="md:hidden flex shrink-0 items-center gap-1.5">
-        <a routerLink="/appointment" (click)="close()"
-           aria-label="Book appointment"
-           class="inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-bold text-white shadow-sm active:scale-[0.98]">
-          <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          <span class="hidden min-[360px]:inline">Book</span>
-        </a>
+      <div class="md:hidden flex shrink-0 items-center">
         <button (click)="toggle()"
-                class="mobile-menu-toggle"
+                class="mobile-menu-toggle fixed right-3 top-2.5 z-[70]"
                 [class.mobile-menu-toggle-open]="menuOpen()"
                 [attr.aria-expanded]="menuOpen()"
                 aria-controls="mobileClinicMenu"

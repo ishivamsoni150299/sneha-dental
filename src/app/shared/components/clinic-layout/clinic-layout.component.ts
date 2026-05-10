@@ -23,50 +23,19 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <app-footer />
 
       <!-- Spacer so page content is not hidden under the fixed dock -->
-      <div class="md:hidden" style="height: calc(164px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
+      <div class="md:hidden" style="height: calc(112px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
 
-      <!-- Desktop speed dial -->
-      <div class="hidden md:flex fixed bottom-8 right-6 z-50 flex-col items-end gap-2.5">
-        @if (speedDialOpen()) {
-          <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:180ms">
-            <span class="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow whitespace-nowrap">Book Appointment</span>
-            <a routerLink="/appointment" (click)="speedDialOpen.set(false)"
-               aria-label="Book appointment"
-               class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-lg transition-all hover:scale-110 hover:bg-[var(--accent-dk)]">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-            </a>
-          </div>
-          <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:220ms">
-            <span class="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow whitespace-nowrap">{{ clinic.config.phone }}</span>
-            <a [href]="'tel:+' + clinic.config.phoneE164"
-               [attr.aria-label]="'Call ' + (clinic.config.phone || 'clinic')"
-               class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-white shadow-lg transition-all hover:scale-110 hover:bg-gray-900">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-            </a>
-          </div>
-          <div class="flex items-center gap-2 animate-slide-up" style="animation-duration:260ms">
-            <span class="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white shadow whitespace-nowrap">WhatsApp</span>
-            <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" (click)="speedDialOpen.set(false)"
-               aria-label="Chat on WhatsApp"
-               class="flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-all hover:scale-110 hover:bg-green-600">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-              </svg>
-            </a>
-          </div>
-        }
-
-        <button (click)="speedDialOpen.set(!speedDialOpen())"
-                aria-label="Quick actions"
-                class="relative flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-xl transition-all duration-300 hover:scale-110 hover:bg-[var(--accent-dk)] hover:shadow-2xl hover:shadow-[var(--accent-sh)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-dk)] focus-visible:ring-offset-2">
-          <span class="pointer-events-none absolute inset-0 rounded-full bg-[var(--accent-md)] opacity-20 animate-ping"></span>
-          <svg class="h-6 w-6 transition-transform duration-300" [class.rotate-45]="speedDialOpen()" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      <!-- Desktop WhatsApp action -->
+      <div class="hidden md:flex fixed bottom-8 right-6 z-50">
+        <a [href]="clinic.bookingWhatsappUrl"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Chat on WhatsApp"
+           class="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-100 bg-white text-emerald-600 shadow-md transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
           </svg>
-        </button>
+        </a>
       </div>
 
       <!-- Back to top -->
@@ -99,7 +68,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
       <!-- PWA install banner -->
       @if (showInstallBanner()) {
-        <div class="fixed bottom-[170px] left-3 right-3 z-[70] animate-slide-up md:hidden">
+        <div class="fixed bottom-[116px] left-3 right-3 z-[70] animate-slide-up md:hidden">
           <div class="flex items-center gap-3 rounded-2xl bg-gray-900 px-4 py-3.5 text-white shadow-2xl">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
               <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -154,52 +123,33 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <!-- Mobile action dock — anchored flush to viewport bottom -->
       <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden" style="padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;">
         <div class="mobile-dock-shell">
-          <div class="grid grid-cols-5 gap-1">
-            <a routerLink="/"
-               routerLinkActive="mobile-dock-link-active"
-               [routerLinkActiveOptions]="{ exact: true }"
-               class="mobile-dock-link">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5M5.25 9.75V21h13.5V9.75"/>
-              </svg>
-              <span class="leading-none">Home</span>
-            </a>
-
+          <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,1fr)] gap-2">
             <a [href]="'tel:+' + clinic.config.phoneE164"
-               class="mobile-dock-link">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
+               class="mobile-dock-link min-w-0">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
               </svg>
-              <span class="leading-none">Call</span>
+              <span class="truncate leading-none">Call</span>
             </a>
 
             <a routerLink="/appointment"
                routerLinkActive="scale-[1.02]"
                [routerLinkActiveOptions]="{ exact: true }"
-               class="mobile-dock-book">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
+               class="mobile-dock-book min-w-0">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
-              <span class="leading-none">Book</span>
+              <span class="truncate leading-none">Book Appointment</span>
             </a>
 
             <a [href]="clinic.bookingWhatsappDeepLink" rel="noopener noreferrer"
-               class="mobile-dock-link">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+               class="mobile-dock-link min-w-0">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
               </svg>
-              <span class="leading-none">WA</span>
+              <span class="truncate leading-none">WA</span>
             </a>
 
-            <button type="button"
-                    (click)="openInstallBanner()"
-                    class="mobile-dock-link">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v11m0 0l-4-4m4 4l4-4"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 17v1.5A2.5 2.5 0 007.5 21h9a2.5 2.5 0 002.5-2.5V17"/>
-              </svg>
-              <span class="leading-none">App</span>
-            </button>
           </div>
         </div>
       </div>
@@ -212,7 +162,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  readonly speedDialOpen = signal(false);
   readonly showBackToTop = signal(false);
   readonly showInstallBanner = signal(false);
   readonly installPromptReady = signal(false);
@@ -291,11 +240,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     if (!this.isBrowser) return;
     this.showInstallBanner.set(false);
     localStorage.setItem('pwa_install_dismissed', '1');
-  }
-
-  openInstallBanner(): void {
-    if (!this.isBrowser) return;
-    this.showInstallBanner.set(true);
   }
 
   async triggerInstall(): Promise<void> {
