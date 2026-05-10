@@ -1,24 +1,14 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import {
+  SERVICE_CATEGORIES,
+  SERVICE_CATEGORY_MAP,
+  SERVICES_FAQS,
+  type ServiceCategory,
+} from '../../core/content/clinic-marketing.content';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
 import { TreatmentFinderComponent } from '../../shared/components/treatment-finder/treatment-finder.component';
-import { ClinicConfigService } from '../../core/services/clinic-config.service';
-
-interface Faq { q: string; a: string }
-
-type ServiceCategory = 'All' | 'Preventive' | 'Restorative' | 'Cosmetic' | 'Surgical';
-
-const CATEGORY_MAP: Record<string, ServiceCategory> = {
-  'General Dentistry':  'Preventive',
-  'Cleaning & Scaling': 'Preventive',
-  'Tooth Fillings':     'Restorative',
-  'Root Canal':         'Restorative',
-  'Cosmetic Dentistry': 'Cosmetic',
-  'Teeth Whitening':    'Cosmetic',
-  'Orthodontics':       'Cosmetic',
-  'Dental Implants':    'Surgical',
-  'Extraction':         'Surgical',
-};
 
 @Component({
   selector: 'app-services',
@@ -31,26 +21,24 @@ export class ServicesComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
 
-  readonly categories: ServiceCategory[] = ['All', 'Preventive', 'Restorative', 'Cosmetic', 'Surgical'];
-  activeCategory = signal<ServiceCategory>('All');
+  readonly categories = SERVICE_CATEGORIES;
+  readonly faqs = SERVICES_FAQS;
+  readonly activeCategory = signal<ServiceCategory>('All');
+  readonly openFaq = signal<number | null>(null);
 
-  filteredServices = computed(() => {
-    const cat = this.activeCategory();
-    if (cat === 'All') return this.config.services;
-    return this.config.services.filter(s => (CATEGORY_MAP[s.name] ?? 'Preventive') === cat);
+  readonly filteredServices = computed(() => {
+    const category = this.activeCategory();
+
+    if (category === 'All') {
+      return this.config.services;
+    }
+
+    return this.config.services.filter(
+      service => (SERVICE_CATEGORY_MAP[service.name] ?? 'Preventive') === category,
+    );
   });
 
-  openFaq = signal<number | null>(null);
-  toggleFaq(i: number) { this.openFaq.set(this.openFaq() === i ? null : i); }
-
-  readonly faqs: Faq[] = [
-    { q: 'How long does a routine check-up take?',           a: 'A standard check-up and cleaning takes 30–45 minutes. If we find something that needs attention we will explain it clearly before doing anything.' },
-    { q: 'Is the treatment painful?',                        a: 'We use modern anaesthesia and gentle techniques so most procedures are completely painless. If you feel any discomfort just let us know and we will adjust.' },
-    { q: 'What payment methods do you accept?',              a: 'Cash, UPI, debit/credit cards, and mobile wallets — all accepted. Annual health plans can be paid in one go or discussed with our team.' },
-    { q: 'Do I need to book in advance?',                    a: 'We recommend booking online to guarantee your preferred slot. Same-day appointments are often available — call us or book in 60 seconds above.' },
-    { q: 'How much does a root canal cost?',                 a: 'Root canal costs vary by tooth complexity and typically start from the range shown on the service card. The exact amount is confirmed before we begin — no surprises.' },
-    { q: 'Are your tools properly sterilised?',              a: 'Yes, always. Every instrument is sterilised in an autoclave after each patient. We follow strict infection-control protocols and never reuse disposables.' },
-    { q: 'Can children be treated at your clinic?',          a: 'Absolutely. We treat patients of all ages including young children. Our gentle approach and friendly team make dental visits comfortable for kids.' },
-    { q: 'What if I need to cancel or reschedule?',          a: 'You can manage your appointment online using your booking reference, or call us. We just ask for at least a few hours notice so we can offer the slot to another patient.' },
-  ];
+  toggleFaq(i: number): void {
+    this.openFaq.update(value => value === i ? null : i);
+  }
 }
