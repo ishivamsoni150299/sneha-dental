@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, signal, inject, input } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
@@ -9,10 +10,16 @@ interface Symptom {
   urgency: 'routine' | 'soon' | 'urgent';
 }
 
+interface UrgencyConfig {
+  label: string;
+  classes: string;
+  dot: string;
+}
+
 @Component({
   selector: 'app-treatment-finder',
   standalone: true,
-  imports: [RouterLink],
+  imports: [NgClass, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './treatment-finder.component.html',
 })
@@ -21,7 +28,7 @@ export class TreatmentFinderComponent {
   /** When true: hides the title/subtitle header and removes outer padding (used on Services hero) */
   readonly compact  = input(false);
 
-  readonly symptoms: Symptom[] = [
+  readonly symptoms: readonly Symptom[] = [
     { icon: 'M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z', label: 'Tooth Pain',        services: ['Root Canal', 'Tooth Fillings', 'Extraction'],           urgency: 'urgent'  },
     { icon: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Yellow Teeth',  services: ['Teeth Whitening', 'Cleaning & Scaling'],               urgency: 'routine' },
     { icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', label: 'Crooked Teeth', services: ['Orthodontics', 'Cosmetic Dentistry'],  urgency: 'routine' },
@@ -34,10 +41,10 @@ export class TreatmentFinderComponent {
 
   selected = signal<Symptom | null>(null);
 
-  select(s: Symptom) { this.selected.set(s); }
-  reset() { this.selected.set(null); }
+  select(s: Symptom): void { this.selected.set(s); }
+  reset(): void { this.selected.set(null); }
 
-  get urgencyConfig() {
+  get urgencyConfig(): UrgencyConfig {
     const u = this.selected()?.urgency;
     if (u === 'urgent')  return { label: 'See us today',        classes: 'bg-red-50 text-red-700 border-red-200',    dot: 'bg-red-500'    };
     if (u === 'soon')    return { label: 'Book this week',       classes: 'bg-orange-50 text-orange-700 border-orange-200', dot: 'bg-orange-500' };

@@ -1,61 +1,100 @@
-<!-- ===== HERO — Symptom Finder leads the page ===== -->
-<section class="relative overflow-x-clip overflow-y-visible bg-gradient-to-b from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] pb-0">
-  <!-- Dot grid -->
-  <div class="absolute inset-0 opacity-[0.07] pointer-events-none dot-grid-md"></div>
-  <!-- Orbs -->
-  <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-  <div class="absolute top-16 -left-16 w-72 h-72 bg-[var(--accent-bd)] rounded-full blur-2xl pointer-events-none"></div>
+<!-- ===== SERVICES HERO ===== -->
+<section class="bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+    <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+      <div>
+        <span class="inline-flex items-center gap-2 rounded-full border border-[var(--accent-bd)] bg-[var(--accent-lt)] px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-[var(--accent-dk)]">
+          <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+          Services & Pricing
+        </span>
 
-  <div class="relative mx-auto max-w-4xl px-4 pt-12 pb-10 text-center sm:px-6 lg:px-8">
-    <span class="inline-flex items-center gap-1.5 bg-white/20 text-white font-semibold text-xs uppercase tracking-widest px-4 py-2 rounded-full mb-5 border border-white/25">
-      <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-      Find Your Treatment
-    </span>
-    <h1 class="font-display text-4xl md:text-5xl text-white mb-4 leading-tight">
-      What's Bothering<br class="hidden sm:block"> You Today?
-    </h1>
-    <p class="text-[var(--accent-lt)] text-lg max-w-xl mx-auto">
-      Tap your concern below — we'll tell you exactly what treatment you need and how urgent it is.
-    </p>
-  </div>
+        <h1 class="mt-5 font-display text-4xl leading-tight text-gray-900 md:text-5xl">
+          Clear treatment options for every dental concern.
+        </h1>
 
-  <!-- Symptom grid (inlined for tight visual connection with hero) -->
-  <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="bg-white rounded-t-3xl shadow-2xl overflow-hidden">
-      <!-- Finder inner -->
-      <div class="p-6 md:p-10">
-        <app-treatment-finder [compact]="true" />
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-gray-500 md:text-lg">
+          Start with a symptom, compare services, and book in 60 seconds. We confirm the final cost before treatment, with no hidden charges.
+        </p>
+
+        <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+          <a routerLink="/appointment"
+             class="inline-flex items-center justify-center rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-[var(--accent-sh)] transition-colors hover:bg-[var(--accent-dk)]">
+            Book Appointment
+          </a>
+          <a [href]="'tel:+' + config.phoneE164"
+             class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+            </svg>
+            Call Clinic
+          </a>
+        </div>
+
+        <dl class="mt-8 grid max-w-xl grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-4">
+          <div class="px-3 text-center">
+            <dt class="text-[11px] font-semibold text-gray-400">Patients</dt>
+            <dd class="mt-1 text-xl font-bold text-gray-900">{{ config.patientCount || '1000+' }}</dd>
+          </div>
+          <div class="px-3 text-center">
+            <dt class="text-[11px] font-semibold text-gray-400">Rating</dt>
+            <dd class="mt-1 text-xl font-bold text-amber-500">{{ config.rating || '4.9' }}/5</dd>
+          </div>
+          <div class="px-3 text-center">
+            <dt class="text-[11px] font-semibold text-gray-400">Booking</dt>
+            <dd class="mt-1 text-xl font-bold text-[var(--accent)]">60 sec</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+        <div class="relative h-44 overflow-hidden bg-gray-900">
+          <img
+            src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=1100&q=80"
+            alt="Dental treatment room"
+            class="h-full w-full object-cover opacity-75">
+          <div class="absolute inset-0 bg-gradient-to-r from-gray-950/80 via-gray-950/35 to-transparent"></div>
+          <div class="absolute bottom-5 left-5 right-5">
+            <p class="text-xs font-bold uppercase tracking-widest text-white/70">Treatment Finder</p>
+            <p class="mt-1 max-w-md text-2xl font-bold leading-tight text-white">Choose a concern and get the right next step.</p>
+          </div>
+        </div>
+        <div class="p-5 md:p-7">
+          <app-treatment-finder [compact]="true" />
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ===== BROWSE ALL TREATMENTS ===== -->
-<section class="bg-white py-10 md:py-24" id="all-treatments">
+<section class="border-y border-gray-100 bg-gray-50 py-12 md:py-20" id="all-treatments">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-12">
-      <span class="inline-block bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">All Services & Pricing</span>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Browse Every Treatment</h2>
-      <p class="text-gray-500 max-w-lg mx-auto">Every price you see is what you pay. No surprise bills — confirmed before we begin.</p>
-    </div>
-    <!-- Category filter tabs — horizontal scroll on mobile, wrap on desktop -->
-    @if (config.services.length > 0) {
-      <div class="relative mb-10">
-        <!-- fade hint on mobile -->
-        <div class="pointer-events-none absolute bottom-0 right-0 top-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden z-10"></div>
-        <div class="flex gap-2 overflow-x-auto pr-8 sm:pr-0 sm:flex-wrap sm:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <div class="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <span class="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">All treatments</span>
+        <h2 class="mt-3 font-display text-3xl leading-tight text-gray-900 md:text-4xl">Browse services and pricing</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500 md:text-base">
+          Pricing is indicative and confirmed before care begins. Cash, UPI, and card payments are accepted.
+        </p>
+      </div>
+
+      @if (config.services.length > 0) {
+        <div class="flex gap-2 overflow-x-auto pb-1 lg:max-w-[52rem] lg:flex-wrap lg:justify-end [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           @for (cat of categories; track cat) {
-            <button (click)="activeCategory.set(cat)"
-                    class="shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
-                    [class]="activeCategory() === cat ? 'bg-[var(--accent)] text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'">
+            <button
+              type="button"
+              (click)="activeCategory.set(cat)"
+              class="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
+              [ngClass]="categoryButtonClass(cat)">
               {{ cat }}
             </button>
           }
         </div>
-      </div>
-    }
+      }
+    </div>
+
     @if (config.services.length > 0) {
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         @for (service of filteredServices(); track service.name) {
           <app-service-card
             [iconPath]="service.iconPath"
@@ -66,215 +105,157 @@
           />
         }
         @if (filteredServices().length === 0) {
-          <div class="col-span-full text-center text-sm text-gray-400 py-8">No services in this category yet.</div>
+          <div class="col-span-full rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+            No services in this category yet.
+          </div>
         }
       </div>
     } @else {
-      <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500">
-        Services will be listed here soon. For pricing, call <span class="font-semibold text-gray-700">{{ config.phone }}</span>
+      <div class="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+        Services will be listed here soon. For pricing, call
+        <span class="font-semibold text-gray-700">{{ config.phone }}</span>
         or message us on WhatsApp.
       </div>
     }
-    <p class="text-center text-xs text-gray-400 mt-8">* Prices are indicative ranges. Exact amount confirmed before treatment. Cash · UPI · Card accepted.</p>
   </div>
 </section>
 
-<!-- ===== FAMILY DENTIST + HEALTH PLANS ===== -->
-<section class="bg-gray-50 py-10 md:py-24">
+<!-- ===== CARE PLANS ===== -->
+<section class="bg-white py-12 md:py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    <div class="text-center mb-14">
-      <span class="inline-block bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">Annual Health Plans</span>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Your Family Dentist,<br><span class="text-[var(--accent)]">Year-Round</span></h2>
-      <p class="text-gray-500 max-w-lg mx-auto">Pay once, visit all year. Save on regular dental care and keep your whole family's smile healthy.</p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-      <!-- Family Dentist SVG Illustration -->
-      <div class="flex justify-center pb-10 sm:pb-0">
-        <div class="relative w-full max-w-md">
-          <div class="absolute inset-0 bg-gradient-to-br from-[var(--accent-lt)] to-[var(--accent-lt)] rounded-3xl"></div>
-          <div class="relative p-6">
-            <svg viewBox="0 0 400 340" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full drop-shadow-sm">
-              <rect width="400" height="340" rx="20" fill="#EFF6FF"/>
-              <rect x="60" y="222" width="190" height="14" rx="7" fill="#BFDBFE"/>
-              <rect x="75" y="182" width="155" height="44" rx="10" fill="#93C5FD"/>
-              <rect x="88" y="162" width="75" height="24" rx="8" fill="#BFDBFE"/>
-              <rect x="138" y="236" width="18" height="38" rx="6" fill="#93C5FD"/>
-              <rect x="118" y="270" width="58" height="10" rx="5" fill="#BFDBFE"/>
-              <rect x="98" y="172" width="48" height="34" rx="10" fill="#FEE2E2"/>
-              <circle cx="122" cy="158" r="17" fill="#FBBF24"/>
-              <circle cx="116" cy="155" r="2.5" fill="#92400E"/>
-              <circle cx="128" cy="155" r="2.5" fill="#92400E"/>
-              <path d="M115 163 Q122 169 129 163" stroke="#92400E" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-              <path d="M106 150 Q109 139 122 138 Q135 139 138 150" fill="#92400E"/>
-              <rect x="100" y="202" width="16" height="28" rx="6" fill="#DBEAFE"/>
-              <rect x="126" y="202" width="16" height="28" rx="6" fill="#DBEAFE"/>
-              <ellipse cx="108" cy="232" rx="10" ry="6" fill="#1E40AF"/>
-              <ellipse cx="134" cy="232" rx="10" ry="6" fill="#1E40AF"/>
-              <rect x="242" y="158" width="58" height="98" rx="12" fill="white"/>
-              <rect x="252" y="168" width="38" height="82" rx="8" fill="#DBEAFE"/>
-              <circle cx="271" cy="138" r="23" fill="#FBBF24"/>
-              <path d="M250 131 Q254 112 271 110 Q288 112 292 131" fill="#92400E"/>
-              <ellipse cx="293" cy="138" rx="5" ry="9" fill="#92400E"/>
-              <circle cx="264" cy="134" r="2.5" fill="#92400E"/>
-              <circle cx="278" cy="134" r="2.5" fill="#92400E"/>
-              <rect x="259" y="141" width="24" height="11" rx="4" fill="#BFDBFE" opacity="0.8"/>
-              <path d="M256 178 Q246 188 249 202 Q252 212 261 212" stroke="#1D4ED8" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-              <circle cx="261" cy="214" r="4.5" fill="#1D4ED8"/>
-              <rect x="222" y="177" width="26" height="11" rx="5.5" fill="white"/>
-              <line x1="222" y1="182" x2="202" y2="167" stroke="#6B7280" stroke-width="2.5" stroke-linecap="round"/>
-              <circle cx="200" cy="165" r="5.5" fill="#D1D5DB" stroke="#6B7280" stroke-width="1.5"/>
-              <rect x="253" y="194" width="44" height="16" rx="4" fill="#1D4ED8"/>
-              <text x="275" y="206" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">{{ config.doctorName }}</text>
-              <rect x="248" y="253" width="18" height="44" rx="6" fill="#DBEAFE"/>
-              <rect x="272" y="253" width="18" height="44" rx="6" fill="#DBEAFE"/>
-              <ellipse cx="257" cy="299" rx="12" ry="6" fill="#1E3A8A"/>
-              <ellipse cx="281" cy="299" rx="12" ry="6" fill="#1E3A8A"/>
-              <rect x="18" y="168" width="42" height="88" rx="10" fill="#D1FAE5"/>
-              <circle cx="39" cy="152" r="19" fill="#F59E0B"/>
-              <path d="M22 145 Q26 130 39 128 Q52 130 56 145" fill="#78350F"/>
-              <circle cx="33" cy="148" r="2" fill="#78350F"/>
-              <circle cx="45" cy="148" r="2" fill="#78350F"/>
-              <path d="M32 157 Q39 163 46 157" stroke="#78350F" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              <rect x="4" y="182" width="16" height="10" rx="5" fill="#D1FAE5"/>
-              <rect x="60" y="182" width="16" height="10" rx="5" fill="#D1FAE5"/>
-              <rect x="20" y="253" width="14" height="38" rx="5" fill="#A7F3D0"/>
-              <rect x="44" y="253" width="14" height="38" rx="5" fill="#A7F3D0"/>
-              <ellipse cx="27" cy="293" rx="10" ry="6" fill="#065F46"/>
-              <ellipse cx="51" cy="293" rx="10" ry="6" fill="#065F46"/>
-              <g transform="translate(316 22) scale(0.85)">
-                <path d="M30 8C30 4 26 0 20 0C16 0 13 2 12 5C11 2 8 0 4 0C-2 0-6 4-6 8C-6 12-3 15 0 18L0 32C0 35 2 37 4 37C5 37 6 36 6 35L6 28C6 25 7 23 12 23C17 23 18 25 18 28L18 35C18 36 19 37 20 37C22 37 24 35 24 32L24 18C27 15 30 12 30 8Z" fill="#BFDBFE" stroke="#93C5FD" stroke-width="1.5"/>
-              </g>
-              <circle cx="352" cy="88" r="3" fill="#FCD34D" opacity="0.9"/>
-              <circle cx="368" cy="68" r="2" fill="#FCD34D" opacity="0.7"/>
-              <circle cx="335" cy="72" r="2" fill="#FCD34D" opacity="0.8"/>
-              <circle cx="358" cy="108" r="1.5" fill="#FCD34D" opacity="0.6"/>
-              <rect x="110" y="310" width="180" height="22" rx="11" fill="#1D4ED8" opacity="0.9"/>
-              <text x="200" y="326" text-anchor="middle" fill="white" font-size="10" font-family="sans-serif" font-weight="bold">{{ config.name }} - {{ config.city }}</text>
-            </svg>
-          </div>
-
-          <div class="absolute bottom-3 left-3 flex max-w-[200px] items-center gap-2.5 rounded-2xl border border-gray-100 bg-white p-3.5 shadow-lg sm:-bottom-4 sm:-left-4 sm:max-w-none">
-            <div class="w-9 h-9 bg-[var(--accent-lt)] rounded-xl flex items-center justify-center">
-              <svg class="w-5 h-5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500">Trusted by</p>
-              <p class="text-sm font-bold text-gray-900">{{ config.patientCount }} Families</p>
-            </div>
-          </div>
-          <div class="absolute right-3 top-3 rounded-2xl bg-[var(--accent)] px-4 py-3 text-center text-white shadow-lg sm:-top-4 sm:-right-4">
-            <p class="text-2xl font-bold leading-none">{{ config.rating || '4.9' }}/5</p>
-            <p class="text-xs opacity-80">Patient Rating</p>
-          </div>
+    <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+      <div>
+        <span class="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">Annual care plans</span>
+        <h2 class="mt-3 font-display text-3xl leading-tight text-gray-900 md:text-4xl">
+          Preventive dental care for the whole family.
+        </h2>
+        <p class="mt-4 text-base leading-relaxed text-gray-500">
+          Plans make routine visits easier to manage. Choose a plan at the clinic after your consultation and pay only when you are comfortable.
+        </p>
+        <div class="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-5">
+          <p class="text-sm font-bold text-gray-900">Included with every plan</p>
+          <ul class="mt-4 space-y-3 text-sm text-gray-600">
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-[var(--accent)]"></span>
+              Transparent inclusions before payment.
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-[var(--accent)]"></span>
+              Clinic team confirms eligibility and timing.
+            </li>
+            <li class="flex gap-3">
+              <span class="mt-1 h-2 w-2 rounded-full bg-[var(--accent)]"></span>
+              Same-day appointments available when slots are open.
+            </li>
+          </ul>
         </div>
       </div>
 
-      <!-- Health Plan Cards -->
-      <div class="space-y-6">
+      <div class="space-y-5">
         @for (plan of config.plans; track plan.name) {
-          <div class="rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
-               [class]="plan.highlighted ? 'border-[var(--accent)]' : 'border-gray-200'">
-            <div class="px-6 py-5 flex items-start justify-between"
-                 [class]="plan.highlighted ? 'bg-[var(--accent)]' : 'bg-white'">
+          <div
+            class="overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
+            [ngClass]="planCardClass(plan)">
+            <div
+              class="flex items-start justify-between gap-5 px-6 py-5"
+              [ngClass]="planHeaderClass(plan)">
               <div>
-                <span class="inline-block text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2"
-                      [class]="plan.highlighted ? 'bg-white/20 text-white' : 'bg-[var(--accent-lt)] text-[var(--accent-dk)]'">{{ plan.tag }}</span>
-                <h3 class="font-display text-xl font-bold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">{{ plan.name }}</h3>
-                <p class="text-sm mt-0.5" [class]="plan.highlighted ? 'text-[var(--accent-lt)]' : 'text-gray-500'">{{ plan.subtitle }}</p>
+                <span
+                  class="inline-block rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-widest"
+                  [ngClass]="planTagClass(plan)">
+                  {{ plan.tag }}
+                </span>
+                <h3 class="mt-3 font-display text-xl font-bold" [ngClass]="planTitleClass(plan)">{{ plan.name }}</h3>
+                <p class="mt-1 text-sm" [ngClass]="planSubtextClass(plan)">{{ plan.subtitle }}</p>
               </div>
-              <div class="text-right shrink-0 ml-4">
-                <p class="text-3xl font-bold" [class]="plan.highlighted ? 'text-white' : 'text-[var(--accent)]'">{{ plan.price }}</p>
-                <p class="text-xs" [class]="plan.highlighted ? 'text-[var(--accent-bd)]' : 'text-gray-400'">{{ plan.period }}</p>
+              <div class="shrink-0 text-right">
+                <p class="text-3xl font-bold" [ngClass]="planPriceClass(plan)">{{ plan.price }}</p>
+                <p class="text-xs" [ngClass]="planPeriodClass(plan)">{{ plan.period }}</p>
               </div>
             </div>
+
             <div class="bg-white px-6 py-5">
-              <ul class="space-y-2.5 mb-5">
+              <ul class="mb-5 grid gap-2.5 text-sm text-gray-600 sm:grid-cols-2">
                 @for (f of plan.features; track f) {
-                  <li class="flex items-center gap-2.5 text-sm text-gray-600">
-                    <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <li class="flex items-start gap-2.5">
+                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
-                    {{ f }}
+                    <span>{{ f }}</span>
                   </li>
                 }
               </ul>
-              <a routerLink="/appointment"
-                 class="block w-full text-center py-3 rounded-xl font-bold text-sm transition-all"
-                 [class]="plan.highlighted ? 'bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white' : 'border-2 border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-lt)]'">
+              <a
+                routerLink="/appointment"
+                class="block w-full rounded-xl py-3 text-center text-sm font-bold transition-colors"
+                [ngClass]="planButtonClass(plan)">
                 Get This Plan
               </a>
             </div>
           </div>
+        } @empty {
+          <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500">
+            Care plans will be available soon. Book a consultation to discuss preventive care.
+          </div>
         }
-        <p class="text-xs text-gray-400 text-center pt-1">
-          Plans enrolled at the clinic. Call
-          <a [href]="'tel:+' + config.phoneE164" class="text-[var(--accent)] font-semibold hover:underline">{{ config.phone }}</a>
+        <p class="text-center text-xs text-gray-400">
+          Plans are enrolled at the clinic. Call
+          <a [href]="'tel:+' + config.phoneE164" class="font-semibold text-[var(--accent)] hover:underline">{{ config.phone }}</a>
           to know more.
         </p>
       </div>
-
     </div>
   </div>
 </section>
 
 <!-- ===== FAQ ACCORDION ===== -->
-<section class="bg-white py-20 md:py-24">
+<section class="border-t border-gray-100 bg-gray-50 py-12 md:py-20">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-12">
-      <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
-        <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
+    <div class="mb-10 text-center">
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-lt)] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">
+        <span class="h-1 w-1 rounded-full bg-[var(--accent-md)]"></span>
         Common Questions
       </span>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Everything You Want to Know</h2>
-      <p class="text-gray-500 text-lg">Straight answers. No jargon.</p>
+      <h2 class="mt-4 font-display text-3xl text-gray-900 md:text-4xl">Straight answers before you book</h2>
+      <p class="mt-3 text-gray-500">No jargon. No pressure.</p>
     </div>
+
     <div class="space-y-3">
       @for (faq of faqs; track faq.q; let i = $index) {
-        <div class="border rounded-2xl overflow-hidden transition-all duration-200"
-             [class]="openFaq() === i ? 'border-[var(--accent-bd)] shadow-sm' : 'border-gray-100'">
-          <button (click)="toggleFaq(i)"
-                  class="w-full text-left px-6 py-4 flex items-center justify-between gap-4 transition-colors"
-                  [class]="openFaq() === i ? 'bg-[var(--accent-lt)]' : 'bg-white hover:bg-gray-50'">
-            <span class="font-semibold text-gray-900 text-sm leading-snug">{{ faq.q }}</span>
-            <span class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200"
-                  [class]="openFaq() === i ? 'bg-[var(--accent)] rotate-45' : 'bg-gray-100'">
-              <svg class="w-3.5 h-3.5 transition-colors" [class]="openFaq() === i ? 'text-white' : 'text-gray-500'"
-                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <div class="overflow-hidden rounded-2xl border transition-all duration-200" [ngClass]="faqPanelClass(i)">
+          <button
+            type="button"
+            (click)="toggleFaq(i)"
+            class="flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition-colors"
+            [ngClass]="faqButtonClass(i)">
+            <span class="text-sm font-semibold leading-snug text-gray-900">{{ faq.q }}</span>
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-200" [ngClass]="faqIconClass(i)">
+              <svg class="h-3.5 w-3.5 transition-colors" [ngClass]="faqIconColorClass(i)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
               </svg>
             </span>
           </button>
           @if (openFaq() === i) {
-            <div class="px-6 pb-5 bg-[var(--accent-lt)] border-t border-[var(--accent-lt)]">
-              <p class="text-gray-600 text-sm leading-relaxed pt-3">{{ faq.a }}</p>
+            <div class="border-t border-[var(--accent-lt)] bg-white px-6 pb-5">
+              <p class="pt-3 text-sm leading-relaxed text-gray-600">{{ faq.a }}</p>
             </div>
           }
         </div>
       }
     </div>
-    <p class="text-center text-sm text-gray-500 mt-10">
-      Still have questions?
-      <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] font-semibold hover:underline underline-offset-4 ml-1">Ask us on WhatsApp →</a>
-    </p>
   </div>
 </section>
 
 <!-- ===== CTA ===== -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-14">
-  <div class="absolute -top-12 -right-12 w-56 h-56 bg-white/5 rounded-full pointer-events-none"></div>
-  <div class="absolute -bottom-16 -left-10 w-72 h-72 bg-white/5 rounded-full pointer-events-none"></div>
-  <div class="absolute inset-0 opacity-5 pointer-events-none dot-grid-sm"></div>
-  <div class="relative max-w-2xl mx-auto px-4 text-center">
-    <h2 class="font-display text-3xl text-white mb-4">Not Sure Which Service You Need?</h2>
-    <p class="text-[var(--accent-lt)] mb-7 leading-relaxed">Book a free consultation and we will recommend the right treatment — honestly, with full cost transparency.</p>
+<section class="bg-[var(--accent)] py-14">
+  <div class="max-w-3xl mx-auto px-4 text-center">
+    <h2 class="font-display text-3xl text-white">Not sure which service you need?</h2>
+    <p class="mx-auto mt-4 max-w-xl leading-relaxed text-white/80">
+      Book a consultation and the clinic team will recommend the right treatment with full cost clarity.
+    </p>
     <a routerLink="/appointment"
-       class="bg-white hover:bg-[var(--accent-lt)] text-[var(--accent)] px-8 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px inline-block">
-      Book Free Consultation
+       class="mt-7 inline-flex items-center justify-center rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-[var(--accent)] transition-colors hover:bg-[var(--accent-lt)]">
+      Book Appointment
     </a>
   </div>
 </section>

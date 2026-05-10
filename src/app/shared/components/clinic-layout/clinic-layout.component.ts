@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, PLATFORM_ID, computed, inject, signal, type OnDestroy, type OnInit } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
@@ -54,7 +54,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
                aria-label="Chat on WhatsApp"
                class="flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-all hover:scale-110 hover:bg-green-600">
               <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
               </svg>
             </a>
           </div>
@@ -79,36 +78,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
           </svg>
         </button>
-      }
-
-      <!-- WhatsApp nudge popup -->
-      @if (showWaPopup()) {
-        <div class="fixed bottom-28 right-6 z-50 hidden w-72 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl animate-slide-up md:block">
-          <div class="flex items-center justify-between bg-green-500 px-4 py-3">
-            <div class="flex items-center gap-2.5">
-              <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-              </svg>
-              <span class="text-sm font-bold text-white">{{ clinic.config.name || 'Clinic' }} on WhatsApp</span>
-            </div>
-            <button (click)="dismissPopup()" aria-label="Close WhatsApp popup"
-                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="p-4">
-            <div class="mb-3 rounded-xl bg-green-50 px-3 py-2.5">
-              <p class="text-xs leading-relaxed text-gray-600">Hi. Ready to book your appointment or have a question? Chat with us and we usually reply in minutes.</p>
-            </div>
-            <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
-               (click)="dismissPopup()"
-               class="flex w-full items-center justify-center gap-2 rounded-xl bg-green-500 py-2.5 text-sm font-bold text-white transition-all hover:bg-green-600">
-              Start Chat
-            </a>
-          </div>
-        </div>
       }
 
       <!-- AI receptionist — deferred so it never blocks initial paint -->
@@ -243,7 +212,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  readonly showWaPopup = signal(false);
   readonly speedDialOpen = signal(false);
   readonly showBackToTop = signal(false);
   readonly showInstallBanner = signal(false);
@@ -266,15 +234,14 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
       : '';
   });
 
-  readonly serviceNames = computed(() => this.clinic.config.services?.map((service) => service.name) ?? []);
-  readonly clinicHours = computed(() => this.clinic.config.hours?.map((slot) => `${slot.days}: ${slot.time}`) ?? []);
+  readonly serviceNames = computed(() => this.clinic.config.services.map((service) => service.name));
+  readonly clinicHours = computed(() => this.clinic.config.hours.map((slot) => `${slot.days}: ${slot.time}`));
   readonly clinicAddress = computed(() =>
     [this.clinic.config.addressLine1, this.clinic.config.addressLine2, this.clinic.config.city]
       .filter(Boolean)
       .join(', ')
   );
 
-  private popupTimer: ReturnType<typeof setTimeout> | null = null;
   private installTimer: ReturnType<typeof setTimeout> | null = null;
 
   @HostListener('window:scroll')
@@ -288,10 +255,6 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!sessionStorage.getItem('wa_popup_dismissed')) {
-      this.popupTimer = setTimeout(() => this.showWaPopup.set(true), 15_000);
-    }
-
     const alreadyInstalled =
       window.matchMedia('(display-mode: standalone)').matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -301,32 +264,27 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
         event.preventDefault();
         this.deferredInstallPrompt = event as Event & { prompt?: () => Promise<void> };
         this.installPromptReady.set(true);
-        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 20_000);
+        this.installTimer = setTimeout(() => {
+          this.showInstallBanner.set(true);
+        }, 20_000);
       };
       window.addEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
 
       if (this.isIos) {
-        this.installTimer = setTimeout(() => this.showInstallBanner.set(true), 20_000);
+        this.installTimer = setTimeout(() => {
+          this.showInstallBanner.set(true);
+        }, 20_000);
       }
     }
   }
 
   ngOnDestroy(): void {
-    if (this.popupTimer) {
-      clearTimeout(this.popupTimer);
-    }
     if (this.installTimer) {
       clearTimeout(this.installTimer);
     }
     if (this.isBrowser && this.beforeInstallPromptHandler) {
       window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
     }
-  }
-
-  dismissPopup(): void {
-    if (!this.isBrowser) return;
-    this.showWaPopup.set(false);
-    sessionStorage.setItem('wa_popup_dismissed', '1');
   }
 
   dismissInstallBanner(): void {
