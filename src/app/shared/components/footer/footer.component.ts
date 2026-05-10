@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
@@ -6,7 +7,7 @@ import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [RouterLink],
+  imports: [NgClass, RouterLink],
   templateUrl: './footer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -24,7 +25,7 @@ export class FooterComponent {
     return plan === 'trial' || status === 'trial';
   }
 
-  quickLinks = [
+  readonly quickLinks = [
     { label: 'Home',             route: '/' },
     { label: 'Services',         route: '/services' },
     { label: 'About Us',         route: '/about' },
@@ -33,4 +34,8 @@ export class FooterComponent {
     { label: 'Contact',          route: '/contact' },
     { label: 'Book Appointment', route: '/appointment' },
   ];
+
+  get mobileActionGridClass(): string {
+    return this.config.mapDirectionsUrl ? 'grid-cols-3' : 'grid-cols-2';
+  }
 }
