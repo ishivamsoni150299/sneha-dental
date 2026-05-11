@@ -168,6 +168,7 @@ export function buildAgentSystemPrompt(
   overrides: Partial<{
     language: VoiceAgentLanguage;
     persona: string;
+    voiceActionEnabled: boolean;
   }> = {},
 ): string {
   const name = asTrimmedString(clinic['name']) || 'this clinic';
@@ -186,6 +187,12 @@ export function buildAgentSystemPrompt(
   const personaSection = buildPersonaSection(settings.persona);
   const knowledgeSection = buildKnowledgeSection(clinic);
   const doctorLine = doctorQualification ? `${doctorName} (${doctorQualification})` : doctorName;
+  const voiceActionLines = overrides.voiceActionEnabled
+    ? [
+        '- After collecting all details, call the submit_voice_booking_request tool immediately. Do not say the request is submitted until the tool returns success. If it returns missing_fields, ask only for the missing details. If it returns slot_taken, ask for a different time. If it returns write_failed, ask the patient to use WhatsApp or the booking form.',
+        '- When the booking action succeeds, read the booking reference exactly and say the clinic team will confirm by call or WhatsApp.',
+      ].join('\n')
+    : `- When all booking details are collected, confirm with: "Main aapka appointment note kar rahi hoon. ${name} ki team WhatsApp ya call par confirmation share karegi."`;
 
   return `You are the AI receptionist for ${name}, a dental clinic.
 
@@ -211,7 +218,7 @@ ${buildLanguageGuide(settings.language)}
 BOOKING FLOW:
 - Help the patient book or request an appointment.
 - Before confirming a booking request, collect all four details: full name, phone number, preferred date and time, and the treatment or issue.
-- When all booking details are collected, confirm with: "Main aapka appointment note kar rahi hoon. ${name} ki team WhatsApp ya call par confirmation share karegi."
+${voiceActionLines}
 
 REPLY STYLE:
 - Keep every reply concise, warm, and professional.
