@@ -14,7 +14,6 @@ export class PlatformLandingComponent {
   readonly starterMonthlyPrice = formatPlatformPlanPrice('starter', 'monthly');
   readonly proMonthlyPrice = formatPlatformPlanPrice('pro', 'monthly');
 
-  ngOnInit() { /* no-op — portfolio uses curated showcase data, not live Firestore */ }
 
   readonly billingYearly = signal(false);
   readonly roiPlan = signal<'Starter' | 'Pro'>('Starter');
@@ -287,7 +286,7 @@ export class PlatformLandingComponent {
   ];
 
   readonly openFaq = signal<number | null>(null);
-  toggleFaq(i: number) { this.openFaq.set(this.openFaq() === i ? null : i); }
+  toggleFaq(i: number): void { this.openFaq.set(this.openFaq() === i ? null : i); }
 
   // ── Replace with your real details ───────────────────────────────────────
   readonly devWhatsapp = '919140210648';
@@ -295,7 +294,7 @@ export class PlatformLandingComponent {
   // ─────────────────────────────────────────────────────────────────────────
 
   initials(name: string): string {
-    return name.split(' ').map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase();
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   }
 
   scrollTo(sectionId: string): void {
@@ -303,7 +302,7 @@ export class PlatformLandingComponent {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  setRoiPlan(planName: 'Starter' | 'Pro') {
+  setRoiPlan(planName: 'Starter' | 'Pro'): void {
     this.roiPlan.set(planName);
   }
 
@@ -316,7 +315,7 @@ export class PlatformLandingComponent {
     return query;
   }
 
-  whatsappEnquiry(planName: string) {
+  whatsappEnquiry(planName: string): void {
     const msg = `Hi! I'm interested in the ${planName} plan for my dental clinic. Can we discuss?`;
     window.open(`https://wa.me/${this.devWhatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
   }

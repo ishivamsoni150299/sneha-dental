@@ -1,16 +1,16 @@
-import { Directive, ElementRef, Input, OnInit, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, Input, inject, type OnDestroy, type OnInit } from '@angular/core';
 
-@Directive({ selector: '[reveal]', standalone: true })
+@Directive({ selector: '[appReveal]', standalone: true })
 export class RevealDirective implements OnInit, OnDestroy {
-  @Input() revealDelay = 0;
-  @Input() revealDir: 'up' | 'left' | 'right' | 'scale' = 'up';
+  @Input() appRevealDelay = 0;
+  @Input() appRevealDir: 'up' | 'left' | 'right' | 'scale' = 'up';
 
   private io?: IntersectionObserver;
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  constructor(private el: ElementRef<HTMLElement>) {}
-
-  ngOnInit() {
+  ngOnInit(): void {
     const el = this.el.nativeElement;
+    const delay = String(this.appRevealDelay);
     const transforms: Record<string, string> = {
       up:    'translateY(52px)',
       left:  'translateX(-52px)',
@@ -19,9 +19,9 @@ export class RevealDirective implements OnInit, OnDestroy {
     };
     Object.assign(el.style, {
       opacity:    '0',
-      transform:  transforms[this.revealDir],
-      transition: `opacity 0.85s cubic-bezier(0.16,1,0.3,1) ${this.revealDelay}ms,
-                   transform 0.85s cubic-bezier(0.16,1,0.3,1) ${this.revealDelay}ms`,
+      transform:  transforms[this.appRevealDir],
+      transition: `opacity 0.85s cubic-bezier(0.16,1,0.3,1) ${delay}ms,
+                   transform 0.85s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
       willChange: 'opacity, transform',
     });
 
@@ -37,5 +37,7 @@ export class RevealDirective implements OnInit, OnDestroy {
     this.io.observe(el);
   }
 
-  ngOnDestroy() { this.io?.disconnect(); }
+  ngOnDestroy(): void {
+    this.io?.disconnect();
+  }
 }
