@@ -34,7 +34,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
            target="_blank"
            rel="noopener noreferrer"
            aria-label="Chat on WhatsApp"
-           class="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-100 bg-white text-emerald-600 shadow-md transition-colors hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2">
+           class="flex h-12 w-12 items-center justify-center rounded-full border border-status-success bg-white text-status-success shadow-md transition-colors hover:bg-status-success-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-success focus-visible:ring-offset-2">
           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
           </svg>
@@ -73,7 +73,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @if (showInstallBanner()) {
         <div class="fixed bottom-[116px] left-3 right-3 z-[70] animate-slide-up md:hidden">
           <div class="flex items-center gap-3 rounded-2xl bg-gray-900 px-4 py-3.5 text-white shadow-2xl">
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand shadow-lg">
               <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z"/>
               </svg>
@@ -128,6 +128,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
         <div class="mobile-dock-shell">
           <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,1fr)] gap-2">
             <a [href]="'tel:+' + clinic.config.phoneE164"
+               aria-label="Call clinic"
                class="mobile-dock-link min-w-0">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
@@ -138,6 +139,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             <a routerLink="/appointment"
                routerLinkActive="scale-[1.02]"
                [routerLinkActiveOptions]="{ exact: true }"
+               aria-label="Book appointment"
                class="mobile-dock-book min-w-0">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -146,11 +148,12 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             </a>
 
             <a [href]="clinic.bookingWhatsappDeepLink" rel="noopener noreferrer"
-               class="mobile-dock-link min-w-0">
+               aria-label="Chat on WhatsApp"
+               class="mobile-dock-link mobile-dock-link-whatsapp min-w-0">
               <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
               </svg>
-              <span class="truncate leading-none">WA</span>
+              <span class="truncate leading-none">WhatsApp</span>
             </a>
 
           </div>

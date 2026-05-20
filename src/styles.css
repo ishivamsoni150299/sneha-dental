@@ -32,6 +32,157 @@
 
 /* ── Design System Primitives ──────────────────────────────────────────── */
 @layer components {
+  .ds-page {
+    @apply min-h-screen;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .ds-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .ds-section {
+    @apply py-16 md:py-24;
+  }
+
+  .ds-section-tight {
+    @apply py-12 md:py-16;
+  }
+
+  .ds-card {
+    @apply rounded-2xl border p-5 shadow-sm transition-all duration-200 sm:p-6;
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    box-shadow: 0 16px 34px -30px rgba(15, 23, 42, 0.26);
+  }
+
+  .ds-card:hover {
+    border-color: var(--color-line-strong);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .ds-card-muted {
+    border-color: var(--color-primary-border);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 64%, white) 0%, rgba(255, 255, 255, 0.96) 100%);
+  }
+
+  .ds-icon-tile {
+    @apply flex shrink-0 items-center justify-center rounded-2xl border;
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 74%, white);
+    color: var(--color-primary);
+  }
+
+  .ds-kicker {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em];
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 74%, white);
+    color: var(--color-primary);
+  }
+
+  .ds-kicker-dot {
+    @apply h-1 w-1 rounded-full;
+    background: var(--color-primary);
+  }
+
+  .ds-heading {
+    @apply font-display text-2xl leading-tight text-app-text md:text-4xl;
+  }
+
+  .ds-title {
+    @apply text-base font-bold leading-snug text-app-text;
+  }
+
+  .ds-copy {
+    @apply text-sm leading-relaxed text-app-text-muted md:text-base;
+  }
+
+  .ds-small {
+    @apply text-xs leading-5 text-app-text-muted;
+  }
+
+  .ds-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-4 py-2.5 text-sm font-bold transition-all duration-200 focus-visible:outline-none;
+  }
+
+  .ds-button:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
+  .ds-button-primary {
+    color: #fff;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 88%, white) 0%, var(--color-primary) 100%);
+    box-shadow: 0 16px 30px -22px var(--color-primary-shadow);
+  }
+
+  .ds-button-primary:hover {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary-hover) 86%, white) 0%, var(--color-primary-hover) 100%);
+    transform: translateY(-1px);
+  }
+
+  .ds-button-secondary {
+    border: 1px solid var(--color-line);
+    background: var(--color-surface-muted);
+    color: var(--color-text-soft);
+  }
+
+  .ds-button-secondary:hover {
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 70%, white);
+    color: var(--color-primary-hover);
+  }
+
+  .ds-button-whatsapp {
+    color: #fff;
+    background: var(--color-success);
+    box-shadow: 0 14px 30px -22px rgba(22, 163, 74, 0.62);
+  }
+
+  .ds-button-whatsapp:hover {
+    filter: brightness(0.94);
+    transform: translateY(-1px);
+  }
+
+  .ds-field {
+    @apply w-full rounded-control border px-3.5 py-2.5 text-sm transition-all duration-200 focus:outline-none;
+    min-height: var(--control-height);
+    border-color: var(--color-line);
+    background: var(--color-surface-elevated);
+    color: var(--color-text);
+  }
+
+  .ds-field::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .ds-field:hover {
+    border-color: var(--color-line-strong);
+  }
+
+  .ds-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
+  .ds-label {
+    @apply mb-1 block text-xs font-bold tracking-[0.01em];
+    color: var(--color-text-soft);
+  }
+
+  .ds-helper {
+    @apply mt-1 text-xs leading-5;
+    color: var(--color-text-muted);
+  }
+
+  .ds-error {
+    @apply mt-1 text-xs font-semibold leading-5;
+    color: var(--color-danger);
+  }
+
   .form-label {
     @apply mb-1 block text-xs font-semibold tracking-[0.01em];
     color: var(--color-text-soft);
@@ -498,9 +649,10 @@ body {
     @apply rounded-[1.5rem] border p-2;
     width: 100%;
     max-width: calc(100vw - 24px);
-    border-color: rgba(226, 232, 240, 0.8);
-    background: #ffffff;
+    border-color: color-mix(in srgb, var(--color-line) 86%, white);
+    background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 18px 42px -30px rgba(15, 23, 42, 0.28);
+    backdrop-filter: blur(18px);
   }
 
   .mobile-dock-link {
@@ -509,8 +661,19 @@ body {
     min-height: 48px;
   }
 
+  .mobile-dock-link:focus-visible,
+  .mobile-dock-book:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+
   .mobile-dock-link:active {
     transform: scale(0.95);
+  }
+
+  .mobile-dock-link-whatsapp {
+    color: var(--color-success);
+    background: var(--color-success-soft);
   }
 
   .mobile-dock-book {

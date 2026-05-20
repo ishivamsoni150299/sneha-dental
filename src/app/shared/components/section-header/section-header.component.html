@@ -1,13 +1,13 @@
 <div [class]="centered() ? 'text-center' : ''">
   @if (label()) {
-    <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
-      <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
+    <span class="ds-kicker mb-4">
+      <span class="ds-kicker-dot"></span>
       {{ label() }}
     </span>
   }
-  <h2 class="font-display text-2xl md:text-4xl text-gray-900 mb-3 leading-tight">{{ title() }}</h2>
+  <h2 class="ds-heading mb-3">{{ title() }}</h2>
   @if (subtitle()) {
-    <p class="text-gray-500 text-sm md:text-base leading-relaxed" [class]="centered() ? 'max-w-xl mx-auto' : 'max-w-xl'">
+    <p [class]="centered() ? 'ds-copy max-w-xl mx-auto' : 'ds-copy max-w-xl'">
       {{ subtitle() }}
     </p>
   }
