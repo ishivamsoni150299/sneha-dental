@@ -11,6 +11,9 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
   selector: 'app-clinic-layout',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent, FooterComponent, ComingSoonComponent, VoiceAgentComponent],
+  host: {
+    class: 'clinic-theme-scope block',
+  },
   template: `
     @if (clinic.config.comingSoon) {
       <app-coming-soon />
