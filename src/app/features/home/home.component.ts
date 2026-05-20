@@ -1,9 +1,7 @@
-import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import type {
-  ClinicFaq,
   ClinicHomeCustomization,
   ClinicHours,
   ClinicImage,
@@ -12,7 +10,6 @@ import type {
 import {
   DEFAULT_CLINIC_MOMENTS,
   DEFAULT_TRUST_PILLS,
-  HOME_FAQS,
 } from '../../core/content/clinic-marketing.content';
 import {
   buildClinicMonogram,
@@ -25,7 +22,7 @@ import { TestimonialCardComponent } from '../../shared/components/testimonial-ca
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, NgClass, ServiceCardComponent, TestimonialCardComponent, RevealDirective],
+  imports: [RouterLink, ServiceCardComponent, TestimonialCardComponent, RevealDirective],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -38,13 +35,6 @@ export class HomeComponent {
 
   readonly defaultClinicMoments = DEFAULT_CLINIC_MOMENTS;
   readonly defaultTrustPills = DEFAULT_TRUST_PILLS;
-  readonly defaultFaqs = HOME_FAQS;
-
-  readonly openFaq = signal<number | null>(null);
-
-  toggleFaq(i: number): void {
-    this.openFaq.update(v => v === i ? null : i);
-  }
 
   get previewServices(): ClinicService[] { return this.config.services.slice(0, 6); }
   get hasTestimonials(): boolean { return this.config.testimonials.length > 0; }
@@ -78,10 +68,5 @@ export class HomeComponent {
   get finalCtaTitle(): string { return this.homeContent.finalCtaTitle ?? 'Ready for a Healthier Smile?'; }
   get finalCtaSubtitle(): string {
     return this.homeContent.finalCtaSubtitle ?? 'Same-day slots available. Confirmed within 2 hours. No hidden charges.';
-  }
-
-  get faqs(): readonly ClinicFaq[] {
-    const faqs = this.homeContent.faqs?.filter(faq => faq.q && faq.a).slice(0, 8) ?? [];
-    return faqs.length ? faqs : this.defaultFaqs;
   }
 }

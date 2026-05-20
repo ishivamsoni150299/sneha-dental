@@ -1,6 +1,7 @@
 import { Component, HostListener, PLATFORM_ID, computed, inject, signal, type OnDestroy, type OnInit } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import type { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
@@ -26,7 +27,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <app-footer />
 
       <!-- Spacer so page content is not hidden under the fixed dock -->
-      <div class="md:hidden" style="height: calc(112px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
+      <div class="md:hidden" [class.hidden]="!showMobileDock()" style="height: calc(112px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
 
       <!-- Desktop WhatsApp action -->
       <div class="hidden md:flex fixed bottom-8 right-6 z-50">
@@ -45,7 +46,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @if (showBackToTop()) {
         <button (click)="scrollToTop()"
                 aria-label="Back to top"
-                class="fixed bottom-[7rem] right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:bottom-28 md:right-6">
+                class="fixed bottom-28 right-6 z-40 hidden h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:flex">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
           </svg>
@@ -124,9 +125,9 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       }
 
       <!-- Mobile action dock — anchored flush to viewport bottom -->
-      <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden" style="padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;">
+      <div class="fixed bottom-0 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="left: 12px; right: auto; width: min(calc(100vw - 48px), 342px); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));">
         <div class="mobile-dock-shell">
-          <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,1fr)] gap-2">
+          <div class="mobile-dock-grid">
             <a [href]="'tel:+' + clinic.config.phoneE164"
                aria-label="Call clinic"
                class="mobile-dock-link min-w-0">
@@ -147,15 +148,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
               <span class="truncate leading-none">Book Appointment</span>
             </a>
 
-            <a [href]="clinic.bookingWhatsappDeepLink" rel="noopener noreferrer"
-               aria-label="Chat on WhatsApp"
-               class="mobile-dock-link mobile-dock-link-whatsapp min-w-0">
-              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-              </svg>
-              <span class="truncate leading-none">WhatsApp</span>
-            </a>
-
           </div>
         </div>
       </div>
@@ -166,11 +158,14 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly clinic = inject(ClinicConfigService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly showBackToTop = signal(false);
   readonly showInstallBanner = signal(false);
   readonly installPromptReady = signal(false);
+  readonly currentUrl = signal('');
+  readonly showMobileDock = computed(() => !this.currentUrl().startsWith('/appointment'));
 
   readonly isIos = (() => {
     if (!this.isBrowser) {
@@ -181,6 +176,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
 
   private deferredInstallPrompt: (Event & { prompt?: () => Promise<void> }) | null = null;
   private beforeInstallPromptHandler: ((event: Event) => void) | null = null;
+  private routerEventsSubscription: Subscription | null = null;
 
   readonly voiceAgentId = computed(() => {
     const cfg = this.clinic.config;
@@ -209,6 +205,13 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     if (!this.isBrowser) {
       return;
     }
+
+    this.currentUrl.set(this.router.url);
+    this.routerEventsSubscription = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.currentUrl.set(event.urlAfterRedirects);
+      }
+    });
 
     const alreadyInstalled =
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -240,6 +243,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
     if (this.isBrowser && this.beforeInstallPromptHandler) {
       window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptHandler);
     }
+    this.routerEventsSubscription?.unsubscribe();
   }
 
   dismissInstallBanner(): void {

@@ -107,7 +107,7 @@
 
           <!-- Nav links -->
           <div class="grid grid-cols-1 gap-0.5 bg-gray-50 border-y border-gray-100 px-2 py-2">
-            @for (link of navLinks; track link.route) {
+            @for (link of mobileNavLinks; track link.route) {
               <a [routerLink]="link.route"
                  routerLinkActive="!text-[var(--accent-dk)] !font-bold !bg-[var(--accent-lt)]"
                  [routerLinkActiveOptions]="{exact: link.exact}"
