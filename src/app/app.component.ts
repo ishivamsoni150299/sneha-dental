@@ -2,6 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { SeoService } from './core/services/seo.service';
+import { ClinicConfigService } from './core/services/clinic-config.service';
 
 @Component({
   selector: 'app-root',
@@ -31,11 +32,18 @@ export class AppComponent {
 
   constructor() {
     inject(SeoService);
+    const clinicConfig = inject(ClinicConfigService);
     inject(Router).events.subscribe(e => {
       if (e instanceof NavigationStart)                                                              this.navigating.set(true);
       if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.navigating.set(false);
       if (e instanceof NavigationEnd && typeof window !== 'undefined') {
         window.scrollTo({ top: 0, behavior: 'instant' });
+        const isClinicAdminRoute =
+          e.urlAfterRedirects === '/business/clinic' ||
+          e.urlAfterRedirects.startsWith('/business/clinic/');
+        if (e.urlAfterRedirects.startsWith('/business') && !isClinicAdminRoute) {
+          clinicConfig.resetToPlatformTheme();
+        }
       }
     });
   }
