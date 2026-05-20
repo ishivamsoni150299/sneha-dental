@@ -6,7 +6,6 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import {
   SERVICE_CATEGORIES,
   SERVICE_CATEGORY_MAP,
-  SERVICES_FAQS,
   type ServiceCategory,
 } from '../../core/content/clinic-marketing.content';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
@@ -24,9 +23,7 @@ export class ServicesComponent {
   readonly config = this.clinic.config;
 
   readonly categories = SERVICE_CATEGORIES;
-  readonly faqs = SERVICES_FAQS;
   readonly activeCategory = signal<ServiceCategory>('All');
-  readonly openFaq = signal<number | null>(null);
 
   readonly filteredServices = computed<ClinicService[]>(() => {
     const category = this.activeCategory();
@@ -40,29 +37,9 @@ export class ServicesComponent {
     );
   });
 
-  toggleFaq(i: number): void {
-    this.openFaq.update(value => value === i ? null : i);
-  }
-
   categoryButtonClass(category: ServiceCategory): string {
     return this.activeCategory() === category
       ? 'bg-[var(--accent)] text-white shadow-sm'
       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200';
-  }
-
-  faqPanelClass(index: number): string {
-    return this.openFaq() === index ? 'border-[var(--accent-bd)] shadow-sm' : 'border-gray-100';
-  }
-
-  faqButtonClass(index: number): string {
-    return this.openFaq() === index ? 'bg-[var(--accent-lt)]' : 'bg-white hover:bg-gray-50';
-  }
-
-  faqIconClass(index: number): string {
-    return this.openFaq() === index ? 'bg-[var(--accent)] rotate-45' : 'bg-gray-100';
-  }
-
-  faqIconColorClass(index: number): string {
-    return this.openFaq() === index ? 'text-white' : 'text-gray-500';
   }
 }

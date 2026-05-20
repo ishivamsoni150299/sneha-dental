@@ -281,6 +281,10 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   }
 
   async onSubmit() {
+    if (this.submitting()) {
+      return;
+    }
+
     this.form.markAllAsTouched();
     this.validateScheduleFields();
     if (this.form.invalid) return;

@@ -8,15 +8,15 @@
           Services & Pricing
         </span>
 
-        <h1 class="mt-5 font-display text-4xl leading-tight text-gray-900 md:text-5xl">
+        <h1 class="mt-5 max-w-[20rem] font-display text-3xl leading-tight text-gray-900 md:max-w-none md:text-5xl">
           Clear treatment options for every dental concern.
         </h1>
 
-        <p class="mt-5 max-w-xl text-base leading-relaxed text-gray-500 md:text-lg">
+        <p class="mt-5 max-w-[20rem] text-base leading-relaxed text-gray-500 md:max-w-xl md:text-lg">
           Start with a symptom, compare services, and book in 60 seconds. We confirm the final cost before treatment, with no hidden charges.
         </p>
 
-        <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+        <div class="mt-7 flex max-w-[20rem] flex-col gap-3 sm:max-w-none sm:flex-row">
           <a routerLink="/appointment"
              class="inline-flex items-center justify-center rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-[var(--accent-sh)] transition-colors hover:bg-[var(--accent-dk)]">
             Book Appointment
@@ -30,23 +30,23 @@
           </a>
         </div>
 
-        <dl class="mt-8 grid max-w-xl grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-4">
+        <dl class="mt-8 grid max-w-[20rem] grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-gray-50 px-2 py-4 sm:px-3 md:max-w-xl">
           <div class="px-3 text-center">
             <dt class="text-[11px] font-semibold text-gray-400">Patients</dt>
-            <dd class="mt-1 text-xl font-bold text-gray-900">{{ config.patientCount || '1000+' }}</dd>
+            <dd class="mt-1 text-lg font-bold text-gray-900 sm:text-xl">{{ config.patientCount || '1000+' }}</dd>
           </div>
           <div class="px-3 text-center">
             <dt class="text-[11px] font-semibold text-gray-400">Rating</dt>
-            <dd class="mt-1 text-xl font-bold text-amber-500">{{ config.rating || '4.9' }}/5</dd>
+            <dd class="mt-1 text-lg font-bold text-amber-500 sm:text-xl">{{ config.rating || '4.9' }}/5</dd>
           </div>
           <div class="px-3 text-center">
             <dt class="text-[11px] font-semibold text-gray-400">Booking</dt>
-            <dd class="mt-1 text-xl font-bold text-[var(--accent)]">60 sec</dd>
+            <dd class="mt-1 text-lg font-bold text-[var(--accent)] sm:text-xl">60 sec</dd>
           </div>
         </dl>
       </div>
 
-      <div class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+      <div class="hidden overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60 md:block">
         <div class="relative h-44 overflow-hidden bg-gray-900">
           <img
             src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=1100&q=80"
@@ -72,8 +72,8 @@
     <div class="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <span class="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">All treatments</span>
-        <h2 class="mt-3 font-display text-3xl leading-tight text-gray-900 md:text-4xl">Browse services and pricing</h2>
-        <p class="mt-3 max-w-2xl text-sm leading-relaxed text-gray-500 md:text-base">
+        <h2 class="mt-3 max-w-[20rem] font-display text-3xl leading-tight text-gray-900 md:max-w-none md:text-4xl">Browse services and pricing</h2>
+        <p class="mt-3 max-w-[20rem] text-sm leading-relaxed text-gray-500 md:max-w-2xl md:text-base">
           Pricing is indicative and confirmed before care begins. Cash, UPI, and card payments are accepted.
         </p>
       </div>
@@ -117,44 +117,6 @@
         or message us on WhatsApp.
       </div>
     }
-  </div>
-</section>
-
-<!-- ===== FAQ ACCORDION ===== -->
-<section class="border-t border-gray-100 bg-gray-50 py-12 md:py-20">
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-10 text-center">
-      <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-lt)] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">
-        <span class="h-1 w-1 rounded-full bg-[var(--accent-md)]"></span>
-        Common Questions
-      </span>
-      <h2 class="mt-4 font-display text-3xl text-gray-900 md:text-4xl">Straight answers before you book</h2>
-      <p class="mt-3 text-gray-500">No jargon. No pressure.</p>
-    </div>
-
-    <div class="space-y-3">
-      @for (faq of faqs; track faq.q; let i = $index) {
-        <div class="overflow-hidden rounded-2xl border transition-all duration-200" [ngClass]="faqPanelClass(i)">
-          <button
-            type="button"
-            (click)="toggleFaq(i)"
-            class="flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition-colors"
-            [ngClass]="faqButtonClass(i)">
-            <span class="text-sm font-semibold leading-snug text-gray-900">{{ faq.q }}</span>
-            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-200" [ngClass]="faqIconClass(i)">
-              <svg class="h-3.5 w-3.5 transition-colors" [ngClass]="faqIconColorClass(i)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-              </svg>
-            </span>
-          </button>
-          @if (openFaq() === i) {
-            <div class="border-t border-[var(--accent-lt)] bg-white px-6 pb-5">
-              <p class="pt-3 text-sm leading-relaxed text-gray-600">{{ faq.a }}</p>
-            </div>
-          }
-        </div>
-      }
-    </div>
   </div>
 </section>
 
