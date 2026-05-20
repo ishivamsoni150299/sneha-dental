@@ -1,7 +1,7 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ClinicService, HealthPlan } from '../../core/config/clinic.config';
+import type { ClinicService } from '../../core/config/clinic.config';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import {
   SERVICE_CATEGORIES,
@@ -48,44 +48,6 @@ export class ServicesComponent {
     return this.activeCategory() === category
       ? 'bg-[var(--accent)] text-white shadow-sm'
       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200';
-  }
-
-  planCardClass(plan: HealthPlan): string {
-    return plan.highlighted
-      ? 'border-[var(--accent)] shadow-md shadow-[var(--accent-sh)]'
-      : 'border-gray-200 shadow-sm';
-  }
-
-  planHeaderClass(plan: HealthPlan): string {
-    return plan.highlighted ? 'bg-[var(--accent)]' : 'bg-white';
-  }
-
-  planTagClass(plan: HealthPlan): string {
-    return plan.highlighted
-      ? 'bg-white/20 text-white'
-      : 'bg-[var(--accent-lt)] text-[var(--accent-dk)]';
-  }
-
-  planTitleClass(plan: HealthPlan): string {
-    return plan.highlighted ? 'text-white' : 'text-gray-900';
-  }
-
-  planSubtextClass(plan: HealthPlan): string {
-    return plan.highlighted ? 'text-white/80' : 'text-gray-500';
-  }
-
-  planPriceClass(plan: HealthPlan): string {
-    return plan.highlighted ? 'text-white' : 'text-[var(--accent)]';
-  }
-
-  planPeriodClass(plan: HealthPlan): string {
-    return plan.highlighted ? 'text-white/70' : 'text-gray-400';
-  }
-
-  planButtonClass(plan: HealthPlan): string {
-    return plan.highlighted
-      ? 'bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white'
-      : 'border-2 border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-lt)]';
   }
 
   faqPanelClass(index: number): string {

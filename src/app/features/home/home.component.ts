@@ -1,5 +1,5 @@
-import { NgClass, isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, PLATFORM_ID, inject, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import type {
@@ -31,8 +31,6 @@ import { TestimonialCardComponent } from '../../shared/components/testimonial-ca
 })
 export class HomeComponent {
   readonly clinic = inject(ClinicConfigService);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly config = this.clinic.config;
   readonly clinicMonogram = buildClinicMonogram(this.config.name, 'CL');
@@ -43,18 +41,9 @@ export class HomeComponent {
   readonly defaultFaqs = HOME_FAQS;
 
   readonly openFaq = signal<number | null>(null);
-  readonly showEmergencyBanner = signal(
-    this.isBrowser && !sessionStorage.getItem('emergency_banner_seen'),
-  );
 
   toggleFaq(i: number): void {
     this.openFaq.update(v => v === i ? null : i);
-  }
-
-  dismissEmergencyBanner(): void {
-    if (!this.isBrowser) return;
-    this.showEmergencyBanner.set(false);
-    sessionStorage.setItem('emergency_banner_seen', '1');
   }
 
   get previewServices(): ClinicService[] { return this.config.services.slice(0, 6); }
