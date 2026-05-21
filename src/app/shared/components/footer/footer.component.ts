@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
@@ -24,7 +24,7 @@ export class FooterComponent {
     return plan === 'trial' || status === 'trial';
   }
 
-  quickLinks = [
+  readonly quickLinks = [
     { label: 'Home',             route: '/' },
     { label: 'Services',         route: '/services' },
     { label: 'About Us',         route: '/about' },

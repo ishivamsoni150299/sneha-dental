@@ -33,6 +33,20 @@ interface WhatsappAccountResponse {
   is_token_expired?: boolean;
 }
 
+interface ElevenLabsToolResponse {
+  id?: string;
+  tool_id?: string;
+  tool?: {
+    id?: string;
+    tool_id?: string;
+  };
+}
+
+interface VoiceBookingToolContext {
+  toolId: string;
+  enabled: boolean;
+}
+
 function getAction(req: VercelRequest): string {
   const queryAction = typeof req.query['action'] === 'string' ? req.query['action'] : '';
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -57,9 +71,165 @@ function getApiKey(res: VercelResponse): string | null {
 }
 
 function getWebhookUrl(): string {
-  const baseUrl = process.env['APP_BASE_URL']
-    ?? `https://${process.env['VERCEL_PROJECT_PRODUCTION_URL'] ?? process.env['VERCEL_URL']}`;
-  return `${baseUrl}/api/elevenlabs-webhook`;
+  return `${getPublicBaseUrl()}/api/elevenlabs-webhook`;
+}
+
+function getPublicBaseUrl(): string {
+  const configured = process.env['APP_BASE_URL']
+    ?? process.env['VERCEL_PROJECT_PRODUCTION_URL']
+    ?? process.env['VERCEL_URL']
+    ?? 'http://localhost:4200';
+  const baseUrl = /^https?:\/\//i.test(configured) ? configured : `https://${configured}`;
+  return baseUrl.replace(/\/+$/, '');
+}
+
+function getVoiceActionUrl(clinicId: string): string {
+  return `${getPublicBaseUrl()}/api/voice-booking-action?clinicId=${encodeURIComponent(clinicId)}`;
+}
+
+function getVoiceActionSecret(): string {
+  return (process.env['VOICE_ACTION_SECRET'] || process.env['ELEVENLABS_WEBHOOK_SECRET'] || '').trim();
+}
+
+function getClinicName(clinicId: string, clinic: Record<string, unknown>): string {
+  return typeof clinic['name'] === 'string' && clinic['name'].trim()
+    ? clinic['name'].trim().slice(0, 36)
+    : clinicId;
+}
+
+function getBookingRefPrefix(clinicId: string, clinic: Record<string, unknown>): string {
+  const configured = typeof clinic['bookingRefPrefix'] === 'string' ? clinic['bookingRefPrefix'].trim() : '';
+  const fallback = clinicId.replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase();
+  return (configured || fallback || 'VOICE').slice(0, 16);
+}
+
+function extractToolId(data: ElevenLabsToolResponse): string {
+  return data.id ?? data.tool_id ?? data.tool?.id ?? data.tool?.tool_id ?? '';
+}
+
+function buildVoiceBookingToolConfig(
+  clinicId: string,
+  clinicName: string,
+  bookingRefPrefix: string,
+): Record<string, unknown> {
+  const secret = getVoiceActionSecret();
+  const requestHeaders = secret ? { 'x-voice-action-secret': secret } : {};
+
+  return {
+    tool_config: {
+      type: 'webhook',
+      name: 'submit_voice_booking_request',
+      description: `Submit a pending dental appointment request for ${clinicName}. Use only after collecting patient name, phone number, treatment or issue, preferred date, and preferred time.`,
+      response_timeout_secs: 20,
+      disable_interruptions: true,
+      force_pre_tool_speech: false,
+      execution_mode: 'immediate',
+      api_schema: {
+        url: getVoiceActionUrl(clinicId),
+        method: 'POST',
+        request_headers: requestHeaders,
+        content_type: 'application/json',
+        request_body_schema: {
+          type: 'object',
+          required: ['bookingRefPrefix', 'name', 'phone', 'service', 'preferredDate', 'preferredTime'],
+          properties: {
+            bookingRefPrefix: {
+              type: 'string',
+              constant_value: bookingRefPrefix,
+              description: 'Internal booking reference prefix.',
+            },
+            name: {
+              type: 'string',
+              description: 'Patient full name.',
+            },
+            phone: {
+              type: 'string',
+              description: 'Patient mobile or WhatsApp number.',
+            },
+            email: {
+              type: 'string',
+              description: 'Patient email if they shared it.',
+            },
+            service: {
+              type: 'string',
+              description: 'Dental treatment, service, or issue the patient wants help with.',
+            },
+            preferredDate: {
+              type: 'string',
+              description: 'Preferred appointment date. Use YYYY-MM-DD when clear, otherwise pass the patient phrase.',
+            },
+            preferredTime: {
+              type: 'string',
+              description: 'Preferred appointment time. Use HH:mm when clear, otherwise pass the patient phrase.',
+            },
+            message: {
+              type: 'string',
+              description: 'Short note with patient concern, urgency, or context.',
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+async function createVoiceBookingTool(
+  apiKey: string,
+  clinicId: string,
+  clinic: Record<string, unknown>,
+): Promise<string> {
+  const response = await fetch('https://api.elevenlabs.io/v1/convai/tools', {
+    method: 'POST',
+    headers: {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(buildVoiceBookingToolConfig(
+      clinicId,
+      getClinicName(clinicId, clinic),
+      getBookingRefPrefix(clinicId, clinic),
+    )),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(details || 'Failed to create ElevenLabs voice booking tool');
+  }
+
+  const data = await response.json() as ElevenLabsToolResponse;
+  const toolId = extractToolId(data);
+  if (!toolId) throw new Error('ElevenLabs did not return a voice booking tool id');
+  return toolId;
+}
+
+async function ensureVoiceBookingTool(
+  apiKey: string,
+  clinicId: string,
+  clinic: Record<string, unknown>,
+): Promise<VoiceBookingToolContext> {
+  const existingToolId = typeof clinic['elevenLabsBookingToolId'] === 'string'
+    ? clinic['elevenLabsBookingToolId'].trim()
+    : '';
+
+  if (existingToolId) {
+    return { toolId: existingToolId, enabled: true };
+  }
+
+  try {
+    const toolId = await createVoiceBookingTool(apiKey, clinicId, clinic);
+    try {
+      await db.collection('clinics').doc(clinicId).update({
+        elevenLabsBookingToolId: toolId,
+        voiceActionEnabled: true,
+      });
+    } catch (error) {
+      console.warn('[elevenlabs] voice booking tool created but Firestore update failed:', error);
+    }
+    return { toolId, enabled: true };
+  } catch (error) {
+    console.error('[elevenlabs] voice booking tool setup failed:', error);
+    return { toolId: '', enabled: false };
+  }
 }
 
 function hasOwn(body: Record<string, unknown>, key: string): boolean {
@@ -122,13 +292,13 @@ async function handleCreateAgent(req: VercelRequest, res: VercelResponse): Promi
   const settings = resolveVoiceAgentSettings(body, {
     voiceId: process.env['ELEVENLABS_VOICE_ID'],
   });
+  const voiceBookingTool = await ensureVoiceBookingTool(apiKey, clinicId, body);
   const systemPrompt = buildAgentSystemPrompt(body, {
     language: settings.language,
     persona: settings.persona,
+    voiceActionEnabled: voiceBookingTool.enabled,
   });
-  const clinicName = typeof body['name'] === 'string' && body['name'].trim()
-    ? body['name'].trim().slice(0, 36)
-    : clinicId;
+  const clinicName = getClinicName(clinicId, body);
   const webhookSecret = process.env['ELEVENLABS_WEBHOOK_SECRET'] ?? '';
 
   const response = await fetch('https://api.elevenlabs.io/v1/convai/agents/create', {
@@ -146,6 +316,7 @@ async function handleCreateAgent(req: VercelRequest, res: VercelResponse): Promi
             llm: 'gemini-2.0-flash',
             temperature: 0.5,
             max_tokens: 800,
+            tool_ids: voiceBookingTool.toolId ? [voiceBookingTool.toolId] : [],
           },
           first_message: settings.greeting,
           language: settings.languageCode,
@@ -242,6 +413,7 @@ async function handleUpdateAgent(req: VercelRequest, res: VercelResponse): Promi
     persona: personaInput,
     voiceId: voiceIdInput,
   });
+  const voiceBookingTool = await ensureVoiceBookingTool(apiKey, clinicId, clinic);
 
   const response = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
     method: 'PATCH',
@@ -258,10 +430,12 @@ async function handleUpdateAgent(req: VercelRequest, res: VercelResponse): Promi
             prompt: buildAgentSystemPrompt(clinic, {
               language: settings.language,
               persona: settings.persona,
+              voiceActionEnabled: voiceBookingTool.enabled,
             }),
             llm: 'gemini-2.0-flash',
             temperature: 0.5,
             max_tokens: 800,
+            tool_ids: voiceBookingTool.toolId ? [voiceBookingTool.toolId] : [],
           },
         },
         tts: {

@@ -1,23 +1,19 @@
 <!-- ===== HERO ===== -->
-<section class="relative overflow-hidden bg-white py-10 md:py-20 border-b border-gray-100">
-  <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute -top-24 -right-24 w-96 h-96 bg-[var(--accent-lt)] opacity-40 rounded-full blur-3xl"></div>
-    <div class="absolute top-16 -left-16 w-72 h-72 bg-[var(--accent-lt)] opacity-60 rounded-full blur-2xl"></div>
-  </div>
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-5 border border-[var(--accent-lt)]">
-      <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
-      Our Space & Results
-    </span>
-    <h1 class="font-display text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4 leading-tight">
-      A Clinic Built for<br>
-      <span class="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-dk)] bg-clip-text text-transparent">Your Comfort</span>
-    </h1>
-    <p class="text-gray-500 text-lg max-w-xl mx-auto mb-8">
-      Step inside before your first visit. Modern equipment, spotless hygiene, and real patient transformations.
-    </p>
+<section class="clinic-public-hero">
+  <div class="clinic-public-container">
+    <div class="clinic-public-copy-center">
+      <span class="clinic-public-kicker">
+        Our Space & Results
+      </span>
+      <h1 class="clinic-public-title">
+        A clinic built for comfort and clean care.
+      </h1>
+      <p class="clinic-public-subtitle mb-8">
+        A quick look at the clinic environment before your visit.
+      </p>
+    </div>
     <!-- Quick stats bar -->
-    <div class="inline-flex flex-wrap justify-center gap-6 bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4">
+    <div class="hidden">
       <div class="flex items-center gap-2 text-sm text-gray-600">
         <svg class="w-4 h-4 text-[var(--accent-md)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -60,11 +56,11 @@
     </div>
 
     <!-- Masonry-style grid -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
       @for (img of clinicImages; track img.alt; let i = $index) {
         <div class="group relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
-             [class]="i === 0 ? 'row-span-2 col-span-1' : ''">
-          <div class="overflow-hidden" [class]="i === 0 ? 'aspect-[3/4]' : 'aspect-video'">
+             [ngClass]="i === 0 ? 'row-span-2 col-span-1' : ''">
+          <div class="overflow-hidden" [ngClass]="i === 0 ? 'aspect-[3/4]' : 'aspect-video'">
             <img [src]="img.src" [alt]="img.alt"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
           </div>
@@ -79,7 +75,7 @@
 </section>
 
 <!-- ===== BEFORE / AFTER ===== -->
-<section class="bg-gray-50 py-10 md:py-20">
+<section class="hidden">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
       <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
@@ -146,15 +142,11 @@
   <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/5 rounded-full pointer-events-none"></div>
   <div class="relative max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl md:text-4xl text-white mb-4">Ready to Transform Your Smile?</h2>
-    <p class="text-[var(--accent-lt)] text-lg mb-8 leading-relaxed">Join {{ config.patientCount }} patients who trusted us with their smile. Book your first visit today.</p>
-    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+    <p class="text-[var(--accent-lt)] text-lg mb-8 leading-relaxed">Book your first visit and we will guide you clearly.</p>
+    <div class="flex justify-center">
       <a routerLink="/appointment"
          class="bg-white hover:bg-[var(--accent-lt)] text-[var(--accent)] px-8 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px">
         Book Appointment
-      </a>
-      <a routerLink="/services"
-         class="border-2 border-white/30 hover:border-white/70 hover:bg-white/10 text-white px-8 py-3.5 rounded-xl font-semibold transition-all text-center">
-        View All Services
       </a>
     </div>
   </div>

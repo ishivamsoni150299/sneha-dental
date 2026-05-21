@@ -1,4 +1,6 @@
+import { inject } from '@angular/core';
 import { type CanActivateFn } from '@angular/router';
+import { ClinicConfigService } from '../services/clinic-config.service';
 
 /**
  * Blocks /business routes from being accessed on clinic subdomains.
@@ -10,7 +12,9 @@ import { type CanActivateFn } from '@angular/router';
  * URL manually, or via an old redirect), we hard-navigate them to the platform
  * domain so they land on the correct shell.
  */
-export const platformOnlyGuard: CanActivateFn = (): boolean => {
+export const platformOnlyGuard: CanActivateFn = (_route, state): boolean => {
+  const clinic = inject(ClinicConfigService);
+
   if (typeof window === 'undefined') return true;
 
   const host = window.location.hostname;
@@ -25,6 +29,13 @@ export const platformOnlyGuard: CanActivateFn = (): boolean => {
     // Hard cross-origin redirect — preserve the path so /business/login still works
     window.location.href = `https://www.mydentalplatform.com${window.location.pathname}${window.location.search}`;
     return false;
+  }
+
+  const isClinicAdminRoute =
+    state.url === '/business/clinic' ||
+    state.url.startsWith('/business/clinic/');
+  if (!isClinicAdminRoute) {
+    clinic.resetToPlatformTheme();
   }
 
   return true;

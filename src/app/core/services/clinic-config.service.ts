@@ -59,6 +59,20 @@ const THEME_PALETTES: Record<ClinicTheme, Record<string, string>> = {
 };
 
 const THEME_CLASS_NAMES = CLINIC_THEMES.map(theme => `theme-${theme}`);
+const THEME_TOKEN_NAMES = [
+  ...new Set([
+    ...Object.keys(THEME_PALETTES.blue),
+    ...Object.keys(buildSemanticTokens(THEME_PALETTES.blue)),
+  ]),
+];
+
+type RawClinicData = Record<string, unknown> & {
+  active?: unknown;
+  createdAt?: unknown;
+  domain?: unknown;
+  id?: unknown;
+  vercelDomain?: unknown;
+};
 
 function buildSemanticTokens(palette: Record<string, string>): Record<string, string> {
   return {
@@ -86,7 +100,7 @@ function normalizeTheme(theme: string | undefined): ClinicTheme {
   return CLINIC_THEMES.includes(theme as ClinicTheme) ? (theme as ClinicTheme) : 'blue';
 }
 
-function applyTheme(theme: string | undefined) {
+function applyTheme(theme: string | undefined): void {
   if (typeof document === 'undefined') return;
   const resolvedTheme = normalizeTheme(theme);
   const palette = THEME_PALETTES[resolvedTheme];
@@ -95,10 +109,28 @@ function applyTheme(theme: string | undefined) {
   root.classList.remove(...THEME_CLASS_NAMES);
   root.classList.add(`theme-${resolvedTheme}`);
   root.setAttribute('data-clinic-theme', resolvedTheme);
-  [...new Set([...Object.keys(THEME_PALETTES.blue), ...Object.keys(semanticTokens)])]
-    .forEach(prop => root.style.removeProperty(prop));
-  Object.entries({ ...palette, ...semanticTokens })
-    .forEach(([prop, val]) => root.style.setProperty(prop, val));
+  THEME_TOKEN_NAMES.forEach(prop => {
+    root.style.removeProperty(prop);
+  });
+  Object.entries({ ...palette, ...semanticTokens }).forEach(([prop, val]) => {
+    root.style.setProperty(prop, val);
+  });
+}
+
+function applyPlatformTheme(): void {
+  applyTheme('blue');
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-theme-context', 'platform');
+}
+
+function clinicConfigData(raw: Record<string, unknown>): Record<string, unknown> {
+  const rest: RawClinicData = { ...raw };
+  delete rest.id;
+  delete rest.domain;
+  delete rest.vercelDomain;
+  delete rest.active;
+  delete rest.createdAt;
+  return rest;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -157,8 +189,7 @@ export class ClinicConfigService {
 
       if (!snap.empty) {
         const docId = snap.docs[0].id;
-        const { id: _id, domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
-          snap.docs[0].data() as Record<string, unknown>;
+        const rest = clinicConfigData(snap.docs[0].data() as Record<string, unknown>);
         const config = {
           ...(rest as unknown as ClinicConfig),
           clinicId: docId,
@@ -220,14 +251,16 @@ export class ClinicConfigService {
       ));
       if (!snap.empty) {
         const docRef = snap.docs[0];
-        const { domain: _d, vercelDomain: _vd, active: _a, createdAt: _ts, ...rest } =
-          docRef.data() as Record<string, unknown>;
+        const rest = clinicConfigData(docRef.data() as Record<string, unknown>);
         const config = {
           ...(rest as unknown as ClinicConfig),
           clinicId: docRef.id,
           theme: normalizeTheme((rest as Partial<ClinicConfig>).theme),
         };
         applyTheme(config.theme);
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('data-theme-context', 'clinic-admin');
+        }
         this._config.set(config);
         this._isLoaded.set(true);
         return true;
@@ -260,6 +293,16 @@ export class ClinicConfigService {
       : partial;
     this._config.update(c => ({ ...c, ...nextPartial }));
     if (nextPartial.theme) applyTheme(nextPartial.theme);
+  }
+
+  /**
+   * Clears clinic-owner runtime branding when the SPA returns to platform pages.
+   * This keeps mydentalplatform.com visually independent from the last edited clinic.
+   */
+  resetToPlatformTheme(): void {
+    this._config.set(clinicConfig);
+    this._isLoaded.set(false);
+    applyPlatformTheme();
   }
 
   /** Full single-line address derived from the two address lines. */

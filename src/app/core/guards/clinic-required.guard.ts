@@ -20,8 +20,17 @@ export const clinicRequiredGuard: CanActivateFn = (): boolean | UrlTree => {
     return true;
   }
 
+  const host = window.location.hostname;
+  const isPlatformHost =
+    host === 'mydentalplatform.com' ||
+    host === 'www.mydentalplatform.com';
+
+  if (isPlatformHost) {
+    clinic.resetToPlatformTheme();
+    return router.createUrlTree(['/business']);
+  }
+
   if (!clinic.isLoaded) {
-    const host = window.location.hostname;
     const isClinicSubdomain =
       host.endsWith('.mydentalplatform.com') &&
       host !== 'www.mydentalplatform.com';

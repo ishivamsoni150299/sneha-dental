@@ -9,18 +9,31 @@
 
           <!-- ── Step Progress Indicator ── -->
           <div class="border-b border-gray-100 px-4 pb-4 pt-5 md:px-6 md:pb-5 md:pt-6">
-            <div class="flex items-center gap-0">
+            <div class="sm:hidden">
+              <div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">{{ stepLabels[currentStep() - 1].title }}</p>
+                  <p class="mt-0.5 text-xs text-gray-500">Step {{ currentStep() }} of {{ totalSteps }}</p>
+                </div>
+              </div>
+              <div class="mt-4 h-2 rounded-full bg-gray-100">
+                <div class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+                     [style.width.%]="(currentStep() / totalSteps) * 100"></div>
+              </div>
+            </div>
+
+            <div class="hidden items-center gap-0 sm:flex">
               @for (step of stepLabels; track step.num) {
                 <!-- Step bubble + label -->
                 <div class="flex items-center gap-1.5 min-w-0"
-                     [class]="step.num < stepLabels.length ? 'flex-1' : ''">
+                     [ngClass]="step.num < stepLabels.length ? 'flex-1' : ''">
                   <div class="flex flex-col items-center gap-1.5 shrink-0">
                     <button type="button"
                             (click)="goToStep(step.num)"
                             [disabled]="currentStep() <= step.num"
                             [attr.aria-label]="currentStep() > step.num ? 'Go back to step ' + step.num + ': ' + step.short : null"
                             class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 border-2 focus:outline-none"
-                            [class]="currentStep() > step.num
+                            [ngClass]="currentStep() > step.num
                               ? 'bg-green-500 border-green-500 text-white cursor-pointer hover:bg-green-600 focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-1'
                               : currentStep() === step.num
                                 ? 'bg-[var(--accent)] border-[var(--accent)] text-white shadow-md shadow-[var(--accent-bd)] cursor-default'
@@ -34,21 +47,21 @@
                       }
                     </button>
                     <span class="text-[10px] font-semibold leading-none whitespace-nowrap transition-colors duration-300"
-                          [class]="currentStep() === step.num ? 'text-[var(--accent)]' : currentStep() > step.num ? 'text-green-600' : 'text-gray-400'">
+                          [ngClass]="currentStep() === step.num ? 'text-[var(--accent)]' : currentStep() > step.num ? 'text-green-600' : 'text-gray-400'">
                       {{ step.short }}
                     </span>
                   </div>
                   <!-- Connector line (not after last step) -->
                   @if (step.num < totalSteps) {
                     <div class="flex-1 h-0.5 mx-2 mb-5 rounded-full transition-all duration-300"
-                         [class]="currentStep() > step.num ? 'bg-green-400' : 'bg-gray-200'">
+                         [ngClass]="currentStep() > step.num ? 'bg-green-400' : 'bg-gray-200'">
                     </div>
                   }
                 </div>
               }
             </div>
             <!-- Current step title + open status -->
-            <div class="flex items-center justify-between mt-3">
+            <div class="mt-3 hidden items-center justify-between sm:flex">
               <div>
                 <p class="font-semibold text-gray-900 text-sm">{{ stepLabels[currentStep() - 1].title }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">Step {{ currentStep() }} of {{ totalSteps }}</p>
@@ -62,44 +75,6 @@
                 <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200">
                   <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
                   We confirm within 2 hrs
-                </span>
-              }
-            </div>
-          </div>
-
-          <!-- Mobile trust pills — replaces the xl-only sidebar on small screens -->
-          <div class="relative border-b border-gray-100 px-4 py-2.5 xl:hidden">
-            <!-- fade-out hint that more pills are scrollable -->
-            <div class="pointer-events-none absolute bottom-0 right-0 top-0 w-10 bg-gradient-to-l from-white to-transparent z-10"></div>
-            <div class="flex gap-2 overflow-x-auto pb-0.5 pr-8 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-green-100 bg-green-50 px-3 py-1.5 text-[11px] font-semibold text-green-700">
-                <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
-                No hidden fees
-              </span>
-              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700">
-                <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Confirmed in 2 hrs
-              </span>
-              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-purple-100 bg-purple-50 px-3 py-1.5 text-[11px] font-semibold text-purple-700">
-                <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                Free to reschedule
-              </span>
-              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700">
-                <svg class="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.945L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-                </svg>
-                WhatsApp booking
-              </span>
-              @if (clinic.isOpenNow) {
-                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-green-200 bg-green-100 px-3 py-1.5 text-[11px] font-semibold text-green-800">
-                  <span class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse shrink-0"></span>
-                  Clinic open now
                 </span>
               }
             </div>
@@ -152,7 +127,7 @@
                     </svg>
                     <select id="appointment-service" formControlName="service"
                             class="w-full pl-10 pr-10 py-3.5 rounded-xl border transition-colors outline-none appearance-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1"
-                            [class]="isInvalid('service') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
+                            [ngClass]="isInvalid('service') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                       <option value="">Select a service...</option>
                       @for (s of services; track s) { <option [value]="s">{{ s }}</option> }
                     </select>
@@ -176,7 +151,7 @@
 
                 <!-- Doctor (optional) -->
                 @if (doctorsLoading()) {
-                  <div>
+                  <div class="hidden sm:block">
                     <div class="h-4 w-32 bg-gray-200 rounded-md animate-pulse mb-3"></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 min-h-[52px]">
@@ -196,18 +171,18 @@
                     </div>
                   </div>
                 } @else if (doctors().length > 0) {
-                  <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <div class="hidden sm:block">
+                    <p class="block text-sm font-semibold text-gray-700 mb-1.5">
                       Choose Doctor
                       <span class="text-gray-400 font-normal text-xs">(optional)</span>
-                    </label>
+                    </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <button type="button"
                               (click)="selectDoctor('')"
                               [attr.aria-pressed]="selectedDoctorId() === ''"
                               aria-label="No doctor preference — any available doctor"
                               class="flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all min-h-[52px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1"
-                              [class]="selectedDoctorId() === ''
+                              [ngClass]="selectedDoctorId() === ''
                                 ? 'border-[var(--accent)] bg-[var(--accent-lt)] ring-1 ring-[var(--accent)]'
                                 : 'border-gray-200 bg-white hover:border-gray-300'">
                         <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
@@ -226,7 +201,7 @@
                                 [attr.aria-pressed]="selectedDoctorId() === doctor.id"
                                 [attr.aria-label]="'Select ' + doctor.name"
                                 class="flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all min-h-[52px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1"
-                                [class]="selectedDoctorId() === doctor.id
+                                [ngClass]="selectedDoctorId() === doctor.id
                                   ? 'border-[var(--accent)] bg-[var(--accent-lt)] ring-1 ring-[var(--accent)]'
                                   : 'border-gray-200 bg-white hover:border-gray-300'">
                           <div class="w-9 h-9 rounded-lg bg-[var(--accent-lt)] flex items-center justify-center text-[var(--accent)] font-bold text-xs shrink-0">
@@ -254,7 +229,7 @@
                       </svg>
                       <input id="appointment-date" formControlName="date" type="date" [min]="minDate"
                              class="w-full pl-10 pr-4 py-3.5 rounded-xl border transition-colors outline-none cursor-pointer"
-                             [class]="isInvalid('date') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
+                             [ngClass]="isInvalid('date') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                     </div>
                     @if (form.get('date')?.errors?.['pastDate']) {
                       <p class="text-red-500 text-xs mt-1">Please choose today or a future date.</p>
@@ -295,7 +270,7 @@
                         </svg>
                         <select id="appointment-time" formControlName="time"
                                 class="w-full pl-10 pr-10 py-3.5 rounded-xl border transition-colors outline-none appearance-none cursor-pointer"
-                                [class]="isInvalid('time') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
+                                [ngClass]="isInvalid('time') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                           <option value="">Select time…</option>
                           @for (t of timeSlots; track t) {
                             <option [value]="t">{{ formatSlotDisplay(t) }}</option>
@@ -309,30 +284,6 @@
                     @if (form.get('time')?.errors?.['pastTime']) {
                       <p class="text-red-500 text-xs mt-1">Please choose a current or future time slot.</p>
                     } @else if (isInvalid('time')) { <p class="text-red-500 text-xs mt-1">Please select a time.</p> }
-                  </div>
-                </div>
-
-                <div class="hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white sm:p-5 md:block">
-                  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div>
-                      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">Booking preview</p>
-                      <h3 class="mt-2 text-lg font-bold">{{ selectedServiceLabel }}</h3>
-                      <p class="mt-1 text-sm text-slate-300">{{ selectedDateLabel }} @if (form.get('time')?.value) { · {{ selectedTimeLabel }} }</p>
-                    </div>
-                    <span class="inline-flex items-center gap-2 bg-emerald-400/10 text-emerald-200 border border-emerald-400/20 text-xs font-semibold px-3 py-2 rounded-full">
-                      <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
-                      {{ confirmationWindowLabel }}
-                    </span>
-                  </div>
-                  <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-                      <p class="text-[11px] uppercase tracking-wide text-slate-400">Preferred doctor</p>
-                      <p class="mt-1 text-sm font-semibold text-white">{{ selectedDoctorLabel }}</p>
-                    </div>
-                    <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-                      <p class="text-[11px] uppercase tracking-wide text-slate-400">What to expect</p>
-                      <p class="mt-1 text-sm text-slate-200">{{ slotRecommendation }}</p>
-                    </div>
                   </div>
                 </div>
 
@@ -393,7 +344,7 @@
                     </svg>
                     <input id="appointment-name" formControlName="name" type="text" autocomplete="name" placeholder="e.g. Priya Sharma"
                            class="w-full pl-10 pr-4 py-3.5 rounded-xl border transition-colors outline-none"
-                           [class]="isInvalid('name') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
+                           [ngClass]="isInvalid('name') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                   </div>
                   @if (isInvalid('name')) { <p class="text-red-500 text-xs mt-1">Name required (min 2 characters).</p> }
                 </div>
@@ -409,7 +360,7 @@
                     </svg>
                     <input id="appointment-phone" formControlName="phone" type="tel" autocomplete="tel" inputmode="numeric" placeholder="10-digit mobile number"
                            class="w-full pl-10 pr-4 py-3.5 rounded-xl border transition-colors outline-none"
-                           [class]="isInvalid('phone') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
+                           [ngClass]="isInvalid('phone') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                   </div>
                   @if (isInvalid('phone')) { <p class="text-red-500 text-xs mt-1">Valid 10-digit number required.</p> }
                   <p class="text-xs text-gray-400 mt-1.5">We'll call you on this number to confirm your slot.</p>
@@ -518,7 +469,7 @@
                         </svg>
                         <input id="appointment-email" formControlName="email" type="email" autocomplete="email" placeholder="you@example.com"
                                class="w-full pl-10 pr-4 py-3.5 rounded-xl border transition-colors outline-none"
-                               [class]="isInvalid('email') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
+                               [ngClass]="isInvalid('email') ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-[var(--accent-md)]'">
                       </div>
                     </div>
                     <!-- Notes -->
@@ -569,11 +520,20 @@
                 </div>
 
                 @if (error()) {
-                  <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 flex items-center gap-2" role="alert">
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    {{ error() }}
+                  <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="assertive">
+                    <div class="flex items-start gap-3">
+                      <svg class="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                      </svg>
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-red-700">Booking could not be submitted</p>
+                        <p class="mt-1 text-xs leading-relaxed text-red-600">{{ error() }}</p>
+                      </div>
+                    </div>
+                    <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer"
+                       class="mt-3 flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-green-700">
+                      Continue on WhatsApp
+                    </a>
                   </div>
                 }
 
@@ -602,40 +562,6 @@
 
         <!-- Reassurance panel — sticky, visible from step 1 -->
         <div class="xl:sticky xl:top-20 space-y-4 bg-gray-50 pb-1">
-
-        <div class="bg-slate-900 text-white rounded-2xl shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-white/10">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Booking confidence</p>
-                <h3 class="mt-2 text-lg font-bold">{{ bookingStatusTitle }}</h3>
-              </div>
-              <span class="text-sm font-bold text-emerald-300">{{ bookingReadinessPct }}%</span>
-            </div>
-            <div class="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
-              <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-300 transition-all duration-300"
-                   [style.width.%]="bookingReadinessPct">
-              </div>
-            </div>
-          </div>
-          <div class="px-5 py-4 space-y-4">
-            <p class="text-sm text-slate-200 leading-relaxed">{{ bookingStatusText }}</p>
-            <div class="grid grid-cols-1 gap-3">
-              <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400">Response window</p>
-                <p class="mt-1 text-sm font-semibold text-white">{{ confirmationWindowLabel }}</p>
-              </div>
-              <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400">Doctor assignment</p>
-                <p class="mt-1 text-sm font-semibold text-white">{{ selectedDoctorLabel }}</p>
-              </div>
-              <div class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400">Scheduling note</p>
-                <p class="mt-1 text-sm text-slate-200">{{ slotRecommendation }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Booking progress card — shows selected details as user fills in form -->
         @if (form.get('service')?.value || form.get('date')?.value || form.get('time')?.value) {

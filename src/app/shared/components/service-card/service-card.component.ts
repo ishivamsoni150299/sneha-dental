@@ -13,4 +13,5 @@ export class ServiceCardComponent {
   description = input<string>('');
   benefit     = input<string>('');
   price       = input<string>('');
+  compact     = input(false);
 }

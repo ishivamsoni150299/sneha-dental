@@ -1,28 +1,29 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 
 @Component({
   selector: 'app-gallery',
   standalone: true,
-  imports: [RouterLink],
+  imports: [NgClass, RouterLink],
   templateUrl: './gallery.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GalleryComponent {
   readonly config = inject(ClinicConfigService).config;
   clinicImages = [
-    { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Reception+Area',     alt: 'Clinic reception area' },
-    { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Treatment+Room+1',   alt: 'Treatment room' },
-    { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Treatment+Room+2',   alt: 'Modern dental chair' },
-    { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Sterilization+Area', alt: 'Sterilization equipment' },
-    { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=Waiting+Lounge',     alt: 'Comfortable waiting area' },
-    { src: 'https://placehold.co/600x400/EFF6FF/2563EB?text=X-Ray+Room',         alt: 'Digital X-ray room' },
+    { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=900&q=80', alt: 'Clinic reception area' },
+    { src: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=900&q=80', alt: 'Treatment room' },
+    { src: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=900&q=80', alt: 'Modern dental chair' },
+    { src: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=900&q=80', alt: 'Sterilization equipment' },
+    { src: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80', alt: 'Comfortable waiting area' },
+    { src: 'https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&w=900&q=80', alt: 'Digital X-ray room' },
   ];
 
   transformations = [
-    { before: 'https://placehold.co/400x300/FEF2F2/DC2626?text=Before', after: 'https://placehold.co/400x300/F0FDF4/16A34A?text=After', label: 'Smile Makeover' },
-    { before: 'https://placehold.co/400x300/FEF2F2/DC2626?text=Before', after: 'https://placehold.co/400x300/F0FDF4/16A34A?text=After', label: 'Teeth Whitening' },
-    { before: 'https://placehold.co/400x300/FEF2F2/DC2626?text=Before', after: 'https://placehold.co/400x300/F0FDF4/16A34A?text=After', label: 'Orthodontic Result' },
+    { before: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=600&q=80', after: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=600&q=80', label: 'Smile Makeover' },
+    { before: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=600&q=80', after: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=600&q=80', label: 'Teeth Whitening' },
+    { before: 'https://images.unsplash.com/photo-1593022356769-11f762e25ed9?auto=format&fit=crop&w=600&q=80', after: 'https://images.unsplash.com/photo-1593022356769-11f762e25ed9?auto=format&fit=crop&w=600&q=80', label: 'Orthodontic Result' },
   ];
 }

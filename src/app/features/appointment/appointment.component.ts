@@ -1,14 +1,19 @@
+import { NgClass } from '@angular/common';
+import type { OnDestroy, OnInit } from '@angular/core';
 import {
-  Component, signal, ChangeDetectionStrategy, inject, OnInit, OnDestroy,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
 } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import type { Doctor } from '../../core/services/doctor.service';
 import {
   DoctorService,
-  Doctor,
   DEFAULT_BOOKING_SLOTS,
   filterBookableSlots,
   formatSlotDisplay,
@@ -18,16 +23,16 @@ import {
 @Component({
   selector: 'app-appointment',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [NgClass, ReactiveFormsModule, RouterLink],
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentComponent implements OnInit, OnDestroy {
-  private fb                 = inject(FormBuilder);
-  private appointmentService = inject(AppointmentService);
-  private router             = inject(Router);
-  private route              = inject(ActivatedRoute);
-  private doctorSvc          = inject(DoctorService);
+  private readonly fb                 = inject(FormBuilder);
+  private readonly appointmentService = inject(AppointmentService);
+  private readonly router             = inject(Router);
+  private readonly route              = inject(ActivatedRoute);
+  private readonly doctorSvc          = inject(DoctorService);
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
 
@@ -51,7 +56,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   nextStep() {
     const step = this.currentStep();
     const fields = this.stepFields[step] ?? [];
-    fields.forEach(f => this.form.get(f)!.markAsTouched());
+    fields.forEach(f => { this.form.get(f)!.markAsTouched(); });
     const hasErrors = fields.some(f => this.form.get(f)!.invalid);
     if (hasErrors) return;
     if (step < this.totalSteps) {
@@ -96,11 +101,9 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   readonly fallbackSlots = DEFAULT_BOOKING_SLOTS;
 
   readonly nextSteps = [
-    { text: 'Submit the form — takes under 60 seconds' },
+    { text: 'Submit the form in under 60 seconds' },
     { text: 'We call you within 2 hours to confirm your slot' },
-    { text: 'Save the booking reference sent to you' },
-    { text: 'Arrive at your scheduled time — we\'ll be ready' },
-    { text: 'Leave with a healthier, happier smile' },
+    { text: 'Arrive at your scheduled time with your booking reference' },
   ];
 
   form = this.fb.group({
@@ -113,7 +116,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     message: [''],
   });
 
-  private subs = new Subscription();
+  private readonly subs = new Subscription();
 
   ngOnInit() {
     // Pre-fill service from ?service= query param
@@ -145,7 +148,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     );
 
     this.subs.add(
-      this.form.get('time')!.valueChanges.subscribe(() => this.validateScheduleFields())
+      this.form.get('time')!.valueChanges.subscribe(() => { this.validateScheduleFields(); })
     );
   }
 
@@ -226,59 +229,8 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     return this.selectedDoctor?.name || 'First available doctor';
   }
 
-  get bookingReadiness(): number {
-    return ['service', 'date', 'time', 'name', 'phone'].filter((field) => {
-      const value = this.form.get(field)?.value;
-      return value != null && String(value).trim().length > 0;
-    }).length;
-  }
-
-  get bookingReadinessPct(): number {
-    return Math.round((this.bookingReadiness / 5) * 100);
-  }
-
-  get bookingStatusTitle(): string {
-    if (this.currentStep() === 3 && this.form.valid) return 'Ready to confirm';
-    if (this.bookingReadiness >= 3) return 'Slot shortlisted';
-    if (this.form.get('service')?.value) return 'Building your booking';
-    return 'Start with your treatment';
-  }
-
-  get bookingStatusText(): string {
-    if (!this.form.get('service')?.value) {
-      return 'Choose a treatment, date and time to see the booking summary update live.';
-    }
-    if (!this.form.get('date')?.value || !this.form.get('time')?.value) {
-      return 'Add your preferred visit time and the clinic will match you with the best available slot.';
-    }
-    if (!this.form.get('name')?.value || !this.form.get('phone')?.value) {
-      return 'Your slot is shortlisted. Add your contact details so the clinic can confirm it quickly.';
-    }
-    return `You are requesting ${this.selectedServiceLabel} on ${this.selectedDateLabel} at ${this.selectedTimeLabel}.`;
-  }
-
   get confirmationWindowLabel(): string {
     return this.clinic.isOpenNow ? 'Within 2 hours today' : 'Next working window';
-  }
-
-  get slotRecommendation(): string {
-    const date = this.form.get('date')?.value;
-    const time = this.form.get('time')?.value;
-    if (!date || !time) {
-      return 'Same-day appointments are often available while the clinic is open.';
-    }
-
-    const selectedDate = new Date(`${date}T00:00:00`);
-    const today = new Date(`${this.minDate}T00:00:00`);
-    const diffDays = Math.round((selectedDate.getTime() - today.getTime()) / 86_400_000);
-
-    if (diffDays === 0) {
-      return 'This is a same-day request, so the clinic will prioritize confirmation if the slot is still open.';
-    }
-    if (this.selectedDoctorId()) {
-      return `${this.selectedDoctorLabel} has live availability enabled, so the clinic can confirm this slot more accurately.`;
-    }
-    return 'No doctor preference selected, which helps the clinic confirm the fastest available doctor.';
   }
 
   doctorInitials(name: string): string {
@@ -329,6 +281,10 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   }
 
   async onSubmit() {
+    if (this.submitting()) {
+      return;
+    }
+
     this.form.markAllAsTouched();
     this.validateScheduleFields();
     if (this.form.invalid) return;
