@@ -136,6 +136,63 @@
     color: var(--color-primary-hover);
   }
 
+  .clinic-public-hero {
+    @apply overflow-x-clip border-b py-10 md:py-20;
+    border-color: var(--color-line);
+    background:
+      linear-gradient(180deg, #fff 0%, color-mix(in srgb, var(--color-surface-muted) 44%, white) 100%);
+  }
+
+  .clinic-public-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .clinic-public-copy {
+    @apply max-w-[21rem] text-left sm:max-w-xl;
+  }
+
+  .clinic-public-copy-center {
+    @apply max-w-[21rem] text-left sm:mx-auto sm:max-w-2xl sm:text-center;
+  }
+
+  .clinic-public-title {
+    @apply font-display text-[2rem] leading-[1.12] text-gray-950 sm:text-4xl md:text-5xl;
+    text-wrap: balance;
+  }
+
+  .clinic-public-subtitle {
+    @apply mt-4 text-base leading-7 text-gray-600 md:text-lg;
+  }
+
+  .clinic-public-kicker {
+    @apply mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em];
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 78%, white);
+    color: var(--color-primary);
+  }
+
+  .clinic-public-kicker::before {
+    content: '';
+    @apply h-1.5 w-1.5 rounded-full;
+    background: var(--color-primary);
+  }
+
+  .clinic-public-card {
+    @apply rounded-2xl border bg-white p-5;
+    border-color: var(--color-line);
+    box-shadow: 0 18px 46px -38px rgba(15, 23, 42, 0.36);
+  }
+
+  .clinic-public-action {
+    @apply flex min-h-[72px] items-center gap-3 rounded-2xl border bg-white px-4 py-4 transition-colors;
+    border-color: var(--color-line);
+  }
+
+  .clinic-public-action:hover {
+    border-color: var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-primary-soft) 62%, white);
+  }
+
   .ds-button-whatsapp {
     color: #fff;
     background: var(--color-success);
