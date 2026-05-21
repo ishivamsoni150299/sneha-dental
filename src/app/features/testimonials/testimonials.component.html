@@ -9,13 +9,13 @@
         Real patient feedback.
       </h1>
       <p class="clinic-public-subtitle mb-8">
-        {{ config.patientCount || '1000+' }} patients have trusted us with their dental health. Here's what they say.
+        Short stories from patients who visited the clinic.
       </p>
     </div>
 
     @if (hasTestimonials) {
       <!-- Rating summary -->
-      <div class="clinic-public-card mb-8 flex flex-wrap items-center justify-center gap-3 px-4 py-4 sm:mx-auto sm:gap-4">
+      <div class="hidden">
         <div>
           <p class="text-4xl font-extrabold text-gray-900 leading-none">{{ config.rating || '4.9' }}</p>
           <p class="text-xs text-gray-400 mt-1">out of 5</p>
@@ -66,7 +66,7 @@
 
 <!-- ===== FEATURED REVIEW ===== -->
 @if (hasTestimonials) {
-  <section class="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dk)] py-10 md:py-14">
+  <section class="hidden">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <div class="text-5xl text-white/30 font-serif mb-4 leading-none">"</div>
       <p class="text-white text-xl md:text-2xl font-display leading-relaxed mb-6 italic">
@@ -112,7 +112,7 @@
       </div>
 
       <!-- Review CTA -->
-      <div class="mt-14 bg-white rounded-3xl border border-gray-200 shadow-sm p-8 text-center max-w-xl mx-auto">
+      <div class="hidden">
         <div class="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <svg class="w-7 h-7 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
@@ -152,7 +152,7 @@
 </section>
 
 <!-- ===== CTA ===== -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-10 md:py-16">
+<section class="hidden">
   <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-md"></div>
   <div class="relative max-w-2xl mx-auto px-4 text-center">
     <h2 class="font-display text-3xl md:text-4xl text-white mb-4">Join Our Happy Patients</h2>
