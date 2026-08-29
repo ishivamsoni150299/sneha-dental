@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
-  collection, getDocs, getDoc, setDoc, addDoc, updateDoc,
-  deleteDoc, doc, query, orderBy, where, serverTimestamp,
+  collection, getDocs, getDoc, setDoc, updateDoc,
+  deleteDoc, deleteField, doc, query, orderBy, where, serverTimestamp, writeBatch,
   type Timestamp, type UpdateData, type DocumentData, limit,
 } from 'firebase/firestore';
 import type { ClinicConfig, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
@@ -94,25 +94,69 @@ function toFirestoreData(data: Record<string, unknown>): UpdateData<DocumentData
   ) as UpdateData<DocumentData>;
 }
 
+const PRIVATE_CLINIC_FIELDS = new Set([
+  'adminUid',
+  'adminEmail',
+  'billingEmail',
+  'billingNotes',
+  'billingCycle',
+  'lastPaymentDate',
+  'lastPaymentAmount',
+  'lastPaymentRef',
+  'razorpaySubscriptionId',
+  'leadSource',
+  'marketingAttribution',
+  'grandfatheredUntil',
+  'grandfatheredPlan',
+  'voiceBudgetCap',
+  'voiceAutoStop',
+]);
+
+function partitionClinicData(data: Record<string, unknown>): {
+  publicData: Record<string, unknown>;
+  privateData: Record<string, unknown>;
+} {
+  const publicData: Record<string, unknown> = {};
+  const privateData: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined) continue;
+    (PRIVATE_CLINIC_FIELDS.has(key) ? privateData : publicData)[key] = value;
+  }
+  return { publicData, privateData };
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClinicFirestoreService {
   private readonly COL = 'clinics';
 
+  private async mergePrivate(id: string, publicData: Record<string, unknown>): Promise<StoredClinic> {
+    try {
+      const privateSnap = await getDoc(doc(db, this.COL, id, 'private', 'account'));
+      return {
+        id,
+        ...publicData,
+        ...(privateSnap.exists() ? privateSnap.data() : {}),
+      } as StoredClinic;
+    } catch {
+      return { id, ...publicData } as StoredClinic;
+    }
+  }
+
   async getAll(): Promise<StoredClinic[]> {
     const q    = query(collection(db, this.COL), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
   }
 
   async getById(id: string): Promise<StoredClinic | null> {
     const snap = await getDoc(doc(db, this.COL, id));
-    return snap.exists() ? ({ id: snap.id, ...snap.data() } as StoredClinic) : null;
+    return snap.exists() ? this.mergePrivate(snap.id, snap.data()) : null;
   }
 
   async getActive(): Promise<StoredClinic[]> {
     const q    = query(collection(db, this.COL), where('active', '==', true), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
   }
 
   async getByDomain(domain: string): Promise<StoredClinic | null> {
@@ -123,7 +167,7 @@ export class ClinicFirestoreService {
       limit(1),
     );
     const snap = await getDocs(q);
-    return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
+    return snap.empty ? null : this.mergePrivate(snap.docs[0].id, snap.docs[0].data());
   }
 
   async getByVercelDomain(vercelDomain: string): Promise<StoredClinic | null> {
@@ -133,7 +177,7 @@ export class ClinicFirestoreService {
       limit(1),
     );
     const snap = await getDocs(q);
-    return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
+    return snap.empty ? null : this.mergePrivate(snap.docs[0].id, snap.docs[0].data());
   }
 
   async getByAdminUid(uid: string): Promise<StoredClinic | null> {
@@ -143,13 +187,16 @@ export class ClinicFirestoreService {
       limit(1),
     );
     const snap = await getDocs(q);
-    return snap.empty ? null : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as StoredClinic);
+    if (!snap.empty) return this.mergePrivate(snap.docs[0].id, snap.docs[0].data());
+
+    const clinics = await this.getAll();
+    return clinics.find(clinic => clinic.adminUid === uid) ?? null;
   }
 
   async getActiveSubscriptions(): Promise<StoredClinic[]> {
     const q    = query(collection(db, this.COL), where('subscriptionStatus', '==', 'active'));
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
   }
 
   async getExpiredTrials(): Promise<StoredClinic[]> {
@@ -160,23 +207,49 @@ export class ClinicFirestoreService {
       where('trialEndDate', '<', today),
     );
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredClinic));
+    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
   }
 
   async create(data: Omit<StoredClinic, 'id' | 'createdAt'>): Promise<string> {
-    const ref = await addDoc(
-      collection(db, this.COL),
-      { ...toFirestoreData(data as unknown as Record<string, unknown>), createdAt: serverTimestamp() },
-    );
-    await updateDoc(ref, { clinicId: ref.id });
+    const ref = doc(collection(db, this.COL));
+    const { publicData, privateData } = partitionClinicData(data as unknown as Record<string, unknown>);
+    const batch = writeBatch(db);
+    batch.set(ref, { ...toFirestoreData(publicData), clinicId: ref.id, createdAt: serverTimestamp() });
+    if (Object.keys(privateData).length > 0) {
+      batch.set(doc(ref, 'private', 'account'), {
+        ...toFirestoreData(privateData),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    }
+    await batch.commit();
     return ref.id;
   }
 
   async update(id: string, data: Partial<Omit<StoredClinic, 'id' | 'createdAt'>>): Promise<void> {
-    await updateDoc(
-      doc(db, this.COL, id),
-      toFirestoreData(data as unknown as Record<string, unknown>),
+    const clinicRef = doc(db, this.COL, id);
+    const existing = await getDoc(clinicRef);
+    if (!existing.exists()) throw new Error('Clinic not found');
+
+    const incoming = data as unknown as Record<string, unknown>;
+    const { publicData, privateData } = partitionClinicData(incoming);
+    const { privateData: legacyPrivateData } = partitionClinicData(existing.data());
+    const privatePatch = { ...legacyPrivateData, ...privateData };
+    const fieldsToRemove = Object.fromEntries(
+      [...PRIVATE_CLINIC_FIELDS]
+        .filter(key => key in existing.data() || key in incoming)
+        .map(key => [key, deleteField()]),
     );
+
+    const batch = writeBatch(db);
+    const publicPatch = { ...toFirestoreData(publicData), ...fieldsToRemove };
+    if (Object.keys(publicPatch).length > 0) batch.update(clinicRef, publicPatch);
+    if (Object.keys(privatePatch).length > 0) {
+      batch.set(doc(clinicRef, 'private', 'account'), {
+        ...toFirestoreData(privatePatch),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    }
+    await batch.commit();
   }
 
   async remove(id: string): Promise<void> {

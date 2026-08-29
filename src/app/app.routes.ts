@@ -95,6 +95,26 @@ export const routes: Routes = [
           description: 'Call, WhatsApp, or message us. We respond quickly during clinic hours.',
         },
       },
+      {
+        path: 'privacy',
+        loadComponent: () =>
+          import('./features/legal/legal.component').then(m => m.LegalComponent),
+        data: {
+          title: 'Privacy Notice',
+          description: 'Learn how appointment and enquiry information is handled on this clinic website.',
+          legalPage: 'privacy',
+        },
+      },
+      {
+        path: 'terms',
+        loadComponent: () =>
+          import('./features/legal/legal.component').then(m => m.LegalComponent),
+        data: {
+          title: 'Website Terms',
+          description: 'Terms for online appointment requests and use of this clinic website.',
+          legalPage: 'terms',
+        },
+      },
       // ── Admin has moved to mydentalplatform.com/business/login ──────────
       // These redirects preserve old bookmarks gracefully.
       { path: 'admin/login',    redirectTo: '/business/login' },

@@ -5,8 +5,19 @@ export type EmailTemplate =
   | 'trial_expiry_7d'
   | 'trial_expiry_3d'
   | 'trial_expiry_0d'
+  | 'appointment_request_received'
+  | 'clinic_booking_alert'
   | 'appointment_confirmation'
   | 'appointment_reminder';
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 function createTransporter() {
   const user = process.env['ZOHO_SMTP_USER'];
@@ -22,6 +33,9 @@ function createTransporter() {
 }
 
 function buildEmail(template: EmailTemplate, data: Record<string, string>) {
+  data = Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [key, escapeHtml(String(value ?? ''))]),
+  );
   const from = `mydentalplatform <${process.env['ZOHO_SMTP_USER'] ?? 'mydentalplatform@zohomail.in'}>`;
   const support = 'mydentalplatform@zohomail.in';
 
@@ -192,6 +206,61 @@ function buildEmail(template: EmailTemplate, data: Record<string, string>) {
 </div></body></html>`,
       };
 
+    case 'appointment_request_received':
+      return {
+        from,
+        subject: `Appointment request received - ${data['clinicName']}`,
+        html: `
+<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f8fafc;margin:0;padding:0">
+<div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
+  <div style="background:linear-gradient(135deg,#2563eb,#1e3a8a);padding:32px;text-align:center">
+    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">Request received</h1>
+    <p style="color:#bfdbfe;margin:8px 0 0;font-size:14px">${data['clinicName']}</p>
+  </div>
+  <div style="padding:32px">
+    <p style="color:#374151;font-size:14px;margin:0 0 20px">Hi ${data['patientName']},</p>
+    <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 20px">Your appointment request is saved. The clinic will confirm the final slot by call or WhatsApp.</p>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;margin:0 0 24px">
+      <table style="width:100%;font-size:14px;color:#374151;border-collapse:collapse">
+        <tr><td style="padding:6px 0;color:#6b7280;width:120px">Booking ref</td><td style="font-weight:700;color:#1d4ed8">${data['bookingRef']}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280">Service</td><td style="font-weight:600">${data['service']}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280">Preferred date</td><td style="font-weight:600">${data['date']}</td></tr>
+        <tr><td style="padding:6px 0;color:#6b7280">Preferred time</td><td style="font-weight:600">${data['time']}</td></tr>
+      </table>
+    </div>
+    <p style="font-size:12px;color:#64748b;text-align:center;line-height:1.6">This is a request, not a confirmed clinical appointment. For urgent dental pain, call ${data['phone']} directly.</p>
+  </div>
+</div></body></html>`,
+      };
+
+    case 'clinic_booking_alert':
+      return {
+        from,
+        subject: `New booking request - ${data['patientName']} - ${data['date']}`,
+        html: `
+<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f8fafc;margin:0;padding:0">
+<div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
+  <div style="background:#081424;padding:28px 32px">
+    <p style="color:#67e8f9;margin:0 0 6px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">New patient request</p>
+    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">${data['patientName']} requested an appointment</h1>
+  </div>
+  <div style="padding:32px">
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:0 0 20px">
+      <table style="width:100%;font-size:14px;color:#334155;border-collapse:collapse">
+        <tr><td style="padding:6px 0;color:#64748b;width:120px">Phone</td><td style="font-weight:700">${data['patientPhone']}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Service</td><td>${data['service']}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Date</td><td>${data['date']}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Time</td><td>${data['time']}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Booking ref</td><td>${data['bookingRef']}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Notes</td><td>${data['message'] || 'None'}</td></tr>
+      </table>
+    </div>
+    <a href="${data['dashboardUrl']}" style="display:block;background:#2563eb;color:#fff;text-align:center;padding:14px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none">Open clinic dashboard</a>
+    <p style="font-size:12px;color:#94a3b8;text-align:center;margin:16px 0 0">Call or WhatsApp the patient to confirm the final slot.</p>
+  </div>
+</div></body></html>`,
+      };
+
     case 'appointment_reminder':
       return {
         from,
@@ -227,15 +296,17 @@ function buildEmail(template: EmailTemplate, data: Record<string, string>) {
   }
 }
 
-export async function sendEmail(template: EmailTemplate, to: string, data: Record<string, string>): Promise<void> {
-  if (!to?.includes('@')) return;
+export async function sendEmail(template: EmailTemplate, to: string, data: Record<string, string>): Promise<boolean> {
+  if (!to?.includes('@')) return false;
 
   try {
     const transporter = createTransporter();
     const { subject, html } = buildEmail(template, data);
     await transporter.sendMail({ from: `mydentalplatform <${process.env['ZOHO_SMTP_USER']}>`, to, subject, html });
-    console.log(`[send-email] Sent ${template} to ${to}`);
+    console.log(`[send-email] Sent ${template}`);
+    return true;
   } catch (err) {
-    console.error(`[send-email] Failed ${template} to ${to}:`, err);
+    console.error(`[send-email] Failed ${template}:`, err);
+    throw err;
   }
 }

@@ -510,7 +510,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
       this.success.set(true);
       if (!ownerEmail) {
-        setTimeout(() => this.router.navigate(['/business/clinics']), 1200);
+        setTimeout(() => {
+          void this.router.navigate(['/business/clinics']);
+        }, 1200);
       }
       // When credentials were set, navigation is triggered by the modal dismiss button
     } catch (err) {
@@ -554,7 +556,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   dismissCredentials() {
     this.ownerLoginSynced.set(null);
-    this.router.navigate(['/business/clinics']);
+    void this.router.navigate(['/business/clinics']);
   }
 
   copyToClipboard(text: string) {

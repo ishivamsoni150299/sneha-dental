@@ -1,14 +1,5 @@
-<div [class]="centered() ? 'text-center' : ''">
-  @if (label()) {
-    <span class="ds-kicker mb-4">
-      <span class="ds-kicker-dot"></span>
-      {{ label() }}
-    </span>
-  }
-  <h2 class="ds-heading mb-3">{{ title() }}</h2>
-  @if (subtitle()) {
-    <p [class]="centered() ? 'ds-copy max-w-xl mx-auto' : 'ds-copy max-w-xl'">
-      {{ subtitle() }}
-    </p>
-  }
-</div>
+<header [class]="centered() ? 'mx-auto max-w-3xl text-center' : 'max-w-3xl'">
+  @if (label()) { <p class="ui-eyebrow" [class.justify-center]="centered()">{{ label() }}</p> }
+  <h2 class="ui-heading">{{ title() }}</h2>
+  @if (subtitle()) { <p class="ui-lede" [class.mx-auto]="centered()">{{ subtitle() }}</p> }
+</header>

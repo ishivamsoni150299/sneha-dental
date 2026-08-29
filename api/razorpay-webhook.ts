@@ -67,8 +67,8 @@ export default {
     };
     const subscriptionEntity = typedPayload.payload?.subscription?.entity ?? {};
     const paymentEntity = typedPayload.payload?.payment?.entity ?? {};
-    const subscriptionId = subscriptionEntity.id as string | undefined;
-    const notes = subscriptionEntity.notes as Record<string, string> | undefined;
+    const subscriptionId = subscriptionEntity['id'] as string | undefined;
+    const notes = subscriptionEntity['notes'] as Record<string, string> | undefined;
     const clinicId = notes?.['clinicId'];
     const plan = (notes?.['plan'] ?? 'starter') as BillingPlan;
     const billingCycle = (notes?.['billingCycle'] ?? 'monthly') as BillingCycle;
@@ -78,59 +78,72 @@ export default {
     }
 
     const clinicRef = db.collection('clinics').doc(clinicId);
+    const privateRef = clinicRef.collection('private').doc('account');
     const todayIso = new Date().toISOString().slice(0, 10);
-    const updateBase = {
+    const publicUpdateBase = {
       subscriptionPlan: plan,
+    };
+    const privateUpdateBase = {
       billingCycle,
       razorpaySubscriptionId: subscriptionId ?? FieldValue.delete(),
+    };
+
+    const applyBillingUpdate = async (
+      publicUpdate: Record<string, unknown>,
+      privateUpdate: Record<string, unknown> = {},
+    ): Promise<void> => {
+      const batch = db.batch();
+      batch.update(clinicRef, { ...publicUpdateBase, ...publicUpdate });
+      batch.set(privateRef, {
+        ...privateUpdateBase,
+        ...privateUpdate,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      await batch.commit();
     };
 
     try {
       switch (event) {
         case 'subscription.authenticated':
         case 'subscription.pending':
-          await clinicRef.update({
-            ...updateBase,
+          await applyBillingUpdate({
             subscriptionStatus: 'pending',
           });
           break;
 
         case 'subscription.activated':
         case 'subscription.charged':
-          await clinicRef.update({
-            ...updateBase,
+          await applyBillingUpdate({
             subscriptionStatus: 'active',
             active: true,
-            lastPaymentDate: todayIso,
-            lastPaymentAmount: typeof paymentEntity.amount === 'number'
-              ? Math.round(paymentEntity.amount / 100)
-              : FieldValue.delete(),
-            lastPaymentRef: typeof paymentEntity.id === 'string'
-              ? paymentEntity.id
-              : FieldValue.delete(),
             subscriptionEndDate: nextBillingDateIso(billingCycle),
+          }, {
+            lastPaymentDate: todayIso,
+            lastPaymentAmount: typeof paymentEntity['amount'] === 'number'
+              ? Math.round(paymentEntity['amount'] / 100)
+              : FieldValue.delete(),
+            lastPaymentRef: typeof paymentEntity['id'] === 'string'
+              ? paymentEntity['id']
+              : FieldValue.delete(),
           });
           break;
 
         case 'subscription.halted':
-          await clinicRef.update({
-            ...updateBase,
+          await applyBillingUpdate({
             subscriptionStatus: 'expired',
             active: false,
           });
           break;
 
         case 'subscription.cancelled':
-          await clinicRef.update({
-            ...updateBase,
+          await applyBillingUpdate({
             subscriptionStatus: 'cancelled',
             active: false,
           });
           break;
 
         case 'subscription.resumed':
-          await clinicRef.update({
-            ...updateBase,
+          await applyBillingUpdate({
             subscriptionStatus: 'active',
             active: true,
           });

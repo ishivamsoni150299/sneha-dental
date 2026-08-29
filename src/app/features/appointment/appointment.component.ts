@@ -114,6 +114,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     date:    ['', Validators.required],
     time:    ['', Validators.required],
     message: [''],
+    privacyAccepted: [false, Validators.requiredTrue],
   });
 
   private readonly subs = new Subscription();
@@ -257,7 +258,8 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     if (date && isPastDate(date)) {
       dateCtrl.setErrors({ ...(dateCtrl.errors ?? {}), pastDate: true });
     } else if (dateCtrl.errors?.['pastDate']) {
-      const { pastDate, ...rest } = dateCtrl.errors;
+      const rest = { ...dateCtrl.errors };
+      delete rest['pastDate'];
       dateCtrl.setErrors(Object.keys(rest).length ? rest : null);
     }
 
@@ -265,7 +267,8 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     if (time && date && !slotOptions.includes(time)) {
       timeCtrl.setErrors({ ...(timeCtrl.errors ?? {}), pastTime: true });
     } else if (timeCtrl.errors?.['pastTime']) {
-      const { pastTime, ...rest } = timeCtrl.errors;
+      const rest = { ...timeCtrl.errors };
+      delete rest['pastTime'];
       timeCtrl.setErrors(Object.keys(rest).length ? rest : null);
     }
   }
@@ -306,7 +309,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
         doctorName: doctor?.name,
         message:    val.message || undefined,
       });
-      this.router.navigate(['/appointment/confirmed'], {
+      void this.router.navigate(['/appointment/confirmed'], {
         queryParams: {
           ref,
           name:    val.name,

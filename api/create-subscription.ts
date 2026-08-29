@@ -1,4 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 import {
   createRazorpayCheckout,
   type BillingCycle,
@@ -9,8 +12,41 @@ interface CreateSubscriptionBody {
   clinicId?: unknown;
   plan?: unknown;
   billingCycle?: unknown;
-  clinicName?: unknown;
-  phone?: unknown;
+}
+
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env['FIREBASE_PROJECT_ID'],
+      clientEmail: process.env['FIREBASE_CLIENT_EMAIL'],
+      privateKey: process.env['FIREBASE_PRIVATE_KEY']?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+const db = getFirestore();
+const auth = getAuth();
+
+function bearerToken(req: VercelRequest): string {
+  const rawAuthorization: unknown = req.headers['authorization'];
+  const authorization = Array.isArray(rawAuthorization)
+    ? (rawAuthorization.find((value): value is string => typeof value === 'string') ?? '')
+    : (typeof rawAuthorization === 'string' ? rawAuthorization : '');
+  return authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
+}
+
+async function canManageClinic(idToken: string, clinicId: string): Promise<boolean> {
+  if (!idToken) return false;
+
+  const decoded = await auth.verifyIdToken(idToken);
+  if (decoded['clinicId'] === clinicId && decoded['role'] === 'admin') return true;
+
+  const [clinic, superAdmin] = await Promise.all([
+    db.collection('clinics').doc(clinicId).get(),
+    db.collection('superAdmins').doc(decoded.uid).get(),
+  ]);
+
+  return superAdmin.exists || clinic.data()?.['adminUid'] === decoded.uid;
 }
 
 function errorDetail(err: unknown): string {
@@ -35,13 +71,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const clinicId = typeof body.clinicId === 'string' ? body.clinicId.trim() : '';
   const plan = body.plan === 'starter' || body.plan === 'pro' ? body.plan : null;
   const billingCycle = body.billingCycle ?? 'monthly';
-  const clinicName = typeof body.clinicName === 'string' && body.clinicName.trim()
-    ? body.clinicName.trim()
-    : clinicId;
-  const phone = typeof body.phone === 'string' && body.phone.trim()
-    ? body.phone.trim()
-    : undefined;
-
   if (!clinicId || !plan) {
     return res.status(400).json({ error: 'Missing or invalid clinicId / plan.' });
   }
@@ -51,12 +80,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   try {
+    let authorized = false;
+    try {
+      authorized = await canManageClinic(bearerToken(req), clinicId);
+    } catch {
+      return res.status(401).json({ error: 'Authentication required.' });
+    }
+    if (!authorized) {
+      return res.status(403).json({ error: 'You do not have access to this clinic.' });
+    }
+
+    const clinic = await db.collection('clinics').doc(clinicId).get();
+    if (!clinic.exists) {
+      return res.status(404).json({ error: 'Clinic not found.' });
+    }
+
+    const clinicData = clinic.data() ?? {};
+    const trustedClinicName = typeof clinicData['name'] === 'string' && clinicData['name'].trim()
+      ? clinicData['name'].trim()
+      : clinicId;
+    const trustedPhone = typeof clinicData['phone'] === 'string' && clinicData['phone'].trim()
+      ? clinicData['phone'].trim()
+      : undefined;
+
     const checkout = await createRazorpayCheckout({
       clinicId,
-      clinicName,
+      clinicName: trustedClinicName,
       plan: plan as BillingPlan,
       billingCycle: billingCycle as BillingCycle,
-      phone,
+      phone: trustedPhone,
     });
 
     return res.status(200).json({
@@ -71,6 +123,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   } catch (err: unknown) {
     const detail = errorDetail(err);
     console.error('[create-subscription] Razorpay error:', detail, err);
-    return res.status(500).json({ error: `Razorpay: ${detail}` });
+    return res.status(500).json({ error: 'Could not start secure checkout. Please try again.' });
   }
 }

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createHash } from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -22,21 +23,27 @@ if (!getApps().length) {
 const db = getFirestore();
 const auth = getAuth();
 
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW = 60_000;
 
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
+async function isRateLimited(ip: string): Promise<boolean> {
+  const bucket = Math.floor(Date.now() / RATE_LIMIT_WINDOW);
+  const fingerprint = createHash('sha256').update(`${ip}:${bucket}`).digest('hex');
+  const ref = db.collection('rateLimits').doc(`signup_${fingerprint}`);
 
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+  return db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    const count = Number(snap.data()?.['count'] ?? 0);
+    if (count >= RATE_LIMIT_MAX) return true;
+
+    tx.set(ref, {
+      type: 'signup',
+      count: count + 1,
+      expiresAt: new Date((bucket + 2) * RATE_LIMIT_WINDOW),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
     return false;
-  }
-
-  entry.count++;
-  return entry.count > RATE_LIMIT_MAX;
+  });
 }
 
 function toSlug(name: string): string {
@@ -50,7 +57,6 @@ async function uniqueSlug(base: string): Promise<string> {
   let candidate = base;
   let i = 2;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const existing = await db.collection('clinics')
       .where('vercelDomain', '==', `${candidate}.mydentalplatform.com`)
@@ -105,7 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     req.headers['x-forwarded-for'] as string | undefined
   )?.split(',')[0]?.trim() ?? req.socket?.remoteAddress ?? 'unknown';
 
-  if (isRateLimited(ip)) {
+  if (await isRateLimited(ip)) {
     return res.status(429).json({
       error: 'Too many signup attempts. Please wait a minute and try again.',
     });
@@ -162,17 +168,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let uid: string;
   let email: string;
+  let claimedClinicId = '';
   try {
     const decoded = await auth.verifyIdToken(idToken);
     uid = decoded.uid;
     email = decoded.email ?? '';
+    claimedClinicId = typeof decoded['clinicId'] === 'string' ? decoded['clinicId'] : '';
   } catch (err) {
     console.error('[self-signup] Token verification failed:', err);
     return res.status(401).json({ error: 'Invalid or expired session. Please sign in again.' });
   }
 
-  const existing = await db.collection('clinics').where('adminUid', '==', uid).limit(1).get();
-  if (!existing.empty) {
+  const existing = claimedClinicId
+    ? await db.collection('clinics').doc(claimedClinicId).get()
+    : await db.collection('clinics').where('adminUid', '==', uid).limit(1).get();
+  if (('exists' in existing && existing.exists) || ('empty' in existing && !existing.empty)) {
     return res.status(409).json({ error: 'You already have a clinic. Please sign in to your admin panel.' });
   }
 
@@ -222,12 +232,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     subscriptionPlan: plan,
     subscriptionStatus: plan === 'trial' ? 'trial' : 'pending',
     trialEndDate: plan === 'trial' ? trialEndDate : null,
-    billingCycle: billingCycle as BillingCycle,
+    createdAt: FieldValue.serverTimestamp(),
+  };
+
+  const privateAccountData: Record<string, unknown> = {
+    adminUid: uid,
+    adminEmail: email,
     billingEmail: email,
+    billingCycle: billingCycle as BillingCycle,
     leadSource: marketingAttribution.source,
     marketingAttribution,
-    adminEmail: email,
-    adminUid: uid,
     voiceBudgetCap: 1000,
     voiceAutoStop: true,
     ...(isGrandfathered ? {
@@ -235,18 +249,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       grandfatheredPlan: plan as 'starter' | 'pro',
     } : {}),
     createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   };
 
   let clinicId: string;
   try {
-    const ref = await db.collection('clinics').add(clinicData);
+    const ref = db.collection('clinics').doc();
+    const batch = db.batch();
+    batch.set(ref, { ...clinicData, clinicId: ref.id });
+    batch.set(ref.collection('private').doc('account'), privateAccountData);
+    await batch.commit();
     clinicId = ref.id;
   } catch (err) {
     console.error('[self-signup] Firestore create clinic failed:', err);
     return res.status(500).json({ error: 'Failed to save clinic. Please try again.' });
   }
 
-  await db.collection('clinics').doc(clinicId).update({ clinicId }).catch(() => null);
   await auth.setCustomUserClaims(uid, { clinicId, role: 'admin' }).catch(() => null);
 
   const vercelToken = process.env['VERCEL_TOKEN'];
@@ -300,31 +318,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       paymentMode = checkout.paymentMode;
 
       if (checkout.subscriptionId) {
-        await db.collection('clinics').doc(clinicId).update({
+        await db.collection('clinics').doc(clinicId).collection('private').doc('account').set({
           razorpaySubscriptionId: checkout.subscriptionId,
-        }).catch(() => null);
+          updatedAt: FieldValue.serverTimestamp(),
+        }, { merge: true }).catch(() => null);
       }
     } catch (err) {
       console.error('[self-signup] Razorpay checkout creation failed:', err);
     }
   }
 
-  sendEmail('welcome', email, {
+  void sendEmail('welcome', email, {
     clinicName: name.trim(),
     doctorName: doctorName?.trim() ?? '',
     siteUrl,
-    adminUrl: `${siteUrl}/admin/login`,
+    adminUrl: 'https://www.mydentalplatform.com/business/login',
     email,
     plan,
     trialEndDate: plan === 'trial' ? trialEndDate : '',
     supportPhone: process.env['SUPPORT_PHONE'] ?? '',
-  });
+  }).catch(() => undefined);
 
   return res.status(200).json({
     clinicId,
     slug,
     siteUrl,
-    adminUrl: `${siteUrl}/admin/login`,
+    adminUrl: 'https://www.mydentalplatform.com/business/login',
     email,
     plan,
     billingCycle: billingCycle as BillingCycle,

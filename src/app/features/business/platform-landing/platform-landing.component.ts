@@ -16,6 +16,7 @@ export class PlatformLandingComponent {
 
 
   readonly billingYearly = signal(false);
+  readonly mobileMenuOpen = signal(false);
   readonly roiPlan = signal<'Starter' | 'Pro'>('Starter');
   readonly monthlyMissedLeads = signal(12);
   readonly avgCaseValue = signal(3500);
@@ -68,7 +69,7 @@ export class PlatformLandingComponent {
         '30-day free trial · no card needed',
         'Fully responsive clinic website',
         'Online appointment booking',
-        'WhatsApp doctor notifications',
+        'Instant clinic booking alerts',
         'Patient admin dashboard',
         'Free subdomain (yourname.mydentalplatform.com)',
       ],
@@ -172,7 +173,7 @@ export class PlatformLandingComponent {
 
   readonly features = [
     { emoji: '📱', title: 'Mobile-first design',         desc: 'Looks perfect on every screen — phones, tablets and desktops.' },
-    { emoji: '📅', title: 'Online appointment booking',  desc: 'Patients book directly from the website. Instant WhatsApp confirmation.' },
+    { emoji: '📅', title: 'Online appointment booking',  desc: 'Patients book directly from the website. Instant dashboard and email alerts.' },
     { emoji: '🎙️', title: 'AI Voice Receptionist',       desc: 'Answers patient calls in Hindi & English 24/7. Books appointments automatically — even at midnight.' },
     { emoji: '🔒', title: 'Secure admin dashboard',      desc: 'Clinic owner logs in to view and manage all patient bookings.' },
     { emoji: '🌐', title: 'Custom domain',               desc: 'Your clinic on your own domain — e.g. snehadental.com.' },
@@ -185,7 +186,7 @@ export class PlatformLandingComponent {
     { emoji: '🌍', text: 'Custom domain or free subdomain' },
     { emoji: '⚡', text: 'Lightning-fast, always-online hosting' },
     { emoji: '📱', text: '100% mobile responsive design' },
-    { emoji: '🔔', text: 'Instant WhatsApp booking notifications' },
+    { emoji: '🔔', text: 'Instant dashboard and email booking alerts' },
     { emoji: '🛡️', text: 'Secure, encrypted patient data' },
     { emoji: '♾️', text: 'Unlimited patient bookings' },
     { emoji: '📊', text: 'Appointment tracking dashboard' },
@@ -256,7 +257,7 @@ export class PlatformLandingComponent {
 
   readonly testimonials = [
     {
-      text: `We were getting patients calling just to ask if we were open. Now they check our website and book directly. The WhatsApp notifications are instant. Best ${this.starterMonthlyPrice} we spend for patient growth.`,
+      text: `We were getting patients calling just to ask if we were open. Now they check our website and book directly. The booking alerts are instant. Best ${this.starterMonthlyPrice} we spend for patient growth.`,
       name: 'Dr. Ramesh Kumar',
       clinic: 'Indram Dental, Jhansi',
       location: 'Uttar Pradesh',

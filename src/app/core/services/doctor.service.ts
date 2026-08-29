@@ -187,7 +187,7 @@ export class DoctorService {
     if (!doctor.available) return [];
     if (isPastDate(date)) return [];
 
-    const dayOfWeek = DAY_INDEX_MAP[new Date(date + 'T00:00:00').getDay()];
+    const dayOfWeek = DAY_INDEX_MAP[new Date(`${date  }T00:00:00`).getDay()];
     const daySchedule = doctor.schedule[dayOfWeek];
     if (!daySchedule.enabled) return [];
 

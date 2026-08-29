@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
-  collection, getDocs, getDocsFromServer, getDoc, getDocFromServer,
+  collection, getDocs, getDocsFromServer, getDocFromServer,
   addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';

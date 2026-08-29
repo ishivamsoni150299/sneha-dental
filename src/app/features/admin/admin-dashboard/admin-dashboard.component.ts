@@ -276,6 +276,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         link:  '/business/clinic/settings',
       },
       {
+        key:   'notifications',
+        label: 'Confirm your notification email',
+        hint:  'New appointment alerts are sent to the clinic owner email',
+        done:  !!cfg.billingEmail?.trim(),
+        link:  '/business/clinic/settings',
+      },
+      {
+        key:   'test-booking',
+        label: 'Complete a test patient booking',
+        hint:  'Verify the mobile form, dashboard record, and email alert',
+        done:  this.appointments().length > 0,
+        link:  '/appointment',
+      },
+      {
         key:   'share',
         label: 'Share your website with patients',
         hint:  'Send your unique link to 5 patients',
@@ -594,7 +608,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // ── Utilities ────────────────────────────────────────────────────────────
   async logout() {
     await this.auth.logout();
-    this.router.navigate(['/business/login']);
+    await this.router.navigate(['/business/login']);
   }
 
   private timeToMinutes(time: string): number {
@@ -626,7 +640,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', {
+    return new Date(`${dateStr  }T00:00:00`).toLocaleDateString('en-IN', {
       day: 'numeric', month: 'short', year: 'numeric',
     });
   }

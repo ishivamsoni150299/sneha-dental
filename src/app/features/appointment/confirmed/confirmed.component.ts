@@ -35,7 +35,7 @@ export class ConfirmedComponent implements OnInit {
 
   get formattedDate(): string {
     if (!this.date()) return '';
-    const d = new Date(this.date() + 'T00:00:00');
+    const d = new Date(`${this.date()  }T00:00:00`);
     return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 

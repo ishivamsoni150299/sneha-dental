@@ -44,11 +44,13 @@ function templateForDays(days: 0 | 3 | 7) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Vercel cron sends Authorization: Bearer <CRON_SECRET>
   const cronSecret = process.env['CRON_SECRET'];
-  if (cronSecret) {
-    const auth = req.headers['authorization'];
-    if (auth !== `Bearer ${cronSecret}`) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+  if (!cronSecret) {
+    console.error('[cron-trial-expiry] CRON_SECRET is not configured');
+    return res.status(503).json({ error: 'Cron is not configured.' });
+  }
+  const auth = req.headers['authorization'];
+  if (auth !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const today = new Date();
@@ -75,7 +77,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     for (const doc of snap.docs) {
       const data = doc.data();
-      const email = data['billingEmail'] || data['adminEmail'];
+      const privateAccount = await doc.ref.collection('private').doc('account').get();
+      const privateData = privateAccount.data() ?? {};
+      const email = privateData['billingEmail'] || privateData['adminEmail']
+        || data['billingEmail'] || data['adminEmail'];
 
       if (!email) { skipped++; continue; }
 
@@ -112,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  console.log(`[cron-trial-expiry] ${todayStr} — sent: ${sent}, skipped: ${skipped}, errors: ${errors.length}`);
+  console.info(`[cron-trial-expiry] ${todayStr} — sent: ${sent}, skipped: ${skipped}, errors: ${errors.length}`);
 
   return res.status(200).json({
     date: todayStr,

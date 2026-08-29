@@ -1,8 +1,9 @@
 import { Injectable, signal } from '@angular/core';
-import { collection, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
+import { getIdTokenResult } from 'firebase/auth';
+import { collection, getDoc, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
 import { CLINIC_THEMES, clinicConfig, type ClinicConfig, type ClinicTheme } from '../config/clinic.config';
 export type { ClinicConfig };
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 
 // ── Premium theme palettes ────────────────────────────────────────────────────
 // Each palette maps CSS variable names → hex/rgba values.
@@ -243,6 +244,22 @@ export class ClinicConfigService {
    */
   async loadByUid(uid: string): Promise<boolean> {
     try {
+      const user = auth.currentUser;
+      if (user?.uid === uid) {
+        const token = await getIdTokenResult(user, true);
+        const claimedClinicId = typeof token.claims['clinicId'] === 'string'
+          ? token.claims['clinicId']
+          : '';
+        if (claimedClinicId) {
+          const claimedClinic = await getDoc(doc(db, 'clinics', claimedClinicId));
+          if (claimedClinic.exists() && claimedClinic.data()['active'] === true) {
+            return this.applyAdminClinic(claimedClinic.id, claimedClinic.data());
+          }
+        }
+      }
+
+      // Legacy fallback for clinics created before owner data moved to the
+      // authenticated private/account subdocument.
       const snap = await getDocs(query(
         collection(db, 'clinics'),
         where('adminUid', '==', uid),
@@ -251,24 +268,39 @@ export class ClinicConfigService {
       ));
       if (!snap.empty) {
         const docRef = snap.docs[0];
-        const rest = clinicConfigData(docRef.data() as Record<string, unknown>);
-        const config = {
-          ...(rest as unknown as ClinicConfig),
-          clinicId: docRef.id,
-          theme: normalizeTheme((rest as Partial<ClinicConfig>).theme),
-        };
-        applyTheme(config.theme);
-        if (typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme-context', 'clinic-admin');
-        }
-        this._config.set(config);
-        this._isLoaded.set(true);
-        return true;
+        return this.applyAdminClinic(docRef.id, docRef.data());
       }
     } catch (e) {
       console.error('[ClinicConfig] loadByUid failed:', e);
     }
     return false;
+  }
+
+  private async applyAdminClinic(
+    clinicId: string,
+    publicData: Record<string, unknown>,
+  ): Promise<boolean> {
+    let privateData: Record<string, unknown> = {};
+    try {
+      const privateSnap = await getDoc(doc(db, 'clinics', clinicId, 'private', 'account'));
+      if (privateSnap.exists()) privateData = privateSnap.data();
+    } catch {
+      // Legacy clinics may not have a private account document yet.
+    }
+
+    const rest = clinicConfigData({ ...publicData, ...privateData });
+    const config = {
+      ...(rest as unknown as ClinicConfig),
+      clinicId,
+      theme: normalizeTheme((rest as Partial<ClinicConfig>).theme),
+    };
+    applyTheme(config.theme);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme-context', 'clinic-admin');
+    }
+    this._config.set(config);
+    this._isLoaded.set(true);
+    return true;
   }
 
   /**

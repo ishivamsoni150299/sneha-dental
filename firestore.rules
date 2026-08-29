@@ -9,17 +9,29 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/superAdmins/$(request.auth.uid));
     }
 
+    function hasClinicAdminClaim(clinicId) {
+      return request.auth != null &&
+        request.auth.token.role == 'admin' &&
+        request.auth.token.clinicId == clinicId;
+    }
+
     // True when the authenticated user is the admin of a specific clinic doc.
     function isClinicAdmin(clinicId) {
       return request.auth != null &&
-        request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)).data.adminUid;
+        (
+          hasClinicAdminClaim(clinicId) ||
+          request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)).data.adminUid
+        );
     }
 
     // True when the authenticated user owns the clinic that this appointment belongs to.
     function ownsAppointmentClinic() {
       return request.auth != null &&
-        request.auth.uid ==
-          get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid;
+        (
+          hasClinicAdminClaim(resource.data.clinicId) ||
+          request.auth.uid ==
+            get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid
+        );
     }
 
     function clinicIsActive(clinicId) {
@@ -74,12 +86,37 @@ service cloud.firestore {
 
     function canCreateAppointment() {
       return clinicIsActive(request.resource.data.clinicId) &&
+        request.resource.data.keys().hasOnly([
+          'clinicId', 'lookupKey', 'bookingRef', 'name', 'phone', 'email',
+          'service', 'date', 'time', 'doctorId', 'doctorName', 'message',
+          'status', 'createdAt', 'updatedAt', 'source',
+          'consentVersion', 'consentAt'
+        ]) &&
         request.resource.id == request.resource.data.lookupKey &&
         request.resource.data.status == 'pending' &&
         request.resource.data.bookingRef is string &&
+        request.resource.data.bookingRef.size() >= 6 &&
+        request.resource.data.bookingRef.size() <= 32 &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() >= 2 &&
+        request.resource.data.name.size() <= 120 &&
         request.resource.data.phone is string &&
+        request.resource.data.phone.size() >= 7 &&
+        request.resource.data.phone.size() <= 24 &&
         request.resource.data.date is string &&
-        request.resource.data.time is string;
+        request.resource.data.time is string &&
+        request.resource.data.lookupKey is string &&
+        request.resource.data.lookupKey.size() == 64 &&
+        (!request.resource.data.keys().hasAny(['consentVersion']) ||
+          (request.resource.data.consentVersion is string &&
+            request.resource.data.consentVersion.size() <= 20));
+    }
+
+    function hasClinicalOrPaymentData() {
+      return resource.data.keys().hasAny([
+        'clinicNotes', 'treatmentDone', 'amountCharged',
+        'paymentStatus', 'paymentMethod'
+      ]);
     }
 
     function canSelfServeAppointment() {
@@ -155,7 +192,7 @@ service cloud.firestore {
     //         hard delete, so patient records are preserved.
     match /appointments/{appointmentId} {
       allow create: if canCreateAppointment();
-      allow get:    if true;
+      allow get:    if ownsAppointmentClinic() || isSuperAdmin() || !hasClinicalOrPaymentData();
       allow list:   if ownsAppointmentClinic() || isSuperAdmin();
       allow update: if ownsAppointmentClinic() || isSuperAdmin() || canSelfServeAppointment();
       allow delete: if isSuperAdmin();
@@ -166,7 +203,26 @@ service cloud.firestore {
     // sites and the platform landing page. Sensitive data (read/edit/delete)
     // is restricted to super admins only.
     match /contacts/{docId} {
-      allow create: if true;
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          'clinicId', 'name', 'phone', 'email', 'message', 'consentVersion',
+          'consentAt', 'createdAt'
+        ]) &&
+        clinicIsActive(request.resource.data.clinicId) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() >= 2 &&
+        request.resource.data.name.size() <= 120 &&
+        request.resource.data.phone is string &&
+        request.resource.data.phone.size() >= 7 &&
+        request.resource.data.phone.size() <= 24 &&
+        (request.resource.data.email == null ||
+          (request.resource.data.email is string && request.resource.data.email.size() <= 160)) &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() >= 2 &&
+        request.resource.data.message.size() <= 2000 &&
+        (!request.resource.data.keys().hasAny(['consentVersion']) ||
+          (request.resource.data.consentVersion is string &&
+            request.resource.data.consentVersion.size() <= 20));
       allow read, update, delete: if isSuperAdmin();
     }
 
@@ -194,11 +250,7 @@ service cloud.firestore {
     // Read: super admin only (shown on Revenue / Analytics pages).
     match /analytics/{docId} {
       allow read:  if isSuperAdmin();
-      allow write: if request.resource.data.keys().hasOnly([
-        'totalBookings', 'totalRevenue', 'activeClinics',
-        'trialClinics', 'cancelledClinics', 'updatedAt',
-        'dailyBookings', 'monthlyRevenue', 'clinicId', 'date'
-      ]);
+      allow write: if isSuperAdmin();
     }
 
     // ── Platform settings ─────────────────────────────────────────────────────
@@ -212,6 +264,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── Server-side abuse controls ──────────────────────────────────────────
+    // Rate-limit buckets are written only by trusted server functions using
+    // the Admin SDK. Browsers must never be able to inspect or alter them.
+    match /rateLimits/{docId} {
+      allow read, write: if false;
+    }
+
     // ── Slots (atomic slot reservations for double-booking prevention) ────────
     // Written atomically by the booking transaction. Readable publicly (booking
     // form needs to check availability). Only the owning clinic admin can delete.
@@ -219,8 +278,11 @@ service cloud.firestore {
       allow read:   if true;
       allow create: if canCreateSlot();
       allow delete: if canDeleteSlot() || (request.auth != null &&
-        request.auth.uid ==
-          get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid);
+        (
+          hasClinicAdminClaim(resource.data.clinicId) ||
+          request.auth.uid ==
+            get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid
+        ));
       allow update: if false;
     }
   }

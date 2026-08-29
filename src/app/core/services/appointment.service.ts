@@ -17,6 +17,10 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import {
+  buildAppointmentLookupKey,
+  buildLegacyAppointmentLookupKey,
+} from '../utils/appointment-lookup';
 
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
 export type PaymentMethod = 'cash' | 'upi' | 'card' | 'insurance' | 'other';
@@ -35,6 +39,8 @@ export interface Appointment {
   doctorId?: string | null;     // optional — set when patient picks a specific doctor
   doctorName?: string | null;   // denormalized for display without extra lookup
   message?: string;
+  consentVersion?: string;
+  consentAt?: Timestamp;
   status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
   // Clinical record (filled by clinic after the visit)
   clinicNotes?:    string;
@@ -71,14 +77,6 @@ export class AppointmentService {
 
   private normalizeBookingRef(bookingRef: string): string {
     return bookingRef.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
-  }
-
-  private buildLookupKey(bookingRef: string, phone: string): string {
-    return [
-      this.clinicId,
-      this.normalizeBookingRef(bookingRef),
-      this.normalizePhone(phone),
-    ].join('__');
   }
 
   private buildSlotKey(clinicId: string, date: string, time: string, doctorId?: string | null): string {
@@ -139,7 +137,7 @@ export class AppointmentService {
 
     const bookingRef = this.generateBookingRef();
     const clinicId   = this.clinicId;
-    const lookupKey  = this.buildLookupKey(bookingRef, data.phone);
+    const lookupKey  = await buildAppointmentLookupKey(this.clinicId, bookingRef, data.phone);
     const normalizedTime = normalizeTimeValue(data.time);
     const appointmentPayload = this.stripUndefined({
       ...data,
@@ -150,6 +148,8 @@ export class AppointmentService {
       doctorId: data.doctorId ?? null,
       doctorName: data.doctorName ?? null,
       status: 'pending' as const,
+      consentVersion: '2026-08-29',
+      consentAt: serverTimestamp(),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -188,13 +188,26 @@ export class AppointmentService {
       tx.set(apptRef, appointmentPayload);
     });
 
+    // Delivery is best-effort: a saved booking must not be submitted twice
+    // just because the email provider is temporarily unavailable.
+    void fetch('/api/voice-booking-action?action=notify-web-booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clinicId, bookingRef, phone: data.phone }),
+      keepalive: true,
+    }).catch(() => undefined);
+
     return bookingRef;
   }
 
   /** Fetch appointment by bookingRef + phone — scoped to this clinic. */
   async getAppointmentByRef(bookingRef: string, phone: string): Promise<Appointment | null> {
-    const lookupKey = this.buildLookupKey(bookingRef, phone);
-    const snap = await getDoc(doc(db, this.COLLECTION, lookupKey));
+    const lookupKey = await buildAppointmentLookupKey(this.clinicId, bookingRef, phone);
+    let snap = await getDoc(doc(db, this.COLLECTION, lookupKey));
+    if (!snap.exists()) {
+      const legacyLookupKey = buildLegacyAppointmentLookupKey(this.clinicId, bookingRef, phone);
+      snap = await getDoc(doc(db, this.COLLECTION, legacyLookupKey));
+    }
     if (!snap.exists()) return null;
     const data = snap.data() as Appointment;
     if (

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { buildAgentSystemPrompt } from './_lib/elevenlabs-agent-config';
@@ -52,6 +52,126 @@ if (hasFirebaseAdminConfig && !getApps().length) {
 
 const db = getApps().length ? getFirestore() : null;
 
+const CHAT_RATE_LIMIT = 30;
+const CHAT_RATE_WINDOW_MS = 10 * 60 * 1000;
+const CHAT_MAX_BODY_BYTES = 24_000;
+const CHAT_MAX_MESSAGE_LENGTH = 1_000;
+
+function headerValue(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? '') : (value ?? '');
+}
+
+function normalizeHost(value: string): string {
+  return value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/:\d+$/, '').replace(/\/.*$/, '');
+}
+
+function requestIp(req: VercelRequest): string {
+  return headerValue(req.headers['x-forwarded-for']).split(',')[0]?.trim()
+    || req.socket?.remoteAddress
+    || 'unknown';
+}
+
+async function isChatRateLimited(req: VercelRequest, clinicId: string): Promise<boolean> {
+  if (!db) return false;
+
+  const bucket = Math.floor(Date.now() / CHAT_RATE_WINDOW_MS);
+  const fingerprint = createHash('sha256')
+    .update(`${requestIp(req)}:${clinicId}:${bucket}`)
+    .digest('hex');
+  const ref = db.collection('rateLimits').doc(`chat_${fingerprint}`);
+
+  return db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    const count = Number(snap.data()?.['count'] ?? 0);
+    if (count >= CHAT_RATE_LIMIT) return true;
+
+    tx.set(ref, {
+      type: 'chat',
+      clinicId,
+      count: count + 1,
+      expiresAt: new Date((bucket + 2) * CHAT_RATE_WINDOW_MS),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return false;
+  });
+}
+
+function serviceNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(item => typeof item === 'string'
+      ? item
+      : (item && typeof item === 'object' && typeof (item as Record<string, unknown>)['name'] === 'string'
+        ? String((item as Record<string, unknown>)['name'])
+        : ''))
+    .map(name => name.trim().slice(0, 100))
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
+function clinicHours(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(item => {
+      if (typeof item === 'string') return item;
+      if (!item || typeof item !== 'object') return '';
+      const record = item as Record<string, unknown>;
+      const days = typeof record['days'] === 'string' ? record['days'].trim() : '';
+      const time = typeof record['time'] === 'string' ? record['time'].trim() : '';
+      return [days, time].filter(Boolean).join(' ');
+    })
+    .filter(Boolean)
+    .slice(0, 14);
+}
+
+async function trustedClinicBody(req: VercelRequest, body: ChatRequestBody): Promise<ChatRequestBody | null> {
+  if (!db || typeof body.clinicId !== 'string' || !body.clinicId.trim()) return null;
+
+  const clinic = await db.collection('clinics').doc(body.clinicId.trim()).get();
+  if (!clinic.exists) return null;
+
+  const data = clinic.data() ?? {};
+  if (data['active'] !== true) return null;
+
+  const requestHost = normalizeHost(headerValue(req.headers['x-forwarded-host']) || headerValue(req.headers.host));
+  const origin = headerValue(req.headers.origin);
+  let originHost = '';
+  try {
+    originHost = origin ? normalizeHost(new URL(origin).hostname) : '';
+  } catch {
+    return null;
+  }
+
+  const knownDomains = [data['domain'], data['vercelDomain']]
+    .filter((value): value is string => typeof value === 'string')
+    .map(normalizeHost)
+    .filter(Boolean);
+  const localRequest = ['localhost', '127.0.0.1'].includes(requestHost);
+  const domainMatches = knownDomains.includes(requestHost) || (!!originHost && knownDomains.includes(originHost));
+  if (!localRequest && !domainMatches) return null;
+
+  const history = Array.isArray(body.history)
+    ? body.history
+      .filter(message => message && (message.role === 'user' || message.role === 'assistant') && typeof message.content === 'string')
+      .slice(-10)
+      .map(message => ({ role: message.role, content: message.content.trim().slice(0, 2_000) }))
+    : [];
+
+  return {
+    clinicId: clinic.id,
+    bookingRefPrefix: typeof data['bookingRefPrefix'] === 'string' ? data['bookingRefPrefix'].slice(0, 12) : 'BK',
+    message: body.message.trim().slice(0, CHAT_MAX_MESSAGE_LENGTH),
+    clinicName: typeof data['name'] === 'string' ? data['name'].slice(0, 120) : 'our clinic',
+    services: serviceNames(data['services']),
+    city: typeof data['city'] === 'string' ? data['city'].slice(0, 120) : '',
+    phone: typeof data['phone'] === 'string' ? data['phone'].slice(0, 40) : '',
+    address: typeof data['addressLine1'] === 'string' ? data['addressLine1'].slice(0, 240) : '',
+    hours: clinicHours(data['hours']),
+    whatsappNumber: typeof data['whatsappNumber'] === 'string' ? data['whatsappNumber'].slice(0, 40) : '',
+    history,
+  };
+}
+
 function normalizePhone(value: string): string {
   const cleaned = value.replace(/[^\d+]/g, '');
   if (cleaned.startsWith('+')) return cleaned;
@@ -88,7 +208,7 @@ function hasExistingBookingConfirmation(history: ChatMessage[]): boolean {
 function extractName(text: string): string {
   const patterns = [
     /(?:my name is|i am|this is|name is)\s+([A-Za-z][A-Za-z\s'.-]{1,40})/i,
-    /(?:patient name|name)\s*[:\-]\s*([A-Za-z][A-Za-z\s'.-]{1,40})/i,
+    /(?:patient name|name)\s*[:-]\s*([A-Za-z][A-Za-z\s'.-]{1,40})/i,
   ];
 
   for (const pattern of patterns) {
@@ -257,7 +377,6 @@ function buildFallbackReply(body: ChatRequestBody, bookingRequest: ExtractedBook
   const serviceList = body.services?.filter(Boolean).slice(0, 4) ?? [];
   const listedServices = serviceList.join(', ');
   const phone = body.phone?.trim() ?? '';
-  const whatsappNumber = body.whatsappNumber?.trim() ?? '';
   const hours = body.hours?.filter(Boolean).slice(0, 3) ?? [];
   const hoursLine = hours.join(', ');
 
@@ -292,9 +411,16 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<VercelResponse> {
-  const origin = req.headers.origin ?? '';
+  const origin = headerValue(req.headers.origin);
+  const requestHost = normalizeHost(headerValue(req.headers['x-forwarded-host']) || headerValue(req.headers.host));
+  let originHost = '';
+  try {
+    originHost = origin ? normalizeHost(new URL(origin).hostname) : '';
+  } catch {
+    return res.status(403).json({ error: 'Invalid request origin' });
+  }
   const allowed = ['https://mydentalplatform.com', 'https://www.mydentalplatform.com'];
-  if (allowed.includes(origin) || origin.endsWith('.mydentalplatform.com')) {
+  if (allowed.includes(origin) || origin.endsWith('.mydentalplatform.com') || (!!originHost && originHost === requestHost)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -304,14 +430,32 @@ export default async function handler(
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const apiKey = process.env['ANTHROPIC_API_KEY'];
-  const body = req.body as ChatRequestBody;
-  const history = body.history ?? [];
-  const { message, clinicName = 'our clinic', services = [] } = body;
+  const bodySize = Buffer.byteLength(JSON.stringify(req.body ?? {}), 'utf8');
+  if (bodySize > CHAT_MAX_BODY_BYTES) {
+    return res.status(413).json({ error: 'Request is too large' });
+  }
 
-  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+  const apiKey = process.env['ANTHROPIC_API_KEY'];
+  const untrustedBody = (req.body ?? {}) as ChatRequestBody;
+
+  if (!untrustedBody.message || typeof untrustedBody.message !== 'string' || untrustedBody.message.trim().length === 0) {
     return res.status(400).json({ error: 'message is required' });
   }
+  if (untrustedBody.message.length > CHAT_MAX_MESSAGE_LENGTH) {
+    return res.status(400).json({ error: 'message is too long' });
+  }
+
+  const body = await trustedClinicBody(req, untrustedBody);
+  if (!body) {
+    return res.status(403).json({ error: 'Clinic could not be verified for this domain.' });
+  }
+  if (await isChatRateLimited(req, body.clinicId ?? 'unknown')) {
+    res.setHeader('Retry-After', '600');
+    return res.status(429).json({ error: 'Too many messages. Please wait a few minutes and try again.' });
+  }
+
+  const history = body.history ?? [];
+  const { message, clinicName = 'our clinic', services = [] } = body;
 
   const bookingRequest = extractBookingRequest(body);
   const bookingMissing = getMissingBookingFields(bookingRequest);

@@ -349,7 +349,8 @@ export class SignupComponent implements OnInit {
   );
   toggleService(s: string): void {
     const cur = new Set(this.selectedServices());
-    cur.has(s) ? cur.delete(s) : cur.add(s);
+    if (cur.has(s)) cur.delete(s);
+    else cur.add(s);
     this.selectedServices.set(cur);
   }
   isServiceSelected(s: string) { return this.selectedServices().has(s); }
@@ -368,7 +369,7 @@ export class SignupComponent implements OnInit {
     {
       id: 'trial' as const, name: 'Free Trial', price: '₹0', period: '30 days',
       desc: 'Full website · no card needed',
-      features: ['Responsive clinic website', 'Online appointment booking', 'WhatsApp notifications',
+      features: ['Responsive clinic website', 'Online appointment booking', 'Instant booking alerts',
                  'Patient admin dashboard', 'Free subdomain (yourname.mydentalplatform.com)', '30-day free trial'],
     },
     {
@@ -625,9 +626,9 @@ export class SignupComponent implements OnInit {
     const size    = 6 + (i % 5) * 2;                      // 6–14 px
     return {
       id:    i,
-      left:  left + '%',
-      delay: delay + 's',
-      dur:   dur.toFixed(1) + 's',
+      left:  `${left  }%`,
+      delay: `${delay  }s`,
+      dur:   `${dur.toFixed(1)  }s`,
       color: palette[i % palette.length],
       size,
       cls:   i % 3 === 0 ? 'round' : (i % 5 === 0 ? 'strip' : ''),

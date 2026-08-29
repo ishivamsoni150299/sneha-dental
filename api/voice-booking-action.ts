@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { createVoiceBookingRequest, type VoiceBookingInput } from './_lib/voice-booking-action';
+import { sendAppointmentNotification } from './_lib/appointment-notification';
 
 if (!getApps().length) {
   initializeApp({
@@ -38,7 +39,7 @@ function getActionSecret(): string {
 
 function isAuthorized(req: VercelRequest): boolean {
   const expected = getActionSecret();
-  if (!expected) return true;
+  if (!expected) return false;
 
   const header = req.headers['x-voice-action-secret'] ?? req.headers['x-elevenlabs-action-secret'];
   const actual = Array.isArray(header) ? header[0] : header;
@@ -66,11 +67,18 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<VercelResponse> {
+  if (queryValue(req, 'action') === 'notify-web-booking') {
+    return sendAppointmentNotification(req, res);
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method not allowed.' });
   }
 
   if (!isAuthorized(req)) {
+    if (!getActionSecret()) {
+      return res.status(503).json({ success: false, message: 'Voice action is not configured.' });
+    }
     return res.status(401).json({ success: false, message: 'Unauthorized voice action request.' });
   }
 

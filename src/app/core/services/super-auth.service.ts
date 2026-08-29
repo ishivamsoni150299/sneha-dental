@@ -18,7 +18,13 @@ export class SuperAuthService {
   constructor() {
     this.authReady = new Promise(resolve => { this._authReadyResolve = resolve; });
 
-    onAuthStateChanged(auth, async user => {
+    onAuthStateChanged(auth, user => {
+      void this._syncAuthState(user);
+    });
+  }
+
+  private async _syncAuthState(user: User | null): Promise<void> {
+    try {
       this.currentUser.set(user);
       if (user) {
         const snap = await getDoc(doc(db, 'superAdmins', user.uid));
@@ -26,8 +32,12 @@ export class SuperAuthService {
       } else {
         this.isSuperAdmin.set(false);
       }
+    } catch (error) {
+      this.isSuperAdmin.set(false);
+      console.error('[SuperAuth] Failed to resolve admin access:', error);
+    } finally {
       this._authReadyResolve();
-    });
+    }
   }
 
   get isLoggedIn(): boolean {

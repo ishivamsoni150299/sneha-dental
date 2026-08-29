@@ -1,82 +1,42 @@
 <!-- ===== SERVICES HERO ===== -->
-<section class="clinic-public-hero">
-  <div class="clinic-public-container">
-    <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-      <div class="clinic-public-copy">
-        <span class="clinic-public-kicker">
-          Services & Pricing
-        </span>
+<section class="ui-section bg-ui-surface">
+  <div class="ui-container grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+    <div class="max-w-2xl">
+      <p class="ui-eyebrow">Services & Pricing</p>
+      <h1 class="ui-display">
+        Clear treatment options. No pressure.
+      </h1>
+      <p class="ui-lede">
+        Choose a concern or book a consultation. The clinic confirms the right treatment and cost before care begins.
+      </p>
+      <a routerLink="/appointment"
+         class="ui-btn ui-btn-primary ui-btn-lg mt-7">
+        Book Appointment
+      </a>
+    </div>
 
-        <h1 class="clinic-public-title">
-          Clear treatment options for every dental concern.
-        </h1>
-
-        <p class="clinic-public-subtitle">
-          Choose a treatment or book a consultation. The clinic confirms the right option before treatment starts.
-        </p>
-
-        <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-          <a routerLink="/appointment"
-             class="ds-button ds-button-primary">
-            Book Appointment
-          </a>
-        </div>
-
-        <dl class="hidden">
-          <div class="px-3 text-center">
-            <dt class="text-[11px] font-semibold text-gray-400">Patients</dt>
-            <dd class="mt-1 text-lg font-bold text-gray-900 sm:text-xl">{{ config.patientCount || '1000+' }}</dd>
-          </div>
-          <div class="px-3 text-center">
-            <dt class="text-[11px] font-semibold text-gray-400">Rating</dt>
-            <dd class="mt-1 text-lg font-bold text-amber-500 sm:text-xl">{{ config.rating || '4.9' }}/5</dd>
-          </div>
-          <div class="px-3 text-center">
-            <dt class="text-[11px] font-semibold text-gray-400">Booking</dt>
-            <dd class="mt-1 text-lg font-bold text-[var(--accent)] sm:text-xl">60 sec</dd>
-          </div>
-        </dl>
-      </div>
-
-      <div class="hidden">
-        <div class="relative h-44 overflow-hidden bg-gray-900">
-          <img
-            src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=1100&q=80"
-            alt="Dental treatment room"
-            class="h-full w-full object-cover opacity-75">
-          <div class="absolute inset-0 bg-gradient-to-r from-gray-950/80 via-gray-950/35 to-transparent"></div>
-          <div class="absolute bottom-5 left-5 right-5">
-            <p class="text-xs font-bold uppercase tracking-widest text-white/70">Treatment Finder</p>
-            <p class="mt-1 max-w-md text-2xl font-bold leading-tight text-white">Choose a concern and get the right next step.</p>
-          </div>
-        </div>
-        <div class="p-5 md:p-7">
-          <app-treatment-finder [compact]="true" />
-        </div>
-      </div>
+    <div class="ui-card ui-card-muted ui-lens p-4">
+      <app-treatment-finder [compact]="true" />
     </div>
   </div>
 </section>
 
-<!-- ===== BROWSE ALL TREATMENTS ===== -->
-<section class="border-y border-gray-100 bg-gray-50 py-12 md:py-20" id="all-treatments">
-  <div class="clinic-public-container">
-    <div class="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+<!-- ===== TREATMENT LIST ===== -->
+<section class="ui-section-compact border-y border-ui-line bg-ui-canvas" id="all-treatments">
+  <div class="ui-container">
+    <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <span class="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">All treatments</span>
-        <h2 class="clinic-public-title mt-3 md:text-4xl">Treatments</h2>
-        <p class="clinic-public-subtitle max-w-[21rem] md:max-w-2xl">
-          Pick a treatment to request an appointment.
-        </p>
+        <p class="ui-eyebrow">Treatments</p>
+        <h2 class="ui-heading">Pick one to book.</h2>
       </div>
 
       @if (config.services.length > 0) {
-        <div class="flex gap-2 overflow-x-auto pb-1 lg:max-w-[52rem] lg:flex-wrap lg:justify-end [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div class="flex gap-2 overflow-x-auto pb-1 lg:max-w-[48rem] lg:flex-wrap lg:justify-end [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           @for (cat of categories; track cat) {
             <button
               type="button"
               (click)="activeCategory.set(cat)"
-              class="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
+              class="shrink-0 rounded-2xl px-4 py-2 text-sm font-extrabold transition-colors whitespace-nowrap"
               [ngClass]="categoryButtonClass(cat)">
               {{ cat }}
             </button>
@@ -86,7 +46,7 @@
     </div>
 
     @if (config.services.length > 0) {
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @for (service of filteredServices(); track service.name) {
           <app-service-card
             [iconPath]="service.iconPath"
@@ -95,29 +55,15 @@
           />
         }
         @if (filteredServices().length === 0) {
-          <div class="clinic-public-card col-span-full border-dashed text-center text-sm text-gray-500">
+          <div class="ui-empty-state col-span-full">
             No services in this category yet.
           </div>
         }
       </div>
     } @else {
-      <div class="clinic-public-card border-dashed text-center text-sm text-gray-500">
+      <div class="ui-empty-state">
         Treatments will appear here after setup.
       </div>
     }
-  </div>
-</section>
-
-<!-- ===== CTA ===== -->
-<section class="hidden">
-  <div class="max-w-3xl mx-auto px-4 text-center">
-    <h2 class="font-display text-3xl text-white">Not sure which service you need?</h2>
-    <p class="mx-auto mt-4 max-w-xl leading-relaxed text-white/80">
-      Book a consultation and the clinic team will recommend the right treatment with full cost clarity.
-    </p>
-    <a routerLink="/appointment"
-       class="mt-7 inline-flex items-center justify-center rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-[var(--accent)] transition-colors hover:bg-[var(--accent-lt)]">
-      Book Appointment
-    </a>
   </div>
 </section>

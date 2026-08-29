@@ -53,7 +53,7 @@ describe('superAdminGuard', () => {
 
     // Guard should still be pending
     let settled = false;
-    guardPromise.then(() => { settled = true; });
+    void guardPromise.then(() => { settled = true; });
 
     await Promise.resolve(); // flush microtask queue
     expect(settled).toBeFalse();

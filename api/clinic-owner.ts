@@ -57,7 +57,10 @@ async function getOrCreateOwner(email: string, password: string, clinicName: str
   } catch (error) {
     if (!isUserNotFound(error)) throw error;
     if (!password) {
-      throw new Error('Password is required when creating a new clinic owner login.', { cause: error });
+      throw Object.assign(
+        new Error('Password is required when creating a new clinic owner login.'),
+        { cause: error },
+      );
     }
 
     return auth.createUser({
@@ -114,6 +117,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       });
     }
 
+    const claimedClinicId = typeof owner.customClaims?.['clinicId'] === 'string'
+      ? owner.customClaims['clinicId']
+      : '';
+    if (claimedClinicId && claimedClinicId !== clinicId) {
+      return res.status(409).json({
+        error: 'This owner email is already linked to another clinic.',
+      });
+    }
+
     const linkedClinic = await db.collection('clinics')
       .where('adminUid', '==', owner.uid)
       .limit(1)
@@ -125,13 +137,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       });
     }
 
-    const existingBillingEmail = cleanEmail(clinicSnap.data()?.['billingEmail']);
-    await clinicRef.update({
+    const privateRef = clinicRef.collection('private').doc('account');
+    const privateSnap = await privateRef.get();
+    const existingBillingEmail = cleanEmail(
+      privateSnap.data()?.['billingEmail'] ?? clinicSnap.data()?.['billingEmail'],
+    );
+    const batch = db.batch();
+    batch.set(privateRef, {
       adminUid: owner.uid,
       adminEmail: email,
       ...(!existingBillingEmail ? { billingEmail: email } : {}),
       updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    batch.update(clinicRef, {
+      adminUid: FieldValue.delete(),
+      adminEmail: FieldValue.delete(),
+      billingEmail: FieldValue.delete(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
+    await batch.commit();
 
     await auth.setCustomUserClaims(owner.uid, {
       ...(owner.customClaims ?? {}),

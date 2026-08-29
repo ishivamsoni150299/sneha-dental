@@ -54,7 +54,7 @@ describe('clinicRequiredGuard', () => {
 
   it('does not create a redirect when clinic is loaded and live', () => {
     setup(true, false);
-    TestBed.runInInjectionContext(() =>
+    void TestBed.runInInjectionContext(() =>
       clinicRequiredGuard({} as never, {} as never),
     );
     expect(mockRouter.createUrlTree).not.toHaveBeenCalled();

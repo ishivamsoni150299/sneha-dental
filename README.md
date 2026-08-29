@@ -67,7 +67,7 @@ High-level runtime flow:
 |---|---|
 | Build command | `npm run build` |
 | Output directory | `dist/mydentalplatform/browser/` |
-| Runtime | Node 18 |
+| Runtime | Node 22 |
 | Frontend routing | SPA rewrite to `index.html` |
 | API routing | `/api/*` to serverless functions |
 
@@ -105,12 +105,24 @@ firebase deploy --only firestore:indexes
 Main collections:
 
 - `clinics`
+- `clinics/{clinicId}/private/account`
 - `appointments`
 - `contacts`
 - `leads`
 - `superAdmins`
 - `analytics`
 - `platform`
+- `rateLimits` (server-only abuse-control buckets)
+
+Clinic documents contain only public website configuration and the minimum
+subscription state needed to enable the clinic site. Owner identity, billing
+email, payment references, attribution, and billing controls live in the
+authenticated `private/account` subdocument.
+
+New appointment document IDs are SHA-256 lookup keys derived from clinic ID,
+booking reference, and phone number. The slot collection therefore never
+exposes those values in plain text. Legacy appointment keys remain readable by
+the patient lookup flow during migration.
 
 Typical `clinics` fields include:
 
@@ -285,7 +297,7 @@ Voice agent:
 | Plan | Monthly | Yearly | Notes |
 |---|---|---|---|
 | Free | Rs 0 | Rs 0 | Trial or restricted starter access depending on workflow |
-| Starter | Rs 999 | Rs 9999 | Website, booking, WhatsApp lead flow |
+| Starter | Rs 999 | Rs 9999 | Website, booking, dashboard and email alerts, WhatsApp lead flow |
 | Pro | Rs 2499 | Rs 24999 | Starter plus AI voice and advanced workflows |
 
 Current payment flow:
@@ -326,6 +338,17 @@ Firebase deploys are separate:
 firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
 ```
+
+Before deploying the private clinic schema, preview the one-time migration with
+production Firebase Admin environment variables loaded:
+
+```bash
+npm run migrate:clinic-private-data
+npm run migrate:clinic-private-data -- --apply
+```
+
+The migration copies private values first, refreshes clinic-owner custom claims,
+and then removes those values from the public clinic document.
 
 Recommended validation before pushing:
 

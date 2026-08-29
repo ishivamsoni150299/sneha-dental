@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
 export interface VoiceBookingInput {
@@ -132,11 +132,12 @@ export function normalizePreferredTime(value: unknown): string {
 }
 
 function buildLookupKey(clinicId: string, bookingRef: string, phone: string): string {
-  return [
+  const source = [
     clinicId,
     normalizeBookingRef(bookingRef),
     normalizePhoneLookup(phone),
   ].join('__');
+  return createHash('sha256').update(source).digest('hex');
 }
 
 function buildSlotKey(clinicId: string, date: string, time: string): string {

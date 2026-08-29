@@ -86,7 +86,7 @@ export class LeadDiscoverComponent implements OnInit {
   }
 
   addToPipeline(clinic: DiscoveredClinic) {
-    this.router.navigate(['/business/leads/new'], {
+    void this.router.navigate(['/business/leads/new'], {
       queryParams: {
         clinicName: clinic.name,
         city:       clinic.city,

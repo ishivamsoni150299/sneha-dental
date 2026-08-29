@@ -21,7 +21,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
     } @else {
       <app-navbar />
 
-      <main id="main-content" class="min-h-[60vh] overflow-x-clip bg-gradient-to-b from-slate-50 via-white to-slate-100 md:bg-none">
+      <main id="main-content" class="min-h-[60vh] overflow-x-clip bg-ui-canvas">
         <router-outlet />
       </main>
       <app-footer />
@@ -35,7 +35,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
            target="_blank"
            rel="noopener noreferrer"
            aria-label="Chat on WhatsApp"
-           class="flex h-12 w-12 items-center justify-center rounded-full border border-status-success bg-white text-status-success shadow-md transition-colors hover:bg-status-success-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-success focus-visible:ring-offset-2">
+           class="ui-btn ui-btn-icon rounded-full border-status-success bg-white text-status-success shadow-ui-md hover:bg-status-success-soft">
           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
           </svg>
@@ -46,7 +46,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @if (showBackToTop()) {
         <button (click)="scrollToTop()"
                 aria-label="Back to top"
-                class="fixed bottom-28 right-6 z-40 hidden h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg animate-slide-up md:flex">
+                class="ui-btn ui-btn-secondary ui-btn-icon fixed bottom-28 right-6 z-40 hidden rounded-full animate-slide-up md:flex">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
           </svg>
@@ -125,7 +125,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       }
 
       <!-- Mobile action dock — anchored flush to viewport bottom -->
-      <div class="fixed bottom-0 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="left: 12px; right: auto; width: min(calc(100vw - 48px), 342px); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));">
+      <div class="fixed bottom-0 left-3 right-3 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));">
         <div class="mobile-dock-shell">
           <div class="mobile-dock-grid">
             <a [href]="'tel:+' + clinic.config.phoneE164"

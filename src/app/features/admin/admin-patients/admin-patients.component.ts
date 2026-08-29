@@ -162,13 +162,13 @@ export class AdminPatientsComponent implements OnInit {
   }
 
   formatDate(d: string): string {
-    return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', {
+    return new Date(`${d  }T00:00:00`).toLocaleDateString('en-IN', {
       day: 'numeric', month: 'short', year: 'numeric',
     });
   }
 
   formatDateShort(d: string): string {
-    return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', {
+    return new Date(`${d  }T00:00:00`).toLocaleDateString('en-IN', {
       day: 'numeric', month: 'short',
     });
   }

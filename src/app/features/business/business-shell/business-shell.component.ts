@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, HostListener, type OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { SuperAuthService } from '../../../core/services/super-auth.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
@@ -13,24 +13,28 @@ import { Router } from '@angular/router';
 })
 export class BusinessShellComponent implements OnInit {
   readonly auth        = inject(SuperAuthService);
-  private  router      = inject(Router);
-  private  clinicStore = inject(ClinicFirestoreService);
+  private readonly router      = inject(Router);
+  private readonly clinicStore = inject(ClinicFirestoreService);
 
   clinicCount  = signal<number | null>(null);
   menuOpen     = signal(false);
 
   @HostListener('document:keydown.escape')
-  closeMenu() { this.menuOpen.set(false); }
+  closeMenu(): void { this.menuOpen.set(false); }
 
-  async ngOnInit() {
+  ngOnInit(): void {
+    void this.loadClinicCount();
+  }
+
+  private async loadClinicCount(): Promise<void> {
     try {
       const list = await this.clinicStore.getAll();
       this.clinicCount.set(list.length);
     } catch { /* non-critical */ }
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     await this.auth.logout();
-    this.router.navigate(['/business/login']);
+    await this.router.navigate(['/business/login']);
   }
 }

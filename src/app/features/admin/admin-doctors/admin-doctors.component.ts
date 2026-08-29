@@ -1,11 +1,11 @@
 import {
-  Component, signal, ChangeDetectionStrategy, inject, OnInit, computed,
+  Component, signal, ChangeDetectionStrategy, inject, OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import {
-  DoctorService, Doctor, WEEK_DAYS, DEFAULT_SCHEDULE, WeekDay,
+  DoctorService, Doctor, WEEK_DAYS, DEFAULT_SCHEDULE,
   formatSlotDisplay, generateSlots, type DaySchedule,
 } from '../../../core/services/doctor.service';
 
@@ -37,7 +37,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
       </div>
     }
 
-    <div class="min-h-screen bg-slate-50">
+    <div class="clinic-admin-shell min-h-screen">
 
       <!-- ── Header ───────────────────────────────────────────────────────── -->
       <div class="bg-white border-b border-gray-200 sticky top-0 z-30">

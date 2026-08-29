@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
   buildAgentSystemPrompt,
@@ -19,6 +20,7 @@ if (!getApps().length) {
 }
 
 const db = getFirestore();
+const auth = getAuth();
 
 interface WhatsappAccountResponse {
   business_account_id: string;
@@ -59,6 +61,28 @@ function getClinicId(req: VercelRequest): string {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const bodyClinicId = typeof body['clinicId'] === 'string' ? body['clinicId'] : '';
   return (queryClinicId || bodyClinicId).trim();
+}
+
+function bearerToken(req: VercelRequest): string {
+  const rawAuthorization: unknown = req.headers['authorization'];
+  const authorization = Array.isArray(rawAuthorization)
+    ? (rawAuthorization.find((value): value is string => typeof value === 'string') ?? '')
+    : (typeof rawAuthorization === 'string' ? rawAuthorization : '');
+  return authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
+}
+
+async function canManageClinic(req: VercelRequest, clinicId: string): Promise<boolean> {
+  const idToken = bearerToken(req);
+  if (!idToken) return false;
+
+  const decoded = await auth.verifyIdToken(idToken);
+  if (decoded['clinicId'] === clinicId && decoded['role'] === 'admin') return true;
+
+  const [clinic, superAdmin] = await Promise.all([
+    db.collection('clinics').doc(clinicId).get(),
+    db.collection('superAdmins').doc(decoded.uid).get(),
+  ]);
+  return superAdmin.exists || clinic.data()?.['adminUid'] === decoded.uid;
 }
 
 function getApiKey(res: VercelResponse): string | null {
@@ -527,7 +551,11 @@ async function handleUsage(req: VercelRequest, res: VercelResponse): Promise<Ver
   const clinicDoc = await db.collection('clinics').doc(clinicId).get();
   if (!clinicDoc.exists) return res.status(404).json({ error: 'Clinic not found' });
 
-  const clinicData = clinicDoc.data() as Record<string, unknown>;
+  const privateDoc = await clinicDoc.ref.collection('private').doc('account').get();
+  const clinicData = {
+    ...(clinicDoc.data() as Record<string, unknown>),
+    ...(privateDoc.data() ?? {}),
+  };
   const agentId = clinicData['elevenLabsAgentId'] as string | undefined;
   if (!agentId) return res.status(200).json({ conversations: 0, minutesUsed: 0, minutesLimit: 30 });
 
@@ -639,6 +667,16 @@ async function handleWhatsappAccounts(req: VercelRequest, res: VercelResponse): 
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse> {
   const action = getAction(req);
+  const clinicId = getClinicId(req);
+  if (!clinicId) return res.status(400).json({ error: 'clinicId required' });
+
+  try {
+    if (!await canManageClinic(req, clinicId)) {
+      return res.status(403).json({ error: 'You do not have access to this clinic.' });
+    }
+  } catch {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
 
   if (action === 'create-agent') return handleCreateAgent(req, res);
   if (action === 'update-agent') return handleUpdateAgent(req, res);

@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import {
   getBaseUrl,
   getRequestHostname,
@@ -47,7 +49,36 @@ function sendRobots(req: VercelRequest, res: VercelResponse): VercelResponse {
   return res.status(200).send(content);
 }
 
-export default function handler(req: VercelRequest, res: VercelResponse): VercelResponse {
+async function sendHealth(res: VercelResponse): Promise<VercelResponse> {
+  res.setHeader('Cache-Control', 'no-store');
+  const requiredEnv = [
+    'FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY',
+    'CRON_SECRET', 'ZOHO_SMTP_USER', 'ZOHO_SMTP_PASS',
+  ];
+  const configurationReady = requiredEnv.every(key => Boolean(process.env[key]));
+  let databaseReady = false;
+  try {
+    if (!getApps().length) {
+      initializeApp({ credential: cert({
+        projectId: process.env['FIREBASE_PROJECT_ID'],
+        clientEmail: process.env['FIREBASE_CLIENT_EMAIL'],
+        privateKey: process.env['FIREBASE_PRIVATE_KEY']?.replace(/\\n/g, '\n'),
+      }) });
+    }
+    await getFirestore().collection('clinics').limit(1).get();
+    databaseReady = true;
+  } catch (error) {
+    console.error('[health] Database check failed:', error);
+  }
+  const healthy = configurationReady && databaseReady;
+  return res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'ok' : 'degraded',
+    checks: { configuration: configurationReady, database: databaseReady },
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse> {
   const type = typeof req.query['type'] === 'string' ? req.query['type'] : '';
 
   if (type === 'robots') {
@@ -56,6 +87,10 @@ export default function handler(req: VercelRequest, res: VercelResponse): Vercel
 
   if (type === 'sitemap') {
     return sendSitemap(req, res);
+  }
+
+  if (type === 'health') {
+    return sendHealth(res);
   }
 
   return res.status(400).json({ error: 'Unknown SEO type' });

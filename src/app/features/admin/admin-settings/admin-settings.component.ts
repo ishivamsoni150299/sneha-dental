@@ -17,6 +17,7 @@ import {
   formatPlatformPlanPrice,
 } from '../../../core/config/clinic.config';
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
+import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 
 type TabId =
   | 'info'
@@ -112,6 +113,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   private clinicCfg  = inject(ClinicConfigService);
   private store      = inject(ClinicFirestoreService);
   private billing    = inject(BillingService);
+  private api        = inject(AuthenticatedApiService);
   private fb         = inject(FormBuilder);
   private route      = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
@@ -378,7 +380,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     });
 
     if (cfg.elevenLabsAgentId && cfg.clinicId && cfg.clinicId !== 'default') {
-      this.fetchUsage();
+      void this.fetchUsage();
       void this.fetchWhatsappAccounts();
     }
 
@@ -713,7 +715,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.creatingVoiceAgent.set(true);
     try {
       const cfg = this.clinicCfg.config;
-      const response = await fetch('/api/elevenlabs?action=create-agent', {
+      const response = await this.api.fetch('/api/elevenlabs?action=create-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -753,7 +755,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
     this.loadingUsage.set(true);
     try {
-      const response = await fetch(`/api/elevenlabs?action=usage&clinicId=${this.clinicId}`);
+      const response = await this.api.fetch(`/api/elevenlabs?action=usage&clinicId=${this.clinicId}`);
       if (response.ok) this.voiceUsage.set(await response.json());
     } catch {
       // Usage is non-critical.
@@ -768,7 +770,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.loadingWhatsappAccounts.set(true);
     this.whatsappAccountsError.set(null);
     try {
-      const response = await fetch(`/api/elevenlabs?action=whatsapp-accounts&clinicId=${encodeURIComponent(this.clinicId)}`);
+      const response = await this.api.fetch(`/api/elevenlabs?action=whatsapp-accounts&clinicId=${encodeURIComponent(this.clinicId)}`);
       const data = await response.json() as {
         items?: WhatsappAccountOption[];
         currentPhoneNumberId?: string | null;
@@ -806,7 +808,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.savingVoice.set(true);
     try {
       const values = this.voiceForm.getRawValue();
-      const response = await fetch('/api/elevenlabs?action=update-agent', {
+      const response = await this.api.fetch('/api/elevenlabs?action=update-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

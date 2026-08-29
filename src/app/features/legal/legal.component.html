@@ -1,0 +1,96 @@
+<section class="relative overflow-hidden border-b border-ui-line bg-ui-surface py-14 md:py-20">
+  <div class="ui-container relative">
+    <a routerLink="/" class="ui-eyebrow inline-flex items-center gap-2 hover:text-[var(--accent)]">
+      <span aria-hidden="true">←</span> Back to {{ clinic.config.name }}
+    </a>
+    <div class="mt-6 max-w-3xl">
+      <p class="ui-kicker">Patient information</p>
+      <h1 class="ui-display mt-3 text-slate-950">
+        {{ page === 'privacy' ? 'Privacy notice' : 'Website terms' }}
+      </h1>
+      <p class="mt-5 max-w-2xl text-base leading-7 text-slate-600">
+        @if (page === 'privacy') {
+          How appointment and enquiry information is handled when you use this clinic website.
+        } @else {
+          Clear conditions for using this website, requesting appointments, and accessing digital clinic services.
+        }
+      </p>
+      <p class="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Effective {{ effectiveDate }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="bg-ui-canvas py-12 md:py-20">
+  <div class="ui-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+    <article class="ui-card max-w-4xl space-y-9 p-6 sm:p-9 md:p-12">
+      @if (page === 'privacy') {
+        <section>
+          <p class="ui-eyebrow">01 · Information collected</p>
+          <h2 class="ui-heading mt-2">Only what is needed to respond and provide care.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">When you request an appointment or send an enquiry, we may collect your name, phone number, email address, preferred service, preferred date and time, and any notes you choose to provide. Clinic staff may later add appointment status, treatment notes, and payment status for clinic operations.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">02 · How it is used</p>
+          <h2 class="ui-heading mt-2">To manage your request and clinic visit.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Your information is used to contact you, confirm or change an appointment, provide requested clinic services, maintain clinic records, prevent duplicate bookings, and operate the website securely. It is not sold for advertising.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">03 · Who can access it</p>
+          <h2 class="ui-heading mt-2">The clinic and essential service providers.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Authorised staff at {{ clinic.config.name }} can access their clinic's records. mydentalplatform provides the website and secure technical infrastructure. Essential providers may process limited information for hosting, authentication, email delivery, payments, error monitoring, or AI receptionist features when enabled.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">04 · Retention and security</p>
+          <h2 class="ui-heading mt-2">Protected and retained only as required.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Reasonable technical and organisational safeguards are used, including access controls and tenant separation. Records are retained for clinic operations, legal obligations, dispute handling, and continuity of care, then deleted or anonymised when no longer required.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">05 · Your choices</p>
+          <h2 class="ui-heading mt-2">Ask the clinic about your information.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">You may contact the clinic to request access, correction, or deletion where applicable. Some records may need to be retained for healthcare, accounting, fraud prevention, or legal reasons.</p>
+        </section>
+      } @else {
+        <section>
+          <p class="ui-eyebrow">01 · Appointment requests</p>
+          <h2 class="ui-heading mt-2">Online requests are not final confirmations.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Submitting the form records your preferred date and time. Your appointment is confirmed only after {{ clinic.config.name }} contacts you by phone, WhatsApp, email, or updates its status. Availability may change before confirmation.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">02 · Medical limitations</p>
+          <h2 class="ui-heading mt-2">This website does not provide diagnosis or emergency care.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Website, chat, and voice responses are general information and cannot replace an examination by a qualified dental professional. For severe pain, swelling, uncontrolled bleeding, trauma, breathing difficulty, or another emergency, call the clinic or local emergency services immediately.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">03 · Pricing and treatment</p>
+          <h2 class="ui-heading mt-2">Final advice follows a clinical assessment.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Prices shown online are estimates or starting prices unless clearly stated otherwise. The clinic confirms the recommended treatment, total fee, alternatives, risks, and consent requirements after assessment.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">04 · Acceptable use</p>
+          <h2 class="ui-heading mt-2">Use the service honestly and lawfully.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Do not submit false information, attempt to access another patient's booking, disrupt the website, automate abusive requests, or use the service for unlawful purposes. Access may be limited to protect patients and the clinic.</p>
+        </section>
+        <section>
+          <p class="ui-eyebrow">05 · Availability</p>
+          <h2 class="ui-heading mt-2">Digital services include practical fallbacks.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">The website may occasionally be unavailable because of maintenance, connectivity, or third-party services. If a request does not complete, call or WhatsApp the clinic directly. Do not use the website as the only channel for urgent care.</p>
+        </section>
+      }
+
+      <div class="rounded-2xl border border-[var(--accent-bd)] bg-[var(--accent-lt)] p-5">
+        <p class="text-sm font-extrabold text-slate-950">Questions or requests</p>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Contact {{ clinic.config.name }} at <a [href]="'tel:+' + clinic.config.phoneE164" class="font-bold text-[var(--accent)] hover:underline">{{ clinic.config.phone }}</a>. For platform privacy or security questions, email <a href="mailto:mydentalplatform&#64;zohomail.in" class="font-bold text-[var(--accent)] hover:underline">mydentalplatform&#64;zohomail.in</a>.</p>
+      </div>
+    </article>
+
+    <aside class="ui-card p-6 lg:sticky lg:top-24">
+      <p class="ui-eyebrow">Quick links</p>
+      <nav class="mt-4 space-y-2" aria-label="Legal pages">
+        <a routerLink="/privacy" class="ui-btn ui-btn-secondary ui-btn-block justify-start" [class.border-[var(--accent)]]="page === 'privacy'">Privacy notice</a>
+        <a routerLink="/terms" class="ui-btn ui-btn-secondary ui-btn-block justify-start" [class.border-[var(--accent)]]="page === 'terms'">Website terms</a>
+        <a routerLink="/appointment" class="ui-btn ui-btn-primary ui-btn-block mt-4">Book Appointment</a>
+      </nav>
+      <p class="mt-5 text-xs leading-5 text-slate-400">This baseline policy should be reviewed by the clinic for local healthcare and data-protection requirements.</p>
+    </aside>
+  </div>
+</section>

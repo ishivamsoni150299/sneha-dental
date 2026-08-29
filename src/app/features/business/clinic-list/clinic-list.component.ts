@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
+import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 
 interface Toast { msg: string; type: 'success' | 'error' }
 
@@ -19,6 +20,7 @@ interface Toast { msg: string; type: 'success' | 'error' }
 export class ClinicListComponent implements OnInit {
   private clinicStore = inject(ClinicFirestoreService);
   private billing     = inject(BillingService);
+  private api         = inject(AuthenticatedApiService);
   private router      = inject(Router);
 
   clinics          = signal<StoredClinic[]>([]);
@@ -213,7 +215,7 @@ export class ClinicListComponent implements OnInit {
   async createVoiceAgent(clinic: StoredClinic) {
     this.creatingVoiceAgent.set(clinic.id);
     try {
-      const res = await fetch('/api/elevenlabs?action=create-agent', {
+      const res = await this.api.fetch('/api/elevenlabs?action=create-agent', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -260,7 +262,7 @@ export class ClinicListComponent implements OnInit {
 
   // ── Navigate ──────────────────────────────────────────────────────────────
   edit(id: string) {
-    this.router.navigate(['/business/clinics', id, 'edit']);
+    void this.router.navigate(['/business/clinics', id, 'edit']);
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────

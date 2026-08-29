@@ -612,7 +612,9 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   async switchToVoice() {
     this.mode.set('idle');
-    setTimeout(() => this.zone.run(() => this.startVoice()), 80);
+    setTimeout(() => {
+      this.zone.run(() => { void this.startVoice(); });
+    }, 80);
   }
 
   closeChat() { this.mode.set('idle'); }

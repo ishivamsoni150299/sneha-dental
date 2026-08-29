@@ -1,392 +1,134 @@
-<!-- ===== HERO ===== -->
-<section class="overflow-x-clip bg-white py-10 sm:py-14 lg:flex lg:min-h-[92vh] lg:items-center">
-  <div class="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-    <div class="flex min-w-0 flex-col lg:items-center gap-8 lg:flex-row lg:gap-20">
+<!-- ===== PREMIUM CLINIC HERO ===== -->
+<section class="ui-lens overflow-x-clip bg-ui-surface">
+  <div class="ui-container grid min-h-[calc(100svh-72px)] grid-cols-1 py-10 md:py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-14">
+    <div class="max-w-[36rem]">
+      <p class="ui-eyebrow">{{ heroEyebrow }}</p>
 
-      <!-- Text side -->
-      <div class="min-w-0 flex-1 text-left">
+      <h1 class="ui-display">
+        {{ heroTitle }}
+        <span class="block text-[var(--ui-primary)]">{{ heroHighlight }}</span>
+      </h1>
 
-        <!-- Eyebrow -->
-        <div class="anim-fade-up mb-4 sm:mb-7">
-          <!-- Mobile: clean badge -->
-          <div class="sm:hidden inline-flex items-center gap-2 rounded-full bg-[var(--accent-lt)] border border-[var(--accent-bd)]/60 px-3.5 py-1.5">
-            <span class="flex h-2 w-2 rounded-full bg-[var(--accent)]"></span>
-            <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--accent-dk)]">{{ heroEyebrow }}</span>
-          </div>
-          <!-- Desktop: lines pattern -->
-          <div class="hidden sm:flex items-center gap-2">
-            <span class="block w-6 h-px bg-[var(--accent)]"></span>
-            <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">{{ heroEyebrow }}</span>
-          </div>
-        </div>
+      <p class="ui-lede max-w-[32rem]">
+        {{ heroSubtitle }}
+      </p>
 
-        <!-- Headline -->
-        <h1 class="anim-fade-up anim-d1 font-display text-[2.6rem] sm:text-5xl lg:text-[3.6rem] xl:text-[4rem] text-gray-900 leading-[1.05] mb-4 sm:mb-6 tracking-tight">
-          {{ heroTitle }}<br>
-          <span class="text-[var(--accent)]">{{ heroHighlight }}</span>
-        </h1>
-
-        <!-- Subtitle -->
-        <p class="anim-fade-up anim-d2 max-w-[22rem] text-gray-500 text-[0.9375rem] sm:max-w-xl sm:text-lg leading-relaxed mb-6 sm:mb-7">
-          {{ heroSubtitle }}
-        </p>
-
-        <!-- CTAs -->
-        <div class="anim-fade-up anim-d3 mb-0 sm:mb-7">
-          <!-- Mobile: one clear action -->
-          <div class="sm:hidden">
-            <a routerLink="/appointment"
-               class="flex w-full max-w-[22rem] items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-6 py-4 rounded-2xl font-bold text-base transition-colors shadow-lg shadow-[var(--accent-sh)] active:scale-[0.98]">
-              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-              Book Appointment
-            </a>
-            <p class="mt-3 max-w-[22rem] text-center text-xs font-medium text-gray-400">Same-day appointments available</p>
-          </div>
-          <!-- Desktop: one primary action with a quiet phone fallback -->
-          <div class="hidden sm:flex items-center gap-4">
-            <a routerLink="/appointment"
-               class="bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-colors text-center shadow-sm shadow-[var(--accent-bd)]">
-              Book Appointment
-            </a>
-            <a [href]="'tel:+' + config.phoneE164"
-               class="text-sm font-semibold text-gray-500 transition-colors hover:text-[var(--accent)]">
-              Call {{ config.phone || 'clinic' }}
-            </a>
-          </div>
-        </div>
-
-        <!-- Trust pills â€” desktop only; mobile hero is clean without them -->
-        <div class="hidden">
-          @for (t of trustPills; track t) {
-            <span class="flex shrink-0 items-center gap-1.5 text-[11px] sm:text-xs text-gray-500 px-2.5 sm:px-3 py-1.5 rounded-full border border-gray-100 bg-gray-50 whitespace-nowrap">
-              <svg class="w-3 h-3 text-[var(--accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              {{ t }}
-            </span>
-          }
-        </div>
-
-        <!-- Mobile: bare social-proof numbers â€” no card, no border, just the numbers -->
-        <div class="hidden">
-          <div class="flex-1 text-center">
-            <p class="text-2xl font-bold text-gray-900 leading-none">{{ config.patientCount || '1000+' }}</p>
-            <p class="mt-1.5 text-[11px] text-gray-400 font-medium">Happy patients</p>
-          </div>
-          <div class="flex-1 text-center">
-            <p class="text-2xl font-bold text-amber-500 leading-none">{{ config.rating || '4.9' }}<span class="text-lg" aria-hidden="true">â˜…</span><span class="sr-only"> out of 5</span></p>
-            <p class="mt-1.5 text-[11px] text-gray-400 font-medium">Google rating</p>
-          </div>
-          <div class="flex-1 text-center">
-            <p class="text-2xl font-bold text-[var(--accent)] leading-none">2 hrs</p>
-            <p class="mt-1.5 text-[11px] text-gray-400 font-medium">Confirmation</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hero card â€” desktop only -->
-      <div class="anim-scale-in hidden lg:flex flex-1 justify-end">
-        <div class="w-full max-w-[460px] overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-200/80">
-
-          <!-- Card header -->
-          <div class="relative overflow-hidden bg-slate-950 px-6 pt-6 pb-6">
-            <div class="absolute inset-0">
-              <img [src]="clinicMoments[0].src" [alt]="clinicMoments[0].alt" class="h-full w-full object-cover opacity-20">
-            </div>
-            <div class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/75 via-slate-950/75 to-slate-950"></div>
-            <div class="flex items-start gap-4">
-              <div class="relative z-10 w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <span class="text-white font-black text-lg tracking-[0.18em] select-none">{{ clinicMonogram }}</span>
-              </div>
-              <div class="relative z-10 flex-1 min-w-0 pt-0.5">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100/80">Clinic Preview</p>
-                <p class="mt-1 font-display text-2xl text-white leading-none">{{ config.name || 'Dental Clinic' }}</p>
-                <p class="text-white/70 text-xs mt-0.5">{{ config.doctorQualification || 'BDS' }} Â· Dental Surgeon</p>
-                <div class="hidden">
-                  <div class="flex gap-px" aria-hidden="true">
-                    @for (s of [1,2,3,4,5]; track s) {
-                      <svg class="w-2.5 h-2.5 text-amber-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      </svg>
-                    }
-                  </div>
-                  <span class="text-white/60 text-[10px] font-medium">
-                    <span class="sr-only">Rating: </span>{{ config.rating || '4.9' }}<span aria-hidden="true"> Â· </span><span class="sr-only"> out of 5, </span>{{ config.patientCount || '500+' }} patients
-                  </span>
-                </div>
-              </div>
-              @if (clinic.isOpenNow) {
-                <span class="hidden">
-                  <span class="w-1.5 h-1.5 bg-green-300 rounded-full"></span>
-                  Open now
-                </span>
-              } @else {
-                <span class="hidden">
-                  Call to confirm
-                </span>
-              }
-            </div>
-          </div>
-
-          <div class="hidden">
-            @for (moment of clinicMoments; track moment.label) {
-              <div class="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
-                <div class="aspect-[4/3]">
-                  <img [src]="moment.src" [alt]="moment.alt" class="h-full w-full object-cover">
-                </div>
-                <p class="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">{{ moment.label }}</p>
-              </div>
-            }
-          </div>
-
-          <!-- Hours -->
-          <div class="hidden">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Clinic Hours</p>
-            <div class="space-y-2 mb-5">
-              @for (h of heroHours; track h.days) {
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-500">{{ h.days }}</span>
-                  <span class="font-semibold text-gray-800 tabular-nums">{{ h.time }}</span>
-                </div>
-              }
-            </div>
-            <a routerLink="/appointment"
-               class="flex items-center justify-center gap-2 w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white py-3.5 rounded-xl font-semibold text-sm transition-colors">
-              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-              Book Appointment
-            </a>
-            <p class="text-center text-[11px] text-gray-400 mt-2.5">Same-day slots Â· No hidden charges</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ===== SERVICES PREVIEW ===== -->
-<section class="bg-gray-50 py-10 md:py-24">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-
-    <!-- Section header -->
-    <div appReveal appRevealDir="up" class="mb-12 md:mb-16 text-center">
-      <div class="flex items-center gap-2 justify-center mb-4">
-        <span class="block w-5 h-px bg-[var(--accent)]"></span>
-        <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Our Services</span>
-        <span class="block w-5 h-px bg-[var(--accent)]"></span>
-      </div>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 leading-tight mb-4">Common Treatments</h2>
-      <p class="text-gray-500 text-base max-w-md mx-auto">Start with the concern. We will confirm the right treatment before anything begins.</p>
-    </div>
-
-    <!-- Mobile: focused booking grid -->
-    <div class="sm:hidden">
-      <div class="grid grid-cols-2 gap-3">
-        @for (service of previewServices.slice(0, 4); track service.name) {
-          <a routerLink="/appointment" [queryParams]="{service: service.name}"
-             class="flex min-h-[116px] flex-col items-start justify-between rounded-2xl border border-gray-100 bg-white px-4 py-4 active:scale-[0.98] transition-all duration-200 active:bg-[var(--accent-lt)]">
-            <div class="w-10 h-10 rounded-xl bg-[var(--accent-lt)] flex items-center justify-center">
-              <svg class="w-5 h-5 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="service.iconPath"/>
-              </svg>
-            </div>
-            <span class="text-sm font-bold leading-tight text-gray-800">{{ service.name }}</span>
+      <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <a routerLink="/appointment"
+           class="ui-btn ui-btn-primary ui-btn-lg">
+          Book Appointment
+        </a>
+        @if (config.phone) {
+          <a [href]="'tel:+' + config.phoneE164"
+             class="ui-btn ui-btn-secondary ui-btn-lg">
+            Call {{ config.phone }}
           </a>
         }
       </div>
-      <div class="text-center mt-6">
-        <a routerLink="/services" class="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
-          View all services
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-          </svg>
-        </a>
+
+      <div class="ui-card-muted mt-8 grid max-w-[34rem] grid-cols-3 divide-x divide-ui-line rounded-[var(--ui-radius-lg)] border px-2 py-4">
+        <div class="px-3">
+          <p class="text-lg font-extrabold text-ui-ink">{{ config.patientCount || '1000+' }}</p>
+          <p class="ui-caption mt-0.5">Patients</p>
+        </div>
+        <div class="px-3">
+          <p class="text-lg font-extrabold text-amber-500">{{ config.rating || '4.9' }}/5</p>
+          <p class="ui-caption mt-0.5">Rating</p>
+        </div>
+        <div class="px-3">
+          <p class="text-lg font-extrabold text-[var(--ui-primary)]">60 sec</p>
+          <p class="ui-caption mt-0.5">Booking</p>
+        </div>
       </div>
     </div>
 
-    <!-- Desktop: card grid -->
-    <div class="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-      @for (service of previewServices.slice(0, 3); track service.name; let i = $index) {
-        <div appReveal [appRevealDelay]="i * 70" appRevealDir="up">
-          <app-service-card
-            [iconPath]="service.iconPath"
-            [name]="service.name"
-            [description]="service.description"
-            [benefit]="service.benefit"
-            [compact]="true"
-          />
+    <div class="mt-10 lg:mt-0">
+      <div class="ui-card relative overflow-hidden p-0 shadow-ui-md">
+        <img [src]="clinicMoments[0].src"
+             [alt]="clinicMoments[0].alt"
+             class="aspect-[4/3] w-full object-cover sm:aspect-[5/4] lg:aspect-[4/5]">
+        <div class="absolute inset-x-4 bottom-4 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-xl backdrop-blur-md sm:inset-x-6 sm:bottom-6 sm:p-5">
+          <p class="ui-eyebrow mb-1">Clinic promise</p>
+          <p class="ui-title text-lg">Clear guidance before treatment. No hidden charges.</p>
         </div>
-      }
+      </div>
     </div>
+  </div>
+</section>
 
-    <div appReveal appRevealDir="up" [appRevealDelay]="200" class="hidden sm:block text-center mt-10">
+<!-- ===== TREATMENTS ===== -->
+<section class="ui-section-compact bg-ui-canvas">
+  <div class="ui-container">
+    <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div class="max-w-2xl">
+        <p class="ui-eyebrow">Start here</p>
+        <h2 class="ui-heading">Choose your concern.</h2>
+        <p class="ui-lede mt-3">Pick a treatment to request an appointment. The clinic confirms the final recommendation.</p>
+      </div>
       <a routerLink="/services"
-         class="inline-flex items-center gap-2 border border-gray-200 hover:border-[var(--accent-bd)] text-gray-700 hover:text-[var(--accent)] px-7 py-3 rounded-xl font-semibold text-sm transition-colors bg-white">
-        View All Services
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-        </svg>
+         class="ui-link inline-flex">
+        View all treatments
       </a>
     </div>
-  </div>
-</section>
-<!-- ===== WHY CHOOSE US ===== -->
-<section class="bg-white py-10 md:py-24">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
-    <div appReveal appRevealDir="up" class="text-center mb-10 md:mb-14">
-      <div class="flex items-center gap-2 justify-center mb-4">
-        <span class="block w-5 h-px bg-[var(--accent)]"></span>
-        <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Why Choose Us</span>
-        <span class="block w-5 h-px bg-[var(--accent)]"></span>
-      </div>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3 leading-tight">Care That Puts You First</h2>
-      <p class="text-gray-500 text-base max-w-md mx-auto">We built our practice around what patients actually want: comfort, honesty, and clear pricing.</p>
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
-
-      <div appReveal appRevealDir="up" [appRevealDelay]="0"
-           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Pain-Free Treatment</h3>
-          <p class="hidden sm:block text-gray-500 text-sm leading-relaxed">Modern anaesthesia and gentle techniques so even nervous patients feel completely at ease.</p>
-        </div>
-      </div>
-
-      <div appReveal appRevealDir="up" [appRevealDelay]="70"
-           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Honest Advice</h3>
-          <p class="hidden sm:block text-gray-500 text-sm leading-relaxed">We only recommend what your teeth actually need. Your best interest, not our revenue, comes first.</p>
-        </div>
-      </div>
-
-      <div appReveal appRevealDir="up" [appRevealDelay]="140"
-           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Transparent Pricing</h3>
-          <p class="hidden sm:block text-gray-500 text-sm leading-relaxed">Exact cost confirmed before we begin. No surprise bills, no hidden charges â€” ever.</p>
-        </div>
-      </div>
-
-      <div appReveal appRevealDir="up" [appRevealDelay]="210"
-           class="group flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 sm:p-6 transition-all duration-300 hover:border-[var(--accent-bd)] hover:bg-[var(--accent-lt)] hover:shadow-md">
-        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[var(--accent-lt)] group-hover:bg-white flex items-center justify-center transition-colors shrink-0">
-          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Clean &amp; Sterilized</h3>
-          <p class="hidden sm:block text-gray-500 text-sm leading-relaxed">Medical-grade sterilization. Every instrument is fresh and verified before every patient.</p>
-        </div>
-      </div>
-
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (service of previewServices.slice(0, 6); track service.name) {
+        <app-service-card
+          [iconPath]="service.iconPath"
+          [name]="service.name"
+          [description]="service.description"
+          [benefit]="service.benefit"
+          [compact]="true"
+        />
+      }
     </div>
   </div>
 </section>
 
-
-<!-- ===== TESTIMONIALS ===== -->
-@if (false && hasTestimonials) {
-  <section class="bg-gray-50 py-10 md:py-24 overflow-hidden">
-    <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-
-      <!-- Section header -->
-      <div appReveal appRevealDir="up" class="text-center mb-12">
-        <div class="flex items-center gap-2 justify-center mb-4">
-          <span class="block w-5 h-px bg-[var(--accent)]"></span>
-          <span class="text-[var(--accent)] text-xs font-semibold uppercase tracking-[0.18em]">Patient Stories</span>
-          <span class="block w-5 h-px bg-[var(--accent)]"></span>
-        </div>
-        <h2 class="font-display text-3xl md:text-4xl text-gray-900 leading-tight">What Our Patients Say</h2>
+<!-- ===== CARE PROMISE ===== -->
+<section class="ui-section-compact bg-ui-surface">
+  <div class="ui-container">
+    <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <div>
+        <p class="ui-eyebrow">Why patients trust us</p>
+        <h2 class="ui-heading">Calm care, explained clearly.</h2>
       </div>
 
-    </div>
-
-    <!-- Mobile: horizontal scroll strip; sm+: standard grid -->
-    <div class="sm:hidden">
-      <div class="flex gap-4 overflow-x-auto px-5 pb-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
-        @for (t of config.testimonials.slice(0, 5); track t.name) {
-          <div class="snap-start shrink-0 w-[78vw] max-w-[320px]">
-            <app-testimonial-card
-              [name]="t.name"
-              [location]="t.location"
-              [rating]="t.rating"
-              [review]="t.review"
-            />
+      <div class="grid gap-3 sm:grid-cols-2">
+        @for (item of trustPills; track item) {
+          <div class="ui-card ui-card-interactive">
+            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-[var(--ui-radius-sm)] bg-[var(--ui-primary-soft)] text-[var(--ui-primary)]">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <p class="ui-title">{{ item }}</p>
           </div>
         }
       </div>
     </div>
-    <div class="hidden sm:grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      @for (t of config.testimonials.slice(0, 3); track t.name; let i = $index) {
-        <div appReveal [appRevealDelay]="i * 80" appRevealDir="up">
-          <app-testimonial-card
-            [name]="t.name"
-            [location]="t.location"
-            [rating]="t.rating"
-            [review]="t.review"
-          />
-        </div>
-      }
-    </div>
+  </div>
+</section>
 
-    <div appReveal appRevealDir="up" [appRevealDelay]="200" class="text-center mt-10">
-      <a routerLink="/testimonials"
-         class="inline-flex items-center gap-2 text-[var(--accent)] font-semibold text-sm hover:underline underline-offset-4">
-        Read more patient stories
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-        </svg>
-      </a>
+<!-- ===== REVIEW PROOF ===== -->
+@if (hasTestimonials) {
+  <section class="ui-section-compact bg-ui-ink text-white">
+    <div class="ui-container-reading text-center">
+      <p class="ui-eyebrow justify-center text-white/60">Patient feedback</p>
+      <p class="mt-5 font-display text-3xl leading-tight md:text-5xl">“{{ config.testimonials[0].review }}”</p>
+      <p class="mt-5 text-sm font-bold text-white/70">{{ config.testimonials[0].name }} &middot; {{ config.testimonials[0].location }}</p>
     </div>
   </section>
 }
 
-<!-- ===== CTA BANNER ===== -->
-<section class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 py-12 md:py-20">
-  <div class="max-w-2xl mx-auto px-5 sm:px-8 text-center">
-    <div appReveal appRevealDir="up">
-      <h2 class="font-display text-3xl md:text-4xl text-white mb-4 leading-tight">
-        {{ finalCtaTitle }}
-      </h2>
-      <p class="text-white/75 text-base mb-9">
-        {{ finalCtaSubtitle }}
-      </p>
-      <div class="flex justify-center">
-        <a routerLink="/appointment"
-           class="bg-white hover:bg-gray-50 text-[var(--accent)] px-8 py-3.5 rounded-xl font-bold text-sm transition-colors text-center">
-          Book Appointment
-        </a>
-        <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer"
-           class="hidden">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
-          </svg>
-          WhatsApp Us
-        </a>
-      </div>
-    </div>
+<!-- ===== FINAL CTA ===== -->
+<section class="ui-section-compact bg-ui-surface">
+  <div class="ui-container-reading text-center">
+    <h2 class="ui-heading">{{ finalCtaTitle }}</h2>
+    <p class="ui-lede mx-auto">{{ finalCtaSubtitle }}</p>
+    <a routerLink="/appointment"
+       class="ui-btn ui-btn-primary ui-btn-lg mt-7">
+      Book Appointment
+    </a>
   </div>
 </section>

@@ -11,7 +11,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
+    <div class="clinic-admin-shell min-h-screen flex flex-col">
       <header class="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur">
         <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <a routerLink="/business" class="flex items-center gap-2 group">

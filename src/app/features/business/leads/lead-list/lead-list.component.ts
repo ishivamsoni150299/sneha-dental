@@ -186,7 +186,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
     }
   }
 
-  reload() { this.ngOnInit(); }
+  reload() { void this.ngOnInit(); }
 
   // ── Blast mode ────────────────────────────────────────────────────────────
   startBlast() {
@@ -608,7 +608,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
     if (!file) return;
 
     this.importingCsv.set(true);
-    let stats: ImportStats = { imported: 0, skipped: 0, invalid: 0, writeErrors: 0, ok: false, msg: '' };
+    const stats: ImportStats = { imported: 0, skipped: 0, invalid: 0, writeErrors: 0, ok: false, msg: '' };
     let firstError = '';
 
     try {
@@ -834,7 +834,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   followUpLabel(lead: StoredLead): string {
     if (!lead.followUpDate) return '';
-    return new Date(lead.followUpDate + 'T00:00:00').toLocaleDateString('en-IN', {
+    return new Date(`${lead.followUpDate  }T00:00:00`).toLocaleDateString('en-IN', {
       day: 'numeric', month: 'short',
     });
   }
@@ -894,7 +894,7 @@ I work with a few clinics locally, helping them turn those Google visitors into 
 
 Nothing complicated — just:
 • Patients can request appointments anytime
-• You get instant WhatsApp alerts
+• You get instant dashboard and email alerts
 • A clean page showing your services, timings, and contact
 • Regular updates as per your requirements — you ask, we update
 
@@ -966,7 +966,7 @@ Thank you for your time today — it was great showing you what *${clinic}* coul
 
 Quick recap of what goes live:
 • Professional dental website — ready in 24 hours
-• Patients book directly, you get WhatsApp alerts for each one
+• Patients book directly, you get dashboard and email alerts for each one
 • Works on phone and laptop — nothing to install
 • We handle the full setup, no tech work from your side
 • Regular updates as per your requirements, anytime

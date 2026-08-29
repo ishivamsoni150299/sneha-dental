@@ -1,153 +1,63 @@
-<!-- ===== HERO ===== -->
-<section class="clinic-public-hero">
-  <div class="clinic-public-container">
-    <div class="clinic-public-copy-center">
-      <span class="clinic-public-kicker">
-        Our Space & Results
-      </span>
-      <h1 class="clinic-public-title">
-        A clinic built for comfort and clean care.
-      </h1>
-      <p class="clinic-public-subtitle mb-8">
-        A quick look at the clinic environment before your visit.
-      </p>
+<section class="ui-lens overflow-hidden bg-ui-surface">
+  <div class="ui-container grid gap-10 py-14 md:py-20 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:py-24">
+    <div class="max-w-xl">
+      <p class="ui-eyebrow">Clinic gallery</p>
+      <h1 class="ui-display">Designed to feel calm before care begins.</h1>
     </div>
-    <!-- Quick stats bar -->
-    <div class="hidden">
-      <div class="flex items-center gap-2 text-sm text-gray-600">
-        <svg class="w-4 h-4 text-[var(--accent-md)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-        </svg>
-        <span>100% sterilised instruments</span>
-      </div>
-      <div class="hidden sm:block w-px bg-gray-200"></div>
-      <div class="flex items-center gap-2 text-sm text-gray-600">
-        <svg class="w-4 h-4 text-[var(--accent-md)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
-        </svg>
-        <span>Latest dental equipment</span>
-      </div>
-      <div class="hidden sm:block w-px bg-gray-200"></div>
-      <div class="flex items-center gap-2 text-sm text-gray-600">
-        <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-        </svg>
-        <span>{{ config.rating || '4.9' }} / 5 patient rating</span>
+    <div class="lg:pb-2">
+      <p class="ui-lede mt-0">See the treatment spaces, sterilisation standards, and equipment that support a safer, more comfortable visit.</p>
+      <div class="mt-6 flex flex-wrap gap-2">
+        <span class="ui-badge ui-badge-success"><span class="ui-status-dot"></span>Sterilised instruments</span>
+        <span class="ui-badge ui-badge-primary">Modern equipment</span>
+        <span class="ui-badge">Patient-first spaces</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== CLINIC PHOTOS ===== -->
-<section class="bg-white py-10 md:py-20">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between mb-10">
+<section class="ui-section border-y border-ui-line bg-ui-canvas">
+  <div class="ui-container">
+    <div class="mb-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 class="font-display text-2xl md:text-3xl text-gray-900">Inside Our Clinic</h2>
-        <p class="text-gray-500 text-sm mt-1">Modern, hygienic, and designed around patient comfort</p>
+        <p class="ui-eyebrow">Inside {{ config.name || 'the clinic' }}</p>
+        <h2 class="ui-heading">A considered space for every stage of care.</h2>
       </div>
-      <a routerLink="/appointment"
-         class="hidden sm:inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-px shadow-sm">
-        Book a Visit
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-        </svg>
-      </a>
+      <a routerLink="/appointment" class="ui-btn ui-btn-secondary">Book a clinic visit</a>
     </div>
 
-    <!-- Masonry-style grid -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-      @for (img of clinicImages; track img.alt; let i = $index) {
-        <div class="group relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
-             [ngClass]="i === 0 ? 'row-span-2 col-span-1' : ''">
-          <div class="overflow-hidden" [ngClass]="i === 0 ? 'aspect-[3/4]' : 'aspect-video'">
-            <img [src]="img.src" [alt]="img.alt"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+    <div class="grid auto-rows-[15rem] gap-4 md:grid-cols-2 lg:grid-cols-12 lg:auto-rows-[18rem]">
+      @for (image of clinicImages; track image.alt; let index = $index) {
+        <figure
+          class="group ui-card relative overflow-hidden p-0"
+          [ngClass]="index === 0 ? 'md:row-span-2 lg:col-span-7 lg:row-span-2' : index === 1 || index === 4 ? 'lg:col-span-5' : 'lg:col-span-5'">
+          <img
+            [src]="image.src"
+            [alt]="image.alt"
+            class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.025]">
+          <div class="absolute inset-x-3 bottom-3 rounded-2xl border border-white/60 bg-white/88 px-4 py-3 shadow-ui-sm backdrop-blur-md sm:inset-x-4 sm:bottom-4">
+            <figcaption class="text-sm font-bold text-ui-ink">{{ image.alt }}</figcaption>
           </div>
-          <!-- Hover overlay -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-            <p class="text-white text-sm font-semibold">{{ img.alt }}</p>
-          </div>
-        </div>
+        </figure>
       }
+    </div>
+
+    <div class="mt-6 flex flex-col gap-3 rounded-[var(--ui-radius-lg)] border border-ui-line bg-ui-surface px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <p class="ui-caption">Images illustrate the clinic experience. Actual rooms and equipment may vary by location.</p>
+      <a routerLink="/contact" class="ui-link shrink-0">Get directions</a>
     </div>
   </div>
 </section>
 
-<!-- ===== BEFORE / AFTER ===== -->
-<section class="hidden">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-12">
-      <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
-        <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
-        Real Transformations
-      </span>
-      <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3">Before &amp; After</h2>
-      <p class="text-gray-500 max-w-lg mx-auto">Real patient results — each transformation is a story of renewed confidence.</p>
+<section class="ui-section-compact bg-ui-surface">
+  <div class="ui-container grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+    <div>
+      <p class="ui-eyebrow">Visit with confidence</p>
+      <h2 class="ui-heading">See the space, then choose your appointment.</h2>
+      <p class="ui-lede mt-3">Book in 60 seconds. Same-day appointments may be available.</p>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      @for (t of transformations; track t.label) {
-        <div class="group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-          <!-- Image comparison -->
-          <div class="relative overflow-hidden">
-            <div class="grid grid-cols-2 h-48">
-              <div class="relative overflow-hidden">
-                <img [src]="t.before" alt="Before {{ t.label }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute inset-0 bg-red-500/10"></div>
-                <span class="absolute top-2.5 left-2.5 bg-red-500 text-white text-[11px] font-bold px-2 py-1 rounded-lg shadow-sm">BEFORE</span>
-              </div>
-              <div class="relative overflow-hidden border-l-2 border-white">
-                <img [src]="t.after" alt="After {{ t.label }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute inset-0 bg-green-500/10"></div>
-                <span class="absolute top-2.5 right-2.5 bg-green-600 text-white text-[11px] font-bold px-2 py-1 rounded-lg shadow-sm">AFTER</span>
-              </div>
-            </div>
-            <!-- Center divider arrow -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border border-gray-100">
-              <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-              </svg>
-            </div>
-          </div>
-          <div class="p-5 flex items-center justify-between">
-            <div>
-              <p class="font-bold text-gray-900">{{ t.label }}</p>
-              <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                <svg class="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
-                Patient consented · Real result
-              </p>
-            </div>
-            <a routerLink="/appointment"
-               class="text-xs font-semibold text-[var(--accent)] hover:underline underline-offset-4">
-              Get this →
-            </a>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- Disclaimer -->
-    <p class="text-center text-xs text-gray-400 mt-8 max-w-lg mx-auto">
-      Images are for illustration purposes. Results vary by patient. All procedures performed by qualified dentists with patient consent.
-    </p>
-  </div>
-</section>
-
-<!-- ===== CTA ===== -->
-<section class="relative overflow-hidden bg-gradient-to-br from-[var(--accent)] via-[var(--accent-dk)] to-[var(--accent-dk)] py-10 md:py-16">
-  <div class="absolute inset-0 opacity-10 pointer-events-none dot-grid-md"></div>
-  <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/5 rounded-full pointer-events-none"></div>
-  <div class="relative max-w-2xl mx-auto px-4 text-center">
-    <h2 class="font-display text-3xl md:text-4xl text-white mb-4">Ready to Transform Your Smile?</h2>
-    <p class="text-[var(--accent-lt)] text-lg mb-8 leading-relaxed">Book your first visit and we will guide you clearly.</p>
-    <div class="flex justify-center">
-      <a routerLink="/appointment"
-         class="bg-white hover:bg-[var(--accent-lt)] text-[var(--accent)] px-8 py-3.5 rounded-xl font-bold shadow-lg transition-all hover:-translate-y-px">
-        Book Appointment
-      </a>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <a routerLink="/appointment" class="ui-btn ui-btn-primary ui-btn-lg">Book Appointment</a>
+      <a routerLink="/contact" class="ui-btn ui-btn-secondary ui-btn-lg">Contact clinic</a>
     </div>
   </div>
 </section>

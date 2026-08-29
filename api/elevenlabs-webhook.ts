@@ -40,11 +40,11 @@ function getBookingRefPrefix(clinic: Record<string, unknown>): string {
 
 function verifyWebhookSignature(req: VercelRequest): boolean {
   const secret = process.env['ELEVENLABS_WEBHOOK_SECRET'];
-  if (!secret) return true;
+  if (!secret) return false;
 
   const header = req.headers['elevenlabs-signature'] ?? req.headers['x-elevenlabs-signature'];
   const signature = Array.isArray(header) ? header[0] : header;
-  if (!signature) return true;
+  if (!signature) return false;
 
   const expected = `sha256=${createHmac('sha256', secret).update(JSON.stringify(req.body)).digest('hex')}`;
   return signature === expected;

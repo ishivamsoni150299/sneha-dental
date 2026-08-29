@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { formatPlatformPlanPrice, getPlatformPlanAmount } from '../config/clinic.config';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 export type BillingPlan = 'starter' | 'pro';
 export type BillingCycle = 'monthly' | 'yearly';
@@ -17,17 +18,19 @@ export interface SubscriptionResult {
 
 @Injectable({ providedIn: 'root' })
 export class BillingService {
+  private readonly api = inject(AuthenticatedApiService);
+
   async createSubscription(
     clinicId: string,
     plan: BillingPlan,
     billingCycle: BillingCycle,
-    clinicName: string,
-    phone?: string,
+    _clinicName: string,
+    _phone?: string,
   ): Promise<SubscriptionResult> {
-    const res = await fetch('/api/create-subscription', {
+    const res = await this.api.fetch('/api/create-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clinicId, plan, billingCycle, clinicName, phone }),
+      body: JSON.stringify({ clinicId, plan, billingCycle }),
     });
 
     if (!res.ok) {
