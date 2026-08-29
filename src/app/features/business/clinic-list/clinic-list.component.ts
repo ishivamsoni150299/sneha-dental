@@ -9,6 +9,8 @@ import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 
 interface Toast { msg: string; type: 'success' | 'error' }
+type ClinicStatusFilter = 'all' | 'live' | 'inactive' | 'attention';
+type ClinicSort = 'attention' | 'name' | 'subscription';
 
 @Component({
   selector: 'app-clinic-list',
@@ -30,6 +32,9 @@ export class ClinicListComponent implements OnInit {
   toggling         = signal<string | null>(null);
   confirmDelete    = signal<string | null>(null);   // id awaiting inline confirm
   search           = signal('');
+  statusFilter     = signal<ClinicStatusFilter>('all');
+  sortBy           = signal<ClinicSort>('attention');
+  expandedClinicId = signal<string | null>(null);
   toast            = signal<Toast | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -45,29 +50,92 @@ export class ClinicListComponent implements OnInit {
   // ── Coming Soon ───────────────────────────────────────────────────────────
   togglingComingSoon = signal<string | null>(null);
 
-  readonly themeColors: Record<string, string> = {
-    blue:    '#2563eb',
-    teal:    '#0d9488',
-    emerald: '#059669',
-    purple:  '#0f4c81',
-    rose:    '#0891b2',
-    caramel: '#b45309',
-  };
-
   // ── Derived ───────────────────────────────────────────────────────────────
   filteredClinics = computed(() => {
     const q = this.search().toLowerCase().trim();
-    if (!q) return this.clinics();
-    return this.clinics().filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.city?.toLowerCase().includes(q) ||
-      c.domain?.toLowerCase().includes(q)
-    );
+    const status = this.statusFilter();
+    const sort = this.sortBy();
+
+    return this.clinics()
+      .filter(clinic => {
+        const matchesQuery = !q || [
+          clinic.name,
+          clinic.doctorName,
+          clinic.city,
+          clinic.domain,
+          clinic.vercelDomain,
+        ].some(value => value?.toLowerCase().includes(q));
+
+        if (!matchesQuery) return false;
+        if (status === 'live') return clinic.active && !clinic.comingSoon;
+        if (status === 'inactive') return !clinic.active || clinic.comingSoon;
+        if (status === 'attention') return this.clinicNeedsAttention(clinic);
+        return true;
+      })
+      .sort((first, second) => {
+        if (sort === 'name') return first.name.localeCompare(second.name);
+        if (sort === 'subscription') {
+          return this.subscriptionPriority(first) - this.subscriptionPriority(second)
+            || first.name.localeCompare(second.name);
+        }
+        return this.clinicReadiness(first).percentage - this.clinicReadiness(second).percentage
+          || first.name.localeCompare(second.name);
+      });
   });
 
   totalCount    = computed(() => this.clinics().length);
-  activeCount   = computed(() => this.clinics().filter(c => c.active).length);
-  inactiveCount = computed(() => this.clinics().filter(c => !c.active).length);
+  activeCount   = computed(() => this.clinics().filter(c => c.active && !c.comingSoon).length);
+  inactiveCount = computed(() => this.clinics().filter(c => !c.active || c.comingSoon).length);
+  attentionCount = computed(() => this.clinics().filter(clinic => this.clinicNeedsAttention(clinic)).length);
+
+  clinicReadiness(clinic: StoredClinic): { percentage: number; missing: string[] } {
+    const checks = [
+      { label: 'doctor profile', complete: Boolean(clinic.doctorName?.trim()) },
+      { label: 'phone number', complete: Boolean(clinic.phone?.trim()) },
+      { label: 'clinic address', complete: Boolean(clinic.addressLine1?.trim() && clinic.city?.trim()) },
+      { label: 'website domain', complete: Boolean(clinic.domain?.trim() || clinic.vercelDomain?.trim()) },
+      { label: 'services', complete: Boolean(clinic.services?.length) },
+      { label: 'business hours', complete: Boolean(clinic.hours?.length) },
+      { label: 'booking reference', complete: Boolean(clinic.bookingRefPrefix?.trim()) },
+    ];
+    const complete = checks.filter(check => check.complete).length;
+    return {
+      percentage: Math.round((complete / checks.length) * 100),
+      missing: checks.filter(check => !check.complete).map(check => check.label),
+    };
+  }
+
+  clinicNeedsAttention(clinic: StoredClinic): boolean {
+    const subscriptionStatus = clinic.subscriptionStatus ?? 'trial';
+    return this.clinicReadiness(clinic).percentage < 100
+      || subscriptionStatus === 'expired'
+      || subscriptionStatus === 'cancelled'
+      || subscriptionStatus === 'pending';
+  }
+
+  clearFilters(): void {
+    this.search.set('');
+    this.statusFilter.set('all');
+    this.sortBy.set('attention');
+  }
+
+  toggleOperations(clinicId: string): void {
+    const nextClinicId = this.expandedClinicId() === clinicId ? null : clinicId;
+    this.expandedClinicId.set(nextClinicId);
+    this.billingClinicId.set(null);
+    this.confirmDelete.set(null);
+  }
+
+  private subscriptionPriority(clinic: StoredClinic): number {
+    const priorities: Record<string, number> = {
+      expired: 0,
+      cancelled: 1,
+      pending: 2,
+      trial: 3,
+      active: 4,
+    };
+    return priorities[clinic.subscriptionStatus ?? 'trial'] ?? 5;
+  }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
@@ -88,7 +156,9 @@ export class ClinicListComponent implements OnInit {
 
   // ── Delete (inline confirm) ───────────────────────────────────────────────
   requestDelete(id: string) {
+    this.expandedClinicId.set(id);
     this.confirmDelete.set(id);
+    this.billingClinicId.set(null);
   }
 
   cancelDelete() {
@@ -101,6 +171,7 @@ export class ClinicListComponent implements OnInit {
     try {
       await this.clinicStore.remove(clinic.id);
       this.clinics.update(list => list.filter(c => c.id !== clinic.id));
+      this.expandedClinicId.set(null);
       this.showToast(`"${clinic.name}" deleted.`, 'success');
     } catch {
       this.showToast('Failed to delete. Please try again.', 'error');
@@ -133,16 +204,16 @@ export class ClinicListComponent implements OnInit {
     const planLabel = PLATFORM_PLANS[plan]?.label ?? 'Trial';
 
     if (status === 'active') {
-      return { label: `${planLabel} · Active`, classes: 'bg-green-100 text-green-700' };
+      return { label: `${planLabel} · Active`, classes: 'ui-badge ui-badge-success' };
     }
     if (status === 'pending') {
-      return { label: `${planLabel} - Pending`, classes: 'bg-amber-100 text-amber-700' };
+      return { label: `${planLabel} · Pending`, classes: 'ui-badge ui-badge-warning' };
     }
     if (status === 'expired') {
-      return { label: 'Expired', classes: 'bg-red-100 text-red-700' };
+      return { label: 'Expired', classes: 'ui-badge ui-badge-danger' };
     }
     if (status === 'cancelled') {
-      return { label: 'Cancelled', classes: 'bg-gray-100 text-gray-500' };
+      return { label: 'Cancelled', classes: 'ui-badge' };
     }
     // trial — show days left
     const endDate  = clinic.trialEndDate ? new Date(clinic.trialEndDate) : null;
@@ -152,12 +223,14 @@ export class ClinicListComponent implements OnInit {
     const dayStr = daysLeft !== null
       ? (daysLeft > 0 ? ` · ${daysLeft}d left` : ' · Ended')
       : '';
-    return { label: `Trial${dayStr}`, classes: 'bg-yellow-100 text-yellow-700' };
+    return { label: `Trial${dayStr}`, classes: 'ui-badge ui-badge-warning' };
   }
 
   // ── Billing ───────────────────────────────────────────────────────────────
   openBilling(clinicId: string) {
+    this.expandedClinicId.set(clinicId);
     this.billingClinicId.set(clinicId);
+    this.confirmDelete.set(null);
     this.billingPlan.set('starter');
     this.billingCycle.set('monthly');
   }

@@ -1,380 +1,430 @@
-<div class="space-y-6">
-
-  <!-- Toast -->
+<div class="space-y-5">
   @if (toast()) {
-    <div role="status" aria-live="polite" aria-atomic="true"
-         class="fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium max-w-xs"
-         [class]="toast()!.type === 'success' ? 'bg-gray-900 text-white' : 'bg-red-600 text-white'">
-      @if (toast()!.type === 'success') {
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-        </svg>
-      } @else {
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      }
-      <span class="flex-1">{{ toast()!.msg }}</span>
-      <button (click)="toast.set(null)" aria-label="Dismiss"
-              class="ml-1 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1 rounded">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="ui-alert fixed right-4 top-4 z-50 w-[min(24rem,calc(100vw-2rem))] shadow-ui-md"
+      [class.ui-alert-success]="toast()!.type === 'success'"
+      [class.ui-alert-danger]="toast()!.type === 'error'">
+      <span class="ui-status-dot mt-1" aria-hidden="true"></span>
+      <div class="flex min-w-0 items-start justify-between gap-3">
+        <p class="text-sm font-semibold text-ui-ink">{{ toast()!.msg }}</p>
+        <button type="button" class="ui-btn ui-btn-ghost ui-btn-sm" (click)="toast.set(null)">
+          Close
+        </button>
+      </div>
     </div>
   }
 
-  <!-- Page Header -->
-  <div class="flex items-center justify-between">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h1 class="text-xl font-bold text-gray-900">Clinics</h1>
-      <p class="text-sm text-gray-500 mt-0.5">Manage all clinic deployments</p>
+      <p class="ui-eyebrow">Platform operations</p>
+      <h1 class="ui-heading mt-1">Clinics</h1>
+      <p class="ui-body mt-1 text-ui-ink-muted">Monitor setup, launch status, subscriptions, and connected services.</p>
     </div>
-    <a routerLink="/business/clinics/new"
-       class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-      </svg>
-      Add Clinic
+    <a routerLink="/business/clinics/new" class="ui-btn ui-btn-primary sm:self-auto">
+      <span aria-hidden="true">+</span>
+      Add clinic
     </a>
-  </div>
+  </header>
 
-  <!-- Stats Bar -->
   @if (!loading() && totalCount() > 0) {
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
-        <p class="text-2xl font-bold text-gray-900">{{ totalCount() }}</p>
-        <p class="text-xs text-gray-500 mt-0.5">Total Clinics</p>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
-        <p class="text-2xl font-bold text-green-600">{{ activeCount() }}</p>
-        <p class="text-xs text-gray-500 mt-0.5">Active</p>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
-        <p class="text-2xl font-bold text-gray-400">{{ inactiveCount() }}</p>
-        <p class="text-xs text-gray-500 mt-0.5">Inactive</p>
-      </div>
-    </div>
-  }
+    <nav aria-label="Clinic status filters" class="flex gap-1 overflow-x-auto border-y border-ui-line py-2">
+      <button
+        type="button"
+        class="ui-tab shrink-0"
+        [class.ui-tab-active]="statusFilter() === 'all'"
+        [attr.aria-pressed]="statusFilter() === 'all'"
+        (click)="statusFilter.set('all')">
+        All clinics
+        <span class="ui-badge">{{ totalCount() }}</span>
+      </button>
+      <button
+        type="button"
+        class="ui-tab shrink-0"
+        [class.ui-tab-active]="statusFilter() === 'live'"
+        [attr.aria-pressed]="statusFilter() === 'live'"
+        (click)="statusFilter.set('live')">
+        Live
+        <span class="ui-badge ui-badge-success">{{ activeCount() }}</span>
+      </button>
+      <button
+        type="button"
+        class="ui-tab shrink-0"
+        [class.ui-tab-active]="statusFilter() === 'inactive'"
+        [attr.aria-pressed]="statusFilter() === 'inactive'"
+        (click)="statusFilter.set('inactive')">
+        Not live
+        <span class="ui-badge">{{ inactiveCount() }}</span>
+      </button>
+      <button
+        type="button"
+        class="ui-tab shrink-0"
+        [class.ui-tab-active]="statusFilter() === 'attention'"
+        [attr.aria-pressed]="statusFilter() === 'attention'"
+        (click)="statusFilter.set('attention')">
+        Needs attention
+        <span class="ui-badge ui-badge-warning">{{ attentionCount() }}</span>
+      </button>
+    </nav>
 
-  <!-- Search -->
-  @if (!loading() && totalCount() > 0) {
-    <div class="relative">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-           fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-      </svg>
-      <input type="text" [ngModel]="search()" (ngModelChange)="search.set($event)"
-             placeholder="Search by name, city or domain…"
-             class="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl
-                    focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white">
-    </div>
-  }
-
-  <!-- Load error -->
-  @if (error()) {
-    <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
-      <span class="text-sm text-red-700">{{ error() }}</span>
-      <button (click)="load()" class="text-xs text-red-600 hover:text-red-800 font-medium underline">Retry</button>
-    </div>
-  }
-
-  <!-- Loading skeleton -->
-  @if (loading()) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (_ of [1,2,3]; track $index) {
-        <div class="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse space-y-3">
-          <div class="flex gap-3">
-            <div class="w-8 h-8 bg-gray-100 rounded-lg flex-shrink-0"></div>
-            <div class="flex-1 space-y-2 pt-0.5">
-              <div class="h-3.5 bg-gray-100 rounded w-1/2"></div>
-              <div class="h-3 bg-gray-100 rounded w-3/4"></div>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <div class="h-3 bg-gray-100 rounded w-2/3"></div>
-            <div class="h-3 bg-gray-100 rounded w-1/2"></div>
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- Empty state — no clinics at all -->
-  @if (!loading() && totalCount() === 0 && !error()) {
-    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-      <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-        <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-        </svg>
-      </div>
-      <p class="text-sm font-medium text-gray-900">No clinics yet</p>
-      <p class="text-xs text-gray-500 mt-1">Add your first clinic to get started.</p>
-      <a routerLink="/business/clinics/new"
-         class="inline-block mt-4 text-sm font-semibold text-gray-900 underline">Add Clinic →</a>
-    </div>
-  }
-
-  <!-- Empty search result -->
-  @if (!loading() && totalCount() > 0 && filteredClinics().length === 0) {
-    <div class="bg-white rounded-2xl border border-gray-200 px-6 py-10 text-center">
-      <p class="text-sm text-gray-500">No clinics match "<strong class="text-gray-700">{{ search() }}</strong>"</p>
-      <button (click)="search.set('')" class="mt-2 text-xs text-gray-600 hover:text-gray-900 underline">Clear search</button>
-    </div>
-  }
-
-  <!-- Clinic Cards -->
-  @if (!loading() && filteredClinics().length > 0) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (clinic of filteredClinics(); track clinic.id) {
-        <div class="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col gap-4 hover:border-gray-300 hover:shadow-sm transition-all">
-
-          <!-- Card Header -->
-          <div class="flex items-start justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-white"
-                   [style.background]="themeColors[clinic.theme] || themeColors['blue']">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <p class="font-semibold text-gray-900 text-sm truncate">{{ clinic.name }}</p>
-                @if (clinic.domain || clinic.vercelDomain) {
-                  <a [href]="'https://' + (clinic.domain || clinic.vercelDomain)"
-                     target="_blank" rel="noopener noreferrer"
-                     class="text-xs text-blue-500 hover:text-blue-700 hover:underline truncate block transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 rounded"
-                     [title]="clinic.domain || clinic.vercelDomain">
-                    {{ clinic.domain || clinic.vercelDomain }}
-                  </a>
-                } @else {
-                  <p class="text-xs text-gray-400">No domain set</p>
-                }
-                <!-- Subscription badge -->
-                <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full"
-                      [class]="subscriptionBadge(clinic).classes">
-                  {{ subscriptionBadge(clinic).label }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Active toggle switch -->
-            <button (click)="toggleActive(clinic)"
-                    [disabled]="toggling() === clinic.id"
-                    [attr.aria-label]="clinic.active ? 'Deactivate clinic' : 'Activate clinic'"
-                    [attr.aria-checked]="clinic.active"
-                    role="switch"
-                    class="flex-shrink-0 flex flex-col items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1 group">
-              <!-- Track -->
-              <div class="relative w-9 h-5 rounded-full transition-colors duration-200"
-                   [class]="clinic.active ? 'bg-green-500' : 'bg-gray-300'">
-                <!-- Thumb -->
-                <div class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200"
-                     [class]="toggling() === clinic.id ? 'opacity-60' : ''"
-                     [style.left]="clinic.active ? '18px' : '2px'">
-                  @if (toggling() === clinic.id) {
-                    <div class="absolute inset-0 flex items-center justify-center">
-                      <span class="w-2 h-2 border border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                    </div>
-                  }
-                </div>
-              </div>
-              <span class="text-[10px] font-semibold leading-none"
-                    [class]="clinic.active ? 'text-green-600' : 'text-gray-400'">
-                {{ clinic.active ? 'Active' : 'Off' }}
-              </span>
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem_auto] lg:items-end">
+      <div>
+        <label for="clinic-search" class="ui-label">Find a clinic</label>
+        <div class="relative">
+          <input
+            id="clinic-search"
+            type="search"
+            class="ui-field pr-20"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            placeholder="Name, doctor, city, or domain">
+          @if (search()) {
+            <button
+              type="button"
+              class="ui-btn ui-btn-ghost ui-btn-sm absolute right-1.5 top-1/2 -translate-y-1/2"
+              (click)="search.set('')">
+              Clear
             </button>
-          </div>
-
-          <!-- Info rows -->
-          <div class="space-y-1.5 text-xs text-gray-500">
-            <div class="flex items-center gap-2">
-              <svg class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-              <span>{{ clinic.phone }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              <span class="truncate">{{ clinic.addressLine1 }}, {{ clinic.city }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full flex-shrink-0 border border-white/50 ring-1 ring-gray-200"
-                    [style.background]="themeColors[clinic.theme] || themeColors['blue']"></span>
-              <span class="capitalize text-gray-400">{{ clinic.theme }}</span>
-              <span class="text-gray-200 select-none">·</span>
-              <span class="font-mono text-gray-400">{{ clinic.bookingRefPrefix }}</span>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          @if (confirmDelete() === clinic.id) {
-            <!-- Inline delete confirmation -->
-            <div class="border border-red-100 rounded-xl bg-red-50 px-3 py-2.5 space-y-2">
-              <p class="text-xs text-red-700 font-medium">Delete "{{ clinic.name }}"? This cannot be undone.</p>
-              <div class="flex gap-2">
-                <button (click)="confirmRemove(clinic)"
-                        [disabled]="deleting() === clinic.id"
-                        class="flex-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700
-                               disabled:opacity-50 disabled:cursor-not-allowed py-1.5 rounded-lg transition-colors">
-                  @if (deleting() === clinic.id) { Deleting… } @else { Yes, Delete }
-                </button>
-                <button (click)="cancelDelete()"
-                        class="flex-1 text-xs font-medium text-gray-600 hover:text-gray-900
-                               border border-gray-200 hover:border-gray-300 py-1.5 rounded-lg transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </div>
-
-          } @else if (billingClinicId() === clinic.id) {
-            <!-- Inline billing plan picker -->
-            <div class="border border-blue-100 rounded-xl bg-blue-50 px-3 py-3 space-y-2.5">
-              <p class="text-xs font-medium text-blue-800">Choose plan to activate:</p>
-              <div class="inline-flex rounded-lg border border-blue-200 bg-white p-1">
-                <button (click)="billingCycle.set('monthly')"
-                        class="px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors"
-                        [class]="billingCycle() === 'monthly' ? 'bg-blue-600 text-white' : 'text-blue-700 hover:text-blue-900'">
-                  Monthly
-                </button>
-                <button disabled
-                        class="px-2.5 py-1 text-[11px] font-semibold rounded-md text-blue-300 cursor-not-allowed"
-                        title="Yearly billing is temporarily disabled">
-                  Yearly soon
-                </button>
-              </div>
-              <div class="flex gap-2">
-                <button (click)="billingPlan.set('starter')"
-                        class="flex-1 text-xs py-1.5 rounded-lg border font-medium transition-colors"
-                        [class]="billingPlan() === 'starter'
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'">
-                  Starter<br><span class="font-normal">{{ billingPlanPrice('starter') }}</span>
-                </button>
-                <button (click)="billingPlan.set('pro')"
-                        class="flex-1 text-xs py-1.5 rounded-lg border font-medium transition-colors"
-                        [class]="billingPlan() === 'pro'
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'">
-                  Pro<br><span class="font-normal">{{ billingPlanPrice('pro') }}</span>
-                </button>
-              </div>
-              <div class="flex gap-2">
-                <button (click)="sendPaymentLink(clinic)"
-                        [disabled]="sendingPayment() === clinic.id"
-                        class="flex-1 text-xs font-semibold text-white bg-green-600 hover:bg-green-700
-                               disabled:opacity-50 disabled:cursor-not-allowed py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1.5">
-                  @if (sendingPayment() === clinic.id) {
-                    <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    Sending…
-                  } @else {
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.524 5.847L.057 23.882l6.196-1.448A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.894 0-3.659-.513-5.17-1.408l-.371-.22-3.818.893.929-3.72-.24-.388A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-                    </svg>
-                    Send via WhatsApp
-                  }
-                </button>
-                <button (click)="closeBilling()"
-                        class="text-xs text-gray-500 hover:text-gray-700 border border-gray-200
-                               hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </div>
-
-          } @else {
-            <div class="space-y-2 pt-1 border-t border-gray-100">
-
-              <!-- Primary: Edit -->
-              <button (click)="edit(clinic.id)"
-                      class="w-full text-xs font-semibold text-white bg-gray-900 hover:bg-gray-700
-                             py-2 rounded-lg transition-colors
-                             focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
-                Edit Clinic
-              </button>
-
-              <!-- Billing: Send payment link (only if not active) -->
-              @if ((clinic.subscriptionStatus ?? 'trial') !== 'active') {
-                <button (click)="openBilling(clinic.id)"
-                        class="w-full text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100
-                               border border-green-200 hover:border-green-300 py-1.5 rounded-lg transition-colors
-                               flex items-center justify-center gap-1.5
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-1">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                  </svg>
-                  Send Payment Link
-                </button>
-              }
-
-              <!-- Secondary: Coming Soon + Voice Agent in a row -->
-              <div class="flex gap-2">
-                <button (click)="toggleComingSoon(clinic)"
-                        [disabled]="togglingComingSoon() === clinic.id"
-                        class="flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors
-                               flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1"
-                        [class]="clinic.comingSoon
-                          ? 'text-orange-700 bg-orange-50 hover:bg-orange-100 border-orange-200'
-                          : 'text-gray-500 bg-gray-50 hover:bg-gray-100 border-gray-200'">
-                  @if (togglingComingSoon() === clinic.id) {
-                    <span class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-                  } @else {
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                  }
-                  {{ clinic.comingSoon ? 'Go Live' : 'Coming Soon' }}
-                </button>
-
-                @if (clinic.elevenLabsAgentId) {
-                  <div class="flex-1 text-xs font-medium text-purple-700 bg-purple-50
-                              border border-purple-200 py-1.5 rounded-lg
-                              flex items-center justify-center gap-1">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                    </svg>
-                    AI Active
-                  </div>
-                } @else {
-                  <button (click)="createVoiceAgent(clinic)"
-                          [disabled]="creatingVoiceAgent() === clinic.id"
-                          class="flex-1 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100
-                                 border border-purple-200 hover:border-purple-300 py-1.5 rounded-lg transition-colors
-                                 flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed
-                                 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-1">
-                    @if (creatingVoiceAgent() === clinic.id) {
-                      <span class="w-3 h-3 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></span>
-                    } @else {
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-                      </svg>
-                    }
-                    Add Voice
-                  </button>
-                }
-              </div>
-
-              <!-- Destructive: Delete — lower weight, separated -->
-              <button (click)="requestDelete(clinic.id)"
-                      class="w-full text-[11px] font-medium text-gray-400 hover:text-red-500
-                             border border-transparent hover:border-red-100 py-1 rounded-lg transition-colors
-                             focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1">
-                Delete clinic
-              </button>
-
-            </div>
           }
-
         </div>
-      }
+      </div>
+      <div>
+        <label for="clinic-sort" class="ui-label">Sort by</label>
+        <select
+          id="clinic-sort"
+          class="ui-field"
+          [ngModel]="sortBy()"
+          (ngModelChange)="sortBy.set($event)">
+          <option value="attention">Setup attention</option>
+          <option value="name">Clinic name</option>
+          <option value="subscription">Subscription status</option>
+        </select>
+      </div>
+      <p class="ui-caption pb-3 lg:text-right">
+        Showing <strong class="text-ui-ink">{{ filteredClinics().length }}</strong> of {{ totalCount() }}
+      </p>
     </div>
   }
 
-</div>
+  @if (error()) {
+    <div class="ui-alert ui-alert-danger" role="alert">
+      <span class="ui-status-dot mt-1" aria-hidden="true"></span>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm font-semibold">{{ error() }}</p>
+        <button type="button" class="ui-btn ui-btn-ghost ui-btn-sm" (click)="load()">Retry</button>
+      </div>
+    </div>
+  }
 
+  @if (loading()) {
+    <div class="ui-table-shell" aria-label="Loading clinics" aria-busy="true">
+      <div class="hidden grid-cols-[minmax(14rem,1.6fr)_1fr_1fr_1fr_auto] gap-4 bg-ui-muted px-4 py-3 lg:grid">
+        @for (_ of [1, 2, 3, 4, 5]; track $index) {
+          <div class="ui-skeleton h-3 w-24"></div>
+        }
+      </div>
+      <div class="divide-y divide-ui-line">
+        @for (_ of [1, 2, 3, 4]; track $index) {
+          <div class="grid gap-4 p-4 lg:grid-cols-[minmax(14rem,1.6fr)_1fr_1fr_1fr_auto] lg:items-center">
+            <div class="flex items-center gap-3">
+              <div class="ui-skeleton h-10 w-10 shrink-0"></div>
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class="ui-skeleton h-3.5 w-40 max-w-full"></div>
+                <div class="ui-skeleton h-3 w-28"></div>
+              </div>
+            </div>
+            <div class="ui-skeleton hidden h-7 w-24 lg:block"></div>
+            <div class="ui-skeleton h-2 w-full"></div>
+            <div class="ui-skeleton hidden h-3 w-28 lg:block"></div>
+            <div class="ui-skeleton h-9 w-36"></div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (!loading() && totalCount() === 0 && !error()) {
+    <div class="ui-empty-state">
+      <div class="max-w-sm">
+        <p class="ui-title">No clinics yet</p>
+        <p class="ui-body mt-2">Create the first clinic workspace, then complete its launch checklist.</p>
+        <a routerLink="/business/clinics/new" class="ui-btn ui-btn-primary mt-5">Add first clinic</a>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && totalCount() > 0 && filteredClinics().length === 0) {
+    <div class="ui-empty-state">
+      <div class="max-w-sm">
+        <p class="ui-title">No matching clinics</p>
+        <p class="ui-body mt-2">Change the search or status filter to see other clinic workspaces.</p>
+        <button type="button" class="ui-btn ui-btn-secondary mt-5" (click)="clearFilters()">Clear filters</button>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && filteredClinics().length > 0) {
+    <div class="ui-table-shell">
+      <table class="ui-table block lg:table">
+        <caption class="sr-only">Clinic workspaces and operational status</caption>
+        <thead class="hidden lg:table-header-group">
+          <tr>
+            <th scope="col">Clinic</th>
+            <th scope="col">Status</th>
+            <th scope="col">Readiness</th>
+            <th scope="col">Contact</th>
+            <th scope="col" class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="block divide-y divide-ui-line lg:table-row-group lg:divide-y-0">
+          @for (clinic of filteredClinics(); track clinic.id) {
+            @let readiness = clinicReadiness(clinic);
+            <tr class="block lg:table-row">
+              <td class="block !border-0 !p-4 lg:table-cell lg:!border-t lg:!p-4">
+                <div class="flex items-start gap-3">
+                  <div class="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--ui-radius-sm)] border border-ui-line bg-ui-muted text-sm font-bold uppercase text-ui-ink">
+                    {{ clinic.name.slice(0, 1) }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="ui-title truncate text-sm">{{ clinic.name }}</p>
+                    <p class="ui-caption mt-0.5 truncate">{{ clinic.doctorName || 'Doctor not assigned' }}</p>
+                    @if (clinic.domain || clinic.vercelDomain) {
+                      <a
+                        class="ui-link mt-1 block truncate text-xs"
+                        [href]="'https://' + (clinic.domain || clinic.vercelDomain)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [title]="clinic.domain || clinic.vercelDomain">
+                        {{ clinic.domain || clinic.vercelDomain }}
+                      </a>
+                    } @else {
+                      <p class="ui-caption mt-1">Domain not connected</p>
+                    }
+                    <div class="mt-3 flex flex-wrap gap-2 lg:hidden">
+                      <span
+                        class="ui-badge"
+                        [class.ui-badge-success]="clinic.active && !clinic.comingSoon"
+                        [class.ui-badge-warning]="clinic.comingSoon">
+                        <span class="ui-status-dot" aria-hidden="true"></span>
+                        {{ clinic.active ? (clinic.comingSoon ? 'Coming soon' : 'Live') : 'Inactive' }}
+                      </span>
+                      <span [class]="subscriptionBadge(clinic).classes">{{ subscriptionBadge(clinic).label }}</span>
+                    </div>
+                    <p class="ui-caption mt-3 lg:hidden">
+                      {{ clinic.phone || 'Phone missing' }}<br>
+                      {{ clinic.city || 'City missing' }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+
+              <td class="hidden lg:table-cell">
+                <div class="flex flex-col items-start gap-2">
+                  <span
+                    class="ui-badge"
+                    [class.ui-badge-success]="clinic.active && !clinic.comingSoon"
+                    [class.ui-badge-warning]="clinic.comingSoon">
+                    <span class="ui-status-dot" aria-hidden="true"></span>
+                    {{ clinic.active ? (clinic.comingSoon ? 'Coming soon' : 'Live') : 'Inactive' }}
+                  </span>
+                  <span [class]="subscriptionBadge(clinic).classes">{{ subscriptionBadge(clinic).label }}</span>
+                </div>
+              </td>
+
+              <td class="block !border-0 !px-4 !pb-3 !pt-0 lg:table-cell lg:!border-t lg:!p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="ui-caption lg:hidden">Setup readiness</span>
+                  <span class="text-xs font-bold" [class.text-ui-ink]="readiness.percentage === 100" [class.text-amber-700]="readiness.percentage < 100">
+                    {{ readiness.percentage }}%
+                  </span>
+                </div>
+                <div
+                  class="mt-1.5 h-1.5 w-full min-w-28 overflow-hidden rounded-full bg-ui-muted"
+                  role="progressbar"
+                  aria-label="Clinic setup readiness"
+                  [attr.aria-valuenow]="readiness.percentage"
+                  aria-valuemin="0"
+                  aria-valuemax="100">
+                  <div
+                    class="h-full rounded-full transition-[width] duration-300"
+                    [style.width.%]="readiness.percentage"
+                    [style.background]="readiness.percentage === 100 ? 'var(--ui-success)' : 'var(--ui-warning)'"></div>
+                </div>
+                @if (readiness.missing.length > 0) {
+                  <p class="ui-caption mt-1.5 truncate" [title]="'Missing: ' + readiness.missing.join(', ')">
+                    Missing {{ readiness.missing[0] }} @if (readiness.missing.length > 1) { +{{ readiness.missing.length - 1 }} }
+                  </p>
+                } @else {
+                  <p class="ui-caption mt-1.5 text-emerald-700">Ready for launch</p>
+                }
+              </td>
+
+              <td class="hidden lg:table-cell">
+                <p class="text-sm font-semibold text-ui-ink-soft">{{ clinic.phone || 'Phone missing' }}</p>
+                <p class="ui-caption mt-1 truncate">{{ clinic.city || 'City missing' }}</p>
+              </td>
+
+              <td class="block !border-0 !px-4 !pb-4 !pt-0 lg:table-cell lg:!border-t lg:!p-4">
+                <div class="flex justify-end gap-2">
+                  <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" (click)="edit(clinic.id)">
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn-ghost ui-btn-sm"
+                    [class.ui-tab-active]="expandedClinicId() === clinic.id"
+                    [attr.aria-expanded]="expandedClinicId() === clinic.id"
+                    [attr.aria-controls]="'clinic-operations-' + clinic.id"
+                    (click)="toggleOperations(clinic.id)">
+                    {{ expandedClinicId() === clinic.id ? 'Close' : 'Manage' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            @if (expandedClinicId() === clinic.id) {
+              <tr class="block lg:table-row">
+                <td colspan="5" class="block !border-t !border-ui-line !bg-ui-muted !p-0 lg:table-cell">
+                  <div [id]="'clinic-operations-' + clinic.id" class="p-4 sm:p-5">
+                    <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-0">
+                      <section class="xl:pr-5">
+                        <p class="ui-label">Website availability</p>
+                        <div class="flex items-center justify-between gap-3 py-2">
+                          <div>
+                            <p class="text-sm font-semibold text-ui-ink">{{ clinic.active ? 'Clinic enabled' : 'Clinic disabled' }}</p>
+                            <p class="ui-caption mt-0.5">Controls public access.</p>
+                          </div>
+                          <button
+                            type="button"
+                            role="switch"
+                            class="relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ui-focus)]"
+                            [class.bg-emerald-600]="clinic.active"
+                            [class.bg-gray-300]="!clinic.active"
+                            [disabled]="toggling() === clinic.id"
+                            [attr.aria-checked]="clinic.active"
+                            [attr.aria-label]="clinic.active ? 'Disable clinic website' : 'Enable clinic website'"
+                            (click)="toggleActive(clinic)">
+                            <span
+                              class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-[left]"
+                              [style.left]="clinic.active ? '24px' : '4px'"></span>
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          class="ui-btn ui-btn-secondary ui-btn-sm mt-2"
+                          [disabled]="togglingComingSoon() === clinic.id"
+                          (click)="toggleComingSoon(clinic)">
+                          {{ clinic.comingSoon ? 'Publish website' : 'Set coming soon' }}
+                        </button>
+                      </section>
+
+                      <section class="border-t border-ui-line pt-5 md:border-l md:border-t-0 md:pl-5 md:pt-0 xl:border-l xl:px-5">
+                        <p class="ui-label">Subscription</p>
+                        <span [class]="subscriptionBadge(clinic).classes">{{ subscriptionBadge(clinic).label }}</span>
+                        @if ((clinic.subscriptionStatus ?? 'trial') !== 'active') {
+                          <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm mt-3" (click)="openBilling(clinic.id)">
+                            Create payment link
+                          </button>
+                        } @else {
+                          <p class="ui-caption mt-3">Billing is active for this clinic.</p>
+                        }
+                      </section>
+
+                      <section class="border-t border-ui-line pt-5 xl:border-l xl:border-t-0 xl:px-5 xl:pt-0">
+                        <p class="ui-label">Voice receptionist</p>
+                        @if (clinic.elevenLabsAgentId) {
+                          <span class="ui-badge ui-badge-success">
+                            <span class="ui-status-dot" aria-hidden="true"></span>
+                            Connected
+                          </span>
+                          <p class="ui-caption mt-3">The clinic website can accept voice enquiries.</p>
+                        } @else {
+                          <p class="ui-caption">No ElevenLabs agent is connected.</p>
+                          <button
+                            type="button"
+                            class="ui-btn ui-btn-secondary ui-btn-sm mt-3"
+                            [disabled]="creatingVoiceAgent() === clinic.id"
+                            (click)="createVoiceAgent(clinic)">
+                            {{ creatingVoiceAgent() === clinic.id ? 'Connecting...' : 'Connect voice agent' }}
+                          </button>
+                        }
+                      </section>
+
+                      <section class="border-t border-ui-line pt-5 md:border-l md:border-t-0 md:pl-5 md:pt-0 xl:border-l xl:pl-5">
+                        <p class="ui-label">Workspace</p>
+                        <p class="ui-caption">Theme: {{ clinic.theme || 'Default' }}</p>
+                        <p class="ui-caption mt-1">Reference: {{ clinic.bookingRefPrefix || 'Not set' }}</p>
+                        <button type="button" class="ui-btn ui-btn-danger ui-btn-sm mt-3" (click)="requestDelete(clinic.id)">
+                          Delete clinic
+                        </button>
+                      </section>
+                    </div>
+
+                    @if (billingClinicId() === clinic.id) {
+                      <section class="mt-5 border-t border-ui-line pt-5">
+                        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                          <div>
+                            <p class="ui-title text-sm">Create a Razorpay payment link</p>
+                            <p class="ui-caption mt-1">Choose the plan to send to {{ clinic.name }} through WhatsApp.</p>
+                          </div>
+                          <div class="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              class="ui-tab border border-ui-line"
+                              [class.ui-tab-active]="billingPlan() === 'starter'"
+                              (click)="billingPlan.set('starter')">
+                              Starter {{ billingPlanPrice('starter') }}
+                            </button>
+                            <button
+                              type="button"
+                              class="ui-tab border border-ui-line"
+                              [class.ui-tab-active]="billingPlan() === 'pro'"
+                              (click)="billingPlan.set('pro')">
+                              Pro {{ billingPlanPrice('pro') }}
+                            </button>
+                          </div>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            class="ui-btn ui-btn-primary"
+                            [disabled]="sendingPayment() === clinic.id"
+                            (click)="sendPaymentLink(clinic)">
+                            {{ sendingPayment() === clinic.id ? 'Creating link...' : 'Send with WhatsApp' }}
+                          </button>
+                          <button type="button" class="ui-btn ui-btn-ghost" (click)="closeBilling()">Cancel</button>
+                        </div>
+                      </section>
+                    }
+
+                    @if (confirmDelete() === clinic.id) {
+                      <section class="ui-alert ui-alert-danger mt-5" role="alert">
+                        <span class="ui-status-dot mt-1" aria-hidden="true"></span>
+                        <div>
+                          <p class="text-sm font-bold text-ui-ink">Delete {{ clinic.name }}?</p>
+                          <p class="ui-body mt-1">This permanently removes the clinic workspace. This action cannot be undone.</p>
+                          <div class="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              class="ui-btn ui-btn-danger"
+                              [disabled]="deleting() === clinic.id"
+                              (click)="confirmRemove(clinic)">
+                              {{ deleting() === clinic.id ? 'Deleting...' : 'Delete permanently' }}
+                            </button>
+                            <button type="button" class="ui-btn ui-btn-ghost" (click)="cancelDelete()">Cancel</button>
+                          </div>
+                        </div>
+                      </section>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
