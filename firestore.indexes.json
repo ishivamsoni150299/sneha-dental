@@ -18,11 +18,5 @@
       ]
     }
   ],
-  "fieldOverrides": [
-    {
-      "collectionGroup": "rateLimits",
-      "fieldPath": "expiresAt",
-      "ttl": true
-    }
-  ]
+  "fieldOverrides": []
 }

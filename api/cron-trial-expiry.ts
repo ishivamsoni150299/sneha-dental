@@ -34,11 +34,35 @@ const db = getFirestore();
 
 // Days before expiry at which we send each email
 const TRIGGER_DAYS = [7, 3, 0] as const;
+const RATE_LIMIT_CLEANUP_BATCH_SIZE = 400;
+const RATE_LIMIT_CLEANUP_MAX_BATCHES = 3;
 
 function templateForDays(days: 0 | 3 | 7) {
   if (days === 7) return 'trial_expiry_7d' as const;
   if (days === 3) return 'trial_expiry_3d' as const;
   return 'trial_expiry_0d' as const;
+}
+
+async function cleanupExpiredRateLimits(): Promise<number> {
+  let deleted = 0;
+
+  for (let batchNumber = 0; batchNumber < RATE_LIMIT_CLEANUP_MAX_BATCHES; batchNumber++) {
+    const expired = await db.collection('rateLimits')
+      .where('expiresAt', '<=', new Date())
+      .limit(RATE_LIMIT_CLEANUP_BATCH_SIZE)
+      .get();
+
+    if (expired.empty) break;
+
+    const batch = db.batch();
+    expired.docs.forEach(document => { batch.delete(document.ref); });
+    await batch.commit();
+    deleted += expired.size;
+
+    if (expired.size < RATE_LIMIT_CLEANUP_BATCH_SIZE) break;
+  }
+
+  return deleted;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -62,6 +86,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let sent = 0;
   let skipped = 0;
   const errors: string[] = [];
+  let expiredRateLimitsDeleted = 0;
+
+  try {
+    expiredRateLimitsDeleted = await cleanupExpiredRateLimits();
+  } catch (error) {
+    errors.push('Expired rate-limit cleanup failed');
+    console.error('[cron-trial-expiry] Rate-limit cleanup failed:', error);
+  }
 
   // Process each trigger day window
   for (const daysAhead of TRIGGER_DAYS) {
@@ -123,6 +155,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     date: todayStr,
     sent,
     skipped,
+    expiredRateLimitsDeleted,
     errors: errors.length > 0 ? errors : undefined,
   });
 }
