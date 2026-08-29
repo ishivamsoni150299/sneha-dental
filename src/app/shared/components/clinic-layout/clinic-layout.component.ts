@@ -44,18 +44,20 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
       <!-- Back to top -->
       @if (showBackToTop()) {
-        <button (click)="scrollToTop()"
-                aria-label="Back to top"
-                class="ui-btn ui-btn-secondary ui-btn-icon fixed bottom-28 right-6 z-40 hidden rounded-full animate-slide-up md:flex">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
-          </svg>
-        </button>
+        <div class="fixed bottom-28 right-6 z-40 hidden animate-slide-up md:block">
+          <button (click)="scrollToTop()"
+                  aria-label="Back to top"
+                  class="ui-btn ui-btn-secondary ui-btn-icon rounded-full">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+            </svg>
+          </button>
+        </div>
       }
 
       <!-- AI receptionist — deferred so it never blocks initial paint -->
       @defer (on idle) {
-        @if (clinic.isLoaded) {
+        @if (clinic.isLoaded && showVoiceAgent()) {
           <app-voice-agent
             [agentId]="voiceAgentId()"
             [clinicId]="clinic.config.clinicId || ''"
@@ -166,6 +168,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly installPromptReady = signal(false);
   readonly currentUrl = signal('');
   readonly showMobileDock = computed(() => !this.currentUrl().startsWith('/appointment'));
+  readonly showVoiceAgent = computed(() => !this.currentUrl().startsWith('/appointment'));
 
   readonly isIos = (() => {
     if (!this.isBrowser) {

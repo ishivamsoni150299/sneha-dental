@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, HostListener, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { formatPlatformPlanPrice } from '../../../core/config/clinic.config';
 type PlanId = 'trial' | 'starter' | 'pro';
@@ -17,6 +17,7 @@ export class PlatformLandingComponent {
 
   readonly billingYearly = signal(false);
   readonly mobileMenuOpen = signal(false);
+  readonly showMobileCta = signal(false);
   readonly roiPlan = signal<'Starter' | 'Pro'>('Starter');
   readonly monthlyMissedLeads = signal(12);
   readonly avgCaseValue = signal(3500);
@@ -288,6 +289,11 @@ export class PlatformLandingComponent {
 
   readonly openFaq = signal<number | null>(null);
   toggleFaq(i: number): void { this.openFaq.set(this.openFaq() === i ? null : i); }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.showMobileCta.set(window.scrollY > 560);
+  }
 
   // ── Replace with your real details ───────────────────────────────────────
   readonly devWhatsapp = '919140210648';

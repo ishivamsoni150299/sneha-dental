@@ -1,4 +1,4 @@
-import { NgClass } from '@angular/common';
+import { DOCUMENT, NgClass } from '@angular/common';
 import type { OnDestroy, OnInit } from '@angular/core';
 import {
   ChangeDetectionStrategy,
@@ -30,6 +30,7 @@ import {
 export class AppointmentComponent implements OnInit, OnDestroy {
   private readonly fb                 = inject(FormBuilder);
   private readonly appointmentService = inject(AppointmentService);
+  private readonly document           = inject(DOCUMENT);
   private readonly router             = inject(Router);
   private readonly route              = inject(ActivatedRoute);
   private readonly doctorSvc          = inject(DoctorService);
@@ -58,23 +59,29 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     const fields = this.stepFields[step] ?? [];
     fields.forEach(f => { this.form.get(f)!.markAsTouched(); });
     const hasErrors = fields.some(f => this.form.get(f)!.invalid);
-    if (hasErrors) return;
+    if (hasErrors) {
+      this.focusFirstInvalidField(fields);
+      return;
+    }
     if (step < this.totalSteps) {
       this.currentStep.set(step + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.scrollToBookingForm();
     }
   }
 
   prevStep() {
     const step = this.currentStep();
-    if (step > 1) this.currentStep.set(step - 1);
+    if (step > 1) {
+      this.currentStep.set(step - 1);
+      this.scrollToBookingForm();
+    }
   }
 
   goToStep(target: number) {
     // Only allow jumping back to a completed step
     if (target < this.currentStep() && target >= 1) {
       this.currentStep.set(target);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.scrollToBookingForm();
     }
   }
 
@@ -247,6 +254,27 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     return ctrl?.invalid && ctrl?.touched;
   }
 
+  private focusFirstInvalidField(fields: readonly string[]): void {
+    for (const fieldName of fields) {
+      if (!this.form.get(fieldName)?.invalid) continue;
+
+      const field = this.document.getElementById(`appointment-${fieldName}`);
+      if (!field) continue;
+
+      field.closest('details')?.setAttribute('open', '');
+      field.focus({ preventScroll: true });
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+  }
+
+  private scrollToBookingForm(): void {
+    this.document.getElementById('appointment-booking-form')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }
+
   private validateScheduleFields() {
     const dateCtrl = this.form.get('date');
     const timeCtrl = this.form.get('time');
@@ -290,7 +318,12 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
     this.form.markAllAsTouched();
     this.validateScheduleFields();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.focusFirstInvalidField([
+        'service', 'date', 'time', 'name', 'phone', 'email', 'privacyAccepted',
+      ]);
+      return;
+    }
 
     this.submitting.set(true);
     this.error.set(null);
