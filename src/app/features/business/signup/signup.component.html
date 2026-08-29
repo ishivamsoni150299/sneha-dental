@@ -16,7 +16,7 @@
     </div>
   </header>
 
-  <main [class]="step() === 5
+  <main id="main-content" [class]="step() === 5
     ? 'flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 py-10'
     : 'flex-1 flex flex-col lg:flex-row max-w-6xl mx-auto w-full px-4 py-8 lg:py-0 gap-8 lg:gap-0'">
 
@@ -51,12 +51,12 @@
       @if (step() === 0) {
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-sm mx-auto w-full">
           <div class="mb-7 text-center">
-            <h1 class="text-2xl font-extrabold text-gray-900">Create or access your dental website</h1>
-            <p class="text-gray-400 text-sm mt-2">Sign up in 2 minutes — no credit card required</p>
+            <p class="ui-eyebrow justify-center">Start your clinic workspace</p>
+            <h1 class="mt-3 text-2xl font-extrabold text-gray-900">Create your account</h1>
+            <p class="mt-2 text-sm text-gray-500">Your website setup begins after account verification.</p>
           </div>
 
-          <!-- Google sign-in -->
-          <button type="button" (click)="loginWithGoogle()" [disabled]="googleLoading() || authLoading()"
+          <button type="button" (click)="createAccountWithGoogle()" [disabled]="googleLoading() || authLoading()"
                   class="w-full flex items-center justify-center gap-3 border border-gray-200 bg-white
                          hover:bg-gray-50 text-gray-700 font-semibold py-3 rounded-xl text-sm transition-all
                          shadow-sm hover:shadow disabled:opacity-60 disabled:cursor-not-allowed">
@@ -70,35 +70,19 @@
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
             }
-            {{ authMode() === 'signup' ? 'Continue with Google' : 'Sign in with Google' }}
+            Create account with Google
           </button>
 
-          <!-- Divider -->
           <div class="flex items-center gap-3 my-5">
             <div class="flex-1 h-px bg-gray-200"></div>
-            <span class="text-xs text-gray-400 font-medium">or</span>
+            <span class="text-xs text-gray-400 font-medium">or use email</span>
             <div class="flex-1 h-px bg-gray-200"></div>
           </div>
 
-          <!-- Sign up / Sign in tabs -->
-          <div class="flex rounded-xl border border-gray-200 bg-gray-50 p-1 mb-5 gap-1">
-            <button type="button" (click)="authMode.set('signup')"
-                    class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
-                    [class]="authMode() === 'signup' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'">
-              Sign up
-            </button>
-            <button type="button" (click)="authMode.set('signin')"
-                    class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
-                    [class]="authMode() === 'signin' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'">
-              Sign in
-            </button>
-          </div>
-
-          <!-- Email + password form -->
-          <form [formGroup]="step0" class="space-y-3" (ngSubmit)="authenticateAndContinue()">
+          <form [formGroup]="step0" class="space-y-3" (ngSubmit)="createAccountAndContinue()">
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
-              <input formControlName="email" type="email" autocomplete="email"
+              <label for="signup-email" class="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+              <input id="signup-email" formControlName="email" type="email" autocomplete="email"
                      placeholder="doctor@example.com" autofocus
                      class="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all bg-white
                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -108,15 +92,13 @@
               }
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+              <label for="signup-password" class="block text-xs font-semibold text-gray-700 mb-1.5">
                 Password
-                @if (authMode() === 'signup') {
-                  <span class="text-gray-400 font-normal ml-1">— min. 6 characters</span>
-                }
+                <span class="text-gray-400 font-normal ml-1">— at least 8 characters</span>
               </label>
               <div class="relative">
-                <input formControlName="password" [type]="showPassword() ? 'text' : 'password'"
-                       [autocomplete]="authMode() === 'signup' ? 'new-password' : 'current-password'"
+                <input id="signup-password" formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+                       autocomplete="new-password"
                        placeholder="••••••••"
                        class="w-full border rounded-xl px-4 py-3 pr-11 text-sm outline-none transition-all bg-white
                               focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -137,9 +119,7 @@
                 </button>
               </div>
               @if (isInvalid(step0.controls.password)) {
-                <p class="text-xs text-red-500 mt-1">
-                  {{ authMode() === 'signup' ? 'Password must be at least 6 characters' : 'Password is required' }}
-                </p>
+                <p class="text-xs text-red-500 mt-1">Password must be at least 8 characters.</p>
               }
             </div>
 
@@ -148,7 +128,12 @@
                 <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                 </svg>
-                <p class="text-xs text-red-700 font-medium">{{ authError() }}</p>
+                <div>
+                  <p class="text-xs text-red-700 font-medium">{{ authError() }}</p>
+                  @if (authError()!.includes('already exists')) {
+                    <a routerLink="/business/login" class="mt-1 inline-block text-xs font-bold text-red-800 underline">Sign in instead</a>
+                  }
+                </div>
               </div>
             }
 
@@ -159,7 +144,7 @@
               @if (authLoading()) {
                 <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
               }
-              {{ authMode() === 'signup' ? 'Create account & continue' : 'Sign in & continue' }}
+              {{ authLoading() ? 'Creating account...' : 'Create account' }}
               @if (!authLoading()) {
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
@@ -169,9 +154,9 @@
           </form>
 
           <p class="text-center text-xs text-gray-400 mt-4">
-            By continuing you agree to our
-            <a href="#" class="text-blue-500 hover:underline">Terms</a> &
-            <a href="#" class="text-blue-500 hover:underline">Privacy Policy</a>.
+            By creating an account you agree to our
+            <a routerLink="/business/terms" class="text-blue-600 hover:underline">Terms</a> and
+            <a routerLink="/business/privacy" class="text-blue-600 hover:underline">Privacy Policy</a>.
           </p>
         </div>
       }

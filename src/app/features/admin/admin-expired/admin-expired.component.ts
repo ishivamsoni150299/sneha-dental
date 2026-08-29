@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { formatPlatformPlanPrice } from '../../../core/config/clinic.config';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { BillingPlan, BillingService } from '../../../core/services/billing.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
@@ -120,7 +120,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 })
 export class AdminExpiredComponent {
   private readonly clinicCfg = inject(ClinicConfigService);
-  private readonly auth = inject(AuthService);
+  private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
   private readonly billing = inject(BillingService);
 

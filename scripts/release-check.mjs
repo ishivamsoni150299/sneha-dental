@@ -38,6 +38,12 @@ if (missing.length) {
 }
 
 if (!env.SENTRY_DSN) console.warn('WARN SENTRY_DSN is not configured; browser errors will not be reported');
+if (env.FIREBASE_APP_CHECK_ENFORCED === 'true' && !env.FIREBASE_APP_CHECK_SITE_KEY) {
+  console.error('FAIL App Check: enforcement is enabled but FIREBASE_APP_CHECK_SITE_KEY is missing');
+  process.exitCode = 1;
+} else if (!env.FIREBASE_APP_CHECK_SITE_KEY) {
+  console.warn('WARN Firebase App Check is not configured; browser attestation is disabled');
+}
 
 const platformUrl = String(env.APP_BASE_URL || 'https://www.mydentalplatform.com').replace(/\/$/, '');
 

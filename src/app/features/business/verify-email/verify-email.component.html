@@ -1,0 +1,50 @@
+<div class="min-h-screen bg-ui-canvas text-ui-ink">
+  <header class="border-b border-ui-line bg-white">
+    <div class="mx-auto flex h-16 w-[min(100%-2rem,72rem)] items-center justify-between gap-4">
+      <a routerLink="/business" class="flex items-center gap-2.5" aria-label="mydentalplatform home">
+        <img src="/assets/brand/mydentalplatform-logo.svg" class="h-9 w-9" alt="">
+        <span class="text-sm font-bold">mydental<span class="text-ui-primary">platform</span></span>
+      </a>
+      <button type="button" class="ui-btn ui-btn-ghost ui-btn-sm" (click)="useAnotherAccount()">Use another account</button>
+    </div>
+  </header>
+
+  <main id="main-content" class="ui-container-reading flex min-h-[calc(100vh-4rem)] items-center py-12">
+    <section class="mx-auto w-full max-w-lg text-center">
+      <div class="mx-auto grid h-14 w-14 place-items-center rounded-[var(--ui-radius-sm)] border border-ui-primary-line bg-ui-primary-soft text-ui-primary" aria-hidden="true">
+        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5A2.25 2.25 0 0 1 19.5 19.5h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0-8.69 5.515a2 2 0 0 1-2.12 0L2.25 6.75"/>
+        </svg>
+      </div>
+      <p class="ui-eyebrow mt-6 justify-center">Protecting patient data</p>
+      <h1 class="ui-heading mt-3">Verify your email</h1>
+      <p class="ui-body mx-auto mt-3 max-w-md">
+        Open the verification email sent to
+        <strong class="text-ui-ink">{{ email()?.email }}</strong>. You must verify this address before creating or opening a clinic workspace.
+      </p>
+
+      @if (message()) {
+        <div class="ui-alert ui-alert-success mt-6 text-left" role="status" aria-live="polite">
+          <span class="ui-status-dot mt-1" aria-hidden="true"></span>
+          <p class="text-sm font-semibold">{{ message() }}</p>
+        </div>
+      }
+      @if (error()) {
+        <div class="ui-alert ui-alert-danger mt-6 text-left" role="alert">
+          <span class="ui-status-dot mt-1" aria-hidden="true"></span>
+          <p class="text-sm font-semibold">{{ error() }}</p>
+        </div>
+      }
+
+      <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <button type="button" class="ui-btn ui-btn-primary" [disabled]="checking()" (click)="checkVerification()">
+          {{ checking() ? 'Checking...' : 'I have verified my email' }}
+        </button>
+        <button type="button" class="ui-btn ui-btn-secondary" [disabled]="resending()" (click)="resend()">
+          {{ resending() ? 'Sending...' : 'Resend email' }}
+        </button>
+      </div>
+      <p class="ui-caption mt-6">Check spam or promotions if the message does not arrive within a minute.</p>
+    </section>
+  </main>
+</div>

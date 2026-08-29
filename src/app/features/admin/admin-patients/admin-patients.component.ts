@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 
 export interface PatientSummary {
   phone:             string;
@@ -31,7 +32,7 @@ const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: s
 @Component({
   selector: 'app-admin-patients',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe],
+  imports: [RouterLink, FormsModule, DecimalPipe, ClinicAccountMenuComponent],
   templateUrl: './admin-patients.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

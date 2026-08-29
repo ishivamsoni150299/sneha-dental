@@ -39,6 +39,7 @@ async function canManageClinic(idToken: string, clinicId: string): Promise<boole
   if (!idToken) return false;
 
   const decoded = await auth.verifyIdToken(idToken);
+  if (decoded.email_verified !== true) return false;
   if (decoded['clinicId'] === clinicId && decoded['role'] === 'admin') return true;
 
   const [clinic, superAdmin] = await Promise.all([

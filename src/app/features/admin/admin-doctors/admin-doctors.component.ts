@@ -4,6 +4,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import {
   DoctorService, Doctor, WEEK_DAYS, DEFAULT_SCHEDULE,
   formatSlotDisplay, generateSlots, type DaySchedule,
@@ -24,7 +25,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
 @Component({
   selector: 'app-admin-doctors',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ClinicAccountMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Toast -->
@@ -54,15 +55,18 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               <p class="text-xs text-gray-400 mt-0.5">Manage doctors, schedules, and availability</p>
             </div>
           </div>
-          <button (click)="openAddModal()"
-                  class="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)]
-                         text-white font-semibold text-sm px-4 py-2.5 rounded-xl
-                         transition-all shadow-sm hover:shadow-md">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-            Add Doctor
-          </button>
+          <div class="flex items-center gap-2">
+            <button (click)="openAddModal()"
+                    class="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)]
+                           text-white font-semibold text-sm px-4 py-2.5 rounded-xl
+                           transition-all shadow-sm hover:shadow-md">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span class="hidden sm:inline">Add Doctor</span>
+            </button>
+            <app-clinic-account-menu />
+          </div>
         </div>
       </div>
 

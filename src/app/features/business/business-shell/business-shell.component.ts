@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, HostListener, type OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { SuperAuthService } from '../../../core/services/super-auth.service';
+import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
 import { Router } from '@angular/router';
 
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BusinessShellComponent implements OnInit {
-  readonly auth        = inject(SuperAuthService);
+  readonly auth        = inject(AuthFacade);
   private readonly router      = inject(Router);
   private readonly clinicStore = inject(ClinicFirestoreService);
 
@@ -35,6 +35,6 @@ export class BusinessShellComponent implements OnInit {
 
   async logout(): Promise<void> {
     await this.auth.logout();
-    await this.router.navigate(['/business/login']);
+    await this.router.navigate(['/platform/login'], { replaceUrl: true });
   }
 }

@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { getAppCheck } from 'firebase-admin/app-check';
 import { sendEmail } from '../lib/server/send-email';
 import {
   createRazorpayCheckout,
@@ -22,6 +23,7 @@ if (!getApps().length) {
 
 const db = getFirestore();
 const auth = getAuth();
+const appCheck = getAppCheck();
 
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW = 60_000;
@@ -107,6 +109,19 @@ function cleanText(value: unknown): string | null {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
+  const appCheckHeader = req.headers['x-firebase-appcheck'];
+  const appCheckToken = Array.isArray(appCheckHeader) ? appCheckHeader[0] : appCheckHeader;
+  const appCheckEnforced = process.env['FIREBASE_APP_CHECK_ENFORCED'] === 'true';
+  if (appCheckToken) {
+    try {
+      await appCheck.verifyToken(appCheckToken);
+    } catch {
+      return res.status(401).json({ error: 'Application verification failed. Refresh and try again.' });
+    }
+  } else if (appCheckEnforced) {
+    return res.status(401).json({ error: 'Application verification is required. Refresh and try again.' });
+  }
+
   const ip = (
     req.headers['x-forwarded-for'] as string | undefined
   )?.split(',')[0]?.trim() ?? req.socket?.remoteAddress ?? 'unknown';
@@ -174,6 +189,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     uid = decoded.uid;
     email = decoded.email ?? '';
     claimedClinicId = typeof decoded['clinicId'] === 'string' ? decoded['clinicId'] : '';
+    if (decoded.email_verified !== true) {
+      return res.status(403).json({ error: 'Verify your email before creating a clinic workspace.' });
+    }
   } catch (err) {
     console.error('[self-signup] Token verification failed:', err);
     return res.status(401).json({ error: 'Invalid or expired session. Please sign in again.' });
@@ -265,7 +283,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Failed to save clinic. Please try again.' });
   }
 
-  await auth.setCustomUserClaims(uid, { clinicId, role: 'admin' }).catch(() => null);
+  try {
+    await auth.setCustomUserClaims(uid, { clinicId, role: 'admin' });
+  } catch (err) {
+    console.error('[self-signup] Failed to assign clinic access claims:', err);
+    try {
+      const clinicRef = db.collection('clinics').doc(clinicId);
+      const cleanup = db.batch();
+      cleanup.delete(clinicRef.collection('private').doc('account'));
+      cleanup.delete(clinicRef);
+      await cleanup.commit();
+    } catch (cleanupError) {
+      console.error('[self-signup] Failed to roll back clinic after claims error:', cleanupError);
+    }
+    return res.status(500).json({ error: 'Could not secure your clinic workspace. Please try again.' });
+  }
 
   const vercelToken = process.env['VERCEL_TOKEN'];
   const vercelProjectId = process.env['VERCEL_PROJECT_ID'];

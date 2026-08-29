@@ -8,6 +8,7 @@ export const environment = {
   googleMapsApiKey: publicEnv.googleMapsApiKey,
   // Sentry DSN — leave empty in dev to disable error reporting locally.
   sentryDsn: publicEnv.sentryDsn,
+  firebaseAppCheckSiteKey: publicEnv.firebaseAppCheckSiteKey,
   firebase: {
     apiKey: 'AIzaSyA_efkmE9dWE6jjyDwgE6qGMLrx_BMJEmQ',
     authDomain: 'sneha-dental-6373b.firebaseapp.com',

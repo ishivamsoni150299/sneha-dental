@@ -7,6 +7,7 @@ export const environment = {
   // The DSN is safe to commit (it's included in the public JS bundle anyway).
   // Leave empty to disable error reporting.
   sentryDsn: publicEnv.sentryDsn,
+  firebaseAppCheckSiteKey: publicEnv.firebaseAppCheckSiteKey,
   firebase: {
     apiKey: 'AIzaSyA_efkmE9dWE6jjyDwgE6qGMLrx_BMJEmQ',
     authDomain: 'mydentalplatform.com',

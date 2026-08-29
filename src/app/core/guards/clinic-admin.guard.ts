@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { AuthFacade } from '../services/auth-facade.service';
 import { ClinicConfigService } from '../services/clinic-config.service';
 
 /**
@@ -14,22 +14,43 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  *
  * Expired/cancelled clinics → /business/clinic/expired (upgrade prompt).
  */
-export const clinicAdminGuard: CanActivateFn = async () => {
-  const auth      = inject(AuthService);
+export const clinicAdminGuard: CanActivateFn = async (_route, state) => {
+  const auth      = inject(AuthFacade);
   const clinicCfg = inject(ClinicConfigService);
   const router    = inject(Router);
 
-  await auth.authReadyPromise;
+  await auth.authReady;
 
-  if (!auth.isLoggedIn) {
+  if (!auth.isAuthenticated) {
+    return router.createUrlTree(['/business/login'], {
+      queryParams: { returnUrl: state.url },
+    });
+  }
+
+  if (auth.role() === 'unverified') {
+    return router.createUrlTree(['/business/verify-email'], {
+      queryParams: { returnUrl: state.url },
+    });
+  }
+
+  if (auth.role() === 'incomplete-signup') {
+    return router.createUrlTree(['/business/signup'], {
+      queryParams: { resume: 'true' },
+    });
+  }
+
+  if (auth.role() !== 'clinic-admin') {
     return router.createUrlTree(['/business/login']);
   }
 
-  // Config may already be loaded (fresh login) — skip Firestore call
   if (!clinicCfg.isLoaded) {
     const uid = auth.currentUser()!.uid;
     const ok  = await clinicCfg.loadByUid(uid);
-    if (!ok) return router.createUrlTree(['/business/login']);
+    if (!ok) {
+      return router.createUrlTree(['/business/signup'], {
+        queryParams: { resume: 'true' },
+      });
+    }
   }
 
   // ── Subscription gate ────────────────────────────────────────────────────

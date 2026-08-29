@@ -7,22 +7,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import {
-  getFirestore, collection, query, where, limit, getDocs, doc, getDoc,
+  collection, query, where, limit, getDocs,
 } from 'firebase/firestore';
-import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signInWithPopup, GoogleAuthProvider, getIdToken, User,
-} from 'firebase/auth';
-import { initializeApp, getApps } from 'firebase/app';
+import type { User } from 'firebase/auth';
 import { environment } from '../../../../environments/environment';
 import { getPlatformPlanAmount, type ClinicTheme } from '../../../core/config/clinic.config';
-import { SuperAuthService } from '../../../core/services/super-auth.service';
-import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-
-// ── Firebase client ───────────────────────────────────────────────────────────
-const app  = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const db   = getFirestore(app);
-const auth = getAuth(app);
+import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
+import { db, getFirebaseAppCheckToken } from '../../../core/firebase';
 
 async function isSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false;
@@ -116,8 +107,7 @@ export class SignupComponent implements OnInit {
   private readonly router     = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone       = inject(NgZone);
-  private readonly superAuth  = inject(SuperAuthService);
-  private readonly clinicCfg  = inject(ClinicConfigService);
+  private readonly auth       = inject(AuthFacade);
 
   // ── Step: 0=auth, 1=clinic, 2=services, 4=plan, 5=success ───────────────
   readonly step       = signal<0 | 1 | 2 | 4 | 5>(0);
@@ -160,7 +150,6 @@ export class SignupComponent implements OnInit {
   });
 
   // ── Auth ─────────────────────────────────────────────────────────────────
-  readonly authMode      = signal<'signup' | 'signin'>('signup');
   readonly authLoading   = signal(false);
   readonly googleLoading = signal(false);
   readonly authError     = signal<string | null>(null);
@@ -170,54 +159,40 @@ export class SignupComponent implements OnInit {
 
   readonly step0 = this.fb.nonNullable.group({
     email:    ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  async authenticateAndContinue(): Promise<void> {
+  async createAccountAndContinue(): Promise<void> {
     this.step0.markAllAsTouched();
     if (this.step0.invalid) return;
     this.authLoading.set(true);
     this.authError.set(null);
     const { email, password } = this.step0.getRawValue();
     try {
-      let user: User;
-      if (this.authMode() === 'signup') {
-        user = (await createUserWithEmailAndPassword(auth, email, password)).user;
-        this.authUser.set(user);
-        this.step.set(1);
-      } else {
-        user = (await signInWithEmailAndPassword(auth, email, password)).user;
-        await this.routeSignedInUser(user);
-      }
+      await this.auth.createAccountWithEmail(email.trim(), password);
+      await this.router.navigate(['/business/verify-email'], { replaceUrl: true });
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? '';
       if (code === 'auth/email-already-in-use') {
-        this.authError.set('Account already exists. Switch to Sign in below.');
-        this.authMode.set('signin');
-      } else if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(code)) {
-        this.authError.set('Invalid email or password.');
+        this.authError.set('An account already exists for this email. Sign in to continue.');
       } else if (code === 'auth/weak-password') {
-        this.authError.set('Password must be at least 6 characters.');
+        this.authError.set('Choose a stronger password with at least 8 characters.');
+      } else if (code === 'auth/network-request-failed') {
+        this.authError.set('Check your internet connection and try again.');
       } else {
-        this.authError.set('Something went wrong. Please try again.');
+        this.authError.set('We could not create your account. Please try again.');
       }
     } finally {
       this.authLoading.set(false);
     }
   }
 
-  async loginWithGoogle(): Promise<void> {
+  async createAccountWithGoogle(): Promise<void> {
     this.googleLoading.set(true);
     this.authError.set(null);
     try {
-      const cred = await signInWithPopup(auth, new GoogleAuthProvider());
-      const user = cred.user;
-      if (this.authMode() === 'signin') {
-        await this.routeSignedInUser(user);
-      } else {
-        this.authUser.set(user);
-        this.step.set(1);
-      }
+      const { user, role } = await this.auth.createAccountWithGoogle();
+      await this.routeAuthenticatedUser(user, role);
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? '';
       if (!code.includes('popup-closed') && !code.includes('cancelled')) {
@@ -424,9 +399,6 @@ export class SignupComponent implements OnInit {
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit(): void {
-    const routeMode = this.route.snapshot.data['authMode'] === 'signin' ? 'signin' : 'signup';
-    this.authMode.set(routeMode);
-
     this.captureMarketingContext();
     this.loadPlacesApi();
 
@@ -452,6 +424,8 @@ export class SignupComponent implements OnInit {
       this.slugChecking.set(false);
       if (available !== null) this.slugAvailable.set(available);
     });
+
+    void this.resumeAuthenticatedSignup();
   }
 
   // ── Navigation ───────────────────────────────────────────────────────────
@@ -481,24 +455,27 @@ export class SignupComponent implements OnInit {
     return 'trial';
   }
 
-  private async routeSignedInUser(user: User): Promise<void> {
-    const superSnap = await getDoc(doc(db, 'superAdmins', user.uid));
-    if (superSnap.exists()) {
-      this.superAuth.currentUser.set(user);
-      this.superAuth.isSuperAdmin.set(true);
+  private async resumeAuthenticatedSignup(): Promise<void> {
+    await this.auth.authReady;
+    const user = this.auth.currentUser();
+    const role = this.auth.role();
+    if (user && role) await this.routeAuthenticatedUser(user, role);
+  }
+
+  private async routeAuthenticatedUser(user: User, role: AuthRole): Promise<void> {
+    if (role === 'platform-admin') {
       await this.router.navigate(['/business/clinics']);
       return;
     }
-
-    const loadedClinic = await this.clinicCfg.loadByUid(user.uid);
-    if (loadedClinic) {
+    if (role === 'clinic-admin') {
       await this.router.navigate(['/business/clinic/dashboard']);
       return;
     }
-
+    if (role === 'unverified') {
+      await this.router.navigate(['/business/verify-email'], { replaceUrl: true });
+      return;
+    }
     this.authUser.set(user);
-    this.authMode.set('signup');
-    this.authError.set('No clinic setup found for this account yet. Continue below to create your website.');
     this.step.set(1);
   }
 
@@ -551,10 +528,14 @@ export class SignupComponent implements OnInit {
     }));
 
     try {
-      const idToken = await getIdToken(user, true);
+      const idToken = await this.auth.getFreshIdToken();
+      const appCheckToken = await getFirebaseAppCheckToken();
       const resp = await fetch('/api/self-signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {}),
+        },
         body: JSON.stringify({
           idToken,
           name:                s1.name.trim(),
@@ -590,6 +571,8 @@ export class SignupComponent implements OnInit {
         this.submitting.set(false);
         return;
       }
+
+      await this.auth.resolveCurrentUser();
 
       this.result.set({
         siteUrl:      data.siteUrl ?? '',

@@ -3,4 +3,5 @@
 export const publicEnv = {
   googleMapsApiKey: "",
   sentryDsn: "",
+  firebaseAppCheckSiteKey: "",
 } as const;

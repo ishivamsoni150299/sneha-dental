@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   LeadFirestoreService, StoredLead, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-firestore.service';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthFacade } from '../../../../core/services/auth-facade.service';
 
 interface ImportStats {
   imported:    number;
@@ -46,7 +46,7 @@ const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
 })
 export class LeadListComponent implements OnInit, OnDestroy {
   private leadStore = inject(LeadFirestoreService);
-  private auth = inject(AuthService);
+  private auth = inject(AuthFacade);
 
   leads           = signal<StoredLead[]>([]);
   loading         = signal(true);

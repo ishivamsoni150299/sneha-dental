@@ -1,0 +1,146 @@
+<div class="min-h-screen bg-ui-canvas text-ui-ink">
+  <header class="border-b border-ui-line bg-white">
+    <div class="mx-auto flex h-16 w-[min(100%-2rem,72rem)] items-center justify-between gap-4">
+      <a routerLink="/business" class="flex min-w-0 items-center gap-2.5" aria-label="mydentalplatform home">
+        <img src="/assets/brand/mydentalplatform-logo.svg" class="h-9 w-9 shrink-0" alt="">
+        <span class="truncate text-sm font-bold text-ui-ink">
+          mydental<span class="text-ui-primary">platform</span>
+        </span>
+      </a>
+      @if (!isPlatform()) {
+        <a routerLink="/business/signup" class="ui-btn ui-btn-secondary ui-btn-sm">Start free</a>
+      }
+    </div>
+  </header>
+
+  <main id="main-content" class="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl lg:grid-cols-[minmax(0,1fr)_minmax(25rem,0.78fr)]">
+    <section class="hidden border-r border-ui-line px-8 py-16 lg:flex lg:flex-col lg:justify-between xl:px-14">
+      <div class="max-w-lg">
+        <p class="ui-eyebrow">{{ isPlatform() ? 'Platform operations' : 'Clinic workspace' }}</p>
+        <h2 class="mt-5 font-display text-4xl leading-tight text-ui-ink">
+          {{ isPlatform() ? 'Secure access for the team running the platform.' : 'Your clinic day, ready when you are.' }}
+        </h2>
+        <p class="ui-body mt-5 max-w-md">
+          {{ isPlatform()
+            ? 'Review clinics, subscriptions, leads, and service health from one protected workspace.'
+            : 'Appointments, patients, doctors, website content, and billing stay together in one focused workspace.' }}
+        </p>
+      </div>
+
+      <div class="grid max-w-lg gap-3 sm:grid-cols-3">
+        @for (item of (isPlatform()
+          ? ['Role checked', 'Tenant isolated', 'Session protected']
+          : ['Today at a glance', 'Patient-safe access', 'Clinic-specific data']); track item) {
+          <div class="border-t border-ui-line pt-3">
+            <span class="ui-status-dot bg-[var(--ui-success)]" aria-hidden="true"></span>
+            <p class="mt-2 text-xs font-semibold text-ui-ink-soft">{{ item }}</p>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="flex items-center px-4 py-10 sm:px-8 lg:px-12">
+      <div class="mx-auto w-full max-w-sm">
+        <p class="ui-eyebrow">{{ isPlatform() ? 'Restricted access' : 'Welcome back' }}</p>
+        <h1 class="ui-heading mt-3 text-3xl">{{ isPlatform() ? 'Platform staff sign in' : 'Sign in to your clinic' }}</h1>
+        <p class="ui-body mt-2 text-sm">
+          {{ isPlatform() ? 'Only authorised platform accounts can continue.' : 'Use the account connected to your clinic.' }}
+        </p>
+
+        @if (error()) {
+          <div class="ui-alert ui-alert-danger mt-6" role="alert" aria-live="assertive">
+            <span class="ui-status-dot mt-1" aria-hidden="true"></span>
+            <p class="text-sm font-semibold">{{ error() }}</p>
+          </div>
+        }
+
+        <button
+          type="button"
+          class="ui-btn ui-btn-secondary ui-btn-block mt-7"
+          [disabled]="loadingMethod() !== null"
+          (click)="signInWithGoogle()">
+          @if (loadingMethod() === 'google') {
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-ui-line-strong border-t-ui-primary" aria-hidden="true"></span>
+          } @else {
+            <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.1 5.1 0 0 1-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23Z" fill="#34A853"/>
+              <path d="M5.84 14.09A6.98 6.98 0 0 1 5.49 12c0-.73.13-1.43.35-2.09V7.07H2.18A11 11 0 0 0 1 12c0 1.78.43 3.45 1.18 4.93l3.66-2.84Z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z" fill="#EA4335"/>
+            </svg>
+          }
+          Sign in with Google
+        </button>
+
+        <div class="my-6 flex items-center gap-3" aria-hidden="true">
+          <span class="h-px flex-1 bg-ui-line"></span>
+          <span class="ui-caption">or use email</span>
+          <span class="h-px flex-1 bg-ui-line"></span>
+        </div>
+
+        <form [formGroup]="form" class="space-y-4" (ngSubmit)="signInWithEmail()">
+          <div>
+            <label for="login-email" class="ui-label">Email address</label>
+            <input
+              id="login-email"
+              formControlName="email"
+              type="email"
+              autocomplete="email"
+              class="ui-field"
+              placeholder="doctor@example.com"
+              [attr.aria-invalid]="isInvalid('email')">
+            @if (isInvalid('email')) {
+              <p class="mt-1.5 text-xs font-semibold text-ui-danger">Enter a valid email address.</p>
+            }
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-3">
+              <label for="login-password" class="ui-label">Password</label>
+              @if (!isPlatform()) {
+                <a routerLink="/business/forgot-password" class="ui-link mb-1 text-xs">Forgot password?</a>
+              }
+            </div>
+            <div class="relative">
+              <input
+                id="login-password"
+                formControlName="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                autocomplete="current-password"
+                class="ui-field pr-16"
+                placeholder="Enter your password"
+                [attr.aria-invalid]="isInvalid('password')">
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-ui-ink-muted hover:text-ui-ink"
+                (click)="showPassword.set(!showPassword())">
+                {{ showPassword() ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+            @if (isInvalid('password')) {
+              <p class="mt-1.5 text-xs font-semibold text-ui-danger">Enter your password.</p>
+            }
+          </div>
+
+          <button type="submit" class="ui-btn ui-btn-primary ui-btn-block" [disabled]="loadingMethod() !== null">
+            @if (loadingMethod() === 'email') {
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+              Signing in...
+            } @else {
+              Sign in
+            }
+          </button>
+        </form>
+
+        @if (!isPlatform()) {
+          <p class="ui-caption mt-7 text-center">
+            New to mydentalplatform?
+            <a routerLink="/business/signup" class="ui-link font-semibold">Start your clinic free</a>
+          </p>
+        } @else {
+          <p class="ui-caption mt-7 text-center">Access is logged and limited to authorised platform staff.</p>
+        }
+      </div>
+    </section>
+  </main>
+</div>

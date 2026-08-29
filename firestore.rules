@@ -4,34 +4,34 @@ service cloud.firestore {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    function hasVerifiedEmail() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
     function isSuperAdmin() {
-      return request.auth != null &&
+      return hasVerifiedEmail() &&
         exists(/databases/$(database)/documents/superAdmins/$(request.auth.uid));
     }
 
     function hasClinicAdminClaim(clinicId) {
-      return request.auth != null &&
+      return hasVerifiedEmail() &&
         request.auth.token.role == 'admin' &&
         request.auth.token.clinicId == clinicId;
     }
 
     // True when the authenticated user is the admin of a specific clinic doc.
     function isClinicAdmin(clinicId) {
-      return request.auth != null &&
+      return hasVerifiedEmail() &&
         (
           hasClinicAdminClaim(clinicId) ||
-          request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)).data.adminUid
+          request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)).data.adminUid ||
+          request.auth.uid == get(/databases/$(database)/documents/clinics/$(clinicId)/private/account).data.adminUid
         );
     }
 
     // True when the authenticated user owns the clinic that this appointment belongs to.
     function ownsAppointmentClinic() {
-      return request.auth != null &&
-        (
-          hasClinicAdminClaim(resource.data.clinicId) ||
-          request.auth.uid ==
-            get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid
-        );
+      return isClinicAdmin(resource.data.clinicId);
     }
 
     function clinicIsActive(clinicId) {
@@ -244,10 +244,7 @@ service cloud.firestore {
     }
 
     // ── Analytics / counters ──────────────────────────────────────────────────
-    // Public write: booking flow atomically increments counters without auth.
-    // Field validation ensures only legitimate counter fields can be written —
-    // prevents arbitrary data injection while keeping the write unauthenticated.
-    // Read: super admin only (shown on Revenue / Analytics pages).
+    // Read/write: super admin only (shown on Revenue / Analytics pages).
     match /analytics/{docId} {
       allow read:  if isSuperAdmin();
       allow write: if isSuperAdmin();
@@ -277,12 +274,7 @@ service cloud.firestore {
     match /slots/{slotId} {
       allow read:   if true;
       allow create: if canCreateSlot();
-      allow delete: if canDeleteSlot() || (request.auth != null &&
-        (
-          hasClinicAdminClaim(resource.data.clinicId) ||
-          request.auth.uid ==
-            get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.adminUid
-        ));
+      allow delete: if canDeleteSlot() || isClinicAdmin(resource.data.clinicId);
       allow update: if false;
     }
   }

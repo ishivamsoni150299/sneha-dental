@@ -39,6 +39,7 @@ export interface Appointment {
   doctorId?: string | null;     // optional — set when patient picks a specific doctor
   doctorName?: string | null;   // denormalized for display without extra lookup
   message?: string;
+  cancellationReason?: string;
   consentVersion?: string;
   consentAt?: Timestamp;
   status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
@@ -333,6 +334,7 @@ export class AppointmentService {
   async setStatus(
     id: string,
     status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled',
+    cancellationReason?: string,
   ): Promise<void> {
     const appointmentRef = doc(db, this.COLLECTION, id);
     await runTransaction(db, async (tx) => {
@@ -349,7 +351,11 @@ export class AppointmentService {
           time: appointment.time,
         }));
       }
-      tx.update(appointmentRef, { status, updatedAt: serverTimestamp() });
+      tx.update(appointmentRef, {
+        status,
+        updatedAt: serverTimestamp(),
+        ...(status === 'cancelled' && cancellationReason ? { cancellationReason } : {}),
+      });
     });
   }
 

@@ -1,0 +1,48 @@
+<details class="group relative">
+  <summary
+    class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-1.5 transition-colors [&::-webkit-details-marker]:hidden"
+    [class.bg-slate-800]="variant() === 'dark'"
+    [class.text-slate-200]="variant() === 'dark'"
+    [class.hover:bg-slate-700]="variant() === 'dark'"
+    [class.text-ui-ink-soft]="variant() === 'light'"
+    [class.hover:bg-ui-muted]="variant() === 'light'"
+    aria-label="Open account menu"
+    aria-haspopup="menu">
+    <span
+      class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-bold"
+      [class.bg-slate-700]="variant() === 'dark'"
+      [class.text-white]="variant() === 'dark'"
+      [class.bg-ui-primary-soft]="variant() === 'light'"
+      [class.text-ui-primary]="variant() === 'light'">
+      {{ initial() }}
+    </span>
+    <span class="hidden max-w-36 truncate text-xs font-semibold sm:block">{{ email() }}</span>
+    <svg class="h-4 w-4 shrink-0 opacity-60 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+    </svg>
+  </summary>
+
+  <div
+    class="absolute right-0 z-50 w-64 overflow-hidden rounded-[var(--ui-radius-sm)] border border-ui-line bg-white p-2 text-left shadow-ui-md"
+    [class.bottom-full]="placement() === 'up'"
+    [class.mb-2]="placement() === 'up'"
+    [class.top-full]="placement() === 'down'"
+    [class.mt-2]="placement() === 'down'"
+    role="menu">
+    <div class="border-b border-ui-line px-3 py-2.5">
+      <p class="ui-caption">Signed in as</p>
+      <p class="mt-1 truncate text-sm font-semibold text-ui-ink">{{ email() }}</p>
+    </div>
+    <a routerLink="/business/clinic/settings" class="ui-btn ui-btn-ghost ui-btn-block mt-1 justify-start" role="menuitem">
+      Clinic settings
+    </a>
+    <button
+      type="button"
+      class="ui-btn ui-btn-ghost ui-btn-block justify-start text-ui-danger"
+      [disabled]="signingOut()"
+      (click)="logout()"
+      role="menuitem">
+      {{ signingOut() ? 'Signing out...' : 'Sign out' }}
+    </button>
+  </div>
+</details>

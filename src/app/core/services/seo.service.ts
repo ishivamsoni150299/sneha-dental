@@ -235,7 +235,7 @@ export class SeoService {
     const hostname = this.normalizeHostname(this.document.location.hostname);
     const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-    if (path.startsWith('/business') || (!isLocalHost && this.getPlatformHostnames().has(hostname))) {
+    if (path.startsWith('/business') || path.startsWith('/platform') || (!isLocalHost && this.getPlatformHostnames().has(hostname))) {
       return {
         kind: 'platform',
         siteName: PLATFORM_NAME,

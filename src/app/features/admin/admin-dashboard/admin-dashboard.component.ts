@@ -4,10 +4,10 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment, PaymentStatus, PaymentMethod } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
   blue:    { hex: '#1E56DC', hexLight: '#EBF2FF', textClass: 'text-blue-700',    bgClass: 'bg-blue-700'    },
@@ -42,14 +42,12 @@ type UpgradeTeaser = {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe],
+  imports: [RouterLink, FormsModule, DecimalPipe, ClinicAccountMenuComponent],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  private auth               = inject(AuthService);
   private appointmentService = inject(AppointmentService);
-  private router             = inject(Router);
   readonly clinic            = inject(ClinicConfigService);
   readonly clinicConfig      = this.clinic.config;
 
@@ -92,7 +90,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private successTimer: ReturnType<typeof setTimeout> | null = null;
   private unsubscribeAppointments: (() => void) | null = null;
 
-  adminEmail = computed(() => this.auth.currentUser()?.email ?? '');
 
   get themeColor() {
     return THEME_COLORS[this.clinicConfig.theme ?? 'blue'] ?? THEME_COLORS['blue'];
@@ -493,17 +490,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   async confirmCancel() {
     const appt = this.cancelTarget();
-    if (!appt) return;
+    const reason = this.cancelReason();
+    if (!appt || !reason) return;
     this.cancelTarget.set(null);
     this.updatingId.set(appt.id!);
     this.actionError.set(null);
     try {
-      await this.appointmentService.setStatus(appt.id!, 'cancelled');
+      await this.appointmentService.setStatus(appt.id!, 'cancelled', reason);
       this.appointments.update(list =>
-        list.map(a => a.id === appt.id ? { ...a, status: 'cancelled' } : a),
+        list.map(a => a.id === appt.id ? { ...a, status: 'cancelled', cancellationReason: reason } : a),
       );
       if (this.detailAppt()?.id === appt.id) {
-        this.detailAppt.update(a => a ? { ...a, status: 'cancelled' } : null);
+        this.detailAppt.update(a => a ? { ...a, status: 'cancelled', cancellationReason: reason } : null);
       }
       this.setSuccess(`${appt.name}'s appointment cancelled.`);
     } catch {
@@ -606,11 +604,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // ── Utilities ────────────────────────────────────────────────────────────
-  async logout() {
-    await this.auth.logout();
-    await this.router.navigate(['/business/login']);
-  }
-
   private timeToMinutes(time: string): number {
     const value = (time || '').trim();
     if (/^\d{2}:\d{2}$/.test(value)) {

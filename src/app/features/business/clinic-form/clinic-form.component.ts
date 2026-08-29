@@ -10,7 +10,7 @@ import {
   ClinicFirestoreService, StoredClinic,
 } from '../../../core/services/clinic-firestore.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
-import { SuperAuthService } from '../../../core/services/super-auth.service';
+import { AuthFacade } from '../../../core/services/auth-facade.service';
 import {
   buildClinicFirestorePayload,
   type ClinicFormRawValue,
@@ -82,7 +82,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   private readonly _subs = new Subscription();
   private fb          = inject(FormBuilder);
   private clinicStore = inject(ClinicFirestoreService);
-  private superAuth   = inject(SuperAuthService);
+  private superAuth   = inject(AuthFacade);
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
 
@@ -652,6 +652,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
 
   get accountAlreadyLinked(): boolean {
-    return !this.isEdit && !this.superAuth.isSuperAdmin() && !!this.ownedClinic();
+    return !this.isEdit && this.superAuth.role() !== 'platform-admin' && !!this.ownedClinic();
   }
 }

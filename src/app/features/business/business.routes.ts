@@ -21,22 +21,65 @@ export const businessRoutes: Routes = [
     loadComponent: () =>
       import('./signup/signup.component').then(m => m.SignupComponent),
     data: {
-      title: 'Create or Access Your Dental Clinic Website',
-      description: 'Create your dental clinic website or sign in to manage bookings, leads, and settings from one flow.',
-      authMode: 'signup',
+      title: 'Create Your Dental Clinic Website',
+      description: 'Create your account and launch a dental clinic website with online booking and patient management.',
     },
   },
 
-  // ── Super admin login ─────────────────────────────────────────────────────
+  // ── Clinic-owner login ────────────────────────────────────────────────────
   {
     path: 'login',
     loadComponent: () =>
-      import('./signup/signup.component').then(m => m.SignupComponent),
+      import('./login/login.component').then(m => m.LoginComponent),
     data: {
-      title: 'Business Access',
-      description: 'Sign in to manage clinics, leads, revenue, and settings in the mydentalplatform business portal.',
-      authMode: 'signin',
+      title: 'Clinic Sign In',
+      description: 'Sign in to manage your dental clinic appointments, patients, doctors, website, and subscription.',
+      portal: 'clinic',
       noIndex: true,
+    },
+  },
+
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    data: {
+      title: 'Reset Password',
+      description: 'Reset the password for your mydentalplatform clinic account.',
+      noIndex: true,
+    },
+  },
+
+  {
+    path: 'verify-email',
+    loadComponent: () =>
+      import('./verify-email/verify-email.component').then(m => m.VerifyEmailComponent),
+    data: {
+      title: 'Verify Email',
+      description: 'Verify your email before accessing protected clinic information.',
+      noIndex: true,
+    },
+  },
+
+  {
+    path: 'privacy',
+    loadComponent: () =>
+      import('./platform-legal/platform-legal.component').then(m => m.PlatformLegalComponent),
+    data: {
+      title: 'Platform Privacy Policy',
+      description: 'How mydentalplatform processes account, clinic, and service information.',
+      legalPage: 'privacy',
+    },
+  },
+
+  {
+    path: 'terms',
+    loadComponent: () =>
+      import('./platform-legal/platform-legal.component').then(m => m.PlatformLegalComponent),
+    data: {
+      title: 'Platform Terms of Service',
+      description: 'Terms for creating and operating a clinic workspace on mydentalplatform.',
+      legalPage: 'terms',
     },
   },
 

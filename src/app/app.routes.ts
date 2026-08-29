@@ -131,6 +131,20 @@ export const routes: Routes = [
       import('./features/business/business.routes').then(m => m.businessRoutes),
   },
 
+  // ── Internal platform staff access ───────────────────────────────────────
+  {
+    path: 'platform/login',
+    canActivate: [platformOnlyGuard],
+    loadComponent: () =>
+      import('./features/business/login/login.component').then(m => m.LoginComponent),
+    data: {
+      title: 'Platform Staff Access',
+      description: 'Restricted access for authorised mydentalplatform staff.',
+      portal: 'platform',
+      noIndex: true,
+    },
+  },
+
   // ── Coming Soon (full-page, no clinic navbar) ─────────────────────────────
   {
     path: 'coming-soon',

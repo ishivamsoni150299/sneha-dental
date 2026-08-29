@@ -38,6 +38,9 @@ async function assertSuperAdmin(idToken: unknown): Promise<void> {
   }
 
   const decoded = await auth.verifyIdToken(idToken);
+  if (decoded.email_verified !== true) {
+    throw new Error('Verify your email before using platform administration.');
+  }
   const admin = await db.collection('superAdmins').doc(decoded.uid).get();
   if (!admin.exists) {
     throw new Error('Super admin access required.');
