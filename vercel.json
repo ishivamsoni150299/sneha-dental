@@ -37,6 +37,7 @@
     "api/elevenlabs.ts":         { "maxDuration": 30 },
     "api/domain.ts":             { "maxDuration": 15 },
     "api/clinic-owner.ts":       { "maxDuration": 15 },
+    "api/voice-session.ts":      { "maxDuration": 30 },
     "api/voice-booking-action.ts": { "maxDuration": 15 },
     "api/seo.ts":                { "maxDuration": 10 }
   }
