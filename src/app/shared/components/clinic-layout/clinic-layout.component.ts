@@ -17,19 +17,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
   template: `
     <app-navbar />
 
-      <div class="clinic-welcome-bar" aria-label="Clinic welcome">
-        <div class="clinic-welcome-inner">
-          <p class="clinic-welcome-message">
-            <span class="clinic-welcome-motif" aria-hidden="true"><span></span></span>
-            <span class="clinic-welcome-namaste">Namaste</span>
-            <span>Modern care with the warmth of your neighbourhood clinic</span>
-          </p>
-          @if (clinic.config.city) {
-            <span class="clinic-welcome-city">Serving {{ clinic.config.city }}</span>
-          }
-        </div>
-      </div>
-
       <main id="main-content" class="min-h-[60vh] overflow-x-clip bg-ui-canvas">
         <router-outlet />
       </main>

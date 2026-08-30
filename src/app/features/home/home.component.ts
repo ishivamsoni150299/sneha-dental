@@ -10,12 +10,11 @@ import {
   DEFAULT_CLINIC_MOMENTS,
   DEFAULT_TRUST_PILLS,
 } from '../../core/content/clinic-marketing.content';
-import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, ServiceCardComponent],
+  imports: [RouterLink],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -37,6 +36,10 @@ export class HomeComponent {
   get clinicMoments(): readonly ClinicImage[] {
     const images = this.config.customization?.media?.clinicImages?.filter(image => image.src && image.alt) ?? [];
     return images.length ? images.slice(0, 3) : this.defaultClinicMoments;
+  }
+
+  get careImage(): ClinicImage {
+    return this.clinicMoments[1] ?? this.clinicMoments[0];
   }
 
   get hasPatientCount(): boolean {

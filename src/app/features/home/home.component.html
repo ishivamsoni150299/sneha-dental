@@ -1,74 +1,48 @@
-<!-- ===== PREMIUM CLINIC HERO ===== -->
-<section class="ui-lens overflow-x-clip bg-ui-surface">
-  <div class="clinic-home-hero-grid ui-container grid grid-cols-1 py-7 md:py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-14">
-    <div class="max-w-[36rem]">
-      <div class="mb-5 flex min-w-0 items-center gap-3 border-l-2 border-[var(--ui-primary)] pl-3">
-        <div class="min-w-0">
-          <p class="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--ui-primary-hover)]">{{ heroEyebrow }}</p>
-          <p class="mt-1 truncate text-base font-extrabold text-ui-ink">{{ clinic.displayName }}</p>
-          <p class="mt-1 flex min-w-0 items-center gap-2 text-xs font-semibold text-ui-ink-muted">
-            <span class="ui-status-dot shrink-0" [class.text-status-success]="clinic.isOpenNow"></span>
-            <span>{{ clinic.isOpenNow ? 'Open now' : 'Online booking open' }}</span>
-            @if (config.city) {
-              <span aria-hidden="true">&middot;</span>
-              <span class="truncate">{{ config.city }}</span>
-            }
-          </p>
-        </div>
-      </div>
+<!-- ===== CLINIC HERO ===== -->
+<section class="clinic-home-hero">
+  <img [src]="clinicMoments[0].src"
+       [alt]="clinicMoments[0].alt"
+       class="clinic-home-hero-image">
+  <div class="clinic-home-hero-shade" aria-hidden="true"></div>
 
-      <h1 class="ui-display">
+  <div class="clinic-home-hero-inner ui-container">
+    <div class="clinic-home-hero-copy">
+      <p class="clinic-home-kicker"><span aria-hidden="true"></span>{{ heroEyebrow }}</p>
+      <h1 class="clinic-home-title">
         {{ heroTitle }}
-        <span class="block text-[var(--ui-primary)]">{{ heroHighlight }}</span>
+        <span>{{ heroHighlight }}</span>
       </h1>
+      <p class="clinic-home-intro">{{ heroSubtitle }}</p>
 
-      <p class="ui-lede max-w-[32rem]">
-        {{ heroSubtitle }}
-      </p>
-
-      <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <a routerLink="/appointment"
-           class="ui-btn ui-btn-primary ui-btn-lg">
+      <div class="clinic-home-actions">
+        <a routerLink="/appointment" class="clinic-home-primary-action">
           Book Appointment
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
+          </svg>
         </a>
         @if (clinic.hasPhone) {
-          <a [href]="'tel:+' + config.phoneE164"
-             class="ui-btn ui-btn-secondary ui-btn-lg">
+          <a [href]="'tel:+' + config.phoneE164" class="clinic-home-secondary-action">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.3a1 1 0 011 .7l1.5 4.5a1 1 0 01-.5 1.2L8 10.5a11 11 0 005.5 5.5l1.1-2.3a1 1 0 011.2-.5l4.5 1.5a1 1 0 01.7 1V19a2 2 0 01-2 2h-1C9.7 21 3 14.3 3 6V5z"/>
+            </svg>
             Call {{ config.phone }}
           </a>
         }
       </div>
 
-      <div class="ui-card-muted mt-8 grid max-w-[34rem] grid-cols-3 divide-x divide-ui-line rounded-[var(--ui-radius-lg)] border px-2 py-4">
-        <div class="px-3">
-          <p class="text-lg font-extrabold text-ui-ink">{{ hasPatientCount ? config.patientCount : 'New' }}</p>
-          <p class="ui-caption mt-0.5">{{ hasPatientCount ? 'Patients' : 'Patients welcome' }}</p>
+      <div class="clinic-home-proof" aria-label="Clinic highlights">
+        <div>
+          <strong>{{ config.doctorName || clinic.displayName }}</strong>
+          <span>{{ config.doctorQualification || (config.city ? 'Serving ' + config.city : 'Dental care team') }}</span>
         </div>
-        <div class="px-3">
-          @if (hasRating) {
-            <p class="text-lg font-extrabold text-amber-500">{{ config.rating }}/5</p>
-            <p class="ui-caption mt-0.5">Rating</p>
-          } @else {
-            <p class="text-lg font-extrabold text-ui-ink">Clear</p>
-            <p class="ui-caption mt-0.5">Guidance</p>
-          }
+        <div>
+          <strong>Same-day slots</strong>
+          <span>Subject to availability</span>
         </div>
-        <div class="px-3">
-          <p class="text-lg font-extrabold text-[var(--ui-primary)]">60 sec</p>
-          <p class="ui-caption mt-0.5">Booking</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-10 lg:mt-0">
-      <div class="ui-card relative overflow-hidden p-0 shadow-ui-md">
-        <img [src]="clinicMoments[0].src"
-             [alt]="clinicMoments[0].alt"
-             class="aspect-[4/3] w-full object-cover sm:aspect-[5/4] lg:aspect-[4/5]">
-        <div class="absolute inset-x-0 bottom-0 border-t border-white/70 bg-white/92 p-4 backdrop-blur-md sm:p-5">
-          <p class="ui-eyebrow mb-1">{{ heroImageEyebrow }}</p>
-          <p class="ui-title text-lg">{{ clinic.displayName }}</p>
-          <p class="ui-caption mt-1">{{ clinicContext }}</p>
+        <div>
+          <strong>Clear pricing</strong>
+          <span>No hidden charges</span>
         </div>
       </div>
     </div>
@@ -76,52 +50,58 @@
 </section>
 
 <!-- ===== TREATMENTS ===== -->
-<section class="ui-section-compact bg-ui-canvas">
+<section class="clinic-home-treatments">
   <div class="ui-container">
-    <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div class="max-w-2xl">
-        <p class="ui-eyebrow">Start here</p>
-        <h2 class="ui-heading">Choose your concern.</h2>
-        <p class="ui-lede mt-3">Pick a treatment to request an appointment. The clinic confirms the final recommendation.</p>
+    <div class="clinic-home-section-head">
+      <div>
+        <p class="clinic-home-section-kicker">Treatments</p>
+        <h2>Care for the smile you live with every day.</h2>
       </div>
-      <a routerLink="/services"
-         class="ui-link inline-flex">
-        View all treatments
-      </a>
+      <p>From preventive check-ups to restorative care, start with what is bothering you. The dentist confirms the right treatment after examination.</p>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      @for (service of previewServices.slice(0, 6); track service.name) {
-        <app-service-card
-          [iconPath]="service.iconPath"
-          [name]="service.name"
-          [description]="service.description"
-          [benefit]="service.benefit"
-          [compact]="true"
-        />
+    <div class="clinic-treatment-index">
+      @for (service of previewServices.slice(0, 6); track service.name; let index = $index) {
+        <a routerLink="/appointment" [queryParams]="{ service: service.name }" class="clinic-treatment-row">
+          <span class="clinic-treatment-number">0{{ index + 1 }}</span>
+          <span class="clinic-treatment-icon" aria-hidden="true">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+              <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="service.iconPath"/>
+            </svg>
+          </span>
+          <span class="min-w-0">
+            <strong>{{ service.name }}</strong>
+            <small>{{ service.benefit || service.description || 'Personalised dental care' }}</small>
+          </span>
+          <svg class="clinic-treatment-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
+          </svg>
+      </a>
       }
     </div>
+
+    <a routerLink="/services" class="clinic-home-text-link">Explore all treatments</a>
   </div>
 </section>
 
 <!-- ===== CARE PROMISE ===== -->
-<section class="ui-section-compact bg-ui-surface">
-  <div class="ui-container">
-    <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-      <div>
-        <p class="ui-eyebrow">Why patients trust us</p>
-        <h2 class="ui-heading">Calm care, explained clearly.</h2>
-      </div>
+<section class="clinic-home-care">
+  <div class="clinic-home-care-grid ui-container">
+    <div class="clinic-home-care-image-wrap">
+      <img [src]="careImage.src" [alt]="careImage.alt" class="clinic-home-care-image">
+      <p>{{ heroImageEyebrow }}</p>
+    </div>
 
-      <div class="grid gap-3 sm:grid-cols-2">
-        @for (item of trustPills; track item) {
-          <div class="ui-card ui-card-interactive">
-            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-[var(--ui-radius-sm)] bg-[var(--ui-primary-soft)] text-[var(--ui-primary)]">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-              </svg>
-            </div>
-            <p class="ui-title">{{ item }}</p>
+    <div class="clinic-home-care-copy">
+      <p class="clinic-home-section-kicker">Our approach</p>
+      <h2>Calm care.<br>Clear conversations.</h2>
+      <p class="clinic-home-care-intro">We take time to explain what we see, what can wait, and what needs attention now. You stay informed at every step.</p>
+
+      <div class="clinic-home-promises">
+        @for (item of trustPills; track item; let index = $index) {
+          <div>
+            <span>0{{ index + 1 }}</span>
+            <strong>{{ item }}</strong>
           </div>
         }
       </div>
@@ -131,23 +111,26 @@
 
 <!-- ===== REVIEW PROOF ===== -->
 @if (hasTestimonials) {
-  <section class="ui-section-compact bg-ui-ink text-white">
+  <section class="clinic-home-review">
     <div class="ui-container-reading text-center">
-      <p class="ui-eyebrow justify-center text-white/60">Patient feedback</p>
-      <p class="mt-5 font-display text-3xl leading-tight md:text-5xl">“{{ config.testimonials[0].review }}”</p>
-      <p class="mt-5 text-sm font-bold text-white/70">{{ config.testimonials[0].name }} &middot; {{ config.testimonials[0].location }}</p>
+      <p class="clinic-home-section-kicker">Patient feedback</p>
+      <blockquote>“{{ config.testimonials[0].review }}”</blockquote>
+      <p>{{ config.testimonials[0].name }} &middot; {{ config.testimonials[0].location }}</p>
     </div>
   </section>
 }
 
 <!-- ===== FINAL CTA ===== -->
-<section class="ui-section-compact bg-ui-surface">
-  <div class="ui-container-reading text-center">
-    <h2 class="ui-heading">{{ finalCtaTitle }}</h2>
-    <p class="ui-lede mx-auto">{{ finalCtaSubtitle }}</p>
-    <a routerLink="/appointment"
-       class="ui-btn ui-btn-primary ui-btn-lg mt-7">
+<section class="clinic-home-booking">
+  <div class="clinic-home-booking-inner ui-container">
+    <div>
+      <p class="clinic-home-section-kicker">Ready when you are</p>
+      <h2>{{ finalCtaTitle }}</h2>
+      <p>{{ finalCtaSubtitle }}</p>
+    </div>
+    <a routerLink="/appointment" class="clinic-home-booking-action">
       Book Appointment
+      <span aria-hidden="true">&rarr;</span>
     </a>
   </div>
 </section>

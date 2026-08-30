@@ -8,7 +8,7 @@
 :root {
   --app-viewport-height: 100vh;
   --app-header-height: 4rem;
-  --app-clinic-chrome-height: 6rem;
+  --app-clinic-chrome-height: 4.5rem;
 }
 
 @supports (height: 100svh) {
@@ -69,7 +69,7 @@ app-root {
   min-block-size: calc(var(--app-viewport-height) - var(--app-header-height));
 }
 
-/* Clinic pages fill the first screen after navigation and the welcome rail. */
+/* Clinic pages fill the first screen below navigation. */
 .clinic-theme-scope > main#main-content {
   min-block-size: calc(var(--app-viewport-height) - var(--app-clinic-chrome-height));
 }
@@ -97,7 +97,7 @@ app-root {
 
 @media (max-width: 767px) {
   :root {
-    --app-clinic-chrome-height: 5.85rem;
+    --app-clinic-chrome-height: 4.5rem;
   }
 
   /* Leave breathing room above fixed mobile actions without trapping scroll. */
