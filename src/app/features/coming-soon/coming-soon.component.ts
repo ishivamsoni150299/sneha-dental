@@ -19,7 +19,11 @@ export class ComingSoonComponent implements OnInit, OnDestroy {
 
   private intervalId: ReturnType<typeof setInterval> | null = null;
   readonly timeLeft = signal<TimeLeft | null>(null);
-  readonly hasCountdown = computed(() => !!this.config.launchDate);
+  private readonly launchTimestamp = computed(() => {
+    const timestamp = Date.parse(this.config.launchDate ?? '');
+    return Number.isFinite(timestamp) ? timestamp : null;
+  });
+  readonly hasCountdown = computed(() => this.launchTimestamp() !== null);
   readonly voiceAgentEnabled = computed(() => this.clinic.hasLiveVoice);
   readonly serviceNames = computed(() => this.clinic.config.services.map(service => service.name));
   readonly clinicHours = computed(() => this.clinic.config.hours.map(slot => `${slot.days}: ${slot.time}`));
@@ -36,7 +40,7 @@ export class ComingSoonComponent implements OnInit, OnDestroy {
   readonly callUrl = computed(() => `tel:+${this.config.phoneE164}`);
 
   ngOnInit(): void {
-    if (this.config.launchDate) {
+    if (this.hasCountdown()) {
       this.tick();
       this.intervalId = setInterval(() => this.tick(), 1000);
     }
@@ -47,7 +51,9 @@ export class ComingSoonComponent implements OnInit, OnDestroy {
   }
 
   private tick(): void {
-    const target = new Date(this.config.launchDate!).getTime();
+    const target = this.launchTimestamp();
+    if (target === null) return;
+
     const now    = Date.now();
     const diff   = target - now;
 

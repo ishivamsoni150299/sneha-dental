@@ -19,6 +19,7 @@ export class ConfirmedComponent implements OnInit {
   date = signal('');
   time = signal('');
   service = signal('');
+  copied = signal(false);
 
   ngOnInit() {
     const p = this.route.snapshot.queryParamMap;
@@ -83,5 +84,17 @@ export class ConfirmedComponent implements OnInit {
 
   get phoneHref(): string {
     return this.clinic.config.phoneE164 ? `tel:+${this.clinic.config.phoneE164}` : '';
+  }
+
+  async copyBookingReference(): Promise<void> {
+    if (!this.bookingRef() || typeof navigator === 'undefined' || !navigator.clipboard) return;
+
+    try {
+      await navigator.clipboard.writeText(this.bookingRef());
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1800);
+    } catch {
+      this.copied.set(false);
+    }
   }
 }

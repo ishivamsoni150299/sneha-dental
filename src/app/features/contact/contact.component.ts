@@ -67,10 +67,24 @@ export class ContactComponent {
         createdAt: serverTimestamp(),
       });
       this.submitted.set(true);
+      queueMicrotask(() => document.getElementById('contact-form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     } catch {
       this.sendError.set(true);
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  sendAnotherMessage(): void {
+    this.form.reset({
+      name: '',
+      phone: '',
+      email: '',
+      message: '',
+      privacyAccepted: false,
+    });
+    this.sendError.set(false);
+    this.submitted.set(false);
+    queueMicrotask(() => document.getElementById('contact-name')?.focus());
   }
 }

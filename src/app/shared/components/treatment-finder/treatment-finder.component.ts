@@ -46,8 +46,8 @@ export class TreatmentFinderComponent {
 
   get urgencyConfig(): UrgencyConfig {
     const u = this.selected()?.urgency;
-    if (u === 'urgent')  return { label: 'See us today',        classes: 'bg-red-50 text-red-700 border-red-200',    dot: 'bg-red-500'    };
-    if (u === 'soon')    return { label: 'Book this week',       classes: 'bg-orange-50 text-orange-700 border-orange-200', dot: 'bg-orange-500' };
-    return               { label: 'Flexible scheduling',        classes: 'bg-green-50 text-green-700 border-green-200',  dot: 'bg-green-500'  };
+    if (u === 'urgent') return { label: 'See us today', classes: 'clinic-finder-status clinic-finder-status-urgent', dot: 'clinic-finder-dot-urgent' };
+    if (u === 'soon') return { label: 'Book this week', classes: 'clinic-finder-status clinic-finder-status-soon', dot: 'clinic-finder-dot-soon' };
+    return { label: 'Flexible scheduling', classes: 'clinic-finder-status clinic-finder-status-routine', dot: 'clinic-finder-dot-routine' };
   }
 }

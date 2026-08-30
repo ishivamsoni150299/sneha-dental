@@ -2,6 +2,13 @@
   <img
     class="clinic-coming-soon-image"
     src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1800&q=88"
+    srcset="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=640&q=82 640w,
+            https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=960&q=84 960w,
+            https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1400&q=86 1400w,
+            https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1800&q=88 1800w"
+    sizes="100vw"
+    fetchpriority="high"
+    decoding="async"
     alt="A bright, modern dental treatment room">
   <div class="clinic-coming-soon-overlay" aria-hidden="true"></div>
 
@@ -30,7 +37,7 @@
       </p>
 
       @if (hasCountdown() && timeLeft()) {
-        <div class="clinic-coming-soon-countdown" aria-label="Time until launch">
+        <div class="clinic-coming-soon-countdown" aria-label="Time until launch" aria-live="off">
           @for (unit of [
             { label: 'Days', value: timeLeft()!.days },
             { label: 'Hours', value: timeLeft()!.hours },
@@ -42,6 +49,11 @@
               <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">{{ unit.label }}</p>
             </div>
           }
+        </div>
+      } @else {
+        <div class="clinic-coming-soon-readiness" role="status">
+          <span aria-hidden="true"></span>
+          Opening date will be shared here soon
         </div>
       }
 

@@ -1,7 +1,10 @@
-<section class="clinic-workflow-hero border-b border-ui-line py-14 md:py-20">
+<section class="clinic-workflow-hero clinic-legal-hero border-b border-ui-line py-14 md:py-20">
   <div class="ui-container relative">
-    <a routerLink="/" class="ui-eyebrow inline-flex items-center gap-2 hover:text-[var(--accent)]">
-      <span aria-hidden="true">←</span> Back to {{ clinic.displayName }}
+    <a routerLink="/" class="clinic-back-link">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to {{ clinic.displayName }}
     </a>
     <div class="mt-6 max-w-3xl">
       <p class="clinic-workflow-kicker text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent-dk)]">Patient information</p>
@@ -20,9 +23,9 @@
   </div>
 </section>
 
-<section class="clinic-workflow-content py-12 md:py-20">
-  <div class="ui-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-    <article class="clinic-workflow-card ui-card max-w-4xl space-y-9 p-6 sm:p-9 md:p-12">
+<section class="clinic-workflow-content clinic-legal-content py-12 md:py-20">
+  <div class="clinic-legal-grid ui-container">
+    <article class="clinic-legal-article">
       @if (page === 'privacy') {
         <section>
           <p class="ui-eyebrow">01 · Information collected</p>
@@ -77,17 +80,17 @@
         </section>
       }
 
-      <div class="rounded-2xl border border-[var(--accent-bd)] bg-[var(--accent-lt)] p-5">
+      <div class="clinic-legal-contact">
         <p class="text-sm font-extrabold text-slate-950">Questions or requests</p>
-        <p class="mt-2 text-sm leading-6 text-slate-600">Contact {{ clinic.displayName }}@if (clinic.hasPhone) { at <a [href]="'tel:+' + clinic.config.phoneE164" class="font-bold text-[var(--accent)] hover:underline">{{ clinic.config.phone }}</a>}. For platform privacy or security questions, email <a href="mailto:mydentalplatform&#64;zohomail.in" class="font-bold text-[var(--accent)] hover:underline">mydentalplatform&#64;zohomail.in</a>.</p>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Contact {{ clinic.displayName }}@if (clinic.hasPhone) { at <a [href]="'tel:+' + clinic.config.phoneE164" class="ui-link">{{ clinic.config.phone }}</a>}. For platform privacy or security questions, email <a href="mailto:mydentalplatform&#64;zohomail.in" class="ui-link">mydentalplatform&#64;zohomail.in</a>.</p>
       </div>
     </article>
 
-    <aside class="ui-card p-6 lg:sticky lg:top-24">
+    <aside class="clinic-legal-aside">
       <p class="ui-eyebrow">Quick links</p>
-      <nav class="mt-4 space-y-2" aria-label="Legal pages">
-        <a routerLink="/privacy" class="ui-btn ui-btn-secondary ui-btn-block justify-start" [class.border-[var(--accent)]]="page === 'privacy'">Privacy notice</a>
-        <a routerLink="/terms" class="ui-btn ui-btn-secondary ui-btn-block justify-start" [class.border-[var(--accent)]]="page === 'terms'">Website terms</a>
+      <nav class="clinic-legal-nav" aria-label="Legal pages">
+        <a routerLink="/privacy" class="ui-btn ui-btn-secondary ui-btn-block justify-start" [class.border-[var(--accent)]]="page === 'privacy'" [attr.aria-current]="page === 'privacy' ? 'page' : null">Privacy notice</a>
+        <a routerLink="/terms" class="ui-btn ui-btn-secondary ui-btn-block justify-start" [class.border-[var(--accent)]]="page === 'terms'" [attr.aria-current]="page === 'terms' ? 'page' : null">Website terms</a>
         <a routerLink="/appointment" class="ui-btn ui-btn-primary ui-btn-block mt-4">Book Appointment</a>
       </nav>
       <p class="mt-5 text-xs leading-5 text-slate-400">This baseline policy should be reviewed by the clinic for local healthcare and data-protection requirements.</p>

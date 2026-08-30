@@ -12,16 +12,16 @@
         <a routerLink="/services" class="ui-btn ui-btn-secondary ui-btn-lg">Explore treatments</a>
       </div>
 
-      <dl class="mt-10 grid grid-cols-3 divide-x divide-ui-line border-y border-ui-line py-5">
-        <div class="pr-4">
+      <dl class="clinic-about-metrics">
+        <div>
           <dt class="ui-caption">Patients cared for</dt>
           <dd class="mt-1 text-xl font-extrabold text-ui-ink">{{ config.patientCount || '1000+' }}</dd>
         </div>
-        <div class="px-4">
+        <div>
           <dt class="ui-caption">Patient rating</dt>
           <dd class="mt-1 text-xl font-extrabold text-amber-500">{{ config.rating || '4.9' }}/5</dd>
         </div>
-        <div class="pl-4">
+        <div>
           <dt class="ui-caption">Qualification</dt>
           <dd class="mt-1 text-xl font-extrabold text-[var(--ui-primary)]">{{ config.doctorQualification || 'BDS' }}</dd>
         </div>
@@ -43,27 +43,27 @@
   </div>
 </section>
 
-<section class="ui-section border-y border-ui-line bg-ui-canvas">
-  <div class="ui-container grid gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
-    <div class="relative mx-auto w-full max-w-md">
-      <div class="ui-card-muted overflow-hidden rounded-[var(--ui-radius-xl)] border p-4">
-        <div class="grid aspect-[4/5] place-items-center rounded-[calc(var(--ui-radius-xl)-0.4rem)] bg-[var(--ui-primary)] text-white">
-          <div class="text-center">
-            <div class="mx-auto grid h-28 w-28 place-items-center rounded-full border border-white/20 bg-white/10 text-4xl font-extrabold">
-              {{ (config.doctorName || 'D').charAt(0) }}
-            </div>
-            <p class="mt-6 text-2xl font-extrabold">{{ config.doctorName || 'Your dentist' }}</p>
-            <p class="mt-1 text-sm font-semibold text-white/70">{{ config.doctorQualification || 'BDS' }}</p>
-          </div>
-        </div>
+<section class="clinic-about-doctor">
+  <div class="clinic-about-doctor-grid ui-container">
+    <div class="clinic-about-profile">
+      <div class="clinic-about-profile-mark" aria-hidden="true">
+        {{ (config.doctorName || clinic.displayName || 'D').charAt(0) }}
       </div>
-      <div class="ui-badge ui-badge-success absolute -right-2 top-6 bg-white px-4 py-3 shadow-ui-sm">
-        <span class="ui-status-dot"></span>
-        Accepting appointments
+      <div class="clinic-about-profile-copy">
+        <p>Lead clinician</p>
+        <h2>{{ config.doctorName || 'Your dentist' }}</h2>
+        <span>{{ config.doctorQualification || 'BDS' }}</span>
+      </div>
+      <div class="clinic-about-availability">
+        <i aria-hidden="true"></i>
+        <div>
+          <strong>Accepting appointments</strong>
+          <span>Same-day slots may be available</span>
+        </div>
       </div>
     </div>
 
-    <div>
+    <div class="clinic-about-doctor-copy">
       <p class="ui-eyebrow">Your dentist</p>
       <h2 class="ui-heading">Thoughtful clinical care, explained in plain language.</h2>
       <div class="mt-6 space-y-4 text-ui-ink-soft leading-7">
@@ -76,15 +76,15 @@
         }
       </div>
 
-      <div class="mt-8 grid gap-3 sm:grid-cols-2">
+      <div class="clinic-about-promises">
         @for (promise of promises.slice(0, 4); track promise.text) {
-          <div class="flex gap-3 rounded-[var(--ui-radius-md)] border border-ui-line bg-ui-surface p-4">
-            <span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-status-success-soft text-status-success">
+          <div>
+            <span>
               <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
               </svg>
             </span>
-            <p class="text-sm font-semibold leading-6 text-ui-ink-soft">{{ promise.text }}</p>
+            <p>{{ promise.text }}</p>
           </div>
         }
       </div>
@@ -92,7 +92,7 @@
   </div>
 </section>
 
-<section class="ui-section bg-ui-surface">
+<section class="clinic-about-values">
   <div class="ui-container">
     <div class="max-w-2xl">
       <p class="ui-eyebrow">What guides us</p>
@@ -100,19 +100,19 @@
       <p class="ui-lede">A professional clinic experience should feel calm, transparent, and consistently well considered.</p>
     </div>
 
-    <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="clinic-about-values-grid">
       @for (value of values; track value.title; let index = $index) {
-        <article class="ui-card ui-card-interactive">
-          <div class="mb-7 flex items-center justify-between">
-            <span class="grid h-11 w-11 place-items-center rounded-2xl bg-ui-primary-soft text-[var(--ui-primary)]">
+        <article class="clinic-about-value">
+          <div class="clinic-about-value-head">
+            <span>
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="value.icon"/>
               </svg>
             </span>
-            <span class="font-mono text-xs font-bold text-ui-ink-muted">0{{ index + 1 }}</span>
+            <b>0{{ index + 1 }}</b>
           </div>
-          <h3 class="ui-title text-lg">{{ value.title }}</h3>
-          <p class="ui-body mt-2">{{ value.desc }}</p>
+          <h3>{{ value.title }}</h3>
+          <p>{{ value.desc }}</p>
         </article>
       }
     </div>

@@ -21,6 +21,7 @@ export class MyAppointmentComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
   private prefix = this.config.bookingRefPrefix;
+  readonly bookingRefExample = `${this.prefix}-A3F7KQ2M`;
 
   view        = signal<View>('lookup');
   appointment = signal<Appointment | null>(null);
@@ -74,6 +75,13 @@ export class MyAppointmentComponent {
   isEditInvalid(field: string) {
     const ctrl = this.editForm.get(field);
     return ctrl?.invalid && ctrl?.touched;
+  }
+
+  normaliseBookingRef(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9-]/g, '');
+    input.value = value;
+    this.lookupForm.controls.bookingRef.setValue(value, { emitEvent: false });
   }
 
   canCancel(): boolean {

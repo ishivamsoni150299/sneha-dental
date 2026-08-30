@@ -1,42 +1,66 @@
 <!-- ===== SERVICES HERO ===== -->
-<section class="ui-section bg-ui-surface">
-  <div class="ui-container grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-    <div class="max-w-2xl">
+<section class="clinic-services-hero">
+  <div class="clinic-services-hero-grid ui-container">
+    <div class="clinic-services-hero-copy">
       <p class="ui-eyebrow">Services & Pricing</p>
-      <h1 class="ui-display">
+      <h1 class="ui-display clinic-services-title">
         Clear treatment options. No pressure.
       </h1>
       <p class="ui-lede">
         Choose a concern or book a consultation. The clinic confirms the right treatment and cost before care begins.
       </p>
-      <a routerLink="/appointment"
-         class="ui-btn ui-btn-primary ui-btn-lg mt-7">
-        Book Appointment
-      </a>
+
+      <div class="clinic-services-actions">
+        <a routerLink="/appointment" class="ui-btn ui-btn-primary ui-btn-lg">
+          Book Appointment
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
+          </svg>
+        </a>
+        @if (clinic.hasPhone) {
+          <a [href]="'tel:+' + config.phoneE164" class="ui-btn ui-btn-secondary ui-btn-lg">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.3a1 1 0 011 .7l1.5 4.5a1 1 0 01-.5 1.2L8 10.5a11 11 0 005.5 5.5l1.1-2.3a1 1 0 011.2-.5l4.5 1.5a1 1 0 01.7 1V19a2 2 0 01-2 2h-1C9.7 21 3 14.3 3 6V5z"/>
+            </svg>
+            Call clinic
+          </a>
+        }
+      </div>
+
+      <div class="clinic-services-proof" aria-label="Treatment guidance">
+        <span>Dentist-led consultation</span>
+        <span>Estimate before treatment</span>
+      </div>
     </div>
 
-    <div class="ui-card ui-card-muted ui-lens p-4">
+    <div class="clinic-services-finder">
+      <div class="clinic-services-finder-heading">
+        <p>Not sure what to book?</p>
+        <h2>Start with what is bothering you.</h2>
+      </div>
       <app-treatment-finder [compact]="true" />
     </div>
   </div>
 </section>
 
 <!-- ===== TREATMENT LIST ===== -->
-<section class="ui-section-compact border-y border-ui-line bg-ui-canvas" id="all-treatments">
+<section class="clinic-services-list" id="all-treatments">
   <div class="ui-container">
-    <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div class="clinic-services-list-heading">
       <div>
         <p class="ui-eyebrow">Treatments</p>
-        <h2 class="ui-heading">Pick one to book.</h2>
+        <h2 class="ui-heading">Understand your options.</h2>
+        <p class="ui-body mt-2 max-w-xl">Browse by treatment type, then choose a service to prefill your appointment request.</p>
       </div>
 
       @if (config.services.length > 0) {
-        <div class="flex gap-2 overflow-x-auto pb-1 lg:max-w-[48rem] lg:flex-wrap lg:justify-end [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div class="clinic-services-filters" aria-label="Filter treatments by category">
           @for (cat of categories; track cat) {
             <button
               type="button"
               (click)="activeCategory.set(cat)"
-              class="shrink-0 rounded-2xl px-4 py-2 text-sm font-extrabold transition-colors whitespace-nowrap"
+              class="clinic-services-filter"
+              [attr.aria-pressed]="activeCategory() === cat"
               [ngClass]="categoryButtonClass(cat)">
               {{ cat }}
             </button>
@@ -51,7 +75,9 @@
           <app-service-card
             [iconPath]="service.iconPath"
             [name]="service.name"
-            [compact]="true"
+            [description]="service.description"
+            [benefit]="service.benefit"
+            [price]="service.price"
           />
         }
         @if (filteredServices().length === 0) {

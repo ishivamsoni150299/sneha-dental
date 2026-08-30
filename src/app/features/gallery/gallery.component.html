@@ -1,54 +1,70 @@
-<section class="ui-lens overflow-hidden bg-ui-surface">
-  <div class="ui-container grid gap-10 py-14 md:py-20 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:py-24">
-    <div class="max-w-xl">
+<section class="clinic-gallery-hero">
+  <div class="clinic-gallery-hero-grid ui-container">
+    <div class="clinic-gallery-hero-copy">
       <p class="ui-eyebrow">Clinic gallery</p>
       <h1 class="ui-display">Designed to feel calm before care begins.</h1>
-    </div>
-    <div class="lg:pb-2">
       <p class="ui-lede mt-0">See the treatment spaces, sterilisation standards, and equipment that support a safer, more comfortable visit.</p>
-      <div class="mt-6 flex flex-wrap gap-2">
-        <span class="ui-badge ui-badge-success"><span class="ui-status-dot"></span>Sterilised instruments</span>
-        <span class="ui-badge ui-badge-primary">Modern equipment</span>
-        <span class="ui-badge">Patient-first spaces</span>
+      <div class="clinic-gallery-hero-actions">
+        <a routerLink="/appointment" class="ui-btn ui-btn-primary ui-btn-lg">Book a clinic visit</a>
+        <a routerLink="/contact" class="ui-btn ui-btn-secondary ui-btn-lg">Get directions</a>
+      </div>
+      <div class="clinic-gallery-trust" aria-label="Clinic space highlights">
+        <span>Sterilised instruments</span>
+        <span>Modern equipment</span>
+        <span>Patient-first spaces</span>
       </div>
     </div>
+
+    <figure class="clinic-gallery-hero-media">
+      <img
+        [src]="clinicImages[0].src"
+        [alt]="clinicImages[0].alt"
+        fetchpriority="high"
+        decoding="async">
+      <figcaption>
+        <span>Inside {{ config.name || 'the clinic' }}</span>
+        <strong>{{ clinicImages[0].label || clinicImages[0].alt }}</strong>
+      </figcaption>
+    </figure>
   </div>
 </section>
 
-<section class="ui-section border-y border-ui-line bg-ui-canvas">
+<section class="clinic-gallery-showcase">
   <div class="ui-container">
-    <div class="mb-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div class="clinic-gallery-showcase-heading">
       <div>
-        <p class="ui-eyebrow">Inside {{ config.name || 'the clinic' }}</p>
+        <p class="ui-eyebrow">The clinic experience</p>
         <h2 class="ui-heading">A considered space for every stage of care.</h2>
       </div>
-      <a routerLink="/appointment" class="ui-btn ui-btn-secondary">Book a clinic visit</a>
+      <p class="ui-body">From reception to treatment, every area is prepared to help patients feel informed, safe, and at ease.</p>
     </div>
 
-    <div class="grid auto-rows-[15rem] gap-4 md:grid-cols-2 lg:grid-cols-12 lg:auto-rows-[18rem]">
-      @for (image of clinicImages; track image.alt; let index = $index) {
+    <div class="clinic-gallery-grid">
+      @for (image of clinicImages.slice(1); track image.src; let index = $index) {
         <figure
-          class="group ui-card relative overflow-hidden p-0"
-          [ngClass]="index === 0 ? 'md:row-span-2 lg:col-span-7 lg:row-span-2' : index === 1 || index === 4 ? 'lg:col-span-5' : 'lg:col-span-5'">
+          class="clinic-gallery-item"
+          [class.clinic-gallery-item-wide]="index === 0 || index === 3">
           <img
             [src]="image.src"
             [alt]="image.alt"
-            class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.025]">
-          <div class="absolute inset-x-0 bottom-0 border-t border-white/60 bg-white/90 px-4 py-3 backdrop-blur-md">
-            <figcaption class="text-sm font-bold text-ui-ink">{{ image.alt }}</figcaption>
-          </div>
+            loading="lazy"
+            decoding="async">
+          <figcaption>
+            <span>0{{ index + 2 }}</span>
+            <strong>{{ image.label || image.alt }}</strong>
+          </figcaption>
         </figure>
       }
     </div>
 
-    <div class="mt-6 flex flex-col gap-3 rounded-[var(--ui-radius-lg)] border border-ui-line bg-ui-surface px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="clinic-gallery-note">
       <p class="ui-caption">Images illustrate the clinic experience. Actual rooms and equipment may vary by location.</p>
       <a routerLink="/contact" class="ui-link shrink-0">Get directions</a>
     </div>
   </div>
 </section>
 
-<section class="ui-section-compact bg-ui-surface">
+<section class="clinic-gallery-cta">
   <div class="ui-container grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
     <div>
       <p class="ui-eyebrow">Visit with confidence</p>

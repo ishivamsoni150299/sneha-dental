@@ -1,20 +1,11 @@
-<section
-  class="bg-white py-12 md:py-24 border-t border-gray-100"
-  [ngClass]="{ '!py-0 !border-0': compact() }">
-  <div
-    class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
-    [ngClass]="{ '!px-0 !max-w-none': compact() }">
+<section class="clinic-finder" [class.clinic-finder-compact]="compact()">
+  <div [class]="compact() ? '' : 'ui-container'">
 
     @if (!compact()) {
-      <div class="text-center mb-12">
-        <span class="inline-flex items-center gap-1.5 bg-[var(--accent-lt)] text-[var(--accent)] font-semibold text-xs uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 border border-[var(--accent-lt)]">
-          <span class="w-1 h-1 bg-[var(--accent-md)] rounded-full"></span>
-          Find Your Treatment
-        </span>
-        <h2 class="font-display text-3xl md:text-4xl text-gray-900 mb-3 leading-tight">
-          What Is Bothering You?
-        </h2>
-        <p class="text-gray-500 text-lg max-w-xl mx-auto">
+      <div class="clinic-finder-intro">
+        <p class="ui-eyebrow justify-center">Find your treatment</p>
+        <h2 class="ui-heading">What is bothering you?</h2>
+        <p class="ui-body">
           Tap your concern and we will recommend the right next step.
         </p>
       </div>
@@ -23,119 +14,78 @@
     @let current = selected();
 
     @if (!current) {
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+      <div class="clinic-finder-grid">
         @for (s of symptoms; track s.label) {
           <button
             type="button"
             (click)="select(s)"
-            class="group relative bg-gray-50 hover:bg-[var(--accent)] border border-gray-200 hover:border-[var(--accent)] rounded-2xl p-5 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--accent-bd)]">
-            @if (s.urgency === 'urgent') {
-              <span class="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full"></span>
-            } @else if (s.urgency === 'soon') {
-              <span class="absolute top-3 right-3 w-2 h-2 bg-orange-400 rounded-full"></span>
-            }
-            <div class="w-12 h-12 bg-[var(--accent-lt)] group-hover:bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3 transition-colors">
-              <svg class="w-6 h-6 text-[var(--accent)] group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            class="clinic-finder-option">
+            <span class="clinic-finder-option-dot" [ngClass]="'clinic-finder-dot-' + s.urgency" aria-hidden="true"></span>
+            <span class="clinic-finder-option-icon" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
                 <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="s.icon"/>
               </svg>
-            </div>
-            <p class="font-semibold text-sm text-gray-800 group-hover:text-white transition-colors">{{ s.label }}</p>
+            </span>
+            <span>{{ s.label }}</span>
+            <svg class="clinic-finder-option-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
+            </svg>
           </button>
         }
       </div>
 
-      <p class="text-center text-xs text-gray-400 mt-5">
-        <span class="inline-flex items-center gap-1.5">
-          <span class="w-2 h-2 bg-red-500 rounded-full"></span> Urgent
-          <span class="text-gray-300">|</span>
-          <span class="w-2 h-2 bg-orange-400 rounded-full"></span> See soon
-          <span class="text-gray-300">|</span>
-          <span class="w-2 h-2 bg-green-500 rounded-full"></span> Flexible
-        </span>
-      </p>
+      <div class="clinic-finder-legend" aria-label="Appointment urgency guide">
+        <span><i class="clinic-finder-dot-urgent"></i>Urgent</span>
+        <span><i class="clinic-finder-dot-soon"></i>See soon</span>
+        <span><i class="clinic-finder-dot-routine"></i>Flexible</span>
+      </div>
     } @else {
-      <div class="max-w-xl mx-auto">
-        <div class="bg-white border-2 border-[var(--accent-lt)] rounded-3xl overflow-hidden shadow-xl shadow-[var(--accent-lt)]">
-          <div class="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-dk)] px-7 py-6 text-white">
-            <div class="flex items-center justify-between gap-4">
-              <div>
-                <p class="text-[var(--accent-bd)] text-xs font-semibold uppercase tracking-widest mb-1">You selected</p>
-                <h3 class="font-display text-2xl font-bold">{{ current.label }}</h3>
-              </div>
-              <span
-                class="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border"
-                [ngClass]="urgencyConfig.classes">
-                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="urgencyConfig.dot"></span>
-                {{ urgencyConfig.label }}
-              </span>
-            </div>
+      <div class="clinic-finder-result">
+        <div class="clinic-finder-result-heading">
+          <div>
+            <p>You selected</p>
+            <h3>{{ current.label }}</h3>
           </div>
-
-          <div class="px-7 py-6">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Recommended Treatments</p>
-            <div class="space-y-3 mb-6">
-              @for (svc of current.services; track svc; let i = $index) {
-                <div
-                  class="flex items-center gap-3 p-3.5 rounded-xl border"
-                  [ngClass]="i === 0 ? 'bg-[var(--accent-lt)] border-[var(--accent-bd)]' : 'bg-gray-50 border-gray-100'">
-                  <div
-                    class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                    [ngClass]="i === 0 ? 'bg-[var(--accent)]' : 'bg-gray-200'">
-                    <svg
-                      class="w-4 h-4"
-                      [ngClass]="i === 0 ? 'text-white' : 'text-gray-500'"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z"/>
-                    </svg>
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-sm" [ngClass]="i === 0 ? 'text-[var(--accent-dk)]' : 'text-gray-700'">{{ svc }}</p>
-                    @if (i === 0) {
-                      <p class="text-xs text-[var(--accent-md)] mt-0.5">Best match</p>
-                    }
-                  </div>
-                  @if (i === 0) {
-                    <span class="text-[10px] font-bold bg-[var(--accent)] text-white px-2 py-0.5 rounded-full">Recommended</span>
-                  }
-                </div>
-              }
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-3">
-              <a
-                routerLink="/appointment"
-                [queryParams]="{ service: current.services[0] }"
-                class="flex-1 text-center bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:-translate-y-px shadow-md shadow-[var(--accent-bd)]">
-                Book for {{ current.label }}
-              </a>
-              @if (clinic.hasWhatsapp) {
-                <a
-                  [href]="clinic.whatsappUrl('Hi, I have concerns about: ' + current.label + '. Can you help?')"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex-1 text-center border-2 border-green-500 text-green-700 hover:bg-green-50 py-3 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-                </svg>
-                  Ask on WhatsApp
-                </a>
-              }
-            </div>
-
-            <button
-              type="button"
-              (click)="reset()"
-              class="w-full mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors py-2 flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-              </svg>
-              Choose a different concern
-            </button>
-          </div>
+          <span [ngClass]="urgencyConfig.classes">
+            <i [ngClass]="urgencyConfig.dot"></i>
+            {{ urgencyConfig.label }}
+          </span>
         </div>
+
+        <p class="clinic-finder-result-label">Recommended treatments</p>
+        <div class="clinic-finder-matches">
+          @for (svc of current.services; track svc; let i = $index) {
+            <div class="clinic-finder-match" [class.clinic-finder-match-primary]="i === 0">
+              <span>{{ i + 1 }}</span>
+              <div>
+                <strong>{{ svc }}</strong>
+                <small>{{ i === 0 ? 'Best place to start' : 'The dentist may also discuss this' }}</small>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="clinic-finder-actions">
+          <a routerLink="/appointment" [queryParams]="{ service: current.services[0] }" class="ui-btn ui-btn-primary">
+            Book for {{ current.label }}
+          </a>
+          @if (clinic.hasWhatsapp) {
+            <a
+              [href]="clinic.whatsappUrl('Hi, I have concerns about: ' + current.label + '. Can you help?')"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="ui-btn ui-btn-secondary">
+              Ask on WhatsApp
+            </a>
+          }
+        </div>
+
+        <button type="button" (click)="reset()" class="clinic-finder-reset">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Choose a different concern
+        </button>
       </div>
     }
   </div>

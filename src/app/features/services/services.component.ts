@@ -39,7 +39,7 @@ export class ServicesComponent {
 
   categoryButtonClass(category: ServiceCategory): string {
     return this.activeCategory() === category
-      ? 'bg-[var(--accent)] text-white shadow-sm'
-      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200';
+      ? 'clinic-services-filter-active'
+      : 'clinic-services-filter-idle';
   }
 }
