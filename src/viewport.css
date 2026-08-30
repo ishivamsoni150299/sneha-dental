@@ -29,10 +29,20 @@ app-root {
   min-block-size: 100%;
 }
 
+html {
+  block-size: auto;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
+}
+
 body {
   min-block-size: var(--app-viewport-height);
   overflow-x: clip;
   overflow-y: auto;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 app-root {
