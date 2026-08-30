@@ -39,6 +39,31 @@ export class HomeComponent {
     return images.length ? images.slice(0, 3) : this.defaultClinicMoments;
   }
 
+  get hasPatientCount(): boolean {
+    const count = Number(String(this.config.patientCount ?? '').replace(/[^\d.]/g, ''));
+    return Number.isFinite(count) && count > 0;
+  }
+
+  get hasRating(): boolean {
+    const rating = Number(this.config.rating);
+    return Number.isFinite(rating) && rating > 0 && rating <= 5;
+  }
+
+  get clinicContext(): string {
+    const doctor = [this.config.doctorName, this.config.doctorQualification]
+      .map(value => value?.trim())
+      .filter(Boolean)
+      .join(', ');
+    return [doctor, this.config.city?.trim()].filter(Boolean).join(' | ')
+      || 'Gentle care, clearly explained.';
+  }
+
+  get heroImageEyebrow(): string {
+    const hasCustomImage = this.config.customization?.media?.clinicImages
+      ?.some(image => Boolean(image.src && image.alt)) ?? false;
+    return hasCustomImage ? (this.clinicMoments[0].label?.trim() || 'Our clinic') : 'A calmer dental visit';
+  }
+
   get heroEyebrow(): string { return this.homeContent.eyebrow ?? 'Dental Excellence'; }
   get heroTitle(): string { return this.homeContent.heroTitle ?? 'Pain-Free Care'; }
   get heroHighlight(): string { return this.homeContent.heroHighlight ?? 'You Can Trust'; }

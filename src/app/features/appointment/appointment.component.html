@@ -2,6 +2,9 @@
 <section class="booking-page bg-gray-50 py-6 md:py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <header class="booking-page-header mx-auto mb-5 max-w-3xl md:mb-10 md:text-center">
+      <p class="mb-2 truncate text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--accent-dk)]">
+        {{ config.name }}
+      </p>
       <div class="flex flex-wrap items-center gap-2 md:justify-center">
         <span class="inline-flex items-center gap-2 rounded-full border border-[var(--accent-bd)] bg-[var(--accent-lt)] px-3 py-1 text-xs font-bold text-[var(--accent-dk)]">
           <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -13,7 +16,7 @@
         Book your appointment
       </h1>
       <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-600 md:mx-auto md:mt-3 md:text-base">
-        Choose a convenient time. The clinic will confirm your request {{ clinic.isOpenNow ? 'shortly' : confirmationWindowLabel.toLowerCase() }}.
+        Choose a convenient time for your visit. {{ config.name }} will confirm your request {{ clinic.isOpenNow ? 'shortly' : confirmationWindowLabel.toLowerCase() }}.
       </p>
       <div class="mt-4 grid grid-cols-3 divide-x divide-gray-200 rounded-2xl border border-gray-200 bg-white px-2 py-3 shadow-sm md:mx-auto md:max-w-xl">
         <div class="px-2 text-center">
