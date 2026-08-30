@@ -16,6 +16,14 @@
         { "fieldPath": "clinicId",   "order": "ASCENDING" },
         { "fieldPath": "createdAt",  "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "voiceSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "startedAt",       "order": "ASCENDING" },
+        { "fieldPath": "durationSeconds", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

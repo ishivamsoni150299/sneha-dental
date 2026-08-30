@@ -183,7 +183,9 @@ export async function handleVoiceSession(
 
   const body = (req.body ?? {}) as Record<string, unknown>;
   const clinicId = typeof body['clinicId'] === 'string' ? body['clinicId'].trim().slice(0, 100) : '';
-  const sdp = typeof body['sdp'] === 'string' ? body['sdp'].trim() : '';
+  // Preserve the trailing CRLF from RTCPeerConnection.createOffer(). OpenAI's
+  // SDP parser treats an offer without its terminating line break as EOF.
+  const sdp = typeof body['sdp'] === 'string' ? body['sdp'] : '';
   if (!clinicId) return res.status(400).json({ error: 'Clinic is required.' });
   if (!sdp.startsWith('v=0') || sdp.length > MAX_SDP_LENGTH
       || !sdp.includes('m=audio') || !sdp.includes('m=application')) {
