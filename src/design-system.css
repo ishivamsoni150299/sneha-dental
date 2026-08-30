@@ -56,6 +56,11 @@
   --ui-danger-soft: #fff0f0;
   --ui-rating: #f59e0b;
   --ui-shadow-color: #102126;
+  --clinic-marigold: #d78316;
+  --clinic-marigold-soft: #fff4d8;
+  --clinic-peacock: #176b5b;
+  --clinic-peacock-soft: #e9f5ef;
+  --clinic-warm-line: #e6ddcc;
 
   /* Shape, elevation and rhythm */
   --ui-space-2xs: 0.25rem;
@@ -777,9 +782,17 @@ textarea.ui-field {
 }
 
 .clinic-theme-scope .ui-display,
-.clinic-theme-scope .ui-heading {
+.clinic-theme-scope .ui-heading,
+.clinic-theme-scope .ui-title,
+.clinic-theme-scope .ui-btn,
+.clinic-theme-scope .ds-button {
   color: var(--ui-ink);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+}
+
+.clinic-theme-scope .ui-btn-primary,
+.clinic-theme-scope .ds-button-primary {
+  color: var(--ui-on-primary);
 }
 
 .clinic-theme-scope .ui-card,
@@ -880,10 +893,362 @@ textarea.ui-field {
     var(--ui-canvas);
 }
 
-.clinic-theme-scope .booking-page-header h1 {
+.clinic-workflow-page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(118deg, color-mix(in srgb, var(--clinic-marigold-soft) 55%, transparent), transparent 31%),
+    linear-gradient(245deg, color-mix(in srgb, var(--clinic-peacock-soft) 58%, transparent), transparent 28%),
+    var(--ui-canvas);
+}
+
+.clinic-workflow-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--clinic-marigold-soft) 58%, transparent), transparent 36%),
+    linear-gradient(240deg, color-mix(in srgb, var(--clinic-peacock-soft) 62%, transparent), transparent 32%),
+    var(--ui-surface);
+}
+
+.clinic-workflow-hero::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  height: 45%;
+  content: '';
+  background-image:
+    linear-gradient(45deg, transparent 47%, color-mix(in srgb, var(--clinic-marigold) 6%, transparent) 48% 52%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, color-mix(in srgb, var(--clinic-peacock) 5%, transparent) 48% 52%, transparent 53%);
+  background-size: 3rem 3rem;
+  mask-image: linear-gradient(to top, black, transparent);
+  pointer-events: none;
+}
+
+.clinic-workflow-content {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ui-canvas) 84%, white), var(--ui-canvas));
+}
+
+.clinic-workflow-page::before {
+  position: absolute;
+  top: -3rem;
+  right: -2rem;
+  z-index: -1;
+  width: 22rem;
+  height: 22rem;
+  content: '';
+  background-image:
+    linear-gradient(45deg, transparent 47%, color-mix(in srgb, var(--clinic-marigold) 8%, transparent) 48% 52%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, color-mix(in srgb, var(--clinic-peacock) 7%, transparent) 48% 52%, transparent 53%);
+  background-size: 2.75rem 2.75rem;
+  mask-image: radial-gradient(circle at center, black, transparent 70%);
+  pointer-events: none;
+}
+
+.clinic-workflow-header {
+  position: relative;
+}
+
+.clinic-workflow-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.clinic-workflow-kicker::before {
+  width: 1.5rem;
+  height: 0.25rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  content: '';
+  background: linear-gradient(90deg, var(--clinic-marigold) 0 44%, transparent 44% 58%, var(--clinic-peacock) 58%);
+}
+
+.clinic-workflow-title {
   font-family: var(--ui-font-display);
+  font-size: 4.25rem;
   font-weight: 550;
-  letter-spacing: -0.02em;
+  line-height: 1.04;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.clinic-workflow-lede {
+  color: var(--ui-ink-soft);
+  text-wrap: pretty;
+}
+
+.clinic-trust-rail {
+  overflow: hidden;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--ui-radius-md);
+  background: color-mix(in srgb, var(--ui-surface) 92%, transparent);
+  box-shadow: var(--ui-shadow-xs);
+  backdrop-filter: blur(10px);
+}
+
+.clinic-workflow-card {
+  position: relative;
+}
+
+.clinic-workflow-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 3px;
+  content: '';
+  background: linear-gradient(90deg, var(--clinic-marigold), var(--ui-primary), var(--clinic-peacock));
+}
+
+.clinic-result-card {
+  border-radius: var(--ui-radius-xl);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.clinic-result-title {
+  font-family: var(--ui-font-display);
+  font-size: 3rem;
+  font-weight: 550;
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.clinic-success-seal {
+  position: relative;
+  padding: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--clinic-peacock) 22%, transparent);
+  border-radius: 999px;
+  background: var(--clinic-peacock-soft);
+}
+
+.clinic-success-seal::after {
+  position: absolute;
+  inset: -0.45rem;
+  border: 1px dashed color-mix(in srgb, var(--clinic-marigold) 46%, transparent);
+  border-radius: inherit;
+  content: '';
+}
+
+.clinic-booking-reference {
+  border: 1px solid color-mix(in srgb, var(--clinic-peacock) 32%, var(--ui-line));
+  border-radius: var(--ui-radius-lg);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--clinic-peacock-soft) 72%, white), var(--ui-surface) 58%, color-mix(in srgb, var(--clinic-marigold-soft) 52%, white));
+  box-shadow: var(--ui-shadow-xs);
+}
+
+.clinic-error-code {
+  color: color-mix(in srgb, var(--ui-primary) 78%, var(--clinic-peacock));
+  font-family: var(--ui-font-display);
+  font-size: 5rem;
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+
+.clinic-quick-link {
+  display: flex;
+  min-height: 6.5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 1px solid var(--ui-line);
+  border-radius: var(--ui-radius-md);
+  padding: 1rem;
+  color: var(--ui-ink-soft);
+  background: var(--ui-surface-muted);
+  text-decoration: none;
+  transition: border-color var(--ui-duration-fast), background var(--ui-duration-fast), color var(--ui-duration-fast), transform var(--ui-duration-fast) var(--ui-ease);
+}
+
+.clinic-quick-link:hover {
+  border-color: var(--ui-primary-line);
+  color: var(--ui-primary-hover);
+  background: color-mix(in srgb, var(--ui-primary-soft) 44%, white);
+  transform: translateY(-2px);
+}
+
+/* Full-bleed launch state shown before a clinic website goes live. */
+.clinic-coming-soon {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  overflow: hidden;
+  color: white;
+  background: #17332e;
+  isolation: isolate;
+}
+
+.clinic-coming-soon-image,
+.clinic-coming-soon-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.clinic-coming-soon-image {
+  z-index: -2;
+  object-fit: cover;
+  object-position: 64% center;
+}
+
+.clinic-coming-soon-overlay {
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(14, 48, 42, 0.96) 0%, rgba(14, 48, 42, 0.9) 38%, rgba(14, 48, 42, 0.5) 68%, rgba(14, 48, 42, 0.22) 100%),
+    linear-gradient(0deg, rgba(8, 33, 29, 0.72), transparent 52%);
+}
+
+.clinic-coming-soon-content {
+  display: grid;
+  width: min(100% - 2rem, var(--ui-content));
+  min-height: 100svh;
+  margin-inline: auto;
+  grid-template-rows: auto 1fr auto;
+  padding-block: 1.5rem;
+}
+
+.clinic-coming-soon-brand {
+  display: flex;
+  max-width: min(100%, 32rem);
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.clinic-coming-soon-mark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 1rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 38px -24px rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(12px);
+}
+
+.clinic-coming-soon-copy {
+  align-self: center;
+  max-width: 43rem;
+  padding-block: 3.5rem;
+}
+
+.clinic-coming-soon-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #ffe1a3;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.clinic-coming-soon-kicker::before {
+  width: 1.75rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  content: '';
+  background: linear-gradient(90deg, #e89a28 0 44%, rgba(255, 255, 255, 0.9) 44% 58%, #63b79f 58%);
+}
+
+.clinic-coming-soon-title {
+  max-width: 12ch;
+  margin-top: 1.25rem;
+  font-family: var(--ui-font-display);
+  font-size: 4.75rem;
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.clinic-coming-soon-lede {
+  max-width: 34rem;
+  margin-top: 1.35rem;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.clinic-coming-soon-countdown {
+  display: grid;
+  max-width: 31rem;
+  margin-top: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.clinic-coming-soon-countdown > div {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--ui-radius-sm);
+  padding: 0.85rem 0.5rem;
+  background: rgba(255, 255, 255, 0.09);
+  text-align: center;
+  backdrop-filter: blur(12px);
+}
+
+.clinic-coming-soon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.clinic-coming-soon-primary,
+.clinic-coming-soon-secondary {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: var(--ui-radius-sm);
+  padding: 0.8rem 1.2rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform var(--ui-duration-fast) var(--ui-ease), background var(--ui-duration-fast), border-color var(--ui-duration-fast);
+}
+
+.clinic-coming-soon-primary {
+  background: #14845f;
+  box-shadow: 0 18px 38px -24px rgba(0, 0, 0, 0.74);
+}
+
+.clinic-coming-soon-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.clinic-coming-soon-primary:hover,
+.clinic-coming-soon-secondary:hover {
+  transform: translateY(-2px);
+}
+
+.clinic-coming-soon-primary:hover { background: #0f7553; }
+.clinic-coming-soon-secondary:hover { border-color: rgba(255, 255, 255, 0.42); background: rgba(255, 255, 255, 0.16); }
+
+.clinic-coming-soon-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.75rem;
 }
 
 .clinic-theme-scope .mobile-booking-shell {
@@ -1603,6 +1968,63 @@ textarea.ui-field {
 
   .clinic-welcome-city {
     display: none;
+  }
+
+  .clinic-workflow-title {
+    font-size: 2.35rem;
+  }
+
+  .clinic-result-title {
+    font-size: 2.1rem;
+  }
+
+  .clinic-error-code {
+    font-size: 4.25rem;
+  }
+
+  .clinic-coming-soon-image {
+    object-position: 72% center;
+  }
+
+  .clinic-coming-soon-overlay {
+    background:
+      linear-gradient(90deg, rgba(14, 48, 42, 0.96), rgba(14, 48, 42, 0.82)),
+      linear-gradient(0deg, rgba(8, 33, 29, 0.76), transparent 58%);
+  }
+
+  .clinic-coming-soon-content {
+    width: min(100% - 1.5rem, var(--ui-content));
+    padding-block: 1rem;
+  }
+
+  .clinic-coming-soon-copy {
+    padding-block: 2.5rem;
+  }
+
+  .clinic-coming-soon-title {
+    max-width: 11ch;
+    font-size: 2.75rem;
+    line-height: 1.02;
+  }
+
+  .clinic-coming-soon-lede {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .clinic-coming-soon-actions {
+    flex-direction: column;
+  }
+
+  .clinic-coming-soon-primary,
+  .clinic-coming-soon-secondary {
+    width: 100%;
+  }
+
+  .clinic-coming-soon-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
   }
 }
 

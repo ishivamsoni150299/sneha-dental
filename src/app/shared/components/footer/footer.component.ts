@@ -15,7 +15,7 @@ export class FooterComponent {
   readonly config = this.clinic.config;
   readonly year   = new Date().getFullYear();
   readonly contactEmail = this.config.billingEmail?.trim() ?? '';
-  readonly brandMark = buildClinicMonogram(this.config.name, 'CL');
+  readonly brandMark = buildClinicMonogram(this.clinic.displayName, 'DC');
   readonly platformUrl = 'https://www.mydentalplatform.com';
 
   get showPoweredByBadge(): boolean {

@@ -19,7 +19,7 @@ interface NavLink {
 export class NavbarComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
-  readonly brandMark = buildClinicMonogram(this.config.name, 'CL');
+  readonly brandMark = buildClinicMonogram(this.clinic.displayName, 'DC');
   readonly menuOpen = signal(false);
 
   readonly navLinks: readonly NavLink[] = [

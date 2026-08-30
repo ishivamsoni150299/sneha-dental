@@ -157,8 +157,10 @@
             <div class="ui-alert ui-alert-danger mt-5" role="alert" aria-live="assertive">
               <p class="text-sm font-extrabold text-red-700">Message not sent</p>
               <p class="mt-1 text-xs leading-5 text-red-600">
-                Please call the clinic or
-                <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" class="font-bold underline">chat on WhatsApp</a>.
+                @if (clinic.hasPhone) { Please call {{ config.phone }} }
+                @if (clinic.hasPhone && clinic.hasWhatsapp) { or }
+                @if (clinic.hasWhatsapp) { <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" class="font-bold underline">chat on WhatsApp</a> }
+                @if (!clinic.hasPhone && !clinic.hasWhatsapp) { Please try again shortly. }
               </p>
             </div>
           }
@@ -199,27 +201,31 @@
         </div>
       </div>
 
-      <div class="ui-card overflow-hidden p-0">
-        <iframe
-          [src]="safeMapUrl"
-          width="100%"
-          height="320"
-          class="block"
-          style="border:0;"
-          allowfullscreen
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          [title]="config.name + ' location - ' + clinic.address">
-        </iframe>
-      </div>
+      @if (config.mapEmbedUrl) {
+        <div class="ui-card overflow-hidden p-0">
+          <iframe
+            [src]="safeMapUrl"
+            width="100%"
+            height="320"
+            class="block"
+            style="border:0;"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            [title]="clinic.displayName + ' location - ' + clinic.address">
+          </iframe>
+        </div>
+      }
 
-      <a
-        [href]="config.mapDirectionsUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="ui-btn ui-btn-secondary ui-btn-block">
-        Open in Google Maps
-      </a>
+      @if (config.mapDirectionsUrl) {
+        <a
+          [href]="config.mapDirectionsUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ui-btn ui-btn-secondary ui-btn-block">
+          Open in Google Maps
+        </a>
+      }
     </aside>
   </div>
 </section>

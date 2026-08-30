@@ -10,7 +10,8 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutComponent {
-  readonly config = inject(ClinicConfigService).config;
+  readonly clinic = inject(ClinicConfigService);
+  readonly config = this.clinic.config;
 
   readonly promises = [
     { text: 'We tell you the exact cost before starting any treatment' },

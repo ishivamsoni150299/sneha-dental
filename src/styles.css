@@ -734,6 +734,10 @@ body {
     gap: 0.5rem;
   }
 
+  .mobile-dock-grid-single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .mobile-dock-link {
     @apply flex items-center justify-center gap-1.5 rounded-2xl px-2 py-3 text-[11px] font-semibold transition-all;
     color: var(--color-text-muted);

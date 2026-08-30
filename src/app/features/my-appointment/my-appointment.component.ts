@@ -18,7 +18,8 @@ type View = 'lookup' | 'detail' | 'edit' | 'cancelled';
 export class MyAppointmentComponent {
   private fb = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
-  readonly config = inject(ClinicConfigService).config;
+  readonly clinic = inject(ClinicConfigService);
+  readonly config = this.clinic.config;
   private prefix = this.config.bookingRefPrefix;
 
   view        = signal<View>('lookup');
@@ -51,13 +52,13 @@ export class MyAppointmentComponent {
   }
 
   get supportWhatsappUrl(): string {
-    return this.config.whatsappNumber
+    return this.clinic.hasWhatsapp
       ? `https://wa.me/${this.config.whatsappNumber}?text=${encodeURIComponent('Hi! I need help with my appointment booking.')}`
       : '';
   }
 
   get supportPhoneHref(): string {
-    return this.config.phoneE164 ? `tel:+${this.config.phoneE164}` : '';
+    return this.clinic.hasPhone ? `tel:+${this.config.phoneE164}` : '';
   }
 
   get clinicHoursPreview(): string {
@@ -165,7 +166,10 @@ export class MyAppointmentComponent {
       await this.appointmentService.cancelAppointment(appt);
       this.view.set('cancelled');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : `Could not cancel. Please call ${this.config.phone}.`;
+      const fallback = this.clinic.hasPhone
+        ? `Could not cancel. Please call ${this.config.phone}.`
+        : 'Could not cancel. Please contact the clinic.';
+      const msg = e instanceof Error ? e.message : fallback;
       this.saveError.set(msg);
     } finally {
       this.cancelling.set(false);

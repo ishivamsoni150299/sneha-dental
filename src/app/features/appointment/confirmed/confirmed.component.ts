@@ -40,13 +40,13 @@ export class ConfirmedComponent implements OnInit {
   }
 
   get whatsappUrl(): string {
-    const msg = `Hi ${this.clinic.config.name}! I just booked an appointment.\nName: ${this.name()}\nBooking Ref: ${this.bookingRef()}\nDate: ${this.formattedDate}\nService: ${this.service()}\n\nPlease confirm my slot. Thank you!`;
+    const msg = `Hi ${this.clinic.displayName}! I just booked an appointment.\nName: ${this.name()}\nBooking Ref: ${this.bookingRef()}\nDate: ${this.formattedDate}\nService: ${this.service()}\n\nPlease confirm my slot. Thank you!`;
     return this.clinic.whatsappUrl(msg);
   }
 
   get calendarUrl(): string {
     if (!this.date()) return '';
-    const title    = encodeURIComponent(`Dental Appointment – ${this.clinic.config.name}`);
+    const title    = encodeURIComponent(`Dental Appointment - ${this.clinic.displayName}`);
     const details  = encodeURIComponent(`Booking Ref: ${this.bookingRef()}\nService: ${this.service()}\nAddress: ${this.clinic.address}`);
     const location = encodeURIComponent(this.clinic.address);
 

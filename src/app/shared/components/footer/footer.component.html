@@ -4,10 +4,10 @@
       <div class="max-w-md">
         <a routerLink="/" class="group inline-flex items-center gap-3">
           @if (config.logoDataUrl) {
-            <img [src]="config.logoDataUrl" [alt]="config.name + ' logo'" class="h-11 max-w-[180px] object-contain brightness-0 invert opacity-90">
+            <img [src]="config.logoDataUrl" [alt]="clinic.displayName + ' logo'" class="h-11 max-w-[180px] object-contain brightness-0 invert opacity-90">
           } @else {
             <span class="clinic-footer-mark" aria-hidden="true">{{ brandMark }}</span>
-            <span class="font-display text-2xl text-white">{{ config.name }}</span>
+            <span class="font-display text-2xl text-white">{{ clinic.displayName }}</span>
           }
         </a>
         <p class="mt-5 max-w-sm text-sm leading-7 text-white/55">
@@ -15,7 +15,7 @@
         </p>
         <div class="mt-6 flex flex-wrap gap-2">
           <a routerLink="/appointment" class="ui-btn ui-btn-primary">Book Appointment</a>
-          @if (config.phone) {
+          @if (clinic.hasPhone) {
             <a [href]="'tel:+' + config.phoneE164" class="clinic-footer-button">Call {{ config.phone }}</a>
           }
         </div>
@@ -33,7 +33,7 @@
       <div>
         <p class="clinic-footer-heading">Visit the clinic</p>
         <div class="mt-4 space-y-4 text-sm leading-6 text-white/55">
-          <p>{{ config.addressLine1 }}<br>{{ config.addressLine2 }}</p>
+          @if (clinic.address) { <p>{{ clinic.address }}</p> }
           @if (config.hours.length > 0) {
             <div>
               @for (slot of config.hours.slice(0, 4); track slot.days) {
@@ -62,15 +62,17 @@
               <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
             </a>
           }
-          <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="clinic-footer-social">
-            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487"/></svg>
-          </a>
+          @if (clinic.hasWhatsapp) {
+            <a [href]="clinic.bookingWhatsappUrl" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="clinic-footer-social">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487"/></svg>
+            </a>
+          }
         </div>
       </div>
     </div>
 
     <div class="mt-10 flex flex-col gap-3 border-t border-white/10 pt-5 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between">
-      <p>&copy; {{ year }} {{ config.name }}. All rights reserved.</p>
+      <p>&copy; {{ year }} {{ clinic.displayName }}. All rights reserved.</p>
       <div class="flex flex-wrap items-center gap-4">
         <a routerLink="/privacy" class="clinic-footer-link">Privacy</a>
         <a routerLink="/terms" class="clinic-footer-link">Terms</a>

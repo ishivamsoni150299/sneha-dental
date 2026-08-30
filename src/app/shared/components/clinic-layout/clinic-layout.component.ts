@@ -43,6 +43,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <div class="md:hidden" [class.hidden]="!showMobileDock()" style="height: calc(112px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
 
       <!-- Desktop WhatsApp action -->
+      @if (clinic.hasWhatsapp) {
       <div class="hidden md:flex fixed bottom-8 right-6 z-50">
         <a [href]="clinic.bookingWhatsappUrl"
            target="_blank"
@@ -54,6 +55,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
           </svg>
         </a>
       </div>
+      }
 
       <!-- Back to top -->
       @if (showBackToTop()) {
@@ -75,7 +77,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             [voiceEnabled]="voiceAgentEnabled()"
             [clinicId]="clinic.config.clinicId || ''"
             [bookingRefPrefix]="clinic.config.bookingRefPrefix"
-            [clinicName]="clinic.config.name"
+            [clinicName]="clinic.displayName"
             [services]="serviceNames()"
             [city]="clinic.config.city"
             [phone]="clinic.config.phone"
@@ -142,7 +144,8 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       <!-- Mobile action dock — anchored flush to viewport bottom -->
       <div class="fixed bottom-0 left-3 right-3 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));">
         <div class="mobile-dock-shell">
-          <div class="mobile-dock-grid">
+          <div class="mobile-dock-grid" [class.mobile-dock-grid-single]="!clinic.hasPhone">
+            @if (clinic.hasPhone) {
             <a [href]="'tel:+' + clinic.config.phoneE164"
                aria-label="Call clinic"
                class="mobile-dock-link min-w-0">
@@ -151,6 +154,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
               </svg>
               <span class="truncate leading-none">Call</span>
             </a>
+            }
 
             <a routerLink="/appointment"
                routerLinkActive="scale-[1.02]"

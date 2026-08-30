@@ -1,11 +1,11 @@
-<section class="relative overflow-hidden border-b border-ui-line bg-ui-surface py-14 md:py-20">
+<section class="clinic-workflow-hero border-b border-ui-line py-14 md:py-20">
   <div class="ui-container relative">
     <a routerLink="/" class="ui-eyebrow inline-flex items-center gap-2 hover:text-[var(--accent)]">
-      <span aria-hidden="true">←</span> Back to {{ clinic.config.name }}
+      <span aria-hidden="true">←</span> Back to {{ clinic.displayName }}
     </a>
     <div class="mt-6 max-w-3xl">
-      <p class="ui-kicker">Patient information</p>
-      <h1 class="ui-display mt-3 text-slate-950">
+      <p class="clinic-workflow-kicker text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent-dk)]">Patient information</p>
+      <h1 class="clinic-workflow-title mt-4 max-w-3xl text-slate-950">
         {{ page === 'privacy' ? 'Privacy notice' : 'Website terms' }}
       </h1>
       <p class="mt-5 max-w-2xl text-base leading-7 text-slate-600">
@@ -20,9 +20,9 @@
   </div>
 </section>
 
-<section class="bg-ui-canvas py-12 md:py-20">
+<section class="clinic-workflow-content py-12 md:py-20">
   <div class="ui-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-    <article class="ui-card max-w-4xl space-y-9 p-6 sm:p-9 md:p-12">
+    <article class="clinic-workflow-card ui-card max-w-4xl space-y-9 p-6 sm:p-9 md:p-12">
       @if (page === 'privacy') {
         <section>
           <p class="ui-eyebrow">01 · Information collected</p>
@@ -37,7 +37,7 @@
         <section>
           <p class="ui-eyebrow">03 · Who can access it</p>
           <h2 class="ui-heading mt-2">The clinic and essential service providers.</h2>
-          <p class="mt-4 text-sm leading-7 text-slate-600">Authorised staff at {{ clinic.config.name }} can access their clinic's records. mydentalplatform provides the website and secure technical infrastructure. Essential providers may process limited information for hosting, authentication, email delivery, payments, error monitoring, or AI receptionist features when enabled.</p>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Authorised staff at {{ clinic.displayName }} can access their clinic's records. mydentalplatform provides the website and secure technical infrastructure. Essential providers may process limited information for hosting, authentication, email delivery, payments, error monitoring, or AI receptionist features when enabled.</p>
         </section>
         <section>
           <p class="ui-eyebrow">04 · Retention and security</p>
@@ -53,7 +53,7 @@
         <section>
           <p class="ui-eyebrow">01 · Appointment requests</p>
           <h2 class="ui-heading mt-2">Online requests are not final confirmations.</h2>
-          <p class="mt-4 text-sm leading-7 text-slate-600">Submitting the form records your preferred date and time. Your appointment is confirmed only after {{ clinic.config.name }} contacts you by phone, WhatsApp, email, or updates its status. Availability may change before confirmation.</p>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Submitting the form records your preferred date and time. Your appointment is confirmed only after {{ clinic.displayName }} contacts you by phone, WhatsApp, email, or updates its status. Availability may change before confirmation.</p>
         </section>
         <section>
           <p class="ui-eyebrow">02 · Medical limitations</p>
@@ -79,7 +79,7 @@
 
       <div class="rounded-2xl border border-[var(--accent-bd)] bg-[var(--accent-lt)] p-5">
         <p class="text-sm font-extrabold text-slate-950">Questions or requests</p>
-        <p class="mt-2 text-sm leading-6 text-slate-600">Contact {{ clinic.config.name }} at <a [href]="'tel:+' + clinic.config.phoneE164" class="font-bold text-[var(--accent)] hover:underline">{{ clinic.config.phone }}</a>. For platform privacy or security questions, email <a href="mailto:mydentalplatform&#64;zohomail.in" class="font-bold text-[var(--accent)] hover:underline">mydentalplatform&#64;zohomail.in</a>.</p>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Contact {{ clinic.displayName }}@if (clinic.hasPhone) { at <a [href]="'tel:+' + clinic.config.phoneE164" class="font-bold text-[var(--accent)] hover:underline">{{ clinic.config.phone }}</a>}. For platform privacy or security questions, email <a href="mailto:mydentalplatform&#64;zohomail.in" class="font-bold text-[var(--accent)] hover:underline">mydentalplatform&#64;zohomail.in</a>.</p>
       </div>
     </article>
 

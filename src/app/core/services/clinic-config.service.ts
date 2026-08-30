@@ -146,6 +146,27 @@ export class ClinicConfigService {
   /** Current clinic config — synchronous, always has a value. */
   get config(): ClinicConfig { return this._config(); }
 
+  get displayName(): string {
+    return String(this.config.name || '').trim() || 'Dental Clinic';
+  }
+
+  get hasPhone(): boolean {
+    return Boolean(String(this.config.phone || '').trim() && String(this.config.phoneE164 || '').trim());
+  }
+
+  get hasWhatsapp(): boolean {
+    return Boolean(String(this.config.whatsappNumber || '').trim());
+  }
+
+  get hasConfiguredHours(): boolean {
+    return this.config.hours.length > 0;
+  }
+
+  get availabilityLabel(): string {
+    if (!this.hasConfiguredHours) return 'Online booking';
+    return this.isOpenNow ? 'Open now' : 'Closed now';
+  }
+
   /**
    * True once a real clinic config has been loaded from Firestore (or on localhost).
    * False when running on a platform/admin-only domain with no matching clinic doc.
@@ -339,25 +360,31 @@ export class ClinicConfigService {
 
   /** Full single-line address derived from the two address lines. */
   get address(): string {
-    return `${this.config.addressLine1}, ${this.config.addressLine2}`;
+    return [this.config.addressLine1, this.config.addressLine2, this.config.city]
+      .map(value => String(value || '').trim())
+      .filter(Boolean)
+      .join(', ');
   }
 
   /** Build a WhatsApp deep-link with the given message text. */
   whatsappUrl(message: string): string {
-    return `https://wa.me/${this.config.whatsappNumber}?text=${encodeURIComponent(message)}`;
+    return this.hasWhatsapp
+      ? `https://wa.me/${this.config.whatsappNumber}?text=${encodeURIComponent(message)}`
+      : '';
   }
 
   /** Generic booking link — used in footer, hero, contact CTA etc. */
   get bookingWhatsappUrl(): string {
     return this.whatsappUrl(
-      `Hi ${this.config.name}! I would like to book an appointment. Please confirm an available slot.`
+      `Hi ${this.displayName}! I would like to book an appointment. Please confirm an available slot.`
     );
   }
 
   /** Deep-link that opens the WhatsApp app directly on mobile (skips wa.me redirect). */
   get bookingWhatsappDeepLink(): string {
+    if (!this.hasWhatsapp) return '';
     const msg = encodeURIComponent(
-      `Hi ${this.config.name}! I would like to book an appointment. Please confirm an available slot.`
+      `Hi ${this.displayName}! I would like to book an appointment. Please confirm an available slot.`
     );
     return `whatsapp://send?phone=${this.config.whatsappNumber}&text=${msg}`;
   }

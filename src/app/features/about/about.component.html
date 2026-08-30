@@ -29,15 +29,15 @@
     </div>
 
     <div class="relative mx-auto w-full max-w-xl">
-      <div class="ui-card overflow-hidden p-0 shadow-ui-lg">
+      <div class="ui-card relative overflow-hidden p-0 shadow-ui-lg">
         <img
           src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=85"
-          [alt]="config.name + ' clinic treatment room'"
+          [alt]="clinic.displayName + ' treatment room'"
           class="aspect-[5/4] w-full object-cover lg:aspect-[4/5]">
-      </div>
-      <div class="ui-card absolute -bottom-5 left-4 right-4 border-white/70 bg-white/90 p-4 backdrop-blur-md sm:left-8 sm:right-auto sm:min-w-64">
-        <p class="ui-caption">Clinic promise</p>
-        <p class="ui-title mt-1">No hidden charges. No rushed decisions.</p>
+        <div class="absolute inset-x-0 bottom-0 border-t border-white/70 bg-white/90 p-4 backdrop-blur-md sm:p-5">
+          <p class="ui-caption">Clinic promise</p>
+          <p class="ui-title mt-1">No hidden charges. No rushed decisions.</p>
+        </div>
       </div>
     </div>
   </div>
