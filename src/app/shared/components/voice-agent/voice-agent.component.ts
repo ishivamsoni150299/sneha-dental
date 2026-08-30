@@ -9,7 +9,11 @@ type UIMode     = 'idle' | 'voice' | 'text';
 type VoicePhase = 'connecting' | 'listening' | 'speaking' | 'ended';
 
 interface ChatMessage { role: 'user' | 'assistant'; text: string }
-interface ConversationInstance { endSession(): Promise<void> }
+interface VoiceCaption { source: 'user' | 'ai'; text: string }
+interface ConversationInstance {
+  endSession(): Promise<void>;
+  setMicMuted(isMuted: boolean): void;
+}
 
 // ── Waveform bars — 9 bars with individual height + delay for organic look ────
 const BARS = [
@@ -151,6 +155,21 @@ const QUICK_REPLIES = [
          VOICE ACTIVE PILL
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (mode() === 'voice') {
+      @if (latestVoiceCaption(); as caption) {
+        <div class="fixed z-[60]
+                    bottom-[168px] left-3 right-3
+                    md:bottom-[88px] md:left-1/2 md:right-auto md:w-[420px] md:-translate-x-1/2
+                    rounded-xl px-4 py-3 shadow-xl"
+             role="status"
+             aria-live="polite"
+             style="background: rgba(12,12,16,0.95); border: 1px solid rgba(255,255,255,0.1);">
+          <p class="text-[10px] font-bold uppercase text-white/40">
+            {{ caption.source === 'user' ? 'You' : 'AI receptionist' }}
+          </p>
+          <p class="mt-1 line-clamp-2 text-sm leading-5 text-white/85">{{ caption.text }}</p>
+        </div>
+      }
+
       <div class="fixed z-[60]
                   bottom-[102px] md:bottom-8
                   left-3 right-3 md:left-1/2 md:right-auto md:-translate-x-1/2
@@ -211,6 +230,8 @@ const QUICK_REPLIES = [
               </div>
               <span class="text-xs text-green-400 font-semibold">Done</span>
             </div>
+          } @else if (isMuted()) {
+            <span class="text-xs font-semibold text-amber-300">Mic muted</span>
           } @else {
             <!-- Waveform bars -->
             <div class="flex items-end gap-[3px]" style="height: 28px;">
@@ -238,6 +259,23 @@ const QUICK_REPLIES = [
                 style="color: rgba(255,255,255,0.3); letter-spacing: 0.05em;">
             {{ formattedTime() }}
           </span>
+
+          <button (click)="toggleMute()"
+                  [attr.aria-label]="isMuted() ? 'Unmute microphone' : 'Mute microphone'"
+                  [attr.aria-pressed]="isMuted()"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  [style.background]="isMuted() ? 'rgba(245,158,11,0.28)' : 'rgba(255,255,255,0.09)'">
+            @if (isMuted()) {
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M9 9v2a3 3 0 004.12 2.79M15 9V5a3 3 0 00-5.12-2.12M17 16.95A7 7 0 005 11m7 7v4m-4 0h8"/>
+              </svg>
+            } @else {
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+              </svg>
+            }
+          </button>
         }
 
         <!-- End button -->
@@ -513,12 +551,16 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   isTyping   = signal(false);
   errorMsg   = signal<string | null>(null);
   duration   = signal(0);
+  isMuted    = signal(false);
+  latestVoiceCaption = signal<VoiceCaption | null>(null);
   inputText  = '';
 
   @ViewChild('messagesContainer') private messagesEl?: ElementRef<HTMLElement>;
 
   private conv:            ConversationInstance | null = null;
   private timerRef:        ReturnType<typeof setInterval> | null = null;
+  private idleResetRef:    ReturnType<typeof setTimeout> | null = null;
+  private voiceAttempt     = 0;
   private shouldScrollDown = false;
   private zone             = inject(NgZone);
 
@@ -540,14 +582,19 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   // ── Voice mode ────────────────────────────────────────────────────────────────
   async startVoice() {
     if (this.mode() !== 'idle') return;
+    const attempt = ++this.voiceAttempt;
+    this.clearIdleReset();
     this.mode.set('voice');
     this.voicePhase.set('connecting');
+    this.isMuted.set(false);
+    this.latestVoiceCaption.set(null);
     this.clearError();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(t => t.stop());
     } catch {
+      if (attempt !== this.voiceAttempt) return;
       this.zone.run(() => {
         this.showError('Microphone access denied. Please allow mic and try again.');
         this.mode.set('idle');
@@ -556,39 +603,74 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     }
 
     try {
+      const tokenResponse = await fetch('/api/voice-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clinicId: this.clinicId() }),
+      });
+      const tokenData = await tokenResponse.json() as { token?: string; error?: string };
+      if (!tokenResponse.ok || !tokenData.token) {
+        throw new Error(tokenData.error || 'Could not create a secure voice session.');
+      }
+
       const { Conversation } = await import('@11labs/client');
       const conv = await Conversation.startSession({
-        agentId: this.agentId(),
-        connectionType: 'websocket',
+        conversationToken: tokenData.token,
+        connectionType: 'webrtc',
         onConnect: () => this.zone.run(() => {
+          if (attempt !== this.voiceAttempt) return;
           this.voicePhase.set('listening');
           this.startTimer();
         }),
         onDisconnect: () => this.zone.run(() => {
+          if (attempt !== this.voiceAttempt) return;
+          const resetAttempt = ++this.voiceAttempt;
+          this.conv = null;
           this.voicePhase.set('ended');
+          this.isMuted.set(false);
           this.stopTimer();
-          setTimeout(() => this.zone.run(() => this.mode.set('idle')), 2200);
+          this.scheduleVoiceIdle(resetAttempt);
         }),
         onModeChange: (prop: { mode: string }) => this.zone.run(() => {
+          if (attempt !== this.voiceAttempt) return;
           if (this.voicePhase() === 'ended') return;
           this.voicePhase.set(prop.mode === 'speaking' ? 'speaking' : 'listening');
+        }),
+        onMessage: (prop: { message: string; source: 'user' | 'ai' }) => this.zone.run(() => {
+          if (attempt !== this.voiceAttempt) return;
+          const text = prop.message.trim();
+          if (text) this.latestVoiceCaption.set({ source: prop.source, text });
         }),
         onError: (message: string) => {
           console.error('[VoiceAgent] error:', message);
           this.zone.run(() => {
+            if (attempt !== this.voiceAttempt) return;
+            const resetAttempt = ++this.voiceAttempt;
+            const conversation = this.conv;
+            this.conv = null;
             this.showError('Connection error. Please try again.');
+            this.voicePhase.set('ended');
+            this.isMuted.set(false);
             this.stopTimer();
-            setTimeout(() => this.zone.run(() => this.mode.set('idle')), 4000);
+            void conversation?.endSession().catch(() => { /* ignore */ });
+            this.scheduleVoiceIdle(resetAttempt);
           });
         },
       });
+      if (attempt !== this.voiceAttempt) {
+        await conv.endSession();
+        return;
+      }
       this.conv = conv as ConversationInstance;
     } catch (e) {
+      if (attempt !== this.voiceAttempt) return;
+      this.voiceAttempt += 1;
       console.error('[VoiceAgent] Failed to start session:', e);
       const msg = e instanceof Error ? e.message : String(e);
       this.zone.run(() => {
         this.showError(
-          msg.toLowerCase().includes('agent') ? 'AI agent not found. Please contact the clinic.' :
+          /limit|too many|text chat|unavailable/i.test(msg) ? msg :
+          msg.toLowerCase().includes('agent') ? 'AI receptionist is not configured. Please contact the clinic.' :
           'Could not connect. Please try again.'
         );
         this.mode.set('idle');
@@ -597,11 +679,21 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   }
 
   async endVoice() {
-    this.stopTimer();
-    try { await this.conv?.endSession(); } catch { /* ignore */ }
+    const resetAttempt = ++this.voiceAttempt;
+    const conversation = this.conv;
     this.conv = null;
+    this.stopTimer();
     this.voicePhase.set('ended');
-    setTimeout(() => this.zone.run(() => this.mode.set('idle')), 2200);
+    this.isMuted.set(false);
+    this.scheduleVoiceIdle(resetAttempt);
+    try { await conversation?.endSession(); } catch { /* ignore */ }
+  }
+
+  toggleMute() {
+    if (!this.conv) return;
+    const nextMuted = !this.isMuted();
+    this.conv.setMicMuted(nextMuted);
+    this.isMuted.set(nextMuted);
   }
 
   // ── Text chat ─────────────────────────────────────────────────────────────────
@@ -715,6 +807,20 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     if (this.timerRef) { clearInterval(this.timerRef); this.timerRef = null; }
   }
 
+  private scheduleVoiceIdle(attempt: number) {
+    this.clearIdleReset();
+    this.idleResetRef = setTimeout(() => this.zone.run(() => {
+      if (attempt !== this.voiceAttempt) return;
+      this.idleResetRef = null;
+      this.latestVoiceCaption.set(null);
+      this.mode.set('idle');
+    }), 2200);
+  }
+
+  private clearIdleReset() {
+    if (this.idleResetRef) { clearTimeout(this.idleResetRef); this.idleResetRef = null; }
+  }
+
   // ── Error ─────────────────────────────────────────────────────────────────────
   private showError(msg: string) {
     this.errorMsg.set(msg);
@@ -725,7 +831,9 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   // ── Cleanup ───────────────────────────────────────────────────────────────────
   ngOnDestroy() {
+    this.voiceAttempt += 1;
     this.stopTimer();
+    this.clearIdleReset();
     window.speechSynthesis?.cancel();
     this.conv?.endSession().catch(() => { /* ignore */ });
   }

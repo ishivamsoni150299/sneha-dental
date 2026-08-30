@@ -49,6 +49,47 @@ interface VoiceBookingToolContext {
   enabled: boolean;
 }
 
+const VOICE_LLM_MODEL = process.env['ELEVENLABS_LLM_MODEL']?.trim() || 'gemini-2.5-flash';
+const VOICE_TTS_MODEL = process.env['ELEVENLABS_TTS_MODEL']?.trim() || 'eleven_flash_v2_5';
+const VOICE_MAX_DURATION_SECONDS = 480;
+
+function getAgentPlatformSettings(): Record<string, unknown> {
+  const webhookSecret = process.env['ELEVENLABS_WEBHOOK_SECRET'] ?? '';
+  return {
+    webhook: webhookSecret
+      ? { url: getWebhookUrl(), secret: webhookSecret }
+      : { url: getWebhookUrl() },
+    auth: { enable_auth: true },
+    call_limits: {
+      agent_concurrency_limit: 2,
+      daily_limit: 30,
+      bursting_enabled: false,
+    },
+    privacy: {
+      record_voice: false,
+      retention_days: 30,
+      delete_audio: true,
+    },
+  };
+}
+
+function getAsrKeywords(clinic: Record<string, unknown>): string[] {
+  const services = Array.isArray(clinic['services']) ? clinic['services'] : [];
+  return [
+    getClinicName('', clinic),
+    typeof clinic['doctorName'] === 'string' ? clinic['doctorName'] : '',
+    ...services.map(service => {
+      if (typeof service === 'string') return service;
+      if (!service || typeof service !== 'object') return '';
+      const name = (service as Record<string, unknown>)['name'];
+      return typeof name === 'string' ? name : '';
+    }),
+  ]
+    .map(value => value.trim().slice(0, 100))
+    .filter(Boolean)
+    .slice(0, 30);
+}
+
 function getAction(req: VercelRequest): string {
   const queryAction = typeof req.query['action'] === 'string' ? req.query['action'] : '';
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -144,10 +185,10 @@ function buildVoiceBookingToolConfig(
     tool_config: {
       type: 'webhook',
       name: 'submit_voice_booking_request',
-      description: `Submit a pending dental appointment request for ${clinicName}. Use only after collecting patient name, phone number, treatment or issue, preferred date, and preferred time.`,
+      description: `Submit a pending dental appointment request for ${clinicName}. Use only after collecting patient name, phone number, treatment or issue, preferred date, and preferred time, reading the exact details back, and receiving explicit confirmation.`,
       response_timeout_secs: 20,
-      disable_interruptions: true,
-      force_pre_tool_speech: false,
+      interruption_mode: 'disable_during_tool',
+      pre_tool_speech: 'off',
       execution_mode: 'immediate',
       api_schema: {
         url: getVoiceActionUrl(clinicId),
@@ -161,7 +202,6 @@ function buildVoiceBookingToolConfig(
             bookingRefPrefix: {
               type: 'string',
               constant_value: bookingRefPrefix,
-              description: 'Internal booking reference prefix.',
             },
             name: {
               type: 'string',
@@ -227,6 +267,31 @@ async function createVoiceBookingTool(
   return toolId;
 }
 
+async function updateVoiceBookingTool(
+  apiKey: string,
+  toolId: string,
+  clinicId: string,
+  clinic: Record<string, unknown>,
+): Promise<void> {
+  const response = await fetch(`https://api.elevenlabs.io/v1/convai/tools/${encodeURIComponent(toolId)}`, {
+    method: 'PATCH',
+    headers: {
+      'xi-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(buildVoiceBookingToolConfig(
+      clinicId,
+      getClinicName(clinicId, clinic),
+      getBookingRefPrefix(clinicId, clinic),
+    )),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(details || 'Failed to update ElevenLabs voice booking tool');
+  }
+}
+
 async function ensureVoiceBookingTool(
   apiKey: string,
   clinicId: string,
@@ -237,6 +302,11 @@ async function ensureVoiceBookingTool(
     : '';
 
   if (existingToolId) {
+    try {
+      await updateVoiceBookingTool(apiKey, existingToolId, clinicId, clinic);
+    } catch (error) {
+      console.warn('[elevenlabs] existing voice booking tool update failed:', error);
+    }
     return { toolId: existingToolId, enabled: true };
   }
 
@@ -313,18 +383,22 @@ async function handleCreateAgent(req: VercelRequest, res: VercelResponse): Promi
   const apiKey = getApiKey(res);
   if (!apiKey) return res;
 
-  const body = (req.body ?? {}) as Record<string, unknown>;
-  const settings = resolveVoiceAgentSettings(body, {
+  const clinicDoc = await db.collection('clinics').doc(clinicId).get();
+  if (!clinicDoc.exists) {
+    return res.status(404).json({ error: 'Clinic not found' });
+  }
+
+  const clinic = clinicDoc.data() as Record<string, unknown>;
+  const settings = resolveVoiceAgentSettings(clinic, {
     voiceId: process.env['ELEVENLABS_VOICE_ID'],
   });
-  const voiceBookingTool = await ensureVoiceBookingTool(apiKey, clinicId, body);
-  const systemPrompt = buildAgentSystemPrompt(body, {
+  const voiceBookingTool = await ensureVoiceBookingTool(apiKey, clinicId, clinic);
+  const systemPrompt = buildAgentSystemPrompt(clinic, {
     language: settings.language,
     persona: settings.persona,
     voiceActionEnabled: voiceBookingTool.enabled,
   });
-  const clinicName = getClinicName(clinicId, body);
-  const webhookSecret = process.env['ELEVENLABS_WEBHOOK_SECRET'] ?? '';
+  const clinicName = getClinicName(clinicId, clinic);
 
   const response = await fetch('https://api.elevenlabs.io/v1/convai/agents/create', {
     method: 'POST',
@@ -335,28 +409,45 @@ async function handleCreateAgent(req: VercelRequest, res: VercelResponse): Promi
     body: JSON.stringify({
       name: `${clinicName} - AI Receptionist`,
       conversation_config: {
+        asr: {
+          provider: 'scribe_realtime',
+          quality: 'high',
+          keywords: getAsrKeywords(clinic),
+        },
+        turn: {
+          turn_eagerness: 'normal',
+          spelling_patience: 'auto',
+          turn_timeout: 8,
+        },
         agent: {
           prompt: {
             prompt: systemPrompt,
-            llm: 'gemini-2.0-flash',
-            temperature: 0.5,
-            max_tokens: 800,
+            llm: VOICE_LLM_MODEL,
+            temperature: 0.2,
+            max_tokens: 400,
             tool_ids: voiceBookingTool.toolId ? [voiceBookingTool.toolId] : [],
+            backup_llm_config: { preference: 'default' },
+            cascade_timeout_seconds: 4,
+            timezone: 'Asia/Kolkata',
           },
           first_message: settings.greeting,
           language: settings.languageCode,
+          hinglish_mode: settings.language === 'bilingual',
+          max_conversation_duration_message: 'We are at the end of this voice session. Please use the booking form, text chat, call, or WhatsApp if you need more help.',
         },
         tts: {
           voice_id: settings.voiceId,
-          model_id: 'eleven_multilingual_v2',
+          model_id: VOICE_TTS_MODEL,
+          stability: 0.55,
+          similarity_boost: 0.8,
+          speed: 1.03,
         },
         conversation: {
-          max_duration_seconds: 600,
+          max_duration_seconds: VOICE_MAX_DURATION_SECONDS,
+          client_events: ['user_transcript', 'agent_response', 'interruption'],
         },
       },
-      platform_settings: webhookSecret
-        ? { webhook: { url: getWebhookUrl(), secret: webhookSecret } }
-        : { webhook: { url: getWebhookUrl() } },
+      platform_settings: getAgentPlatformSettings(),
     }),
   });
 
@@ -448,26 +539,49 @@ async function handleUpdateAgent(req: VercelRequest, res: VercelResponse): Promi
     },
     body: JSON.stringify({
       conversation_config: {
+        asr: {
+          provider: 'scribe_realtime',
+          quality: 'high',
+          keywords: getAsrKeywords(clinic),
+        },
+        turn: {
+          turn_eagerness: 'normal',
+          spelling_patience: 'auto',
+          turn_timeout: 8,
+        },
         agent: {
           first_message: settings.greeting,
           language: settings.languageCode,
+          hinglish_mode: settings.language === 'bilingual',
+          max_conversation_duration_message: 'We are at the end of this voice session. Please use the booking form, text chat, call, or WhatsApp if you need more help.',
           prompt: {
             prompt: buildAgentSystemPrompt(clinic, {
               language: settings.language,
               persona: settings.persona,
               voiceActionEnabled: voiceBookingTool.enabled,
             }),
-            llm: 'gemini-2.0-flash',
-            temperature: 0.5,
-            max_tokens: 800,
+            llm: VOICE_LLM_MODEL,
+            temperature: 0.2,
+            max_tokens: 400,
             tool_ids: voiceBookingTool.toolId ? [voiceBookingTool.toolId] : [],
+            backup_llm_config: { preference: 'default' },
+            cascade_timeout_seconds: 4,
+            timezone: 'Asia/Kolkata',
           },
         },
         tts: {
           voice_id: settings.voiceId,
-          model_id: 'eleven_multilingual_v2',
+          model_id: VOICE_TTS_MODEL,
+          stability: 0.55,
+          similarity_boost: 0.8,
+          speed: 1.03,
+        },
+        conversation: {
+          max_duration_seconds: VOICE_MAX_DURATION_SECONDS,
+          client_events: ['user_transcript', 'agent_response', 'interruption'],
         },
       },
+      platform_settings: getAgentPlatformSettings(),
     }),
   });
 
