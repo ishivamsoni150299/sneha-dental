@@ -1,6 +1,6 @@
 import { Injectable, inject, type ErrorHandler } from '@angular/core';
 import { Router } from '@angular/router';
-import * as Sentry from '@sentry/angular';
+import { environment } from '../../environments/environment';
 
 /**
  * Global uncaught-error handler.
@@ -29,11 +29,12 @@ export class GlobalErrorHandler implements ErrorHandler {
 
     console.error('[GlobalErrorHandler]', error);
 
-    // Forward to Sentry only if it has been initialised (DSN is set).
-    // Sentry.captureException is a no-op when not initialised, but the
-    // explicit check avoids unnecessary overhead on every caught error.
-    if (Sentry.isInitialized()) {
-      Sentry.captureException(error);
+    if (environment.sentryDsn) {
+      void import('@sentry/angular').then((Sentry) => {
+        if (Sentry.isInitialized()) {
+          Sentry.captureException(error);
+        }
+      }).catch(() => undefined);
     }
   }
 }
