@@ -55,7 +55,8 @@
             ],
             "styles": [
               "src/styles.css",
-              "src/design-system.css"
+              "src/design-system.css",
+              "src/viewport.css"
             ],
             "scripts": []
           },
@@ -130,7 +131,8 @@
             ],
             "styles": [
               "src/styles.css",
-              "src/design-system.css"
+              "src/design-system.css",
+              "src/viewport.css"
             ],
             "scripts": []
           }

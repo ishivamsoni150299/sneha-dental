@@ -1,0 +1,110 @@
+/*
+ * Viewport contract
+ * -----------------
+ * Pages fill the visible browser area, but never receive a fixed height.
+ * Content that is taller than the viewport expands the document and uses the
+ * normal page scrollbar instead of creating nested scrolling regions.
+ */
+:root {
+  --app-viewport-height: 100vh;
+  --app-header-height: 4rem;
+  --app-clinic-chrome-height: 6rem;
+}
+
+@supports (height: 100svh) {
+  :root {
+    --app-viewport-height: 100svh;
+  }
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --app-viewport-height: 100dvh;
+  }
+}
+
+html,
+body,
+app-root {
+  min-block-size: 100%;
+}
+
+body {
+  min-block-size: var(--app-viewport-height);
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+app-root {
+  display: block;
+}
+
+/* Shared public, authentication, and administration page shells. */
+.ui-shell,
+.ds-page,
+.platform-shell,
+.clinic-admin-shell,
+.min-h-screen {
+  min-block-size: var(--app-viewport-height);
+  block-size: auto;
+}
+
+/* Authentication pages have a 64px header above their main content. */
+.min-h-screen > main#main-content {
+  min-block-size: calc(var(--app-viewport-height) - var(--app-header-height));
+}
+
+/* Platform administration fills the remaining screen below its top bar. */
+.platform-shell > main#main-content {
+  min-block-size: calc(var(--app-viewport-height) - var(--app-header-height));
+}
+
+/* Clinic pages fill the first screen after navigation and the welcome rail. */
+.clinic-theme-scope > main#main-content {
+  min-block-size: calc(var(--app-viewport-height) - var(--app-clinic-chrome-height));
+}
+
+/* Hero content centres in a screen when it fits and expands when it does not. */
+.clinic-home-hero-grid {
+  min-block-size: min(46rem, calc(var(--app-viewport-height) - 8.25rem));
+  block-size: auto;
+}
+
+.platform-hero {
+  display: grid;
+  min-block-size: calc(var(--app-viewport-height) - var(--app-header-height));
+  align-items: center;
+}
+
+.platform-hero-inner {
+  width: 100%;
+}
+
+.clinic-coming-soon,
+.clinic-coming-soon-content {
+  min-block-size: var(--app-viewport-height);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --app-clinic-chrome-height: 5.85rem;
+  }
+
+  /* Leave breathing room above fixed mobile actions without trapping scroll. */
+  .platform-shell,
+  .clinic-theme-scope {
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .clinic-home-hero-grid,
+  .platform-hero {
+    align-content: start;
+  }
+}
+
+@media (max-height: 700px) and (min-width: 768px) {
+  .clinic-home-hero-grid,
+  .platform-hero-inner {
+    padding-block: 2rem;
+  }
+}
