@@ -91,14 +91,13 @@ export interface ClinicConfig {
   comingSoon?: boolean;            // true = show "Launching Soon" page instead of full site
   launchDate?: string;             // ISO date e.g. "2026-05-01" — drives countdown timer
 
-  // ── Voice Agent (ElevenLabs Conversational AI) ───────────────────────────
-  elevenLabsAgentId?: string;      // ElevenLabs Convai agent ID for this clinic
+  // ── OpenAI Voice Receptionist ────────────────────────────────────────────
+  voiceAgentEnabled?: boolean;     // Enables OpenAI Realtime on the clinic website
+  voiceProvider?: 'openai';        // Voice provider is intentionally fixed to OpenAI
   voiceAgentGreeting?: string;     // First message spoken by the agent
   voiceAgentLanguage?: 'hindi' | 'english' | 'bilingual'; // Conversation language
   voiceAgentPersona?: string;      // Extra system prompt instructions for the agent
-  voiceAgentVoiceId?: string;      // ElevenLabs voice ID override
-  voiceAgentWhatsapp?: string;     // ElevenLabs WhatsApp phone_number_id assigned to this agent
-  voiceMinutesUsed?: number;       // Current month minutes consumed (fetched from ElevenLabs)
+  voiceAgentVoiceId?: string;      // OpenAI built-in voice name
   voiceBudgetCap?: number;         // Monthly overage budget in ₹ (default 1000 = 50 extra min)
   voiceAutoStop?: boolean;         // Auto-pause voice agent when budget exhausted (default true)
 

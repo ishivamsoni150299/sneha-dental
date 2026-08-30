@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { AggregateField, FieldValue, getFirestore, type DocumentReference } from 'firebase-admin/firestore';
+import { buildAgentSystemPrompt, resolveVoiceAgentSettings } from './voice-agent-config';
+import { createVoiceSessionToken, verifyVoiceSessionToken } from './voice-session-auth';
 
 if (!getApps().length) {
   initializeApp({
@@ -18,6 +20,10 @@ const RATE_LIMIT_MAX = 4;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const INCLUDED_MINUTES = 30;
 const OVERAGE_RATE_INR = 20;
+const MAX_SESSION_SECONDS = 8 * 60;
+const CAPABILITY_TTL_MS = 12 * 60 * 1000;
+const MAX_SDP_LENGTH = 32_000;
+const MIN_SIGNING_SECRET_LENGTH = 32;
 
 function headerValue(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? '') : (value ?? '');
@@ -79,46 +85,91 @@ async function isRateLimited(req: VercelRequest, clinicId: string): Promise<bool
   });
 }
 
-async function getMinutesUsed(apiKey: string, agentId: string, stopAtMinutes: number): Promise<number | null> {
+interface VoiceUsage {
+  conversations: number;
+  secondsUsed: number;
+}
+
+function getSigningSecret(): string {
+  const secret = process.env['OPENAI_VOICE_SIGNING_SECRET']?.trim() ?? '';
+  return secret.length >= MIN_SIGNING_SECRET_LENGTH ? secret : '';
+}
+
+function startOfMonth(): Date {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
-  let cursor = '';
-  let totalSeconds = 0;
+  return startOfMonth;
+}
 
-  for (let page = 0; page < 12; page += 1) {
-    const query = new URLSearchParams({
-      agent_id: agentId,
-      page_size: '100',
-      call_start_after_unix: String(Math.floor(startOfMonth.getTime() / 1000)),
-    });
-    if (cursor) query.set('cursor', cursor);
+async function getVoiceUsage(clinicRef: DocumentReference): Promise<VoiceUsage> {
+  const snapshot = await clinicRef.collection('voiceSessions')
+    .where('startedAt', '>=', startOfMonth())
+    .aggregate({
+      conversations: AggregateField.count(),
+      secondsUsed: AggregateField.sum('durationSeconds'),
+    })
+    .get();
+  const aggregate = snapshot.data();
 
-    const response = await fetch(`https://api.elevenlabs.io/v1/convai/conversations?${query}`, {
-      headers: { 'xi-api-key': apiKey },
-    });
-    if (!response.ok) return null;
-
-    const data = await response.json() as {
-      conversations?: Array<{ call_duration_secs?: number }>;
-      has_more?: boolean;
-      next_cursor?: string | null;
-    };
-    totalSeconds += (data.conversations ?? [])
-      .reduce((sum, conversation) => sum + (conversation.call_duration_secs ?? 0), 0);
-
-    if (Math.ceil(totalSeconds / 60) >= stopAtMinutes) break;
-    if (!data.has_more) break;
-    if (!data.next_cursor) return null;
-    cursor = data.next_cursor;
-    if (page === 11) return null;
-  }
-
-  return Math.ceil(totalSeconds / 60);
+  return {
+    conversations: Number(aggregate.conversations ?? 0),
+    secondsUsed: Number(aggregate.secondsUsed ?? 0),
+  };
 }
 
 function numericSetting(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function openAICallId(location: string | null): string {
+  const candidate = location?.split('/').filter(Boolean).pop()?.trim() ?? '';
+  return /^rtc_[A-Za-z0-9_-]{4,160}$/.test(candidate) ? candidate : '';
+}
+
+async function hangUpOpenAICall(callId: string, apiKey: string): Promise<boolean> {
+  try {
+    const response = await fetch(`https://api.openai.com/v1/realtime/calls/${callId}/hangup`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (response.ok || response.status === 404 || response.status === 409) return true;
+    console.error('[voice-session] OpenAI hangup failed:', response.status, response.headers.get('x-request-id'));
+    return false;
+  } catch (error) {
+    console.error('[voice-session] OpenAI hangup request failed:', error);
+    return false;
+  }
+}
+
+function buildBookingTool(): Record<string, unknown> {
+  return {
+    type: 'function',
+    name: 'submit_voice_booking_request',
+    description: 'Submit a dental appointment request only after explaining that the details will be saved and shared with the clinic, reading every detail back, and receiving explicit patient consent.',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        name: { type: 'string', description: 'Patient full name.' },
+        phone: { type: 'string', description: 'Patient mobile or WhatsApp number.' },
+        email: { type: 'string', description: 'Patient email, when provided.' },
+        service: { type: 'string', description: 'Treatment or dental issue.' },
+        preferredDate: { type: 'string', description: 'Preferred appointment date in YYYY-MM-DD format.' },
+        preferredTime: { type: 'string', description: 'Preferred appointment time in HH:mm 24-hour format.' },
+        message: { type: 'string', description: 'Short patient note or relevant context.' },
+      },
+      required: ['name', 'phone', 'service', 'preferredDate', 'preferredTime'],
+    },
+  };
+}
+
+function safetyIdentifier(req: VercelRequest, clinicId: string): string {
+  return createHash('sha256').update(`${clinicId}:${requestIp(req)}`).digest('hex');
+}
+
+export async function getOpenAIVoiceUsage(clinicId: string): Promise<VoiceUsage> {
+  return getVoiceUsage(db.collection('clinics').doc(clinicId));
 }
 
 export async function handleVoiceSession(
@@ -132,7 +183,12 @@ export async function handleVoiceSession(
 
   const body = (req.body ?? {}) as Record<string, unknown>;
   const clinicId = typeof body['clinicId'] === 'string' ? body['clinicId'].trim().slice(0, 100) : '';
+  const sdp = typeof body['sdp'] === 'string' ? body['sdp'].trim() : '';
   if (!clinicId) return res.status(400).json({ error: 'Clinic is required.' });
+  if (!sdp.startsWith('v=0') || sdp.length > MAX_SDP_LENGTH
+      || !sdp.includes('m=audio') || !sdp.includes('m=application')) {
+    return res.status(400).json({ error: 'A valid WebRTC offer is required.' });
+  }
 
   const clinicDoc = await db.collection('clinics').doc(clinicId).get();
   if (!clinicDoc.exists) return res.status(404).json({ error: 'Clinic not found.' });
@@ -151,9 +207,10 @@ export async function handleVoiceSession(
     return res.status(403).json({ error: 'Live voice is not active for this clinic.' });
   }
 
-  const agentId = typeof clinic['elevenLabsAgentId'] === 'string' ? clinic['elevenLabsAgentId'].trim() : '';
-  const apiKey = process.env['ELEVENLABS_API_KEY']?.trim() ?? '';
-  if (!agentId || !apiKey) {
+  const voiceEnabled = clinic['voiceAgentEnabled'] === true && clinic['voiceProvider'] === 'openai';
+  const apiKey = process.env['OPENAI_API_KEY']?.trim() ?? '';
+  const signingSecret = getSigningSecret();
+  if (!voiceEnabled || !apiKey || !signingSecret) {
     return res.status(503).json({ error: 'Live voice is temporarily unavailable.' });
   }
 
@@ -169,29 +226,186 @@ export async function handleVoiceSession(
     : clinic['voiceAutoStop'] !== false;
   const budgetCap = numericSetting(account['voiceBudgetCap'] ?? clinic['voiceBudgetCap'], 1_000);
   const hardLimit = INCLUDED_MINUTES + Math.floor(budgetCap / OVERAGE_RATE_INR);
+  let usage: VoiceUsage = { conversations: 0, secondsUsed: 0 };
   if (voiceAutoStop) {
-    const minutesUsed = await getMinutesUsed(apiKey, agentId, hardLimit);
-    if (minutesUsed === null) {
+    try {
+      usage = await getVoiceUsage(clinicDoc.ref);
+    } catch (error) {
+      console.error('[voice-session] OpenAI usage lookup failed:', error);
       return res.status(503).json({ error: 'Voice usage could not be verified. Please use text chat and try again later.' });
     }
-    if (minutesUsed >= hardLimit) {
+    if (usage.secondsUsed >= hardLimit * 60) {
       return res.status(429).json({ error: 'This clinic has reached its voice-minute limit. Please use text chat, call, or WhatsApp.' });
     }
   }
 
-  const tokenResponse = await fetch(
-    `https://api.elevenlabs.io/v1/convai/conversation/token?agent_id=${encodeURIComponent(agentId)}`,
-    { headers: { 'xi-api-key': apiKey } },
-  );
-  if (!tokenResponse.ok) {
-    console.error('[voice-session] ElevenLabs token request failed:', tokenResponse.status);
+  const remainingSeconds = voiceAutoStop
+    ? Math.max(0, hardLimit * 60 - usage.secondsUsed)
+    : MAX_SESSION_SECONDS;
+  const maxDurationSeconds = Math.min(MAX_SESSION_SECONDS, remainingSeconds);
+  if (maxDurationSeconds < 30) {
+    return res.status(429).json({ error: 'This clinic has reached its voice-minute limit. Please use text chat, call, or WhatsApp.' });
+  }
+
+  const settings = resolveVoiceAgentSettings(clinic);
+  const model = process.env['OPENAI_REALTIME_MODEL']?.trim() || 'gpt-realtime-2.1';
+  const transcription: Record<string, unknown> = {
+    model: process.env['OPENAI_TRANSCRIPTION_MODEL']?.trim() || 'gpt-4o-mini-transcribe',
+    prompt: 'A concise Hindi and English dental clinic conversation with names, phone numbers, dates, and treatment terms.',
+  };
+  if (settings.language !== 'bilingual') transcription['language'] = settings.languageCode;
+
+  const sessionConfig = {
+    type: 'realtime',
+    model,
+    output_modalities: ['audio'],
+    instructions: `${buildAgentSystemPrompt(clinic, { voiceActionEnabled: true })}\n\nOPENING GREETING:\n- Begin the conversation with exactly: "${settings.greeting.replace(/"/g, '\\"')}"`,
+    audio: {
+      input: {
+        noise_reduction: { type: 'near_field' },
+        transcription,
+        turn_detection: {
+          type: 'semantic_vad',
+          eagerness: 'medium',
+          create_response: true,
+          interrupt_response: true,
+        },
+      },
+      output: { voice: settings.voice, speed: 1 },
+    },
+    tools: [buildBookingTool()],
+    tool_choice: 'auto',
+    max_output_tokens: 512,
+    tracing: null,
+    truncation: 'auto',
+  };
+  const callRequest = new FormData();
+  callRequest.set('sdp', sdp);
+  callRequest.set('session', JSON.stringify(sessionConfig));
+
+  const callResponse = await fetch('https://api.openai.com/v1/realtime/calls', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'OpenAI-Safety-Identifier': safetyIdentifier(req, clinicId),
+    },
+    body: callRequest,
+  });
+  if (!callResponse.ok) {
+    const errorBody = (await callResponse.text()).slice(0, 500);
+    console.error('[voice-session] OpenAI WebRTC negotiation failed:', callResponse.status, callResponse.headers.get('x-request-id'), errorBody);
     return res.status(502).json({ error: 'Could not start live voice. Please use text chat and try again.' });
   }
 
-  const tokenData = await tokenResponse.json() as { token?: string };
-  if (!tokenData.token) {
+  const answerSdp = await callResponse.text();
+  const callId = openAICallId(callResponse.headers.get('location'));
+  if (!callId) {
+    console.error('[voice-session] OpenAI WebRTC response did not include a valid call ID.');
+    return res.status(502).json({ error: 'Could not secure live voice controls. Please use text chat and try again.' });
+  }
+  if (!answerSdp.trim().startsWith('v=0')) {
+    await hangUpOpenAICall(callId, apiKey);
     return res.status(502).json({ error: 'Could not start live voice. Please use text chat and try again.' });
   }
 
-  return res.status(200).json({ token: tokenData.token });
+  const sessionId = randomUUID();
+  const expiresAt = Date.now() + CAPABILITY_TTL_MS;
+  const sessionToken = createVoiceSessionToken({ clinicId, sessionId, expiresAt }, signingSecret);
+
+  try {
+    await clinicDoc.ref.collection('voiceSessions').doc(sessionId).set({
+      provider: 'openai',
+      openAiCallId: callId,
+      model,
+      status: 'reserved',
+      durationSeconds: maxDurationSeconds,
+      maxDurationSeconds,
+      bookingAttempts: 0,
+      startedAt: new Date(),
+      expiresAt: new Date(expiresAt),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('[voice-session] Failed to reserve OpenAI voice usage:', error);
+    await hangUpOpenAICall(callId, apiKey);
+    return res.status(503).json({ error: 'Could not reserve live voice usage. Please use text chat and try again.' });
+  }
+
+  return res.status(200).json({
+    sdp: answerSdp,
+    sessionId,
+    sessionToken,
+    maxDurationSeconds,
+    model,
+  });
+}
+
+export async function handleVoiceSessionEnd(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<VercelResponse> {
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
+
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const clinicId = typeof body['clinicId'] === 'string' ? body['clinicId'].trim().slice(0, 100) : '';
+  const sessionId = typeof body['sessionId'] === 'string' ? body['sessionId'].trim() : '';
+  const sessionToken = typeof body['sessionToken'] === 'string' ? body['sessionToken'].trim() : '';
+  const capability = verifyVoiceSessionToken(sessionToken, getSigningSecret());
+  if (!capability || capability.clinicId !== clinicId || capability.sessionId !== sessionId) {
+    return res.status(401).json({ error: 'Invalid voice session.' });
+  }
+
+  const clinicRef = db.collection('clinics').doc(clinicId);
+  const clinicDoc = await clinicRef.get();
+  if (!clinicDoc.exists || !isKnownClinicOrigin(req, clinicDoc.data() as Record<string, unknown>)) {
+    return res.status(403).json({ error: 'Voice is not available from this domain.' });
+  }
+
+  const sessionRef = clinicRef.collection('voiceSessions').doc(sessionId);
+  const sessionData = await db.runTransaction(async transaction => {
+    const session = await transaction.get(sessionRef);
+    if (!session.exists) return { state: 'missing' as const };
+    const status = session.data()?.['status'];
+    if (status === 'ended') return { state: 'ended' as const };
+    if (status === 'ending') return { state: 'ending' as const };
+    if (status !== 'reserved' && status !== 'end_failed') return { state: 'invalid' as const };
+    transaction.set(sessionRef, {
+      status: 'ending',
+      endingAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return { state: 'claimed' as const, data: session.data() ?? {} };
+  });
+  if (sessionData.state === 'missing') return res.status(404).json({ error: 'Voice session not found.' });
+  if (sessionData.state === 'ended') return res.status(200).json({ ok: true, duplicate: true });
+  if (sessionData.state === 'ending') return res.status(202).json({ ok: true, ending: true });
+  if (sessionData.state !== 'claimed') return res.status(409).json({ error: 'Voice session cannot be ended.' });
+
+  const callId = typeof sessionData.data['openAiCallId'] === 'string'
+    ? openAICallId(sessionData.data['openAiCallId'])
+    : '';
+  const apiKey = process.env['OPENAI_API_KEY']?.trim() ?? '';
+  if (!callId || !apiKey) {
+    await sessionRef.set({ status: 'end_failed' }, { merge: true });
+    return res.status(503).json({ error: 'Voice session could not be closed securely.' });
+  }
+
+  if (!await hangUpOpenAICall(callId, apiKey)) {
+    await sessionRef.set({ status: 'end_failed' }, { merge: true });
+    return res.status(502).json({ error: 'Voice session could not be closed securely.' });
+  }
+
+  const maxDurationSeconds = numericSetting(sessionData.data['maxDurationSeconds'], MAX_SESSION_SECONDS);
+  const startedAt = sessionData.data['startedAt'];
+  const startedAtMs = typeof startedAt?.toDate === 'function' ? startedAt.toDate().getTime() : 0;
+  const durationSeconds = startedAtMs > 0
+    ? Math.min(maxDurationSeconds, Math.max(0, Math.ceil((Date.now() - startedAtMs) / 1_000)))
+    : maxDurationSeconds;
+  await sessionRef.set({
+    status: 'ended',
+    durationSeconds,
+    endedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+
+  return res.status(200).json({ ok: true });
 }

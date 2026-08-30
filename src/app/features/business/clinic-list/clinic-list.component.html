@@ -334,20 +334,20 @@
 
                       <section class="border-t border-ui-line pt-5 xl:border-l xl:border-t-0 xl:px-5 xl:pt-0">
                         <p class="ui-label">Voice receptionist</p>
-                        @if (clinic.elevenLabsAgentId) {
+                        @if (clinic.voiceAgentEnabled) {
                           <span class="ui-badge ui-badge-success">
                             <span class="ui-status-dot" aria-hidden="true"></span>
-                            Connected
+                            OpenAI active
                           </span>
                           <p class="ui-caption mt-3">The clinic website can accept voice enquiries.</p>
                         } @else {
-                          <p class="ui-caption">No ElevenLabs agent is connected.</p>
+                          <p class="ui-caption">OpenAI voice is not enabled for this clinic.</p>
                           <button
                             type="button"
                             class="ui-btn ui-btn-secondary ui-btn-sm mt-3"
                             [disabled]="creatingVoiceAgent() === clinic.id"
-                            (click)="createVoiceAgent(clinic)">
-                            {{ creatingVoiceAgent() === clinic.id ? 'Connecting...' : 'Connect voice agent' }}
+                            (click)="enableVoiceAgent(clinic)">
+                            {{ creatingVoiceAgent() === clinic.id ? 'Enabling...' : 'Enable OpenAI voice' }}
                           </button>
                         }
                       </section>

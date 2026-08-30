@@ -3,6 +3,7 @@ import {
   OnDestroy, inject, NgZone, ViewChild, ElementRef, AfterViewChecked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { OpenAIRealtimeSession } from './openai-realtime-session';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type UIMode     = 'idle' | 'voice' | 'text';
@@ -10,10 +11,6 @@ type VoicePhase = 'connecting' | 'listening' | 'speaking' | 'ended';
 
 interface ChatMessage { role: 'user' | 'assistant'; text: string }
 interface VoiceCaption { source: 'user' | 'ai'; text: string }
-interface ConversationInstance {
-  endSession(): Promise<void>;
-  setMicMuted(isMuted: boolean): void;
-}
 
 // ── Waveform bars — 9 bars with individual height + delay for organic look ────
 const BARS = [
@@ -81,7 +78,7 @@ const QUICK_REPLIES = [
                                 0 8px 32px rgba(0,0,0,0.5);">
 
           <!-- Mic button (voice mode) -->
-          @if (agentId()) {
+          @if (voiceEnabled()) {
             <button (click)="startVoice()"
                     aria-label="Start voice conversation"
                     class="relative w-9 h-9 rounded-full flex items-center justify-center
@@ -111,7 +108,7 @@ const QUICK_REPLIES = [
             </svg>
             <span class="text-sm font-semibold whitespace-nowrap"
                   style="color: rgba(255,255,255,0.75);">
-              {{ agentId() ? 'Ask AI' : 'Chat with AI' }}
+              {{ voiceEnabled() ? 'Ask AI' : 'Chat with AI' }}
             </span>
             <!-- Live indicator -->
             <span class="flex items-center gap-1 ml-0.5">
@@ -343,7 +340,7 @@ const QUICK_REPLIES = [
             </div>
             <!-- Actions -->
             <div class="flex items-center gap-1.5">
-              @if (agentId()) {
+              @if (voiceEnabled()) {
                 <button (click)="switchToVoice()"
                         aria-label="Switch to voice"
                         title="Switch to voice call"
@@ -528,7 +525,7 @@ const QUICK_REPLIES = [
 })
 export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   // ── Inputs ───────────────────────────────────────────────────────────────────
-  readonly agentId    = input<string>('');
+  readonly voiceEnabled = input(false);
   readonly clinicId   = input<string>('');
   readonly bookingRefPrefix = input<string>('');
   readonly clinicName = input<string>('');
@@ -557,7 +554,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   @ViewChild('messagesContainer') private messagesEl?: ElementRef<HTMLElement>;
 
-  private conv:            ConversationInstance | null = null;
+  private conv:            OpenAIRealtimeSession | null = null;
   private timerRef:        ReturnType<typeof setInterval> | null = null;
   private idleResetRef:    ReturnType<typeof setTimeout> | null = null;
   private voiceAttempt     = 0;
@@ -591,32 +588,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     this.clearError();
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(t => t.stop());
-    } catch {
-      if (attempt !== this.voiceAttempt) return;
-      this.zone.run(() => {
-        this.showError('Microphone access denied. Please allow mic and try again.');
-        this.mode.set('idle');
-      });
-      return;
-    }
-
-    try {
-      const tokenResponse = await fetch('/api/voice-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clinicId: this.clinicId() }),
-      });
-      const tokenData = await tokenResponse.json() as { token?: string; error?: string };
-      if (!tokenResponse.ok || !tokenData.token) {
-        throw new Error(tokenData.error || 'Could not create a secure voice session.');
-      }
-
-      const { Conversation } = await import('@11labs/client');
-      const conv = await Conversation.startSession({
-        conversationToken: tokenData.token,
-        connectionType: 'webrtc',
+      const conv = await OpenAIRealtimeSession.start(this.clinicId(), {
         onConnect: () => this.zone.run(() => {
           if (attempt !== this.voiceAttempt) return;
           this.voicePhase.set('listening');
@@ -631,15 +603,15 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
           this.stopTimer();
           this.scheduleVoiceIdle(resetAttempt);
         }),
-        onModeChange: (prop: { mode: string }) => this.zone.run(() => {
+        onModeChange: mode => this.zone.run(() => {
           if (attempt !== this.voiceAttempt) return;
           if (this.voicePhase() === 'ended') return;
-          this.voicePhase.set(prop.mode === 'speaking' ? 'speaking' : 'listening');
+          this.voicePhase.set(mode);
         }),
-        onMessage: (prop: { message: string; source: 'user' | 'ai' }) => this.zone.run(() => {
+        onCaption: (source, caption) => this.zone.run(() => {
           if (attempt !== this.voiceAttempt) return;
-          const text = prop.message.trim();
-          if (text) this.latestVoiceCaption.set({ source: prop.source, text });
+          const text = caption.trim();
+          if (text) this.latestVoiceCaption.set({ source, text });
         }),
         onError: (message: string) => {
           console.error('[VoiceAgent] error:', message);
@@ -661,7 +633,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         await conv.endSession();
         return;
       }
-      this.conv = conv as ConversationInstance;
+      this.conv = conv;
     } catch (e) {
       if (attempt !== this.voiceAttempt) return;
       this.voiceAttempt += 1;
@@ -669,9 +641,11 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
       const msg = e instanceof Error ? e.message : String(e);
       this.zone.run(() => {
         this.showError(
-          /limit|too many|text chat|unavailable/i.test(msg) ? msg :
-          msg.toLowerCase().includes('agent') ? 'AI receptionist is not configured. Please contact the clinic.' :
-          'Could not connect. Please try again.'
+          e instanceof DOMException && ['NotAllowedError', 'PermissionDeniedError'].includes(e.name)
+            ? 'Microphone access denied. Please allow mic and try again.'
+            : /limit|too many|text chat|unavailable/i.test(msg)
+              ? msg
+              : 'Could not connect to OpenAI voice. Please try again.'
         );
         this.mode.set('idle');
       });
@@ -770,7 +744,6 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         this.messages.update(msgs => [...msgs, { role: 'assistant', text: reply }]);
         this.isTyping.set(false);
         this.shouldScrollDown = true;
-        this.speakReply(reply);
       });
     } catch {
       this.zone.run(() => {
@@ -782,19 +755,6 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         this.shouldScrollDown = true;
       });
     }
-  }
-
-  private speakReply(text: string) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utter  = new SpeechSynthesisUtterance(text);
-    utter.rate   = 1.05;
-    utter.pitch  = 1.0;
-    const voices = window.speechSynthesis.getVoices();
-    const pref   = voices.find(v => /female|woman/i.test(v.name) && v.lang.startsWith('en'))
-      ?? voices.find(v => v.lang.startsWith('en')) ?? null;
-    if (pref) utter.voice = pref;
-    window.speechSynthesis.speak(utter);
   }
 
   // ── Timer ─────────────────────────────────────────────────────────────────────
@@ -834,7 +794,6 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     this.voiceAttempt += 1;
     this.stopTimer();
     this.clearIdleReset();
-    window.speechSynthesis?.cancel();
     this.conv?.endSession().catch(() => { /* ignore */ });
   }
 }

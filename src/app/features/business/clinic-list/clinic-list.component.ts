@@ -284,33 +284,29 @@ export class ClinicListComponent implements OnInit {
     }
   }
 
-  // ── Voice Agent (ElevenLabs) ─────────────────────────────────────────────
-  async createVoiceAgent(clinic: StoredClinic) {
+  // ── OpenAI Voice Receptionist ────────────────────────────────────────────
+  async enableVoiceAgent(clinic: StoredClinic) {
     this.creatingVoiceAgent.set(clinic.id);
     try {
-      const res = await this.api.fetch('/api/elevenlabs?action=create-agent', {
+      const res = await this.api.fetch('/api/openai-voice?action=enable', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clinicId:            clinic.id,
-          name:                clinic.name,
-          city:                clinic.city,
-          addressLine1:        clinic.addressLine1,
-          phone:               clinic.phone,
-          doctorName:          clinic.doctorName,
-          doctorQualification: clinic.doctorQualification,
-          hours:               clinic.hours    ?? [],
-          services:            clinic.services ?? [],
-        }),
+        body: JSON.stringify({ clinicId: clinic.id }),
       });
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json() as { agentId: string };
+      const data = await res.json() as { voice?: string; error?: string };
+      if (!res.ok) throw new Error(data.error || 'OpenAI voice could not be enabled.');
       this.clinics.update(list =>
-        list.map(c => c.id === clinic.id ? { ...c, elevenLabsAgentId: data.agentId } : c)
+        list.map(c => c.id === clinic.id ? {
+          ...c,
+          voiceAgentEnabled: true,
+          voiceProvider: 'openai',
+          voiceAgentVoiceId: data.voice ?? 'marin',
+        } : c)
       );
-      this.showToast('ElevenLabs voice agent created! Mic button will appear on the clinic site.', 'success');
-    } catch {
-      this.showToast('Failed to create voice agent. Check ELEVENLABS_API_KEY in Vercel.', 'error');
+      this.showToast('OpenAI voice enabled. The receptionist is live on the clinic site.', 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not enable OpenAI voice.';
+      this.showToast(message, 'error');
     } finally {
       this.creatingVoiceAgent.set(null);
     }

@@ -42,19 +42,6 @@ export interface ThemeOption {
   gradient: string;
 }
 
-interface WhatsappAccountOption {
-  phoneNumberId: string;
-  phoneNumber: string;
-  phoneNumberName: string;
-  businessAccountName: string;
-  assignedAgentId: string | null;
-  assignedAgentName: string | null;
-  enableMessaging: boolean;
-  enableAudioMessageResponse: boolean;
-  isTokenExpired: boolean;
-  connectedToCurrentAgent: boolean;
-}
-
 const GENERIC_SERVICE_ICON =
   'M12 2.5c-2.4 0-4.2 1.5-5.1 3.4-.5.9-.7 2-.7 3 0 1.8.8 3.1.8 4.9 0 1.3.8 4.5 2 6 .4.5.9.1 1.1-.6.3-1.8.4-3.2 1.9-3.2s1.6 1.4 1.9 3.2c.2.7.7 1.1 1.1.6 1.2-1.5 2-4.7 2-6 0-1.8.8-3.1.8-4.9 0-1-.2-2.1-.7-3C16.2 4 14.4 2.5 12 2.5z';
 
@@ -140,9 +127,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   logoError          = signal<string | null>(null);
   voiceUsage         = signal<{ conversations: number; minutesUsed: number; minutesLimit: number } | null>(null);
   loadingUsage       = signal(false);
-  whatsappAccounts   = signal<WhatsappAccountOption[]>([]);
-  loadingWhatsappAccounts = signal(false);
-  whatsappAccountsError = signal<string | null>(null);
   toast              = signal<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -189,12 +173,12 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   ];
 
   readonly VOICE_OPTIONS = [
-    { id: '9BWtsMINqrJLrRacOk9x', name: 'Aria',      gender: 'Female',  style: 'Warm & professional' },
-    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',     gender: 'Female',  style: 'Soft & reassuring' },
-    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',     gender: 'Female',  style: 'Upbeat & friendly' },
-    { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', gender: 'Female',  style: 'Confident & clear' },
-    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',     gender: 'Male',    style: 'Deep & trustworthy' },
-    { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River',     gender: 'Neutral', style: 'Calm & balanced' },
+    { id: 'marin',   name: 'Marin',   style: 'Natural and expressive', recommended: true },
+    { id: 'cedar',   name: 'Cedar',   style: 'Warm and composed',      recommended: true },
+    { id: 'coral',   name: 'Coral',   style: 'Friendly and clear',     recommended: false },
+    { id: 'sage',    name: 'Sage',    style: 'Calm and measured',      recommended: false },
+    { id: 'shimmer', name: 'Shimmer', style: 'Bright and welcoming',   recommended: false },
+    { id: 'verse',   name: 'Verse',   style: 'Smooth and balanced',    recommended: false },
   ] as const;
 
   readonly STARS = [1, 2, 3, 4, 5] as const;
@@ -239,8 +223,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     greeting:  [''],
     language:  ['bilingual' as 'hindi' | 'english' | 'bilingual'],
     persona:   [''],
-    voiceId:   ['9BWtsMINqrJLrRacOk9x'],
-    whatsapp:  [''],
+    voiceId:   ['marin'],
   });
 
   get cfg() { return this.clinicCfg.config; }
@@ -258,10 +241,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   get selectedThemeMeta(): ThemeOption {
     return this.themeOptions.find(opt => opt.value === this.selectedTheme()) ?? this.themeOptions[0];
   }
-  get selectedWhatsappAccount(): WhatsappAccountOption | null {
-    const selectedId = this.voiceForm.controls.whatsapp.value;
-    return this.whatsappAccounts().find(account => account.phoneNumberId === selectedId) ?? null;
-  }
+  get isVoiceEnabled() { return this.cfg.voiceAgentEnabled === true; }
   get trialDaysLeft(): number {
     if (!this.cfg.trialEndDate) return 30;
     const end = new Date(this.cfg.trialEndDate).getTime();
@@ -287,7 +267,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       { label: 'Services listed',                done: c.services.length > 0,                                 tab: 'services',     hint: 'Used on the homepage, services page, and booking form' },
       { label: 'At least one testimonial',       done: c.testimonials.length > 0,                             tab: 'testimonials', hint: 'Social proof improves booking conversions' },
       { label: 'Logo uploaded',                  done: !!c.logoDataUrl,                                       tab: 'logo',         hint: 'Builds patient trust and improves brand recall' },
-      { label: 'Voice agent configured',         done: !!c.elevenLabsAgentId,                                 tab: 'voice',        hint: 'Capture missed calls 24/7 automatically' },
+      { label: 'Voice agent configured',         done: c.voiceAgentEnabled === true,                            tab: 'voice',        hint: 'Help website visitors by voice and book appointments' },
     ];
   }
 
@@ -376,13 +356,13 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       greeting: cfg.voiceAgentGreeting ?? '',
       language: cfg.voiceAgentLanguage ?? 'bilingual',
       persona:  cfg.voiceAgentPersona ?? '',
-      voiceId:  cfg.voiceAgentVoiceId ?? '9BWtsMINqrJLrRacOk9x',
-      whatsapp: cfg.voiceAgentWhatsapp ?? '',
+      voiceId:  this.VOICE_OPTIONS.some(voice => voice.id === cfg.voiceAgentVoiceId)
+        ? cfg.voiceAgentVoiceId
+        : 'marin',
     });
 
-    if (cfg.elevenLabsAgentId && cfg.clinicId && cfg.clinicId !== 'default') {
+    if (this.isVoiceEnabled && cfg.clinicId && cfg.clinicId !== 'default') {
       void this.fetchUsage();
-      void this.fetchWhatsappAccounts();
     }
 
     this.loading.set(false);
@@ -710,39 +690,30 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async createVoiceAgent() {
+  async enableVoiceAgent() {
     if (!this.guardClinicId() || !this.guardVoiceAccess()) return;
 
     this.creatingVoiceAgent.set(true);
     try {
-      const cfg = this.clinicCfg.config;
-      const response = await this.api.fetch('/api/elevenlabs?action=create-agent', {
+      const response = await this.api.fetch('/api/openai-voice?action=enable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clinicId:            this.clinicId,
-          name:                cfg.name,
-          city:                cfg.city,
-          addressLine1:        cfg.addressLine1,
-          phone:               cfg.phone,
-          doctorName:          cfg.doctorName,
-          doctorQualification: cfg.doctorQualification,
-          hours:               cfg.hours ?? [],
-          services:            cfg.services ?? [],
-        }),
+        body: JSON.stringify({ clinicId: this.clinicId }),
       });
 
-      const data = await response.json() as { agentId?: string; error?: string; details?: string };
+      const data = await response.json() as { ok?: boolean; voice?: string; error?: string };
       if (!response.ok) {
-        const message = data.details ?? data.error ?? 'API error';
-        console.error('[createVoiceAgent]', message);
-        throw new Error(message);
+        throw new Error(data.error ?? 'OpenAI voice could not be enabled.');
       }
 
-      this.clinicCfg.updateConfig({ elevenLabsAgentId: data.agentId });
+      this.clinicCfg.updateConfig({
+        voiceAgentEnabled: true,
+        voiceProvider: 'openai',
+        voiceAgentVoiceId: data.voice ?? 'marin',
+      });
+      this.voiceForm.controls.voiceId.setValue(data.voice ?? 'marin', { emitEvent: false });
       await this.fetchUsage();
-      await this.fetchWhatsappAccounts();
-      this.showToast('Voice agent created. Your AI receptionist is live.', 'success');
+      this.showToast('OpenAI voice is enabled. Your receptionist is live.', 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.showToast(`Failed: ${message.slice(0, 120)}`, 'error');
@@ -752,11 +723,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async fetchUsage() {
-    if (!this.canManageVoice) return;
+    if (!this.canManageVoice || !this.isVoiceEnabled) return;
 
     this.loadingUsage.set(true);
     try {
-      const response = await this.api.fetch(`/api/elevenlabs?action=usage&clinicId=${this.clinicId}`);
+      const response = await this.api.fetch(`/api/openai-voice?action=usage&clinicId=${this.clinicId}`);
       if (response.ok) this.voiceUsage.set(await response.json());
     } catch {
       // Usage is non-critical.
@@ -765,51 +736,13 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async fetchWhatsappAccounts() {
-    if (!this.canManageVoice || !this.cfg.elevenLabsAgentId || !this.clinicId || this.clinicId === 'default') return;
-
-    this.loadingWhatsappAccounts.set(true);
-    this.whatsappAccountsError.set(null);
-    try {
-      const response = await this.api.fetch(`/api/elevenlabs?action=whatsapp-accounts&clinicId=${encodeURIComponent(this.clinicId)}`);
-      const data = await response.json() as {
-        items?: WhatsappAccountOption[];
-        currentPhoneNumberId?: string | null;
-        error?: string;
-        details?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(data.details ?? data.error ?? 'Failed to load WhatsApp accounts');
-      }
-
-      const items = data.items ?? [];
-      const currentPhoneNumberId = data.currentPhoneNumberId ?? '';
-
-      this.whatsappAccounts.set(items);
-      this.voiceForm.controls.whatsapp.setValue(currentPhoneNumberId, { emitEvent: false });
-      this.clinicCfg.updateConfig({
-        voiceAgentWhatsapp: currentPhoneNumberId || undefined,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not load WhatsApp accounts.';
-      this.whatsappAccountsError.set(message);
-    } finally {
-      this.loadingWhatsappAccounts.set(false);
-    }
-  }
-
-  isWhatsappAccountLocked(account: WhatsappAccountOption): boolean {
-    return !!account.assignedAgentId && account.assignedAgentId !== this.cfg.elevenLabsAgentId;
-  }
-
   async saveVoice() {
     if (!this.guardClinicId() || !this.guardVoiceAccess()) return;
 
     this.savingVoice.set(true);
     try {
       const values = this.voiceForm.getRawValue();
-      const response = await this.api.fetch('/api/elevenlabs?action=update-agent', {
+      const response = await this.api.fetch('/api/openai-voice?action=update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -818,29 +751,27 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
           language: values.language,
           persona:  values.persona.trim(),
           voiceId:  values.voiceId,
-          whatsappPhoneNumberId: values.whatsapp.trim(),
         }),
       });
 
       const data = await response.json() as {
         ok?: boolean;
         error?: string;
-        details?: string;
-        whatsappAccountId?: string | null;
+        voice?: string;
       };
-      if (!response.ok) throw new Error(data.details ?? data.error ?? 'API error');
+      if (!response.ok) throw new Error(data.error ?? 'API error');
 
       this.clinicCfg.updateConfig({
+        voiceAgentEnabled: true,
+        voiceProvider: 'openai',
         voiceAgentGreeting: values.greeting.trim() || undefined,
         voiceAgentLanguage: values.language,
         voiceAgentPersona:  values.persona.trim() || undefined,
-        voiceAgentVoiceId:  values.voiceId || undefined,
-        voiceAgentWhatsapp: data.whatsappAccountId || undefined,
+        voiceAgentVoiceId:  data.voice ?? values.voiceId,
       });
 
-      await this.fetchWhatsappAccounts();
       this.clearDirty('voice');
-      this.showToast('Voice agent updated.', 'success');
+      this.showToast('OpenAI voice settings updated.', 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update voice agent.';
       this.showToast(message.slice(0, 140), 'error');

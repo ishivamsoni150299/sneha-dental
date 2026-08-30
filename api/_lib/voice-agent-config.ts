@@ -1,4 +1,5 @@
 export type VoiceAgentLanguage = 'hindi' | 'english' | 'bilingual';
+export type OpenAIVoice = 'alloy' | 'ash' | 'ballad' | 'coral' | 'echo' | 'sage' | 'shimmer' | 'verse' | 'marin' | 'cedar';
 
 type ClinicRecord = Record<string, unknown>;
 
@@ -7,10 +8,12 @@ interface ResolvedVoiceAgentSettings {
   language: VoiceAgentLanguage;
   languageCode: 'hi' | 'en';
   persona: string;
-  voiceId: string;
+  voice: OpenAIVoice;
 }
 
-const DEFAULT_VOICE_ID = '9BWtsMINqrJLrRacOk9x';
+const OPENAI_VOICES = new Set<OpenAIVoice>([
+  'alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse', 'marin', 'cedar',
+]);
 
 function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
@@ -24,11 +27,9 @@ function buildDefaultGreeting(clinicName: string, language: VoiceAgentLanguage):
   if (language === 'english') {
     return `Hello and welcome to ${clinicName}. How can I help you today?`;
   }
-
   if (language === 'hindi') {
     return `Namaste! ${clinicName} mein aapka swagat hai. Main aapki kaise madad kar sakti hoon?`;
   }
-
   return `Namaste! Welcome to ${clinicName}. Main Hindi ya English mein aapki madad kar sakti hoon.`;
 }
 
@@ -36,58 +37,45 @@ function buildLanguageGuide(language: VoiceAgentLanguage): string {
   if (language === 'english') {
     return 'LANGUAGE: Start in English. Stay in clear, simple English unless the patient explicitly switches.';
   }
-
   if (language === 'hindi') {
     return 'LANGUAGE: Start in Hindi. Switch to English only if the patient clearly prefers English. Hinglish is acceptable.';
   }
-
   return 'LANGUAGE: Start in warm Hindi or Hinglish. Continue in the patient\'s preferred language and switch naturally between Hindi and English when needed.';
 }
 
 function buildHoursLine(clinic: ClinicRecord): string {
   const slots = Array.isArray(clinic['hours']) ? clinic['hours'] : [];
-  const formatted = slots
-    .map(slot => {
-      if (!slot || typeof slot !== 'object') return '';
-      const hour = slot as Record<string, unknown>;
-      const days = asTrimmedString(hour['days']);
-      const time = asTrimmedString(hour['time']);
-      if (days && time) return `${days}: ${time}`;
-      return days || time;
-    })
-    .filter(Boolean);
-
-  return formatted.length > 0 ? formatted.join(', ') : 'Please ask the clinic directly to confirm availability.';
+  const formatted = slots.map(slot => {
+    if (!slot || typeof slot !== 'object') return '';
+    const hour = slot as ClinicRecord;
+    const days = asTrimmedString(hour['days']);
+    const time = asTrimmedString(hour['time']);
+    return days && time ? `${days}: ${time}` : days || time;
+  }).filter(Boolean);
+  return formatted.length ? formatted.join(', ') : 'Please ask the clinic directly to confirm availability.';
 }
 
 function buildServicesLine(clinic: ClinicRecord): string {
   const services = Array.isArray(clinic['services']) ? clinic['services'] : [];
-  const formatted = services
-    .map(service => {
-      if (!service || typeof service !== 'object') return '';
-      const item = service as Record<string, unknown>;
-      const name = asTrimmedString(item['name']);
-      const price = asTrimmedString(item['price']);
-      if (!name) return '';
-      return price ? `${name} (${price})` : name;
-    })
-    .filter(Boolean);
-
-  return formatted.length > 0 ? formatted.join(', ') : 'General dentistry and routine consultations.';
+  const formatted = services.map(service => {
+    if (!service || typeof service !== 'object') return '';
+    const item = service as ClinicRecord;
+    const name = asTrimmedString(item['name']);
+    const price = asTrimmedString(item['price']);
+    if (!name) return '';
+    return price ? `${name} (${price})` : name;
+  }).filter(Boolean);
+  return formatted.length ? formatted.join(', ') : 'General dentistry and routine consultations.';
 }
 
 function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map(item => asTrimmedString(item))
-    .filter(Boolean)
-    .slice(0, 12);
+  return value.map(item => asTrimmedString(item)).filter(Boolean).slice(0, 12);
 }
 
 function getClinicKnowledge(clinic: ClinicRecord): ClinicRecord {
   const customization = clinic['customization'];
   if (!customization || typeof customization !== 'object') return {};
-
   const knowledge = (customization as ClinicRecord)['knowledge'];
   return knowledge && typeof knowledge === 'object' ? knowledge as ClinicRecord : {};
 }
@@ -110,33 +98,22 @@ function buildKnowledgeSection(clinic: ClinicRecord): string {
   if (asTrimmedString(knowledge['parkingInfo'])) rows.push(`- Parking: ${asTrimmedString(knowledge['parkingInfo'])}`);
   if (asTrimmedString(knowledge['accessibilityInfo'])) rows.push(`- Accessibility: ${asTrimmedString(knowledge['accessibilityInfo'])}`);
   if (asTrimmedString(knowledge['patientNotes'])) rows.push(`- Patient notes: ${asTrimmedString(knowledge['patientNotes'])}`);
-
   return rows.length ? `\nPATIENT KNOWLEDGE BASE:\n${rows.join('\n')}\n` : '';
 }
 
 function buildPersonaSection(persona: string): string {
   if (!persona) return '';
-
-  const notes = persona
-    .split(/\r?\n/)
-    .map(note => note.trim())
-    .filter(Boolean)
-    .map(note => `- ${note}`)
-    .join('\n');
-
+  const notes = persona.split(/\r?\n/).map(note => note.trim()).filter(Boolean).map(note => `- ${note}`).join('\n');
   return notes ? `\nEXTRA CLINIC NOTES:\n${notes}\n` : '';
 }
 
 export function normalizeVoiceLanguage(value: unknown): VoiceAgentLanguage {
-  if (value === 'english' || value === 'hindi' || value === 'bilingual') {
-    return value;
-  }
-
-  return 'bilingual';
+  return value === 'english' || value === 'hindi' || value === 'bilingual' ? value : 'bilingual';
 }
 
-export function sanitizeWhatsappPhoneNumberId(value: unknown): string {
-  return asTrimmedString(value);
+export function normalizeOpenAIVoice(value: unknown): OpenAIVoice {
+  const voice = asTrimmedString(value) as OpenAIVoice;
+  return OPENAI_VOICES.has(voice) ? voice : 'marin';
 }
 
 export function resolveVoiceAgentSettings(
@@ -145,21 +122,18 @@ export function resolveVoiceAgentSettings(
     greeting: string;
     language: VoiceAgentLanguage;
     persona: string;
-    voiceId: string;
+    voice: OpenAIVoice;
   }> = {},
 ): ResolvedVoiceAgentSettings {
   const clinicName = asTrimmedString(clinic['name']) || 'Clinic';
   const language = normalizeVoiceLanguage(overrides.language ?? clinic['voiceAgentLanguage']);
   const greetingInput = overrides.greeting ?? asTrimmedString(clinic['voiceAgentGreeting']);
-  const persona = asTrimmedString(overrides.persona ?? clinic['voiceAgentPersona']);
-  const voiceId = asTrimmedString(overrides.voiceId ?? clinic['voiceAgentVoiceId']) || DEFAULT_VOICE_ID;
-
   return {
     greeting: asTrimmedString(greetingInput) || buildDefaultGreeting(clinicName, language),
     language,
     languageCode: language === 'english' ? 'en' : 'hi',
-    persona,
-    voiceId,
+    persona: asTrimmedString(overrides.persona ?? clinic['voiceAgentPersona']),
+    voice: normalizeOpenAIVoice(overrides.voice ?? clinic['voiceAgentVoiceId']),
   };
 }
 
@@ -181,11 +155,7 @@ export function buildAgentSystemPrompt(
     asTrimmedString(clinic['addressLine2']),
     city,
   ]) || 'the clinic address';
-  const hours = buildHoursLine(clinic);
-  const services = buildServicesLine(clinic);
   const settings = resolveVoiceAgentSettings(clinic, overrides);
-  const personaSection = buildPersonaSection(settings.persona);
-  const knowledgeSection = buildKnowledgeSection(clinic);
   const doctorLine = doctorQualification ? `${doctorName} (${doctorQualification})` : doctorName;
   const voiceActionLines = overrides.voiceActionEnabled
     ? [
@@ -202,10 +172,10 @@ CLINIC FACTS:
 - City: ${city || 'Not specified'}
 - Address: ${address}
 - Clinic phone: ${clinicPhone}
-- Hours: ${hours}
-- Services and pricing: ${services}
-${knowledgeSection}
-${personaSection}
+- Hours: ${buildHoursLine(clinic)}
+- Services and pricing: ${buildServicesLine(clinic)}
+${buildKnowledgeSection(clinic)}
+${buildPersonaSection(settings.persona)}
 STRICT BOUNDARIES:
 - Only discuss ${name}, its team, services, timings, booking flow, pricing shared above, and how to contact the clinic.
 - Do not give medical advice, diagnosis, prescriptions, or treatment recommendations.
@@ -223,7 +193,8 @@ BOOKING FLOW:
 - Collect one missing detail at a time: full name, phone number, treatment or issue, preferred date, then preferred time. Do not ask again for details already provided.
 - Only use clear audio. If any name, phone digit, date, or time is unclear, ask the patient to repeat that detail instead of guessing.
 - Read the phone number back digit by digit and wait for the patient to confirm or correct it.
-- Before submitting, summarize the name, treatment or issue, preferred date and time, and phone number. Ask whether every detail is correct and wait for a clear yes.
+- Before submitting, explain that these details will be saved and shared with ${name} so its team can follow up about the appointment.
+- Summarize the name, treatment or issue, preferred date and time, and phone number. Ask for permission to submit and wait for a clear yes.
 - If the patient corrects any detail, read back the complete corrected summary and ask for confirmation again.
 ${voiceActionLines}
 

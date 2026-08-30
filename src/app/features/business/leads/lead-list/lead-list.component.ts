@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import {
   LeadFirestoreService, StoredLead, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-firestore.service';
-import { AuthFacade } from '../../../../core/services/auth-facade.service';
 
 interface ImportStats {
   imported:    number;
@@ -46,7 +45,6 @@ const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
 })
 export class LeadListComponent implements OnInit, OnDestroy {
   private leadStore = inject(LeadFirestoreService);
-  private auth = inject(AuthFacade);
 
   leads           = signal<StoredLead[]>([]);
   loading         = signal(true);
@@ -72,7 +70,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
   savingNote      = signal(false);
   messageDraft    = signal<MessageDraft | null>(null);
   savingMessage   = signal(false);
-  loggingCall     = signal<string | null>(null);
   private copyTimer:  ReturnType<typeof setTimeout> | null = null;
   private savedTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -402,53 +399,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
     }
   }
 
-  async startAssistedCall(lead: StoredLead) {
-    if (!lead.phone || this.loggingCall() === lead.id) return;
-    this.loggingCall.set(lead.id);
-    this.error.set(null);
-
-    try {
-      const user = this.auth.currentUser();
-      if (!user) {
-        throw new Error('Please sign in again before starting an AI call.');
-      }
-
-      const idToken = await user.getIdToken();
-      const response = await fetch('/api/retell-call', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, leadId: lead.id }),
-      });
-      const result = await response.json().catch(() => ({})) as {
-        error?: string;
-        status?: string;
-        callId?: string;
-        leadStatus?: LeadStatus;
-        followUpDate?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Could not start the Retell AI call.');
-      }
-
-      const updates: Partial<StoredLead> = {
-        status: result.leadStatus ?? (lead.status === 'new' ? 'contacted' : lead.status),
-        followUpDate: result.followUpDate,
-      };
-
-      this.leads.update(list => list.map(item => item.id === lead.id ? { ...item, ...updates } : item));
-      this.savedId.set(lead.id);
-      if (this.savedTimer) clearTimeout(this.savedTimer);
-      this.savedTimer = setTimeout(() => this.savedId.set(null), 2500);
-    } catch (err) {
-      console.error('[Leads] Retell AI call failed:', err);
-      const message = err instanceof Error ? err.message : 'Could not start the AI call. Please try again.';
-      this.error.set(message);
-    } finally {
-      this.loggingCall.set(null);
-    }
-  }
-
   // ── Copy message to clipboard ─────────────────────────────────────────────
   async copyMessage(lead: StoredLead) {
     const msg = this.buildDynamicMessage(lead);
@@ -600,6 +550,10 @@ export class LeadListComponent implements OnInit, OnDestroy {
     const digits = raw.replace(/\D/g, '');
     if (!digits) return '';
     return digits.startsWith('91') ? digits : `91${digits}`;
+  }
+
+  callHref(phone: string): string {
+    return `tel:+${this.normalizePhone(phone)}`;
   }
 
   async handleCsvImport(event: Event) {

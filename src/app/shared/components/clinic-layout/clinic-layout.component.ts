@@ -59,7 +59,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @defer (on idle) {
         @if (clinic.isLoaded && showVoiceAgent()) {
           <app-voice-agent
-            [agentId]="voiceAgentId()"
+            [voiceEnabled]="voiceAgentEnabled()"
             [clinicId]="clinic.config.clinicId || ''"
             [bookingRefPrefix]="clinic.config.bookingRefPrefix"
             [clinicName]="clinic.config.name"
@@ -181,11 +181,10 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   private beforeInstallPromptHandler: ((event: Event) => void) | null = null;
   private routerEventsSubscription: Subscription | null = null;
 
-  readonly voiceAgentId = computed(() => {
+  readonly voiceAgentEnabled = computed(() => {
     const cfg = this.clinic.config;
     return cfg.subscriptionPlan === 'pro' && cfg.subscriptionStatus === 'active'
-      ? (cfg.elevenLabsAgentId ?? '')
-      : '';
+      && cfg.voiceAgentEnabled === true;
   });
 
   readonly serviceNames = computed(() => this.clinic.config.services.map((service) => service.name));

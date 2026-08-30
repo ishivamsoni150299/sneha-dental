@@ -47,10 +47,10 @@ function cleanText(value: unknown, maxLength: number): string {
 function normalizePhone(value: unknown): string {
   const raw = cleanText(value, 24);
   const cleaned = raw.replace(/[^\d+]/g, '');
-  if (cleaned.startsWith('+')) return cleaned;
-  if (cleaned.length === 12 && cleaned.startsWith('91')) return `+${cleaned}`;
+  if (/^\+[1-9]\d{6,14}$/.test(cleaned)) return cleaned;
+  if (/^91[6-9]\d{9}$/.test(cleaned)) return `+${cleaned}`;
   if (cleaned.length === 10 && /^[6-9]/.test(cleaned)) return `+91${cleaned}`;
-  return cleaned;
+  return '';
 }
 
 function normalizeBookingRef(value: string): string {
@@ -87,6 +87,13 @@ function nextWeekdayIso(dayName: string): string {
   return date.toISOString().slice(0, 10);
 }
 
+function validIsoDate(year: string, month: string, day: string): string {
+  const candidate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  const parsed = new Date(`${candidate}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== candidate) return '';
+  return candidate >= new Date().toISOString().slice(0, 10) ? candidate : '';
+}
+
 export function normalizePreferredDate(value: unknown): string {
   const raw = cleanText(value, 40).toLowerCase();
   if (!raw) return '';
@@ -97,7 +104,7 @@ export function normalizePreferredDate(value: unknown): string {
   const iso = raw.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
   if (iso) {
     const [, year, month, day] = iso;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return validIsoDate(year, month, day);
   }
 
   const slash = raw.match(/\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b/);
@@ -106,11 +113,11 @@ export function normalizePreferredDate(value: unknown): string {
     const year = yearInput
       ? (yearInput.length === 2 ? `20${yearInput}` : yearInput)
       : String(new Date().getFullYear());
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return validIsoDate(year, month, day);
   }
 
   const weekday = raw.match(/\b(mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)\b/);
-  return weekday?.[1] ? nextWeekdayIso(weekday[1]) : cleanText(value, 40);
+  return weekday?.[1] ? nextWeekdayIso(weekday[1]) : '';
 }
 
 export function normalizePreferredTime(value: unknown): string {
@@ -118,14 +125,13 @@ export function normalizePreferredTime(value: unknown): string {
   if (!raw) return '';
 
   const match = raw.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?\b/);
-  if (!match) return cleanText(value, 40);
+  if (!match) return '';
 
   const suffix = match[3]?.replace(/\./g, '') ?? '';
   let hour = Number(match[1]);
   const minute = Number(match[2] ?? '0');
-  if (!Number.isFinite(hour) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-    return cleanText(value, 40);
-  }
+  if (!Number.isFinite(hour) || hour < 0 || hour > 23 || minute < 0 || minute > 59) return '';
+  if (suffix && (hour < 1 || hour > 12)) return '';
   if (suffix === 'pm' && hour < 12) hour += 12;
   if (suffix === 'am' && hour === 12) hour = 0;
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -272,6 +278,8 @@ export async function createVoiceBookingRequest(
         message: booking.message ? `AI voice booking request. ${booking.message}` : 'AI voice booking request.',
         status: 'pending',
         source: booking.source,
+        consentVersion: 'voice-2026-08-29',
+        consentAt: FieldValue.serverTimestamp(),
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });

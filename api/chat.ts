@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHash, randomBytes } from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { buildAgentSystemPrompt } from './_lib/elevenlabs-agent-config';
+import { buildAgentSystemPrompt } from './_lib/voice-agent-config';
 
 interface ChatMessage {
   role: 'user' | 'assistant';

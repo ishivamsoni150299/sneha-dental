@@ -8,8 +8,8 @@ The application can be made production-ready, but no web app should be called sa
 - Patient-facing theme overrides are scoped through `.clinic-theme-scope` to avoid theme leakage into the business console.
 - A semantic design-system layer exists in `tailwind.config.cjs` and `src/styles.css`.
 - Shared patient-facing cards and section headers use design-system primitives instead of one-off visual recipes.
-- Voice-to-action booking support exists through the AI receptionist webhook/tool flow.
-- Billing and ElevenLabs management endpoints verify Firebase identity and clinic ownership.
+- Voice-to-action booking support exists through the OpenAI Realtime receptionist tool flow.
+- Billing and OpenAI voice management endpoints verify Firebase identity and clinic ownership.
 - Clinic owner and billing metadata is stored under `clinics/{id}/private/account`.
 - New appointment lookup IDs are hashed before they are written to Firestore or slot records.
 - Chat and signup endpoints use persistent Firestore-backed abuse limits.
@@ -25,7 +25,8 @@ The application can be made production-ready, but no web app should be called sa
 - Run the private clinic-data migration and confirm no owner email, UID, attribution, or payment reference remains in public clinic documents.
 - Required Firestore indexes for appointment, lead, and clinic queries.
 - Complete one real-domain test booking and verify form validation, duplicate prevention, storage, clinic email notification, optional patient receipt, and dashboard visibility.
-- AI receptionist environment variables, ElevenLabs tool registration, phone number routing, and fallback behavior.
+- OpenAI voice environment variables, microphone permission, real-domain origin checks, confirmed booking action, usage limits, and fallback behavior.
+- If phone-line answering is required, configure and test a SIP or telephony carrier separately; the website receptionist alone does not answer PSTN calls.
 - WhatsApp, phone, email, address, business hours, map links, and emergency instructions.
 - Real clinic copy, real service pricing policy, real doctor profile, and real clinic photos.
 - Privacy policy, consent language, data retention, and local legal requirements.

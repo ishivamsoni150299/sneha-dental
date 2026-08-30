@@ -26,7 +26,7 @@ const env = {
 const required = [
   'FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY',
   'CRON_SECRET', 'ZOHO_SMTP_USER', 'ZOHO_SMTP_PASS',
-  'ELEVENLABS_API_KEY', 'ELEVENLABS_WEBHOOK_SECRET',
+  'OPENAI_API_KEY', 'OPENAI_VOICE_SIGNING_SECRET',
   'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET',
 ];
 const missing = required.filter(key => !env[key]);
@@ -35,6 +35,10 @@ if (missing.length) {
   process.exitCode = 1;
 } else {
   console.log('PASS production configuration: required keys are present');
+}
+if (env.OPENAI_VOICE_SIGNING_SECRET && env.OPENAI_VOICE_SIGNING_SECRET.length < 32) {
+  console.error('FAIL configuration: OPENAI_VOICE_SIGNING_SECRET must be at least 32 characters');
+  process.exitCode = 1;
 }
 
 if (!env.SENTRY_DSN) console.warn('WARN SENTRY_DSN is not configured; browser errors will not be reported');

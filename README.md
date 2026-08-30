@@ -2,7 +2,7 @@
 
 Multi-tenant dental clinic SaaS for patient websites, appointment booking, clinic operations, leads, WhatsApp follow-up, and AI-assisted communication.
 
-Stack: Angular 19, Tailwind CSS v3, Firebase, Vercel, ElevenLabs, Anthropic, Razorpay
+Stack: Angular 19, Tailwind CSS v3, Firebase, Vercel, OpenAI Realtime, Anthropic, Razorpay
 
 ## Table of Contents
 
@@ -51,7 +51,7 @@ Browser (patient or admin)
   -> /api/* routed to Node serverless functions
   -> Firebase Auth + Firestore for data and access control
   -> Razorpay for subscription billing
-  -> ElevenLabs for voice-agent workflows
+   -> OpenAI Realtime for browser voice-receptionist workflows
 ```
 
 High-level runtime flow:
@@ -77,10 +77,8 @@ Current serverless endpoints are designed to stay within the Vercel Hobby plan f
 |---|---|---|
 | `api/chat.ts` | POST | Website chat receptionist backed by Anthropic |
 | `api/create-subscription.ts` | POST | Creates clinic billing checkout |
-| `api/elevenlabs-create-agent.ts` | POST | Provisions a clinic voice agent |
-| `api/elevenlabs-update-agent.ts` | POST | Updates voice agent settings |
-| `api/elevenlabs-usage.ts` | GET | Voice usage stats |
-| `api/elevenlabs-webhook.ts` | POST | Post-call appointment extraction |
+| `api/openai-voice.ts` | POST/GET | Creates Realtime sessions and manages voice settings and usage |
+| `api/voice-booking-action.ts` | POST | Creates a confirmed appointment request from a signed voice session |
 | `api/razorpay-webhook.ts` | POST | Subscription payment status updates |
 | `api/self-signup.ts` | POST | Clinic self-onboarding |
 
@@ -142,7 +140,8 @@ Typical `clinics` fields include:
 - `services`
 - `testimonials`
 - `adminUid`
-- `elevenLabsAgentId`
+- `voiceAgentEnabled`
+- `voiceProvider`
 
 ## 6. Multi-Tenancy
 
@@ -202,8 +201,10 @@ Set all server-side values in the Vercel project settings. For local work, copy 
 | `FIREBASE_CLIENT_EMAIL` | Yes | Firebase Admin SDK |
 | `FIREBASE_PRIVATE_KEY` | Yes | Firebase Admin SDK |
 | `ANTHROPIC_API_KEY` | Yes | Chat assistant |
-| `ELEVENLABS_API_KEY` | Yes | Voice agent API |
-| `ELEVENLABS_WEBHOOK_SECRET` | Yes | ElevenLabs webhook verification |
+| `OPENAI_API_KEY` | Yes | OpenAI Realtime website voice receptionist |
+| `OPENAI_VOICE_SIGNING_SECRET` | Yes | Signs short-lived voice booking capabilities |
+| `OPENAI_REALTIME_MODEL` | Optional | Realtime model override; defaults to `gpt-realtime-2.1` |
+| `OPENAI_TRANSCRIPTION_MODEL` | Optional | Input transcription model override |
 | `RAZORPAY_KEY_ID` | Yes | Razorpay API |
 | `RAZORPAY_KEY_SECRET` | Yes | Razorpay API |
 | `RAZORPAY_WEBHOOK_SECRET` | Yes | Razorpay webhook verification |
@@ -250,12 +251,14 @@ Recommended billing setup:
 - Primary: Razorpay hosted subscriptions for automatic recurring billing
 - Backup: Razorpay.me manual payment link for cases where subscription env vars are missing or you want a simple manual collection path
 
-### ElevenLabs
+### OpenAI Realtime Voice
 
-1. Create an ElevenLabs API key
-2. Set `ELEVENLABS_API_KEY`
-3. Add webhook URL `https://www.mydentalplatform.com/api/elevenlabs-webhook`
-4. Set the same shared secret in Vercel and ElevenLabs
+1. Create a restricted OpenAI project API key and set `OPENAI_API_KEY` only on the server.
+2. Generate a separate random signing secret and set `OPENAI_VOICE_SIGNING_SECRET`.
+3. Enable OpenAI voice for an active Pro clinic from the platform clinic list.
+4. Test microphone permission, interruption, session timeout, and a confirmed booking on the clinic's real domain.
+
+The current implementation handles live voice inside the clinic website through WebRTC. Answering a public telephone number requires a separately configured SIP or telephony carrier; an OpenAI API key alone does not provide PSTN calling.
 
 ### Vercel API Token
 
@@ -289,8 +292,10 @@ Text chat:
 Voice agent:
 
 - Available only for Pro clinics with active access
-- Each clinic can have its own ElevenLabs agent id
-- Post-call webhook can create or enrich appointment data
+- Negotiates OpenAI Realtime WebRTC through the server; no OpenAI credential reaches the browser
+- Uses clinic-specific facts, greeting, language, persona, and OpenAI voice settings
+- Creates an appointment request only after explicit patient confirmation through a signed, short-lived session capability
+- Enforces a session timeout, request rate limit, monthly voice budget, and phone/WhatsApp fallback
 
 ## 12. Billing and Subscriptions
 
