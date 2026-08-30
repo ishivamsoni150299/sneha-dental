@@ -2,12 +2,14 @@ import {
   Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy,
 } from '@angular/core';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import { VoiceAgentComponent } from '../../shared/components/voice-agent/voice-agent.component';
 
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number }
 
 @Component({
   selector: 'app-coming-soon',
   standalone: true,
+  imports: [VoiceAgentComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './coming-soon.component.html',
 })
@@ -18,6 +20,12 @@ export class ComingSoonComponent implements OnInit, OnDestroy {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   readonly timeLeft = signal<TimeLeft | null>(null);
   readonly hasCountdown = computed(() => !!this.config.launchDate);
+  readonly voiceAgentEnabled = computed(() => this.clinic.hasLiveVoice);
+  readonly serviceNames = computed(() => this.clinic.config.services.map(service => service.name));
+  readonly clinicHours = computed(() => this.clinic.config.hours.map(slot => `${slot.days}: ${slot.time}`));
+  readonly clinicAddress = computed(() =>
+    [this.config.addressLine1, this.config.addressLine2, this.config.city].filter(Boolean).join(', ')
+  );
 
   readonly whatsappNotifyUrl = computed(() =>
     this.clinic.whatsappUrl(

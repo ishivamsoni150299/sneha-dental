@@ -71,3 +71,19 @@
     </footer>
   </div>
 </main>
+
+@defer (on idle) {
+  @if (clinic.isLoaded) {
+    <app-voice-agent
+      [voiceEnabled]="voiceAgentEnabled()"
+      [clinicId]="config.clinicId || ''"
+      [bookingRefPrefix]="config.bookingRefPrefix"
+      [clinicName]="clinic.displayName"
+      [services]="serviceNames()"
+      [city]="config.city"
+      [phone]="config.phone"
+      [address]="clinicAddress()"
+      [hours]="clinicHours()"
+      [whatsappNumber]="config.whatsappNumber" />
+  }
+}

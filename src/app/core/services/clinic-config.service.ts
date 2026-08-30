@@ -162,6 +162,14 @@ export class ClinicConfigService {
     return this.config.hours.length > 0;
   }
 
+  get hasLiveVoice(): boolean {
+    const config = this.config;
+    return config.subscriptionPlan === 'pro'
+      && config.subscriptionStatus === 'active'
+      && config.voiceAgentEnabled === true
+      && config.voiceProvider === 'openai';
+  }
+
   get availabilityLabel(): string {
     if (!this.hasConfiguredHours) return 'Online booking';
     return this.isOpenNow ? 'Open now' : 'Closed now';

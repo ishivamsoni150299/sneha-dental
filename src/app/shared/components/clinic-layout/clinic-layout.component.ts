@@ -5,21 +5,17 @@ import type { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { ComingSoonComponent } from '../../../features/coming-soon/coming-soon.component';
 import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
 @Component({
   selector: 'app-clinic-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent, FooterComponent, ComingSoonComponent, VoiceAgentComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent, FooterComponent, VoiceAgentComponent],
   host: {
     class: 'clinic-theme-scope block',
   },
   template: `
-    @if (clinic.config.comingSoon) {
-      <app-coming-soon />
-    } @else {
-      <app-navbar />
+    <app-navbar />
 
       <div class="clinic-welcome-bar" aria-label="Clinic welcome">
         <div class="clinic-welcome-inner">
@@ -170,7 +166,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
           </div>
         </div>
       </div>
-    }
   `,
   styles: []
 })
@@ -198,11 +193,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   private beforeInstallPromptHandler: ((event: Event) => void) | null = null;
   private routerEventsSubscription: Subscription | null = null;
 
-  readonly voiceAgentEnabled = computed(() => {
-    const cfg = this.clinic.config;
-    return cfg.subscriptionPlan === 'pro' && cfg.subscriptionStatus === 'active'
-      && cfg.voiceAgentEnabled === true;
-  });
+  readonly voiceAgentEnabled = computed(() => this.clinic.hasLiveVoice);
 
   readonly serviceNames = computed(() => this.clinic.config.services.map((service) => service.name));
   readonly clinicHours = computed(() => this.clinic.config.hours.map((slot) => `${slot.days}: ${slot.time}`));
