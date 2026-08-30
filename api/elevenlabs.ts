@@ -8,6 +8,7 @@ import {
   resolveVoiceAgentSettings,
   sanitizeWhatsappPhoneNumberId,
 } from './_lib/elevenlabs-agent-config';
+import { handleVoiceSession } from './_lib/voice-session';
 
 if (!getApps().length) {
   initializeApp({
@@ -800,6 +801,8 @@ async function handleWhatsappAccounts(req: VercelRequest, res: VercelResponse): 
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse> {
   const action = getAction(req);
+  if (action === 'voice-session') return handleVoiceSession(req, res);
+
   const clinicId = getClinicId(req);
   if (!clinicId) return res.status(400).json({ error: 'clinicId required' });
 

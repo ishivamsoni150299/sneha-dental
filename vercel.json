@@ -20,6 +20,7 @@
     { "source": "/api/health",      "destination": "/api/seo?type=health" },
     { "source": "/business",        "destination": "/business/index.html" },
     { "source": "/business/",       "destination": "/business/index.html" },
+    { "source": "/api/voice-session", "destination": "/api/elevenlabs?action=voice-session" },
     { "source": "/api/:path*",         "destination": "/api/:path*" },
     { "source": "/__/auth/:path*",     "destination": "https://sneha-dental-6373b.firebaseapp.com/__/auth/:path*" },
     { "source": "/__/firebase/:path*", "destination": "https://sneha-dental-6373b.firebaseapp.com/__/firebase/:path*" },
@@ -37,7 +38,6 @@
     "api/elevenlabs.ts":         { "maxDuration": 30 },
     "api/domain.ts":             { "maxDuration": 15 },
     "api/clinic-owner.ts":       { "maxDuration": 15 },
-    "api/voice-session.ts":      { "maxDuration": 30 },
     "api/voice-booking-action.ts": { "maxDuration": 15 },
     "api/seo.ts":                { "maxDuration": 10 }
   }

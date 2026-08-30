@@ -121,7 +121,7 @@ function numericSetting(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
-export default async function handler(
+export async function handleVoiceSession(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<VercelResponse> {
