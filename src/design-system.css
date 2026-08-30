@@ -711,6 +711,197 @@ textarea.ui-field {
   to { transform: translateX(100%); }
 }
 
+/* Client-facing clinic identity */
+.clinic-theme-scope {
+  --clinic-marigold: #d78316;
+  --clinic-marigold-soft: #fff4d8;
+  --clinic-peacock: #176b5b;
+  --clinic-peacock-soft: #e9f5ef;
+  --clinic-warm-line: #e6ddcc;
+  --ui-canvas: #f8f5ed;
+  --ui-canvas-subtle: #f1ecdf;
+  --ui-surface: #fffefa;
+  --ui-surface-raised: rgba(255, 254, 250, 0.94);
+  --ui-surface-muted: #fcf9f1;
+  --ui-ink: #17332e;
+  --ui-ink-soft: #405a54;
+  --ui-ink-muted: #71827d;
+  --ui-line: var(--clinic-warm-line);
+  --ui-line-strong: #d4c8b4;
+  --ui-success: var(--clinic-peacock);
+  --ui-success-soft: var(--clinic-peacock-soft);
+  --ui-rating: var(--clinic-marigold);
+  --ui-shadow-color: #273f39;
+  --ui-shadow-xs: 0 1px 2px rgba(39, 63, 57, 0.06);
+  --ui-shadow-sm: 0 14px 34px -26px rgba(39, 63, 57, 0.3);
+  --ui-shadow-md: 0 26px 68px -44px rgba(39, 63, 57, 0.4);
+  --ui-shadow-lg: 0 38px 100px -56px rgba(39, 63, 57, 0.5);
+}
+
+.clinic-theme-scope main {
+  background-color: var(--ui-canvas);
+}
+
+.clinic-theme-scope main > :not(router-outlet) {
+  display: block;
+}
+
+.clinic-theme-scope main > :not(router-outlet) > section:first-child > * {
+  animation: clinic-page-reveal 520ms var(--ui-ease) both;
+}
+
+.clinic-theme-scope .ui-lens {
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--clinic-marigold-soft) 58%, transparent), transparent 42%),
+    var(--ui-surface);
+}
+
+.clinic-theme-scope .ui-lens::before {
+  background-image:
+    linear-gradient(45deg, transparent 47%, color-mix(in srgb, var(--clinic-peacock) 7%, transparent) 48% 52%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, color-mix(in srgb, var(--clinic-marigold) 8%, transparent) 48% 52%, transparent 53%);
+  background-size: 3rem 3rem;
+  mask-image: linear-gradient(90deg, transparent 36%, black 100%);
+}
+
+.clinic-theme-scope .ui-eyebrow {
+  color: color-mix(in srgb, var(--ui-primary-hover) 72%, var(--clinic-peacock));
+  letter-spacing: 0.12em;
+}
+
+.clinic-theme-scope .ui-eyebrow::before {
+  width: 1.85rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--clinic-marigold) 0 42%, transparent 42% 56%, var(--clinic-peacock) 56% 100%);
+}
+
+.clinic-theme-scope .ui-display,
+.clinic-theme-scope .ui-heading {
+  color: var(--ui-ink);
+  letter-spacing: -0.02em;
+}
+
+.clinic-theme-scope .ui-card,
+.clinic-theme-scope .ds-card,
+.clinic-theme-scope .ui-panel {
+  border-color: var(--clinic-warm-line);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.clinic-theme-scope .ui-card-muted,
+.clinic-theme-scope .ds-card-muted,
+.clinic-theme-scope .ui-panel-muted {
+  border-color: color-mix(in srgb, var(--ui-primary-line) 48%, var(--clinic-warm-line));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--clinic-marigold-soft) 52%, white), var(--ui-surface) 58%, color-mix(in srgb, var(--ui-primary-soft) 38%, white));
+}
+
+.clinic-theme-scope .ui-card-interactive::after {
+  position: absolute;
+  right: 1rem;
+  bottom: 0;
+  left: 1rem;
+  height: 2px;
+  content: '';
+  background: linear-gradient(90deg, var(--clinic-marigold), var(--ui-primary), var(--clinic-peacock));
+  opacity: 0;
+  transform: scaleX(0.7);
+  transition: opacity var(--ui-duration), transform var(--ui-duration) var(--ui-ease);
+}
+
+.clinic-theme-scope .ui-card-interactive:hover::after {
+  opacity: 0.72;
+  transform: scaleX(1);
+}
+
+.clinic-theme-scope .ui-btn-primary,
+.clinic-theme-scope .ds-button-primary {
+  box-shadow: 0 16px 32px -22px var(--ui-primary-shadow), 0 2px 0 color-mix(in srgb, var(--clinic-marigold) 34%, transparent) inset;
+}
+
+.clinic-theme-scope .ui-badge-success,
+.clinic-theme-scope .bg-status-success-soft {
+  color: var(--clinic-peacock);
+  background-color: var(--clinic-peacock-soft);
+}
+
+.clinic-theme-scope .text-amber-500 {
+  color: var(--clinic-marigold);
+}
+
+/* Bring older booking and account screens into the same warm clinic system. */
+.clinic-theme-scope .bg-gray-50,
+.clinic-theme-scope .bg-slate-50 {
+  background-color: var(--ui-canvas);
+}
+
+.clinic-theme-scope .bg-white {
+  background-color: var(--ui-surface);
+}
+
+.clinic-theme-scope .text-gray-950,
+.clinic-theme-scope .text-gray-900,
+.clinic-theme-scope .text-slate-950,
+.clinic-theme-scope .text-slate-900 {
+  color: var(--ui-ink);
+}
+
+.clinic-theme-scope .text-gray-700,
+.clinic-theme-scope .text-gray-600,
+.clinic-theme-scope .text-slate-700,
+.clinic-theme-scope .text-slate-600 {
+  color: var(--ui-ink-soft);
+}
+
+.clinic-theme-scope .text-gray-500,
+.clinic-theme-scope .text-gray-400,
+.clinic-theme-scope .text-slate-500,
+.clinic-theme-scope .text-slate-400 {
+  color: var(--ui-ink-muted);
+}
+
+.clinic-theme-scope .border-gray-100,
+.clinic-theme-scope .border-gray-200,
+.clinic-theme-scope .border-slate-100,
+.clinic-theme-scope .border-slate-200 {
+  border-color: var(--ui-line);
+}
+
+.clinic-theme-scope input,
+.clinic-theme-scope select,
+.clinic-theme-scope textarea {
+  accent-color: var(--ui-primary);
+}
+
+.clinic-theme-scope .booking-page {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--clinic-marigold-soft) 44%, transparent), transparent 34%),
+    var(--ui-canvas);
+}
+
+.clinic-theme-scope .booking-page-header h1 {
+  font-family: var(--ui-font-display);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}
+
+.clinic-theme-scope .mobile-booking-shell {
+  overflow: hidden;
+  border: 1px solid var(--ui-line);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.clinic-home-hero-grid {
+  min-height: min(46rem, calc(100svh - 8.25rem));
+}
+
+@keyframes clinic-page-reveal {
+  from { opacity: 0; transform: translateY(0.65rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Shared clinic chrome */
 .clinic-nav {
   position: sticky;
@@ -720,6 +911,16 @@ textarea.ui-field {
   background: color-mix(in srgb, var(--ui-surface) 91%, transparent);
   box-shadow: 0 14px 34px -32px rgba(16, 33, 38, 0.42);
   backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.clinic-nav::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  content: '';
+  background: linear-gradient(90deg, var(--clinic-marigold) 0 30%, color-mix(in srgb, var(--ui-surface) 90%, transparent) 46% 54%, var(--clinic-peacock) 70% 100%);
 }
 
 .clinic-nav-inner {
@@ -741,8 +942,67 @@ textarea.ui-field {
   border: 1px solid color-mix(in srgb, var(--ui-primary-line) 70%, white);
   border-radius: 1rem;
   color: var(--ui-primary-hover);
-  background: linear-gradient(145deg, var(--ui-primary-soft), white 72%);
+  background: linear-gradient(145deg, var(--clinic-marigold-soft), var(--ui-primary-soft) 52%, var(--clinic-peacock-soft));
   box-shadow: var(--ui-shadow-xs);
+}
+
+.clinic-welcome-bar {
+  position: relative;
+  z-index: 35;
+  border-bottom: 1px solid var(--clinic-warm-line);
+  color: var(--ui-ink-soft);
+  background: color-mix(in srgb, var(--clinic-marigold-soft) 62%, var(--ui-surface));
+}
+
+.clinic-welcome-inner {
+  display: flex;
+  width: min(100% - 1.5rem, var(--ui-content));
+  min-height: 2rem;
+  margin-inline: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+}
+
+.clinic-welcome-message {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clinic-welcome-namaste {
+  color: #9a510b;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clinic-welcome-motif {
+  display: inline-grid;
+  width: 1.2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.clinic-welcome-motif::before,
+.clinic-welcome-motif::after,
+.clinic-welcome-motif span {
+  height: 3px;
+  border-radius: 999px;
+  content: '';
+}
+
+.clinic-welcome-motif::before { background: var(--clinic-marigold); }
+.clinic-welcome-motif span { background: var(--ui-surface); }
+.clinic-welcome-motif::after { background: var(--clinic-peacock); }
+
+.clinic-welcome-city {
+  flex: 0 0 auto;
+  color: var(--clinic-peacock);
+  font-weight: 750;
 }
 
 .clinic-nav-link {
@@ -766,7 +1026,7 @@ textarea.ui-field {
 
 .clinic-nav-link-active {
   color: var(--ui-primary-hover);
-  background: color-mix(in srgb, var(--ui-primary-soft) 66%, white);
+  background: color-mix(in srgb, var(--clinic-marigold-soft) 34%, var(--ui-primary-soft));
 }
 
 .clinic-mobile-menu {
@@ -791,8 +1051,8 @@ textarea.ui-field {
   overflow: hidden;
   color: rgba(255, 255, 255, 0.72);
   background:
-    radial-gradient(42rem 24rem at 8% 0%, color-mix(in srgb, var(--ui-primary) 22%, transparent), transparent 68%),
-    #102126;
+    linear-gradient(118deg, color-mix(in srgb, var(--ui-primary) 18%, transparent), transparent 42%),
+    #12352f;
 }
 
 .clinic-footer::before {
@@ -801,10 +1061,20 @@ textarea.ui-field {
   content: '';
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 2rem 2rem;
+    linear-gradient(45deg, transparent 47%, rgba(255, 255, 255, 0.035) 48% 52%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, rgba(215, 131, 22, 0.08) 48% 52%, transparent 53%);
+  background-size: 3rem 3rem;
   mask-image: linear-gradient(to bottom, black, transparent 70%);
+}
+
+.clinic-footer::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  content: '';
+  background: linear-gradient(90deg, var(--clinic-marigold), var(--ui-primary), var(--clinic-peacock));
 }
 
 .clinic-footer > * {
@@ -1319,6 +1589,20 @@ textarea.ui-field {
   .clinic-footer-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
+  }
+
+  .clinic-welcome-inner {
+    min-height: 1.85rem;
+  }
+
+  .clinic-welcome-message > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .clinic-welcome-city {
+    display: none;
   }
 }
 

@@ -64,11 +64,11 @@ export class HomeComponent {
     return hasCustomImage ? (this.clinicMoments[0].label?.trim() || 'Our clinic') : 'A calmer dental visit';
   }
 
-  get heroEyebrow(): string { return this.homeContent.eyebrow ?? 'Dental Excellence'; }
-  get heroTitle(): string { return this.homeContent.heroTitle ?? 'Pain-Free Care'; }
-  get heroHighlight(): string { return this.homeContent.heroHighlight ?? 'You Can Trust'; }
+  get heroEyebrow(): string { return this.homeContent.eyebrow ?? 'Modern dentistry, close to home'; }
+  get heroTitle(): string { return this.homeContent.heroTitle ?? 'Gentle Dental Care'; }
+  get heroHighlight(): string { return this.homeContent.heroHighlight ?? 'Rooted in Trust'; }
   get heroSubtitle(): string {
-    return this.homeContent.heroSubtitle ?? 'Modern equipment, sterilized tools, and honest pricing - for every age, every visit.';
+    return this.homeContent.heroSubtitle ?? 'Thoughtful care for every generation, with modern equipment, sterilised tools, and prices explained before treatment.';
   }
 
   get trustPills(): readonly string[] {
@@ -76,7 +76,7 @@ export class HomeComponent {
     return pills.length ? pills : this.defaultTrustPills;
   }
 
-  get finalCtaTitle(): string { return this.homeContent.finalCtaTitle ?? 'Ready for a Healthier Smile?'; }
+  get finalCtaTitle(): string { return this.homeContent.finalCtaTitle ?? 'A healthier smile starts close to home.'; }
   get finalCtaSubtitle(): string {
     return this.homeContent.finalCtaSubtitle ?? 'Same-day slots available. Confirmed within 2 hours. No hidden charges.';
   }
