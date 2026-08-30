@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment } from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import { DEFAULT_BOOKING_SLOTS, formatSlotDisplay } from '../../core/services/doctor.service';
+import { formatLocalDateInput } from '../../core/utils/date-input';
 
 type View = 'lookup' | 'detail' | 'edit' | 'cancelled';
 
@@ -46,7 +47,7 @@ export class MyAppointmentComponent {
   });
 
   get minDate() {
-    return new Date().toISOString().split('T')[0];
+    return formatLocalDateInput();
   }
 
   get supportWhatsappUrl(): string {

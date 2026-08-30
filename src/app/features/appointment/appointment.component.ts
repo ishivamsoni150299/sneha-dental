@@ -19,6 +19,7 @@ import {
   formatSlotDisplay,
   isPastDate,
 } from '../../core/services/doctor.service';
+import { formatLocalDateInput } from '../../core/utils/date-input';
 
 @Component({
   selector: 'app-appointment',
@@ -162,6 +163,10 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() { this.subs.unsubscribe(); }
 
+  onDoctorSelectionChange(event: Event): void {
+    this.selectDoctor((event.target as HTMLSelectElement).value);
+  }
+
   selectDoctor(doctorId: string) {
     this.selectedDoctorId.set(doctorId);
     this.form.patchValue({ time: '' }); // clear time when switching doctor
@@ -246,7 +251,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   }
 
   get minDate() {
-    return new Date().toISOString().split('T')[0];
+    return formatLocalDateInput();
   }
 
   isInvalid(field: string) {
