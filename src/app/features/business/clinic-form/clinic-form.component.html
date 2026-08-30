@@ -1206,8 +1206,18 @@
       </section>
 
       <!-- Tab 5 nav -->
-      <div class="flex items-center justify-start pt-2">
+      <div class="flex items-center justify-between gap-3 pt-2">
         <button type="button" (click)="activeTab.set(4)" class="ui-btn ui-btn-ghost text-sm">← Website Content</button>
+        <button type="submit"
+                [disabled]="saving() || success() || accountAlreadyLinked"
+                class="ui-btn ui-btn-primary text-sm disabled:cursor-not-allowed disabled:opacity-50">
+          @if (saving()) {
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+            Saving…
+          } @else {
+            {{ isEdit ? 'Save Changes' : accountAlreadyLinked ? 'Account Already Linked' : 'Create Clinic' }}
+          }
+        </button>
       </div>
 
       } <!-- /tab 5 -->
@@ -1228,7 +1238,7 @@
 
   <!-- ── Sticky Save Bar ─────────────────────────────────────────────────────── -->
   @if (!loading()) {
-    <div class="clinic-form-savebar fixed bottom-0 left-0 right-0 z-30 px-4 py-3 backdrop-blur-sm">
+    <div class="clinic-form-savebar fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 px-4 py-3 backdrop-blur-sm sm:bottom-0 sm:z-30">
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
 
         @if (success()) {
