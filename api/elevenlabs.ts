@@ -677,25 +677,43 @@ async function handleUsage(req: VercelRequest, res: VercelResponse): Promise<Ver
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
+  let cursor = '';
+  let conversationCount = 0;
+  let totalSecs = 0;
 
-  const convRes = await fetch(
-    `https://api.elevenlabs.io/v1/convai/conversations?agent_id=${agentId}&page_size=100`,
-    { headers: { 'xi-api-key': apiKey } },
-  );
+  for (let page = 0; page < 12; page += 1) {
+    const query = new URLSearchParams({
+      agent_id: agentId,
+      page_size: '100',
+      call_start_after_unix: String(Math.floor(startOfMonth.getTime() / 1000)),
+    });
+    if (cursor) query.set('cursor', cursor);
 
-  if (!convRes.ok) {
-    console.error('[elevenlabs] usage API error:', await convRes.text());
-    return res.status(200).json({ conversations: 0, minutesUsed: 0, minutesLimit: 30 });
+    const convRes = await fetch(`https://api.elevenlabs.io/v1/convai/conversations?${query}`, {
+      headers: { 'xi-api-key': apiKey },
+    });
+    if (!convRes.ok) {
+      console.error('[elevenlabs] usage API error:', await convRes.text());
+      return res.status(502).json({ error: 'Voice usage is temporarily unavailable.' });
+    }
+
+    const data = await convRes.json() as {
+      conversations?: Array<{ call_duration_secs?: number }>;
+      has_more?: boolean;
+      next_cursor?: string | null;
+    };
+    conversationCount += data.conversations?.length ?? 0;
+    totalSecs += (data.conversations ?? [])
+      .reduce((sum, conversation) => sum + (conversation.call_duration_secs ?? 0), 0);
+
+    if (!data.has_more) break;
+    if (!data.next_cursor || page === 11) {
+      return res.status(502).json({ error: 'Voice usage is temporarily unavailable.' });
+    }
+    cursor = data.next_cursor;
   }
 
-  const data = await convRes.json() as {
-    conversations: Array<{ start_time_unix_secs?: number; call_duration_secs?: number }>;
-  };
-
-  const startUnix = startOfMonth.getTime() / 1000;
-  const thisMonth = (data.conversations ?? []).filter(c => (c.start_time_unix_secs ?? 0) >= startUnix);
-  const totalSecs = thisMonth.reduce((sum, c) => sum + (c.call_duration_secs ?? 0), 0);
-  const minutesUsed = Math.round(totalSecs / 60);
+  const minutesUsed = Math.ceil(totalSecs / 60);
 
   const minutesLimit = 30;
   const voiceBudgetCap = (clinicData['voiceBudgetCap'] as number | undefined) ?? 1000;
@@ -707,7 +725,7 @@ async function handleUsage(req: VercelRequest, res: VercelResponse): Promise<Ver
   const overageCost = overageMinutes * overageRate;
 
   return res.status(200).json({
-    conversations: thisMonth.length,
+    conversations: conversationCount,
     minutesUsed,
     minutesLimit,
     voiceBudgetCap,
