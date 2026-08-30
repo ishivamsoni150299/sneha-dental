@@ -1,7 +1,8 @@
-<div class="max-w-2xl space-y-6">
+<div class="platform-page max-w-2xl">
 
   <!-- Breadcrumb + Header -->
-  <div>
+  <div class="platform-page-header">
+    <div>
     <nav class="flex items-center gap-1.5 text-xs text-gray-400 mb-2" aria-label="Breadcrumb">
       <a routerLink="/business/leads"
          class="hover:text-gray-700 transition-colors font-medium">Leads</a>
@@ -12,6 +13,7 @@
     </nav>
     <h1 class="text-xl font-bold text-gray-900">{{ editId() ? 'Edit Lead' : 'Add Lead' }}</h1>
     <p class="text-sm text-gray-500 mt-0.5">{{ editId() ? 'Update prospect details' : 'Add a new prospect to your pipeline' }}</p>
+    </div>
   </div>
 
   @if (loading()) {
@@ -32,7 +34,7 @@
   }
 
   @if (!loading()) {
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="platform-panel overflow-hidden">
 
       <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
 

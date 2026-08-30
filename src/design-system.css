@@ -907,7 +907,8 @@ textarea.ui-field {
 
 .clinic-theme-scope .booking-page {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--clinic-marigold-soft) 44%, transparent), transparent 34%),
+    linear-gradient(132deg, color-mix(in srgb, var(--clinic-marigold-soft) 62%, transparent), transparent 30%),
+    linear-gradient(315deg, color-mix(in srgb, var(--clinic-peacock-soft) 44%, transparent), transparent 26%),
     var(--ui-canvas);
 }
 
@@ -972,6 +973,22 @@ textarea.ui-field {
   position: relative;
 }
 
+.booking-page-header {
+  padding: 2.25rem 0 2.75rem;
+  border-bottom: 1px solid var(--ui-line);
+}
+
+.booking-page-header .clinic-workflow-title {
+  max-width: 12ch;
+  margin-inline: auto;
+}
+
+.booking-page-header .clinic-trust-rail {
+  border-inline: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .clinic-workflow-kicker {
   display: inline-flex;
   align-items: center;
@@ -1004,7 +1021,7 @@ textarea.ui-field {
 .clinic-trust-rail {
   overflow: hidden;
   border: 1px solid var(--ui-line);
-  border-radius: var(--ui-radius-md);
+  border-radius: 0.5rem;
   background: color-mix(in srgb, var(--ui-surface) 92%, transparent);
   box-shadow: var(--ui-shadow-xs);
   backdrop-filter: blur(10px);
@@ -1012,6 +1029,8 @@ textarea.ui-field {
 
 .clinic-workflow-card {
   position: relative;
+  border-radius: 0.5rem;
+  box-shadow: 0 24px 64px -46px rgba(23, 51, 46, 0.44);
 }
 
 .clinic-workflow-card::before {
@@ -1025,9 +1044,39 @@ textarea.ui-field {
   background: linear-gradient(90deg, var(--clinic-marigold), var(--ui-primary), var(--clinic-peacock));
 }
 
+.booking-page .mobile-booking-shell {
+  border-color: color-mix(in srgb, var(--ui-line-strong) 72%, var(--ui-line));
+  background: var(--ui-surface);
+}
+
+.booking-page .mobile-booking-shell > :first-child {
+  background: color-mix(in srgb, var(--ui-surface-muted) 76%, white);
+}
+
 .clinic-result-card {
-  border-radius: var(--ui-radius-xl);
+  border-radius: 0.5rem;
   box-shadow: var(--ui-shadow-md);
+}
+
+@media (min-width: 768px) {
+  .booking-page-header {
+    padding-block: 0 3rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .booking-page-header {
+    padding: 0 0 1.75rem;
+    text-align: left;
+  }
+
+  .booking-page-header .clinic-workflow-title {
+    margin-inline: 0;
+  }
+
+  .booking-page-header .clinic-trust-rail {
+    margin-inline: 0;
+  }
 }
 
 .clinic-result-title {
@@ -2033,6 +2082,180 @@ textarea.ui-field {
   background-size: 2rem 2rem;
 }
 
+.platform-admin-shell {
+  --platform-admin-content: 80rem;
+  overflow-x: clip;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--ui-primary-soft) 36%, transparent), transparent 26rem),
+    var(--ui-canvas);
+}
+
+.platform-auth-shell {
+  min-height: 100vh;
+  overflow-x: clip;
+  color: var(--ui-ink);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--ui-primary-soft) 48%, transparent), transparent 28rem),
+    linear-gradient(320deg, color-mix(in srgb, var(--ui-success-soft) 42%, transparent), transparent 24rem),
+    var(--ui-canvas);
+}
+
+.platform-auth-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--ui-line);
+  background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
+  box-shadow: 0 14px 32px -30px rgba(16, 33, 38, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.platform-auth-shell .rounded-2xl,
+.platform-auth-shell .rounded-3xl {
+  border-radius: 0.5rem;
+}
+
+.platform-auth-shell :is(.border-gray-100, .border-gray-200, .border-slate-100, .border-slate-200) {
+  border-color: var(--ui-line);
+}
+
+.platform-auth-shell :is(.text-gray-950, .text-gray-900, .text-slate-950, .text-slate-900) {
+  color: var(--ui-ink);
+}
+
+.platform-auth-shell :is(.text-gray-700, .text-gray-600, .text-slate-700, .text-slate-600) {
+  color: var(--ui-ink-soft);
+}
+
+.platform-auth-shell :is(.text-gray-500, .text-gray-400, .text-slate-500, .text-slate-400) {
+  color: var(--ui-ink-muted);
+}
+
+.platform-auth-shell .bg-blue-600 {
+  background-color: var(--ui-primary);
+}
+
+.platform-auth-shell .hover\:bg-blue-700:hover {
+  background-color: var(--ui-primary-hover);
+}
+
+.platform-auth-shell .text-blue-600 {
+  color: var(--ui-primary);
+}
+
+.platform-admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--ui-line);
+  background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
+  box-shadow: 0 14px 32px -30px rgba(16, 33, 38, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.platform-admin-topbar > .ui-container {
+  min-height: 4rem;
+}
+
+.platform-page {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.platform-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ui-line);
+}
+
+.platform-page-header h1 {
+  margin: 0;
+  color: var(--ui-ink);
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.platform-page-header h1 + p,
+.platform-page-header > div > p:last-child {
+  margin-top: 0.35rem;
+  color: var(--ui-ink-muted);
+  font-size: 0.875rem;
+}
+
+.platform-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.platform-metric-card,
+.platform-panel {
+  min-width: 0;
+  border: 1px solid var(--ui-line);
+  border-radius: 0.5rem;
+  background: var(--ui-surface);
+  box-shadow: 0 18px 48px -40px rgba(16, 33, 38, 0.4);
+}
+
+.platform-metric-card {
+  padding: 1rem;
+}
+
+.platform-metric-card::before {
+  display: block;
+  width: 1.5rem;
+  height: 0.2rem;
+  margin-bottom: 0.8rem;
+  border-radius: 999px;
+  content: '';
+  background: linear-gradient(90deg, var(--ui-primary), var(--ui-success));
+}
+
+.platform-admin-shell .rounded-2xl,
+.platform-admin-shell .rounded-3xl {
+  border-radius: 0.5rem;
+}
+
+.platform-admin-shell .bg-white {
+  background-color: var(--ui-surface);
+}
+
+.platform-admin-shell :is(.border-gray-50, .border-gray-100, .border-gray-200, .border-slate-100, .border-slate-200) {
+  border-color: var(--ui-line);
+}
+
+.platform-admin-shell :is(.text-gray-950, .text-gray-900, .text-slate-950, .text-slate-900) {
+  color: var(--ui-ink);
+}
+
+.platform-admin-shell :is(.text-gray-800, .text-gray-700, .text-gray-600, .text-slate-800, .text-slate-700, .text-slate-600) {
+  color: var(--ui-ink-soft);
+}
+
+.platform-admin-shell :is(.text-gray-500, .text-gray-400, .text-slate-500, .text-slate-400) {
+  color: var(--ui-ink-muted);
+}
+
+.platform-admin-shell .lead-panel,
+.platform-admin-shell .lead-card,
+.platform-admin-shell .lead-stat-card {
+  border-color: var(--ui-line);
+  border-radius: 0.5rem;
+  background-color: var(--ui-surface);
+  box-shadow: 0 18px 48px -40px rgba(16, 33, 38, 0.4);
+}
+
+.platform-admin-shell table thead,
+.platform-admin-shell .ui-table thead {
+  background: var(--ui-surface-muted);
+}
+
 /* Public platform landing experience */
 .platform-landing {
   position: relative;
@@ -2107,15 +2330,142 @@ textarea.ui-field {
 }
 
 .clinic-admin-shell {
+  --admin-content: 76rem;
   min-height: 100vh;
+  overflow-x: clip;
   color: var(--ui-ink);
   background:
-    radial-gradient(58rem 30rem at 8% -10%, color-mix(in srgb, var(--ui-primary-soft) 66%, transparent), transparent 68%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ui-primary-soft) 30%, transparent), transparent 24rem),
     var(--ui-canvas);
 }
 
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--ui-line);
+  background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
+  box-shadow: 0 12px 30px -28px rgba(16, 33, 38, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.admin-topbar-inner {
+  display: flex;
+  width: min(100%, var(--admin-content));
+  min-height: 4rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 1.5rem);
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-page {
+  width: min(100%, var(--admin-content));
+  margin-inline: auto;
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 3vw, 1.5rem) 3rem;
+}
+
+.admin-page-title {
+  color: var(--ui-ink);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.admin-page-subtitle {
+  margin-top: 0.25rem;
+  color: var(--ui-ink-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.admin-panel,
+.admin-stat-card,
+.admin-modal,
+.admin-drawer {
+  border: 1px solid var(--ui-line);
+  border-radius: 0.5rem;
+  background: var(--ui-surface);
+  box-shadow: 0 18px 48px -40px rgba(16, 33, 38, 0.42);
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-stat-card {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.admin-stat-card::before {
+  display: block;
+  width: 1.75rem;
+  height: 0.2rem;
+  margin-bottom: 0.85rem;
+  border-radius: 999px;
+  content: '';
+  background: linear-gradient(90deg, var(--clinic-marigold, #d78316) 0 42%, var(--ui-primary) 42% 68%, var(--clinic-peacock, #176b5b) 68%);
+}
+
+.admin-modal {
+  max-height: min(90vh, 52rem);
+  overflow-y: auto;
+}
+
+.admin-drawer {
+  border-block: 0;
+  border-right: 0;
+  border-radius: 0;
+}
+
+.clinic-admin-shell .rounded-2xl,
+.clinic-admin-shell .rounded-3xl {
+  border-radius: 0.5rem;
+}
+
+.clinic-admin-shell .bg-white {
+  background-color: var(--ui-surface);
+}
+
+.clinic-admin-shell :is(.border-gray-50, .border-gray-100, .border-gray-200, .border-slate-100, .border-slate-200) {
+  border-color: var(--ui-line);
+}
+
+.clinic-admin-shell :is(.text-gray-950, .text-gray-900, .text-slate-950, .text-slate-900) {
+  color: var(--ui-ink);
+}
+
+.clinic-admin-shell :is(.text-gray-800, .text-gray-700, .text-gray-600, .text-slate-800, .text-slate-700, .text-slate-600) {
+  color: var(--ui-ink-soft);
+}
+
+.clinic-admin-shell :is(.text-gray-500, .text-gray-400, .text-slate-500, .text-slate-400) {
+  color: var(--ui-ink-muted);
+}
+
+.clinic-admin-shell :is(.shadow-sm, .shadow-md) {
+  box-shadow: 0 18px 48px -40px rgba(16, 33, 38, 0.42);
+}
+
+.clinic-admin-shell table thead {
+  background: var(--ui-surface-muted);
+}
+
+.clinic-admin-shell table tbody tr {
+  transition: background-color var(--ui-duration-fast);
+}
+
+.clinic-admin-shell table tbody tr:hover {
+  background: color-mix(in srgb, var(--ui-primary-soft) 30%, var(--ui-surface));
+}
+
 .clinic-admin-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea),
-.platform-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea) {
+.platform-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea),
+.platform-auth-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea) {
   border-color: var(--ui-line-strong);
   border-radius: var(--ui-radius-sm);
   color: var(--ui-ink);
@@ -2124,7 +2474,8 @@ textarea.ui-field {
 }
 
 .clinic-admin-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea):focus,
-.platform-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea):focus {
+.platform-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea):focus,
+.platform-auth-shell :where(input:not([type='radio']):not([type='checkbox']):not([type='range']), select, textarea):focus {
   border-color: var(--ui-primary);
   outline: 0;
   box-shadow: 0 0 0 4px var(--ui-focus);
@@ -2153,9 +2504,60 @@ textarea.ui-field {
   .platform-mobile-menu {
     display: none;
   }
+
+  .admin-stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .platform-metric-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 639px) {
+  .platform-auth-topbar > div {
+    min-height: 3.75rem;
+  }
+
+  .platform-auth-shell main {
+    min-height: calc(100dvh - 3.75rem);
+  }
+
+  .platform-page {
+    gap: 1rem;
+  }
+
+  .platform-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .platform-page-header > :is(a, button),
+  .platform-page-header > div:last-child:not(:first-child) {
+    align-self: stretch;
+  }
+
+  .platform-admin-shell > main {
+    padding-top: 1rem;
+  }
+
+  .admin-topbar-inner {
+    min-height: 3.75rem;
+  }
+
+  .admin-page {
+    padding-top: 1rem;
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .admin-modal {
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .admin-drawer {
+    width: min(100%, 28rem);
+  }
+
   .platform-announcement {
     display: flex;
     min-height: 2rem;

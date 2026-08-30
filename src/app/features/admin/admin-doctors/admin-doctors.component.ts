@@ -41,8 +41,8 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
     <div class="clinic-admin-shell min-h-screen">
 
       <!-- ── Header ───────────────────────────────────────────────────────── -->
-      <div class="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <div class="admin-topbar">
+        <div class="admin-topbar-inner max-w-5xl">
           <div class="flex items-center gap-3">
             <a routerLink="/business/clinic/dashboard"
                class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
@@ -51,8 +51,8 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               </svg>
             </a>
             <div>
-              <h1 class="font-bold text-gray-900 text-lg leading-none">Doctor Management</h1>
-              <p class="text-xs text-gray-400 mt-0.5">Manage doctors, schedules, and availability</p>
+              <h1 class="admin-page-title leading-none">Doctor Management</h1>
+              <p class="admin-page-subtitle">Manage doctors, schedules, and availability</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -70,7 +70,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
         </div>
       </div>
 
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <div class="admin-page max-w-5xl">
 
         <!-- ── Loading ───────────────────────────────────────────────────── -->
         @if (loading()) {
@@ -97,7 +97,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
 
         <!-- ── Empty state ───────────────────────────────────────────────── -->
         @if (!loading() && doctors().length === 0) {
-          <div class="bg-white rounded-2xl border border-gray-200 shadow-sm py-16 text-center">
+          <div class="admin-panel py-16 text-center">
             <div class="w-16 h-16 bg-[var(--accent-lt)] rounded-2xl flex items-center justify-center mx-auto mb-5">
               <svg class="w-8 h-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -120,7 +120,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
         @if (!loading() && doctors().length > 0) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @for (doctor of doctors(); track doctor.id) {
-              <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+              <div class="admin-panel overflow-hidden hover:shadow-md transition-shadow">
 
                 <!-- Card header -->
                 <div class="px-5 py-4 flex items-center justify-between gap-3"
@@ -203,7 +203,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeModal()"></div>
 
         <!-- Modal panel -->
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="admin-modal relative w-full max-w-2xl">
 
           <!-- Modal header -->
           <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
@@ -336,7 +336,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
     @if (deleteTarget()) {
       <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="deleteTarget.set(null)"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200">
+        <div class="admin-modal relative w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

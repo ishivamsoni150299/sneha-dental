@@ -12,8 +12,8 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="clinic-admin-shell min-h-screen flex flex-col">
-      <header class="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur">
-        <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <header class="admin-topbar">
+        <div class="admin-topbar-inner max-w-6xl">
           <a routerLink="/business" class="flex items-center gap-2 group">
             <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
               <svg class="h-[15px] w-[15px] text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -49,7 +49,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
           </p>
 
           <div class="mb-6 grid gap-3 text-left sm:grid-cols-2">
-            <div class="rounded-2xl border-2 border-gray-200 bg-white p-5 transition-colors hover:border-blue-300">
+            <div class="admin-panel p-5 transition-colors hover:border-blue-300">
               <p class="mb-0.5 font-bold text-gray-900">Starter</p>
               <p class="mb-1 text-2xl font-extrabold text-blue-600">{{ starterPrice }}</p>
               <ul class="space-y-1.5 text-xs text-gray-600">
@@ -72,7 +72,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
               </button>
             </div>
 
-            <div class="relative overflow-hidden rounded-2xl border-2 border-blue-600 bg-blue-600 p-5 text-white">
+            <div class="relative overflow-hidden rounded-lg border-2 border-blue-600 bg-blue-600 p-5 text-white">
               <div class="absolute -top-3 left-4">
                 <span class="rounded-full bg-amber-400 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide text-amber-900">Most Popular</span>
               </div>

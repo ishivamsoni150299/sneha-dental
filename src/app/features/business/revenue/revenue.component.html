@@ -1,9 +1,11 @@
-<div class="space-y-6">
+<div class="platform-page">
 
   <!-- Header -->
-  <div>
+  <div class="platform-page-header">
+    <div>
     <h1 class="text-xl font-bold text-gray-900">Revenue</h1>
     <p class="text-sm text-gray-500 mt-0.5">Subscription overview and billing status across all clinics</p>
+    </div>
   </div>
 
   @if (loading()) {
@@ -19,33 +21,33 @@
   @if (!loading()) {
 
     <!-- ── Stats cards ───────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+    <div class="platform-metric-grid lg:grid-cols-6">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">MRR</p>
         <p class="text-2xl font-bold text-gray-900">₹{{ mrr() }}</p>
         <p class="text-xs text-gray-400 mt-1">Monthly Recurring Revenue</p>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">ARR</p>
         <p class="text-2xl font-bold text-gray-900">₹{{ arr() }}</p>
         <p class="text-xs text-gray-400 mt-1">Annual Run Rate</p>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Profit</p>
         <p class="text-2xl font-bold" [class]="profit() >= 0 ? 'text-gray-900' : 'text-red-600'">₹{{ profit() }}</p>
         <p class="text-xs text-gray-400 mt-1">MRR minus costs</p>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Margin</p>
         <p class="text-2xl font-bold" [class]="profitMargin() >= 70 ? 'text-green-700' : 'text-gray-900'">{{ profitMargin() }}%</p>
         <p class="text-xs text-gray-400 mt-1">Net profit margin</p>
       </div>
-      <div class="rounded-2xl border border-green-200 bg-green-50 p-5">
+      <div class="platform-metric-card border-green-200 bg-green-50">
         <p class="text-xs text-green-600 uppercase tracking-wide font-semibold mb-1">Active</p>
         <p class="text-2xl font-bold text-green-700">{{ activeClinics().length }}</p>
         <p class="text-xs text-green-600 mt-1">Paying clients</p>
       </div>
-      <div class="rounded-2xl border border-yellow-200 bg-yellow-50 p-5">
+      <div class="platform-metric-card border-yellow-200 bg-yellow-50">
         <p class="text-xs text-yellow-600 uppercase tracking-wide font-semibold mb-1">Trial</p>
         <p class="text-2xl font-bold text-yellow-700">{{ trialClinics().length }}</p>
         <p class="text-xs text-yellow-600 mt-1">To convert</p>
@@ -53,7 +55,7 @@
     </div>
 
     <!-- ── Platform Costs ───────────────────────────────────────────────── -->
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div class="platform-panel overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <div>
           <h2 class="text-sm font-semibold text-gray-900">Platform Costs</h2>
@@ -150,7 +152,7 @@
     }
 
     <!-- ── Clinics table ─────────────────────────────────────────────────── -->
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div class="platform-panel overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <h2 class="text-sm font-semibold text-gray-900">All Clinics</h2>
         <span class="text-xs text-gray-400">Sorted by renewal date (soonest first)</span>

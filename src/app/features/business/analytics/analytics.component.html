@@ -1,9 +1,11 @@
-<div class="space-y-6">
+<div class="platform-page">
 
   <!-- Header -->
-  <div>
+  <div class="platform-page-header">
+    <div>
     <h1 class="text-xl font-bold text-gray-900">Analytics</h1>
     <p class="text-sm text-gray-500 mt-0.5">Appointment activity across all clinic websites · {{ currentMonth() }}</p>
+    </div>
   </div>
 
   @if (loading()) {
@@ -34,23 +36,23 @@
   @if (!loading()) {
 
     <!-- ── Top stats ─────────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+    <div class="platform-metric-grid">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">This Month</p>
         <p class="text-3xl font-bold text-gray-900">{{ totalThisMonth() }}</p>
         <p class="text-xs text-gray-400 mt-1">Total bookings</p>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">All Time</p>
         <p class="text-3xl font-bold text-gray-900">{{ totalAllTime() }}</p>
         <p class="text-xs text-gray-400 mt-1">Total bookings</p>
       </div>
-      <div class="bg-white rounded-2xl border border-green-200 bg-green-50 p-5">
+      <div class="platform-metric-card border-green-200 bg-green-50">
         <p class="text-xs text-green-600 uppercase tracking-wide font-semibold mb-1">Confirmed</p>
         <p class="text-3xl font-bold text-green-700">{{ statusCounts().confirmed }}</p>
         <p class="text-xs text-green-600 mt-1">This month</p>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+      <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Peak Day</p>
         <p class="text-3xl font-bold text-gray-900">{{ peakDay() }}</p>
         <p class="text-xs text-gray-400 mt-1">Most bookings</p>
@@ -58,7 +60,7 @@
     </div>
 
     <!-- ── Per-clinic bookings ───────────────────────────────────────────── -->
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div class="platform-panel overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100">
         <h2 class="text-sm font-semibold text-gray-900">Bookings per Clinic</h2>
         <p class="text-xs text-gray-400 mt-0.5">This month vs all-time — sorted by activity</p>
@@ -96,7 +98,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
       <!-- Top services -->
-      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div class="platform-panel overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
           <h2 class="text-sm font-semibold text-gray-900">Top Services</h2>
           <p class="text-xs text-gray-400 mt-0.5">Most booked this month</p>
@@ -122,7 +124,7 @@
       </div>
 
       <!-- Status breakdown -->
-      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div class="platform-panel overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
           <h2 class="text-sm font-semibold text-gray-900">Booking Status</h2>
           <p class="text-xs text-gray-400 mt-0.5">This month's appointments</p>
@@ -173,7 +175,7 @@
     </div>
 
     <!-- ── Recent bookings ───────────────────────────────────────────────── -->
-    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div class="platform-panel overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100">
         <h2 class="text-sm font-semibold text-gray-900">Recent Bookings</h2>
         <p class="text-xs text-gray-400 mt-0.5">Last 10 across all clinics</p>

@@ -18,8 +18,8 @@
   }
 
   <!-- Header -->
-  <header class="clinic-settings-header sticky top-0 z-40">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+  <header class="admin-topbar clinic-settings-header z-40">
+    <div class="admin-topbar-inner max-w-5xl">
       <div class="flex items-center gap-3">
         <a routerLink="/business/clinic/dashboard"
            class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -28,15 +28,15 @@
           </svg>
         </a>
         <div>
-          <p class="font-bold text-gray-900 text-sm leading-none">Clinic Settings</p>
-          <p class="text-xs text-gray-400 mt-0.5">{{ cfg.name || 'Edit your clinic website content and branding' }}</p>
+          <p class="admin-page-title text-sm leading-none">Clinic Settings</p>
+          <p class="admin-page-subtitle">{{ cfg.name || 'Edit your clinic website content and branding' }}</p>
         </div>
       </div>
       <app-clinic-account-menu />
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <main class="admin-page max-w-5xl space-y-6">
 
     <!-- Loading skeleton -->
     @if (loading()) {
