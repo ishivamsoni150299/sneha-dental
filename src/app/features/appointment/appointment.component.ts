@@ -1,4 +1,4 @@
-import { DOCUMENT, NgClass } from '@angular/common';
+import { DecimalPipe, DOCUMENT, NgClass } from '@angular/common';
 import type { OnDestroy, OnInit } from '@angular/core';
 import {
   ChangeDetectionStrategy,
@@ -24,7 +24,7 @@ import { formatLocalDateInput } from '../../core/utils/date-input';
 @Component({
   selector: 'app-appointment',
   standalone: true,
-  imports: [NgClass, ReactiveFormsModule, RouterLink],
+  imports: [DecimalPipe, NgClass, ReactiveFormsModule, RouterLink],
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -114,6 +114,16 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     { text: 'Arrive at your scheduled time with your booking reference' },
   ];
 
+  readonly quickDates = Array.from({ length: 3 }, (_, offset) => {
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+    return {
+      value: formatLocalDateInput(date),
+      label: offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : date.toLocaleDateString('en-IN', { weekday: 'short' }),
+      meta: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+    };
+  });
+
   form = this.fb.group({
     name:    ['', [Validators.required, Validators.minLength(2)]],
     phone:   ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
@@ -172,6 +182,11 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     this.form.patchValue({ time: '' }); // clear time when switching doctor
     this.validateScheduleFields();
     void this.refreshSlots();
+  }
+
+  selectQuickDate(date: string): void {
+    this.form.get('date')?.setValue(date);
+    this.form.get('date')?.markAsTouched();
   }
 
   private async refreshSlots() {

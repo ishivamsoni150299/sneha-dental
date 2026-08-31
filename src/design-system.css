@@ -2924,16 +2924,125 @@ textarea.ui-field {
 
 @media (max-width: 767px) {
   .booking-page-header {
-    padding: 0 0 1.75rem;
+    margin-bottom: 1rem !important;
+    padding: 0 0 1rem;
     text-align: left;
+  }
+
+  .booking-page-header .clinic-workflow-kicker {
+    display: none;
   }
 
   .booking-page-header .clinic-workflow-title {
     margin-inline: 0;
+    font-size: 2.05rem;
+    line-height: 1.06;
   }
 
   .booking-page-header .clinic-trust-rail {
     margin-inline: 0;
+  }
+
+  .booking-page .mobile-booking-shell {
+    border-radius: 0.5rem;
+    box-shadow: 0 16px 40px -32px rgba(23, 51, 46, 0.45);
+  }
+
+  .booking-page .booking-mobile-form {
+    padding-bottom: 1rem;
+  }
+
+  .booking-page input:not([type='checkbox']):not([type='radio']),
+  .booking-page select,
+  .booking-page textarea {
+    min-height: 3.25rem;
+    font-size: 1rem;
+  }
+
+  .booking-quick-date {
+    min-height: 3.25rem;
+    border-radius: 0.5rem;
+  }
+
+  .booking-mobile-selection {
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .booking-mobile-selection > div:first-child {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .booking-mobile-promises > div {
+    min-width: 0;
+    border-radius: 0.5rem;
+    padding-inline: 0.45rem;
+  }
+
+  .booking-mobile-dock {
+    position: fixed;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    left: 0.75rem;
+    z-index: 50;
+    border: 1px solid color-mix(in srgb, var(--ui-line-strong) 75%, white);
+    border-radius: 0.5rem;
+    padding: 0.375rem;
+    background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
+    box-shadow: 0 18px 42px -22px rgba(16, 33, 38, 0.6);
+    backdrop-filter: blur(18px) saturate(1.12);
+  }
+
+  .booking-mobile-dock-actions {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: 0.375rem;
+  }
+
+  .booking-mobile-dock-actions-single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .booking-mobile-dock-back,
+  .booking-mobile-dock-primary {
+    display: inline-flex;
+    min-height: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 0.375rem;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .booking-mobile-dock-back {
+    color: var(--ui-ink-soft);
+    background: var(--ui-surface-muted);
+  }
+
+  .booking-mobile-dock-primary {
+    gap: 0.5rem;
+    padding-inline: 1rem;
+    color: white;
+    background: var(--ui-primary);
+    font-size: 0.875rem;
+    font-weight: 760;
+  }
+
+  .booking-mobile-dock-primary:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .booking-page:has(input:not([type='checkbox']):not([type='radio']):focus, select:focus, textarea:focus) .booking-mobile-dock {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .booking-page-header .clinic-workflow-lede {
+    display: none;
   }
 }
 

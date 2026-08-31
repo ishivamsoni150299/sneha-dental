@@ -1,5 +1,5 @@
 
-<section class="clinic-workflow-page booking-page py-6 md:py-20">
+<section class="clinic-workflow-page booking-page pb-24 pt-4 md:py-20">
   <div class="ui-container">
     <header class="clinic-workflow-header booking-page-header mx-auto mb-6 max-w-3xl md:mb-11 md:text-center">
       <p class="clinic-workflow-kicker mb-3 truncate text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--accent-dk)]">
@@ -16,9 +16,9 @@
         Book your appointment
       </h1>
       <p class="clinic-workflow-lede mt-3 max-w-2xl text-sm leading-6 text-gray-600 md:mx-auto md:text-base">
-        Choose a convenient time for your visit. {{ clinic.displayName }} will confirm your request {{ clinic.isOpenNow ? 'shortly' : confirmationWindowLabel.toLowerCase() }}.
+        Choose a convenient time. We'll call to confirm your appointment {{ clinic.isOpenNow ? 'shortly' : confirmationWindowLabel.toLowerCase() }}.
       </p>
-      <div class="clinic-trust-rail mt-5 grid grid-cols-3 divide-x divide-gray-200 px-2 py-3 md:mx-auto md:max-w-xl">
+      <div class="clinic-trust-rail mt-5 hidden grid-cols-3 divide-x divide-gray-200 px-2 py-3 sm:grid md:mx-auto md:max-w-xl">
         <div class="px-2 text-center">
           <p class="text-xs font-bold text-gray-900">No payment</p>
           <p class="mt-0.5 text-[11px] text-gray-500">to request</p>
@@ -41,16 +41,24 @@
 
           <!-- ── Step Progress Indicator ── -->
           <div class="border-b border-gray-100 px-4 pb-4 pt-5 md:px-6 md:pb-5 md:pt-6">
-            <div class="sm:hidden">
-              <div>
-                <div>
-                  <p class="text-sm font-semibold text-gray-900">{{ stepLabels[currentStep() - 1].title }}</p>
-                  <p class="mt-0.5 text-xs text-gray-500">Step {{ currentStep() }} of {{ totalSteps }}</p>
+            <div class="sm:hidden" aria-label="Booking progress">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">
+                    Step {{ currentStep() }} of {{ totalSteps }}
+                  </p>
+                  <p class="mt-1 text-base font-bold text-gray-950">{{ stepLabels[currentStep() - 1].title }}</p>
                 </div>
+                <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-gray-500 shadow-sm">
+                  {{ (currentStep() / totalSteps) * 100 | number:'1.0-0' }}%
+                </span>
               </div>
-              <div class="mt-4 h-2 rounded-full bg-gray-100">
-                <div class="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
-                     [style.width.%]="(currentStep() / totalSteps) * 100"></div>
+              <div class="mt-3 grid grid-cols-3 gap-1.5" role="progressbar"
+                   [attr.aria-valuenow]="currentStep()" aria-valuemin="1" [attr.aria-valuemax]="totalSteps">
+                @for (step of stepLabels; track step.num) {
+                  <span class="h-1.5 rounded-full transition-colors duration-300"
+                        [ngClass]="step.num <= currentStep() ? 'bg-[var(--accent)]' : 'bg-gray-200'"></span>
+                }
               </div>
             </div>
 
@@ -112,35 +120,7 @@
             </div>
           </div>
 
-          @if (form.get('service')?.value || form.get('date')?.value || form.get('time')?.value) {
-          <div class="border-b border-gray-100 bg-slate-50 px-4 py-3 md:hidden">
-            <div class="mobile-booking-summary">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Selected visit</p>
-                  <p class="mt-1 text-sm font-semibold text-gray-900">{{ selectedServiceLabel }}</p>
-                  <p class="mt-0.5 text-xs text-gray-600">{{ selectedDateLabel }}</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Promise</p>
-                  <p class="mt-1 text-sm font-semibold text-gray-900">{{ confirmationWindowLabel }}</p>
-                </div>
-              </div>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-600 shadow-sm">
-                  <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-                  {{ selectedDoctorLabel }}
-                </span>
-                <span class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-600 shadow-sm">
-                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  {{ selectedTimeLabel }}
-                </span>
-              </div>
-            </div>
-          </div>
-          }
-
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="px-4 py-5 md:px-6 md:py-6" novalidate>
+          <form id="appointment-booking-fields" [formGroup]="form" (ngSubmit)="onSubmit()" class="booking-mobile-form px-4 py-5 md:px-6 md:py-6" novalidate>
 
             <!-- ═══════════════════════════════════════════════════════ -->
             <!-- STEP 1: Service & Scheduling                           -->
@@ -284,6 +264,20 @@
                     <label for="appointment-date" class="block text-sm font-semibold text-gray-700 mb-1.5">
                       Preferred Date <span class="text-red-500">*</span>
                     </label>
+                    <div class="booking-quick-dates mb-2.5 grid grid-cols-3 gap-2 sm:hidden" aria-label="Quick date choices">
+                      @for (option of quickDates; track option.value) {
+                        <button type="button"
+                                (click)="selectQuickDate(option.value)"
+                                [attr.aria-pressed]="form.get('date')?.value === option.value"
+                                class="booking-quick-date min-w-0 border px-2 py-2.5 text-center transition-colors"
+                                [ngClass]="form.get('date')?.value === option.value
+                                  ? 'border-[var(--accent)] bg-[var(--accent-lt)] text-[var(--accent-dk)]'
+                                  : 'border-gray-200 bg-white text-gray-600'">
+                          <span class="block text-xs font-bold">{{ option.label }}</span>
+                          <span class="mt-0.5 block text-[10px] font-medium opacity-70">{{ option.meta }}</span>
+                        </button>
+                      }
+                    </div>
                     <div class="relative">
                       <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -354,7 +348,7 @@
 
                 <!-- Step 1 → Next -->
                 <button type="button" (click)="nextStep()"
-                        class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] text-white py-4 rounded-xl font-bold text-base shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:shadow-lg flex items-center justify-center gap-2 mt-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2">
+                  class="booking-mobile-primary mt-2 hidden w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-base font-bold text-white shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:bg-[var(--accent-dk)] hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 md:flex">
                   Continue
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
@@ -362,7 +356,7 @@
                 </button>
 
                 @if (clinic.hasWhatsapp) {
-                  <p class="text-xs text-gray-400 text-center">
+                  <p class="hidden text-center text-xs text-gray-400 md:block">
                     Prefer WhatsApp?
                     <a [href]="whatsappUrl" target="_blank" rel="noopener noreferrer" class="text-green-600 font-semibold hover:underline">Book on WhatsApp</a>
                   </p>
@@ -377,7 +371,7 @@
               <div class="space-y-5">
 
                 <!-- Summary of step 1 selections -->
-                <div class="bg-[var(--accent-lt)] rounded-2xl px-4 py-3.5 border border-[var(--accent-bd)] flex items-start gap-3">
+                <div class="booking-mobile-selection flex items-start gap-3 rounded-2xl border border-[var(--accent-bd)] bg-[var(--accent-lt)] px-4 py-3.5 xl:hidden">
                   <div class="w-8 h-8 bg-[var(--accent)] rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -438,7 +432,7 @@
                 </div>
 
                 <!-- Step 2 navigation -->
-                <div class="flex gap-3 pt-1">
+                <div class="booking-mobile-actions hidden gap-3 pt-1 md:flex">
                   <button type="button" (click)="prevStep()"
                           class="flex items-center justify-center gap-1.5 px-5 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[52px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -500,7 +494,7 @@
                 </div>
 
                 <!-- Inline info strip — 3 items side by side on all screen sizes -->
-                <div class="flex items-stretch gap-2">
+                <div class="booking-mobile-promises flex items-stretch gap-2">
                   <div class="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 text-center">
                     <p class="text-[10px] uppercase tracking-wide text-gray-400 leading-none">Confirm</p>
                     <p class="mt-1 text-xs font-bold text-gray-900 leading-tight">{{ confirmationWindowLabel }}</p>
@@ -573,7 +567,7 @@
 
                 <!-- Submit button -->
                 <button type="submit" [disabled]="submitting()"
-                        class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dk)] disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-base shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:shadow-lg flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2">
+                  class="booking-mobile-primary hidden w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-4 text-base font-bold text-white shadow-md shadow-[var(--accent-bd)] transition-all hover:-translate-y-px hover:bg-[var(--accent-dk)] hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 md:flex">
                   @if (submitting()) {
                     <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -626,7 +620,7 @@
                   </div>
                 }
 
-                <div class="flex gap-3">
+                <div class="hidden gap-3 md:flex">
                   <button type="button" (click)="prevStep()"
                           class="flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -843,6 +837,42 @@
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <div class="booking-mobile-dock md:hidden" aria-label="Booking actions">
+    <div class="booking-mobile-dock-actions" [class.booking-mobile-dock-actions-single]="currentStep() === 1">
+      @if (currentStep() > 1) {
+        <button type="button" (click)="prevStep()" class="booking-mobile-dock-back" aria-label="Go back one step">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+      }
+
+      @if (currentStep() < totalSteps) {
+        <button type="button" (click)="nextStep()" class="booking-mobile-dock-primary">
+          <span>{{ currentStep() === 1 ? 'Continue to details' : 'Review appointment' }}</span>
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
+          </svg>
+        </button>
+      } @else {
+        <button type="submit" form="appointment-booking-fields" [disabled]="submitting()" class="booking-mobile-dock-primary">
+          @if (submitting()) {
+            <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <span>Sending request...</span>
+          } @else {
+            <span>Confirm appointment</span>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+          }
+        </button>
+      }
     </div>
   </div>
 </section>
