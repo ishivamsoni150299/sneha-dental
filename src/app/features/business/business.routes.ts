@@ -10,8 +10,8 @@ export const businessRoutes: Routes = [
     loadComponent: () =>
       import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
     data: {
-      title: 'mydentalplatform | Dental Clinic Websites, Booking and AI Reception',
-      description: 'Launch a dental clinic website with online booking, WhatsApp, AI chat, and AI voice receptionist. Starter ₹999/month. Pro ₹2,499/month.',
+      title: 'Dental Clinic Website & Booking Software | mydentalplatform',
+      description: 'Launch a dental clinic website with online appointment booking, WhatsApp, and a 24/7 AI receptionist. Built for clinics in India. Start a 30-day free trial.',
     },
   },
 
@@ -23,6 +23,7 @@ export const businessRoutes: Routes = [
     data: {
       title: 'Create Your Dental Clinic Website',
       description: 'Create your account and launch a dental clinic website with online booking and patient management.',
+      noIndex: true,
     },
   },
 

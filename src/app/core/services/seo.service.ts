@@ -4,6 +4,8 @@ import { Meta, Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
 import { ClinicConfigService } from './clinic-config.service';
+import { PLATFORM_PLANS } from '../config/clinic.config';
+import { PLATFORM_FAQS } from '../content/platform-marketing.content';
 import { environment } from '../../../environments/environment';
 
 interface SeoRouteData {
@@ -27,9 +29,10 @@ type SeoContext =
     };
 
 const PLATFORM_NAME = 'mydentalplatform';
-const PLATFORM_DEFAULT_TITLE = 'mydentalplatform | Dental Clinic Websites, Booking and AI Reception';
+const PLATFORM_ORIGIN = 'https://mydentalplatform.com';
+const PLATFORM_DEFAULT_TITLE = 'Dental Clinic Website & Booking Software | mydentalplatform';
 const PLATFORM_DEFAULT_DESCRIPTION =
-  'Dental clinic websites with online booking, WhatsApp integration, AI chat, and AI voice receptionist. Starter ₹999/month. Pro ₹2,499/month.';
+  'Launch a dental clinic website with online appointment booking, WhatsApp, and a 24/7 AI receptionist. Built for clinics in India. Start a 30-day free trial.';
 const INDEXABLE_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 const NOINDEX_ROBOTS = 'noindex,nofollow';
 
@@ -57,8 +60,9 @@ export class SeoService {
     const context = this.getSeoContext(path);
     const title = this.buildTitle(data.title, context);
     const description = data.description ?? context.defaultDescription;
-    const url = this.absoluteUrl(path);
-    const image = this.absoluteUrl(data.image ?? '/og-default.svg');
+    const origin = context.kind === 'platform' ? PLATFORM_ORIGIN : this.document.location.origin;
+    const url = this.absoluteUrl(path, origin);
+    const image = this.absoluteUrl(data.image ?? '/og-default.svg', origin);
     const imageAlt = context.kind === 'platform'
       ? 'mydentalplatform dental website platform preview'
       : `${context.siteName} dental clinic preview`;
@@ -123,15 +127,67 @@ export class SeoService {
     url: string,
     image: string
   ): Record<string, unknown>[] {
-    const origin = this.document.location.origin;
-    const breadcrumb = this.buildBreadcrumbSchema(path, title, PLATFORM_NAME);
+    const origin = PLATFORM_ORIGIN;
+    const breadcrumb = this.buildBreadcrumbSchema(path, title, PLATFORM_NAME, origin);
+    const software = path === '/business'
+      ? this.compact({
+          '@type': 'SoftwareApplication',
+          '@id': `${url}#software`,
+          name: PLATFORM_NAME,
+          alternateName: 'mydentalplatform Dental Clinic Website & Booking Software',
+          applicationCategory: 'BusinessApplication',
+          applicationSubCategory: 'Dental clinic website and appointment booking software',
+          operatingSystem: 'Web',
+          url,
+          image,
+          description,
+          inLanguage: 'en-IN',
+          provider: { '@id': `${origin}/#organization` },
+          audience: {
+            '@type': 'BusinessAudience',
+            audienceType: 'Dental clinics',
+          },
+          featureList: [
+            'Responsive dental clinic website',
+            'Online appointment booking',
+            'WhatsApp integration',
+            'Clinic administration dashboard',
+            '24/7 AI voice receptionist on the Pro plan',
+          ],
+          offers: Object.entries(PLATFORM_PLANS).map(([planId, plan]) => ({
+            '@type': 'Offer',
+            name: planId === 'trial' ? '30-day Free Trial' : `${plan.label} monthly plan`,
+            price: plan.monthly,
+            priceCurrency: 'INR',
+            availability: 'https://schema.org/InStock',
+            url: planId === 'trial'
+              ? `${origin}/business/signup?plan=trial`
+              : `${origin}/business/signup?plan=${planId}&cycle=monthly`,
+            seller: { '@id': `${origin}/#organization` },
+          })),
+        })
+      : undefined;
+    const faq = path === '/business'
+      ? this.compact({
+          '@type': 'FAQPage',
+          '@id': `${url}#faq`,
+          mainEntity: PLATFORM_FAQS.map(item => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.a,
+            },
+          })),
+        })
+      : undefined;
     const graph = [
       this.compact({
         '@type': 'Organization',
         '@id': `${origin}/#organization`,
         name: PLATFORM_NAME,
         url: origin,
-        logo: this.absoluteUrl('/icons/icon-512.png'),
+        logo: this.absoluteUrl('/icons/icon-512.png', origin),
         image,
         description: PLATFORM_DEFAULT_DESCRIPTION,
       }),
@@ -152,9 +208,12 @@ export class SeoService {
         description,
         isPartOf: { '@id': `${origin}/#website` },
         about: { '@id': `${origin}/#organization` },
+        mainEntity: software ? { '@id': `${url}#software` } : undefined,
         primaryImageOfPage: image,
         breadcrumb: breadcrumb ? { '@id': `${url}#breadcrumb` } : undefined,
       }),
+      software,
+      faq,
       breadcrumb,
     ].filter(Boolean);
 
@@ -176,7 +235,7 @@ export class SeoService {
       config.social.linkedin,
     ].filter(Boolean) as string[];
     const origin = this.document.location.origin;
-    const breadcrumb = this.buildBreadcrumbSchema(path, title, clinicName);
+    const breadcrumb = this.buildBreadcrumbSchema(path, title, clinicName, origin);
     const graph = [
       this.compact({
         '@type': 'Dentist',
@@ -277,12 +336,12 @@ export class SeoService {
   private buildBreadcrumbSchema(
     path: string,
     pageTitle: string,
-    siteName: string
+    siteName: string,
+    origin: string
   ): Record<string, unknown> | undefined {
     const segments = path.split('/').filter(Boolean);
     if (!segments.length) return undefined;
 
-    const origin = this.document.location.origin;
     const items = [{ name: siteName, item: origin }];
     let currentPath = '';
 
@@ -298,7 +357,7 @@ export class SeoService {
 
     return this.compact({
       '@type': 'BreadcrumbList',
-      '@id': `${this.absoluteUrl(path)}#breadcrumb`,
+      '@id': `${this.absoluteUrl(path, origin)}#breadcrumb`,
       itemListElement: items.map((item, index) => ({
         '@type': 'ListItem',
         position: index + 1,
@@ -479,10 +538,9 @@ export class SeoService {
     link.setAttribute('href', url);
   }
 
-  private absoluteUrl(path: string): string {
-    const base = this.document.location.origin;
-    if (!path.startsWith('/')) return `${base}/${path}`;
-    return `${base}${path}`;
+  private absoluteUrl(path: string, origin = this.document.location.origin): string {
+    if (!path.startsWith('/')) return `${origin}/${path}`;
+    return `${origin}${path}`;
   }
 
   private compact(value: unknown): unknown {

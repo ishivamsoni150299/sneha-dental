@@ -48,11 +48,7 @@ export function isPlatformHost(hostname: string): boolean {
 
 export function getSitemapUrls(baseUrl: string, hostname: string): string[] {
   if (isPlatformHost(hostname)) {
-    return [
-      `${baseUrl}/`,
-      `${baseUrl}/business`,
-      `${baseUrl}/business/signup`,
-    ];
+    return [`${baseUrl}/business`];
   }
 
   return [
@@ -71,8 +67,6 @@ export function getRobotsTxt(baseUrl: string, hostname: string): string {
 
   if (isPlatformHost(hostname)) {
     lines.push('Allow: /business');
-    lines.push('Allow: /business/signup');
-    lines.push('Disallow: /business/login');
     lines.push('Disallow: /business/clinic');
     lines.push('Disallow: /business/clinics');
     lines.push('Disallow: /business/revenue');
