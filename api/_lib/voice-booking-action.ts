@@ -220,7 +220,10 @@ export async function createVoiceBookingRequest(
       typeof createdAt?.toDate === 'function'
         ? createdAt.toDate().getTime()
         : 0;
-    return createdAtMs > 0 && (now - createdAtMs) < 30 * 60 * 1000;
+    return createdAtMs > 0
+      && (now - createdAtMs) < 30 * 60 * 1000
+      && cleanText(data['date'], 10) === booking.date
+      && cleanText(data['time'], 5) === booking.time;
   });
 
   if (recentMatch) {

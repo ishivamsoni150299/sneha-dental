@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OpenAIRealtimeSession } from './openai-realtime-session';
+import type { RealtimeBookingUpdate } from './voice-booking-status';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type UIMode     = 'idle' | 'voice' | 'text';
@@ -54,243 +55,214 @@ const QUICK_REPLIES = [
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </div>
-          <p class="text-xs leading-relaxed text-white/85 pt-0.5">{{ errorMsg() }}</p>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs leading-relaxed text-white/85 pt-0.5">{{ errorMsg() }}</p>
+            <button type="button"
+                    (click)="openTextFallback()"
+                    class="mt-2 border-b border-white/50 pb-0.5 text-xs font-bold text-white">
+              Continue in text chat
+            </button>
+          </div>
         </div>
       </div>
     }
 
-    <!-- ══════════════════════════════════════════════════════════════════════
-         IDLE PILL — glass, bottom-center
-    ══════════════════════════════════════════════════════════════════════════ -->
+    <!-- Receptionist launcher -->
     @if (mode() === 'idle') {
-      <div class="hidden md:block fixed z-[60]
-                  bottom-8
-                  left-1/2 -translate-x-1/2
-                  group cursor-pointer select-none"
-           style="filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4))">
+      <div class="va-launcher-desktop" role="group" aria-label="AI receptionist options">
+        <div class="va-launcher-identity" aria-hidden="true">
+          <span class="va-launcher-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.5c3.314 0 6-2.239 6-5V8.5c0-2.761-2.686-5-6-5s-6 2.239-6 5v5c0 2.761 2.686 5 6 5Z"/>
+              <path stroke-linecap="round" d="M9 10h.01M15 10h.01M9.75 14c.7.55 1.45.82 2.25.82s1.55-.27 2.25-.82"/>
+            </svg>
+          </span>
+          <span>
+            <strong>AI receptionist</strong>
+            <small>{{ clinicName() || 'Here to help' }}</small>
+          </span>
+        </div>
 
-        <div class="flex items-center gap-2.5 rounded-full px-3 py-2
-                    transition-all duration-300 group-hover:scale-105"
-             style="background: rgba(12,12,16,0.88);
-                    backdrop-filter: blur(20px) saturate(180%);
-                    border: 1px solid rgba(255,255,255,0.12);
-                    box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset,
-                                0 8px 32px rgba(0,0,0,0.5);">
-
-          <!-- Mic button (voice mode) -->
+        <div class="va-launcher-actions">
           @if (voiceEnabled()) {
             <button (click)="startVoice()"
-                    aria-label="Start voice conversation"
-                    class="relative w-9 h-9 rounded-full flex items-center justify-center
-                           transition-all duration-200
-                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-                    style="background: rgba(255,255,255,0.08);">
-              <!-- Subtle pulse ring -->
-              <span class="absolute inset-0 rounded-full animate-ping"
-                    style="background: rgba(255,255,255,0.06); animation-duration: 3s;"></span>
-              <svg class="relative w-4 h-4" style="color: rgba(255,255,255,0.7)"
-                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    aria-label="Talk to the AI receptionist"
+                    class="va-launcher-voice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
               </svg>
+              <span>Talk now</span>
             </button>
           }
-
-          <!-- AI sparkle icon + label -->
           <button (click)="startText()"
-                  class="flex items-center gap-2 pr-1 focus-visible:outline-none">
-            <!-- Sparkle icon -->
-            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 style="color: var(--accent-md, #3B7BF8)">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 3v1m0 16v1M3 12h1m16 0h1m-3.5-8.5-.7.7M7.2 16.8l-.7.7m0-10 .7.7M16.8 16.8l.7.7"/>
-              <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>
-            </svg>
-            <span class="text-sm font-semibold whitespace-nowrap"
-                  style="color: rgba(255,255,255,0.75);">
-              {{ voiceEnabled() ? 'Ask AI' : 'Chat with AI' }}
-            </span>
-            <!-- Live indicator -->
-            <span class="flex items-center gap-1 ml-0.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-              <span class="text-[10px] font-semibold text-green-400">Live</span>
-            </span>
-          </button>
-
-          <!-- Divider -->
-          <div class="w-px h-5" style="background: rgba(255,255,255,0.1)"></div>
-
-          <!-- Chat bubble icon -->
-          <button (click)="startText()"
-                  aria-label="Open text chat"
-                  class="w-9 h-9 rounded-full flex items-center justify-center
-                         transition-all duration-200
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-                  style="background: linear-gradient(135deg, var(--accent, #1E56DC), var(--accent-dk, #1235A9))">
-            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  aria-label="Chat with the AI receptionist"
+                  class="va-launcher-chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
+            <span>Chat</span>
           </button>
         </div>
       </div>
 
-      <div class="fixed bottom-[94px] right-4 z-[60] md:hidden">
-        <button (click)="startText()"
-                aria-label="Open AI receptionist"
-                class="relative flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent-sh)]/30 transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30">
-          <span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-300 ring-2 ring-white"></span>
-          <svg class="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.5c3.314 0 6-2.239 6-5V8.5c0-2.761-2.686-5-6-5s-6 2.239-6 5v5c0 2.761 2.686 5 6 5z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 10h.01M15 10h.01M9.75 14c.7.55 1.45.82 2.25.82s1.55-.27 2.25-.82"/>
+      <div class="va-launcher-mobile" role="group" aria-label="AI receptionist options">
+        @if (voiceEnabled()) {
+          <button (click)="startVoice()" class="va-mobile-voice" aria-label="Talk to the AI receptionist">
+            <span class="va-mobile-live" aria-hidden="true"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+            </svg>
+            <span>Talk to AI</span>
+          </button>
+        }
+        <button (click)="startText()" class="va-mobile-chat" aria-label="Chat with the AI receptionist">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
           </svg>
         </button>
       </div>
     }
 
-    <!-- ══════════════════════════════════════════════════════════════════════
-         VOICE ACTIVE PILL
-    ══════════════════════════════════════════════════════════════════════════ -->
+    <!-- Live voice conversation -->
     @if (mode() === 'voice') {
-      @if (latestVoiceCaption(); as caption) {
-        <div class="fixed z-[60]
-                    bottom-[168px] left-3 right-3
-                    md:bottom-[88px] md:left-1/2 md:right-auto md:w-[420px] md:-translate-x-1/2
-                    rounded-xl px-4 py-3 shadow-xl"
-             role="status"
-             aria-live="polite"
-             style="background: rgba(12,12,16,0.95); border: 1px solid rgba(255,255,255,0.1);">
-          <p class="text-[10px] font-bold uppercase text-white/40">
-            {{ caption.source === 'user' ? 'You' : 'AI receptionist' }}
-          </p>
-          <p class="mt-1 line-clamp-2 text-sm leading-5 text-white/85">{{ caption.text }}</p>
-        </div>
-      }
+      <section class="va-call-panel"
+               role="dialog"
+               aria-modal="false"
+               aria-labelledby="voice-call-title">
+        <header class="va-call-header">
+          <div class="va-call-identity">
+            <span class="va-call-avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.5c3.314 0 6-2.239 6-5V8.5c0-2.761-2.686-5-6-5s-6 2.239-6 5v5c0 2.761 2.686 5 6 5Z"/>
+                <path stroke-linecap="round" d="M9 10h.01M15 10h.01M9.75 14c.7.55 1.45.82 2.25.82s1.55-.27 2.25-.82"/>
+              </svg>
+            </span>
+            <span>
+              <strong id="voice-call-title">AI receptionist</strong>
+              <small>{{ clinicName() || 'Dental Clinic' }}</small>
+            </span>
+          </div>
+          <span class="va-call-timer">{{ formattedTime() }}</span>
+        </header>
 
-      <div class="fixed z-[60]
-                  bottom-[102px] md:bottom-8
-                  left-3 right-3 md:left-1/2 md:right-auto md:-translate-x-1/2
-                  flex items-center gap-3 rounded-full px-4 py-3
-                  transition-all duration-500"
-           [style.box-shadow]="voicePhase() === 'speaking'
-             ? '0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(59,123,248,0.25)'
-             : '0 0 0 1px rgba(255,255,255,0.08) inset, 0 8px 40px rgba(0,0,0,0.6)'"
-           style="background: rgba(12,12,16,0.95);
-                  backdrop-filter: blur(20px);
-                  border: 1px solid rgba(255,255,255,0.1);">
-
-        <!-- Mic / status orb -->
-        <div class="relative w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-             [style.background]="voicePhase() === 'listening'
-               ? 'linear-gradient(135deg, #fff 0%, #e5e7eb 100%)'
-               : 'rgba(255,255,255,0.08)'">
-
-          @if (voicePhase() === 'listening') {
-            <span class="absolute inset-0 rounded-full animate-ping"
-                  style="background: rgba(255,255,255,0.3); animation-duration: 1.5s;"></span>
-          }
-          @if (voicePhase() === 'speaking') {
-            <span class="absolute inset-0 rounded-full animate-ping"
-                  style="background: rgba(59,123,248,0.3); animation-duration: 1s;"></span>
-          }
-
-          <svg class="relative w-4 h-4"
-               [style.color]="voicePhase() === 'listening' ? '#111827' : 'rgba(255,255,255,0.6)'"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-          </svg>
-        </div>
-
-        <!-- Waveform / status -->
-        <div class="flex items-center justify-center"
-             style="min-width: 80px; height: 36px;">
-
-          @if (voicePhase() === 'connecting') {
-            <div class="flex items-center gap-1.5">
-              @for (d of DOT_DELAYS; track $index) {
-                <span class="w-1.5 h-1.5 rounded-full"
-                      style="background: rgba(255,255,255,0.4)"
-                      [style.animation-name]="'vaDot'"
-                      [style.animation-duration]="'1s'"
-                      [style.animation-timing-function]="'ease-in-out'"
-                      [style.animation-iteration-count]="'infinite'"
-                      [style.animation-delay]="d"></span>
-              }
-            </div>
-          } @else if (voicePhase() === 'ended') {
-            <div class="flex items-center gap-1.5">
-              <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                <svg class="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
+        <div class="va-call-status"
+             [class.va-call-status-speaking]="voicePhase() === 'speaking'"
+             [class.va-call-status-listening]="voicePhase() === 'listening' && !isMuted()">
+          <div class="va-call-orb" aria-hidden="true">
+            @if (voicePhase() === 'connecting') {
+              <div class="va-call-dots">
+                @for (delay of DOT_DELAYS; track $index) {
+                  <span [style.animation-delay]="delay"></span>
+                }
               </div>
-              <span class="text-xs text-green-400 font-semibold">Done</span>
-            </div>
-          } @else if (isMuted()) {
-            <span class="text-xs font-semibold text-amber-300">Mic muted</span>
-          } @else {
-            <!-- Waveform bars -->
-            <div class="flex items-end gap-[3px]" style="height: 28px;">
-              @for (bar of BARS; track $index) {
-                <div class="rounded-full"
-                     style="width: 3px;"
-                     [style.background]="voicePhase() === 'speaking'
-                       ? 'linear-gradient(to top, var(--accent, #1E56DC), var(--accent-md, #3B7BF8))'
-                       : 'rgba(255,255,255,0.25)'"
-                     [style.animation-name]="'vaBar'"
-                     [style.animation-duration]="(voicePhase() === 'speaking' ? '600' : '1400') + 'ms'"
-                     [style.animation-timing-function]="'ease-in-out'"
-                     [style.animation-iteration-count]="'infinite'"
-                     [style.animation-delay]="bar.delay"
-                     [style.min-height]="bar.min + 'px'"
-                     [style.max-height]="bar.max + 'px'"></div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Timer -->
-        @if (voicePhase() === 'listening' || voicePhase() === 'speaking') {
-          <span class="text-xs font-mono tabular-nums"
-                style="color: rgba(255,255,255,0.3); letter-spacing: 0.05em;">
-            {{ formattedTime() }}
-          </span>
-
-          <button (click)="toggleMute()"
-                  [attr.aria-label]="isMuted() ? 'Unmute microphone' : 'Mute microphone'"
-                  [attr.aria-pressed]="isMuted()"
-                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                  [style.background]="isMuted() ? 'rgba(245,158,11,0.28)' : 'rgba(255,255,255,0.09)'">
-            @if (isMuted()) {
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            } @else if (voicePhase() === 'ended') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 7"/>
+              </svg>
+            } @else if (isMuted()) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M9 9v2a3 3 0 004.12 2.79M15 9V5a3 3 0 00-5.12-2.12M17 16.95A7 7 0 005 11m7 7v4m-4 0h8"/>
               </svg>
             } @else {
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
-              </svg>
+              <div class="va-call-wave">
+                @for (bar of BARS; track $index) {
+                  <span [style.--va-min]="bar.min + 'px'"
+                        [style.--va-max]="bar.max + 'px'"
+                        [style.animation-delay]="bar.delay"
+                        [style.animation-duration]="voicePhase() === 'speaking' ? '600ms' : '1400ms'"></span>
+                }
+              </div>
             }
-          </button>
+          </div>
+
+          <div class="va-call-status-copy">
+            <p>Live voice</p>
+            <h2>{{ voiceStatusLabel() }}</h2>
+            <span>{{ voiceStatusHint() }}</span>
+          </div>
+        </div>
+
+        @if (bookingUpdate(); as booking) {
+          <div class="va-booking-update"
+               [attr.data-phase]="booking.phase"
+               role="status"
+               aria-live="polite">
+            <span class="va-booking-icon" aria-hidden="true">
+              @if (booking.phase === 'submitting') {
+                <span class="va-booking-spinner"></span>
+              } @else if (booking.phase === 'confirmed') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 7"/>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M10.3 3.8 2.4 17.5A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.5L13.7 3.8a2 2 0 0 0-3.4 0Z"/>
+                </svg>
+              }
+            </span>
+            <span class="va-booking-copy">
+              <strong>{{ bookingStatusTitle() }}</strong>
+              <small>{{ booking.message }}</small>
+            </span>
+            @if (booking.bookingRef) {
+              <span class="va-booking-reference">
+                <small>Booking reference</small>
+                <strong>{{ booking.bookingRef }}</strong>
+              </span>
+            }
+          </div>
         }
 
-        <!-- End button -->
-        @if (voicePhase() !== 'ended') {
-          <button (click)="endVoice()"
-                  aria-label="End voice call"
-                  class="flex items-center gap-1.5 text-sm font-semibold text-white
-                         px-4 py-2 rounded-full shrink-0
-                         transition-all duration-200 hover:opacity-90 hover:scale-105
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                  style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            End
-          </button>
-        }
-      </div>
+        <div class="va-call-transcript" role="log" aria-live="polite" aria-label="Live conversation transcript">
+          <p>Live transcript</p>
+          @if (voiceCaptions().length) {
+            @for (caption of voiceCaptions(); track $index) {
+              <div [class.va-caption-user]="caption.source === 'user'">
+                <span>{{ caption.source === 'user' ? 'You' : 'Receptionist' }}</span>
+                <p>{{ caption.text }}</p>
+              </div>
+            }
+          } @else {
+            <div class="va-caption-empty">
+              <span>{{ voicePhase() === 'connecting' ? 'Preparing your secure connection...' : 'Ready when you are.' }}</span>
+            </div>
+          }
+        </div>
+
+        <footer class="va-call-controls">
+          @if (voicePhase() === 'listening' || voicePhase() === 'speaking') {
+            <button (click)="toggleMute()"
+                    [attr.aria-label]="isMuted() ? 'Unmute microphone' : 'Mute microphone'"
+                    [attr.aria-pressed]="isMuted()"
+                    class="va-call-control"
+                    [class.va-call-control-muted]="isMuted()">
+              @if (isMuted()) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M9 9v2a3 3 0 004.12 2.79M15 9V5a3 3 0 00-5.12-2.12M17 16.95A7 7 0 005 11m7 7v4m-4 0h8"/>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+                </svg>
+              }
+              <span>{{ isMuted() ? 'Unmute' : 'Mute' }}</span>
+            </button>
+          }
+
+          @if (voicePhase() !== 'ended') {
+            <button (click)="endVoice()" class="va-call-end" aria-label="End voice conversation">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+              </svg>
+              <span>End conversation</span>
+            </button>
+          } @else {
+            <button (click)="dismissVoice()" class="va-call-control va-call-close">Close</button>
+          }
+        </footer>
+      </section>
     }
 
     <!-- ══════════════════════════════════════════════════════════════════════
@@ -513,13 +485,168 @@ const QUICK_REPLIES = [
     }
   `,
   styles: [`
-    @keyframes vaBar {
-      0%, 100% { height: var(--min, 4px); }
-      50%       { height: var(--max, 28px); }
+    .va-call-status-copy {
+      min-width: 0;
     }
+
+    .va-call-status-copy p,
+    .va-call-status-copy h2,
+    .va-call-status-copy span {
+      display: block;
+      margin: 0;
+    }
+
+    .va-call-status-copy p {
+      color: var(--ui-primary-hover, #1235a9);
+      font-size: 0.67rem;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    .va-call-status-copy h2 {
+      margin-top: 0.25rem;
+      color: var(--ui-ink, #102126);
+      font-family: var(--ui-font-display, Georgia, serif);
+      font-size: 1.45rem;
+      font-weight: 550;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .va-call-status-copy span {
+      margin-top: 0.35rem;
+      color: var(--ui-ink-muted, #6b7f85);
+      font-size: 0.7rem;
+      line-height: 1.45;
+    }
+
+    .va-call-controls {
+      display: flex;
+      min-height: 4.25rem;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+      border-top: 1px solid var(--ui-line, #dbe4e6);
+      padding: 0.75rem 1rem;
+    }
+
+    .va-call-control {
+      border: 1px solid var(--ui-line-strong, #bdcdd1);
+      padding-inline: 0.9rem;
+      color: var(--ui-ink-soft, #344b52);
+      background: var(--ui-surface, white);
+    }
+
+    .va-call-control-muted {
+      border-color: color-mix(in srgb, var(--ui-warning, #9a5b0b) 45%, var(--ui-line));
+      color: var(--ui-warning, #9a5b0b);
+      background: var(--ui-warning-soft, #fff6df);
+    }
+
+    .va-call-end {
+      padding-inline: 1rem;
+      color: white;
+      background: var(--ui-danger, #b33a3a);
+    }
+
+    .va-call-close {
+      min-width: 6rem;
+    }
+
+    :is(.va-launcher-voice, .va-launcher-chat, .va-mobile-voice, .va-mobile-chat, .va-call-control, .va-call-end):hover {
+      transform: translateY(-1px);
+    }
+
+    :is(.va-launcher-voice, .va-launcher-chat, .va-mobile-voice, .va-mobile-chat, .va-call-control, .va-call-end):focus-visible {
+      outline: 3px solid var(--ui-focus, rgba(30, 86, 220, 0.24));
+      outline-offset: 2px;
+    }
+
+    @keyframes vaBar {
+      0%, 100% { height: var(--va-min, 4px); }
+      50%       { height: var(--va-max, 28px); }
+    }
+
     @keyframes vaDot {
       0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
       40%            { transform: scale(1);   opacity: 1;   }
+    }
+
+    @keyframes vaSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes vaPanelIn {
+      from { opacity: 0; translate: 0 1rem; }
+      to { opacity: 1; translate: 0 0; }
+    }
+
+    @media (min-width: 768px) {
+      .va-launcher-desktop { display: flex; }
+      .va-launcher-mobile { display: none; }
+    }
+
+    @media (max-width: 767px) {
+      .va-call-panel {
+        right: 0.75rem;
+        bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+        left: 0.75rem;
+        width: auto;
+        max-height: calc(100dvh - 7rem - env(safe-area-inset-bottom, 0px));
+        transform: none;
+      }
+
+      .va-call-status {
+        grid-template-columns: 3.75rem minmax(0, 1fr);
+        gap: 0.85rem;
+        padding: 0.85rem;
+      }
+
+      .va-call-orb {
+        width: 3.5rem;
+        height: 3.5rem;
+      }
+
+      .va-call-status-copy h2 {
+        font-size: 1.25rem;
+      }
+
+      .va-call-transcript {
+        max-height: 8.5rem;
+      }
+
+      .va-call-controls > * {
+        flex: 1 1 0;
+      }
+
+    }
+
+    @media (max-width: 359px) {
+      .va-mobile-voice span:last-child,
+      .va-call-status-copy span,
+      .va-booking-copy small {
+        display: none;
+      }
+
+      .va-call-status {
+        grid-template-columns: 3rem minmax(0, 1fr);
+      }
+
+      .va-call-orb {
+        width: 2.75rem;
+        height: 2.75rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .va-call-panel,
+      .va-call-wave > span,
+      .va-call-dots > span,
+      .va-booking-spinner {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
     }
   `],
 })
@@ -549,7 +676,8 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   errorMsg   = signal<string | null>(null);
   duration   = signal(0);
   isMuted    = signal(false);
-  latestVoiceCaption = signal<VoiceCaption | null>(null);
+  voiceCaptions = signal<VoiceCaption[]>([]);
+  bookingUpdate = signal<RealtimeBookingUpdate | null>(null);
   inputText  = '';
 
   @ViewChild('messagesContainer') private messagesEl?: ElementRef<HTMLElement>;
@@ -557,6 +685,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   private conv:            OpenAIRealtimeSession | null = null;
   private timerRef:        ReturnType<typeof setInterval> | null = null;
   private idleResetRef:    ReturnType<typeof setTimeout> | null = null;
+  private errorResetRef:   ReturnType<typeof setTimeout> | null = null;
   private voiceAttempt     = 0;
   private shouldScrollDown = false;
   private zone             = inject(NgZone);
@@ -565,6 +694,32 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   formattedTime(): string {
     const s = this.duration();
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  voiceStatusLabel(): string {
+    if (this.voicePhase() === 'connecting') return 'Connecting securely';
+    if (this.voicePhase() === 'ended') return 'Conversation ended';
+    if (this.isMuted()) return 'Microphone muted';
+    return this.voicePhase() === 'speaking' ? 'Receptionist speaking' : 'Listening to you';
+  }
+
+  voiceStatusHint(): string {
+    if (this.voicePhase() === 'connecting') return 'Allow microphone access when your browser asks.';
+    if (this.voicePhase() === 'ended') return 'Thank you. You can start another conversation anytime.';
+    if (this.isMuted()) return 'Unmute when you are ready to continue.';
+    return this.voicePhase() === 'speaking'
+      ? 'You can interrupt naturally if you need to correct a detail.'
+      : 'Ask a question or say that you would like to book an appointment.';
+  }
+
+  bookingStatusTitle(): string {
+    switch (this.bookingUpdate()?.phase) {
+      case 'submitting': return 'Submitting your request';
+      case 'confirmed': return 'Appointment request received';
+      case 'needs-details': return 'One more detail needed';
+      case 'slot-taken': return 'Please choose another time';
+      default: return 'Booking needs another route';
+    }
   }
 
   // ── Auto-scroll ───────────────────────────────────────────────────────────────
@@ -579,12 +734,17 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   // ── Voice mode ────────────────────────────────────────────────────────────────
   async startVoice() {
     if (this.mode() !== 'idle') return;
+    if (!this.voiceEnabled()) {
+      this.startText();
+      return;
+    }
     const attempt = ++this.voiceAttempt;
     this.clearIdleReset();
     this.mode.set('voice');
     this.voicePhase.set('connecting');
     this.isMuted.set(false);
-    this.latestVoiceCaption.set(null);
+    this.voiceCaptions.set([]);
+    this.bookingUpdate.set(null);
     this.clearError();
 
     try {
@@ -611,7 +771,18 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
         onCaption: (source, caption) => this.zone.run(() => {
           if (attempt !== this.voiceAttempt) return;
           const text = caption.trim();
-          if (text) this.latestVoiceCaption.set({ source, text });
+          if (!text) return;
+          const nextCaption = { source, text } satisfies VoiceCaption;
+          this.voiceCaptions.update(captions => {
+            const next = [...captions];
+            if (next.at(-1)?.source === source) next[next.length - 1] = nextCaption;
+            else next.push(nextCaption);
+            return next.slice(-4);
+          });
+        }),
+        onBookingUpdate: update => this.zone.run(() => {
+          if (attempt !== this.voiceAttempt) return;
+          this.bookingUpdate.set(update);
         }),
         onError: (message: string) => {
           console.error('[VoiceAgent] error:', message);
@@ -623,6 +794,12 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
             this.showError('Connection error. Please try again.');
             this.voicePhase.set('ended');
             this.isMuted.set(false);
+            if (this.bookingUpdate()?.phase === 'submitting') {
+              this.bookingUpdate.set({
+                phase: 'failed',
+                message: 'The call ended before the booking could be confirmed. Please use text chat or the booking form.',
+              });
+            }
             this.stopTimer();
             void conversation?.endSession().catch(() => { /* ignore */ });
             this.scheduleVoiceIdle(resetAttempt);
@@ -663,6 +840,12 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
     try { await conversation?.endSession(); } catch { /* ignore */ }
   }
 
+  dismissVoice() {
+    this.voiceAttempt += 1;
+    this.clearIdleReset();
+    this.mode.set('idle');
+  }
+
   toggleMute() {
     if (!this.conv) return;
     const nextMuted = !this.isMuted();
@@ -684,6 +867,11 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
   }
 
   closeChat() { this.mode.set('idle'); }
+
+  openTextFallback() {
+    this.clearError();
+    this.startText();
+  }
 
   sendQuickReply(text: string) {
     this.inputText = text;
@@ -759,6 +947,7 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   // ── Timer ─────────────────────────────────────────────────────────────────────
   private startTimer() {
+    this.stopTimer();
     this.duration.set(0);
     this.timerRef = setInterval(() => this.duration.update(d => d + 1), 1000);
   }
@@ -769,12 +958,12 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   private scheduleVoiceIdle(attempt: number) {
     this.clearIdleReset();
+    const delay = this.bookingUpdate()?.phase === 'confirmed' ? 7000 : 2800;
     this.idleResetRef = setTimeout(() => this.zone.run(() => {
       if (attempt !== this.voiceAttempt) return;
       this.idleResetRef = null;
-      this.latestVoiceCaption.set(null);
       this.mode.set('idle');
-    }), 2200);
+    }), delay);
   }
 
   private clearIdleReset() {
@@ -783,17 +972,28 @@ export class VoiceAgentComponent implements OnDestroy, AfterViewChecked {
 
   // ── Error ─────────────────────────────────────────────────────────────────────
   private showError(msg: string) {
+    if (this.errorResetRef) clearTimeout(this.errorResetRef);
     this.errorMsg.set(msg);
-    setTimeout(() => this.zone.run(() => this.errorMsg.set(null)), 5000);
+    this.errorResetRef = setTimeout(() => this.zone.run(() => {
+      this.errorResetRef = null;
+      this.errorMsg.set(null);
+    }), 7000);
   }
 
-  private clearError() { this.errorMsg.set(null); }
+  private clearError() {
+    if (this.errorResetRef) {
+      clearTimeout(this.errorResetRef);
+      this.errorResetRef = null;
+    }
+    this.errorMsg.set(null);
+  }
 
   // ── Cleanup ───────────────────────────────────────────────────────────────────
   ngOnDestroy() {
     this.voiceAttempt += 1;
     this.stopTimer();
     this.clearIdleReset();
+    this.clearError();
     this.conv?.endSession().catch(() => { /* ignore */ });
   }
 }

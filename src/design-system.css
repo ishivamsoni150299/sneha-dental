@@ -5283,6 +5283,420 @@ textarea.ui-field {
   }
 }
 
+/* Voice receptionist launcher and booking result surface. */
+.va-launcher-desktop,
+.va-launcher-mobile,
+.va-call-panel {
+  position: fixed;
+  z-index: 60;
+  border: 1px solid var(--ui-line);
+  border-radius: 0.5rem;
+  color: var(--ui-ink);
+  background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
+  box-shadow: 0 24px 64px -34px rgba(16, 33, 38, 0.52);
+  backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.va-call-panel {
+  bottom: 1.5rem;
+  left: 50%;
+  display: flex;
+  width: min(27rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 3rem);
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(-50%);
+  animation: vaPanelIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.va-call-header {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--ui-line);
+  padding: 0.85rem 1rem;
+}
+
+.va-call-avatar {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.5rem;
+}
+
+.va-call-timer {
+  flex: 0 0 auto;
+  color: var(--ui-ink-muted);
+  font-family: var(--ui-font-mono);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-call-status {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 1rem 0;
+  border: 1px solid var(--ui-line);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: var(--ui-surface-muted);
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.va-call-status-listening {
+  border-color: color-mix(in srgb, var(--clinic-peacock) 38%, var(--ui-line));
+  background: color-mix(in srgb, var(--clinic-peacock-soft) 58%, white);
+}
+
+.va-call-status-speaking {
+  border-color: color-mix(in srgb, var(--ui-primary) 35%, var(--ui-line));
+  background: color-mix(in srgb, var(--ui-primary-soft) 58%, white);
+}
+
+.va-call-orb {
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ui-primary);
+  background: var(--ui-surface);
+  box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--ui-primary-soft) 72%, transparent);
+}
+
+.va-call-orb > svg {
+  width: 1.55rem;
+  height: 1.55rem;
+  color: var(--ui-success);
+}
+
+.va-call-wave {
+  display: flex;
+  height: 2rem;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.va-call-wave > span {
+  width: 0.2rem;
+  min-height: var(--va-min, 4px);
+  border-radius: 999px;
+  background: var(--ui-primary);
+  animation: vaBar 1.2s ease-in-out infinite;
+}
+
+.va-call-dots {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.va-call-dots > span {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--ui-primary);
+  animation: vaDot 1s ease-in-out infinite;
+}
+
+.va-launcher-desktop {
+  bottom: 1.5rem;
+  left: 50%;
+  display: none;
+  min-height: 3.75rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  transform: translateX(-50%);
+}
+
+.va-launcher-identity,
+.va-call-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.va-launcher-mark,
+.va-call-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--clinic-peacock);
+  background: var(--clinic-peacock-soft);
+}
+
+.va-launcher-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.375rem;
+}
+
+.va-launcher-mark svg,
+.va-call-avatar svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.va-launcher-identity strong,
+.va-launcher-identity small,
+.va-call-identity strong,
+.va-call-identity small {
+  display: block;
+}
+
+.va-launcher-identity strong,
+.va-call-identity strong {
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.va-launcher-identity small,
+.va-call-identity small {
+  max-width: 9rem;
+  margin-top: 0.15rem;
+  overflow: hidden;
+  color: var(--ui-ink-muted);
+  font-size: 0.66rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.va-launcher-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--ui-line);
+}
+
+.va-launcher-voice,
+.va-launcher-chat,
+.va-mobile-voice,
+.va-mobile-chat,
+.va-call-control,
+.va-call-end {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0.375rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 740;
+  cursor: pointer;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+
+.va-launcher-voice,
+.va-mobile-voice {
+  padding-inline: 0.9rem;
+  color: white;
+  background: var(--ui-primary);
+}
+
+.va-launcher-voice:hover,
+.va-mobile-voice:hover {
+  background: var(--ui-primary-hover);
+}
+
+.va-launcher-chat,
+.va-mobile-chat {
+  border: 1px solid var(--ui-line);
+  color: var(--ui-ink-soft);
+  background: var(--ui-surface-muted);
+}
+
+.va-launcher-chat {
+  padding-inline: 0.8rem;
+}
+
+.va-launcher-voice svg,
+.va-launcher-chat svg,
+.va-mobile-voice svg,
+.va-mobile-chat svg,
+.va-call-control svg,
+.va-call-end svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.va-launcher-mobile {
+  right: 0.75rem;
+  bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem;
+}
+
+.va-mobile-voice {
+  position: relative;
+  min-height: 3rem;
+}
+
+.va-mobile-chat {
+  width: 3rem;
+  height: 3rem;
+}
+
+.va-mobile-live {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #8de4bb;
+  box-shadow: 0 0 0 0.2rem rgba(141, 228, 187, 0.2);
+}
+
+.va-booking-update {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 0.75rem 1rem 0;
+  border-left: 0.2rem solid var(--ui-warning);
+  padding: 0.85rem;
+  color: var(--ui-warning);
+  background: var(--ui-warning-soft);
+}
+
+.va-booking-update[data-phase='confirmed'] {
+  border-left-color: var(--ui-success);
+  color: var(--ui-success);
+  background: var(--ui-success-soft);
+}
+
+.va-booking-update[data-phase='failed'] {
+  border-left-color: var(--ui-danger);
+  color: var(--ui-danger);
+  background: var(--ui-danger-soft);
+}
+
+.va-booking-icon {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+}
+
+.va-booking-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.va-booking-copy strong,
+.va-booking-copy small,
+.va-booking-reference small,
+.va-booking-reference strong {
+  display: block;
+}
+
+.va-booking-copy strong {
+  color: var(--ui-ink);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.va-booking-copy small {
+  margin-top: 0.2rem;
+  color: var(--ui-ink-soft);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.va-booking-reference {
+  grid-column: 2;
+  padding-top: 0.35rem;
+  border-top: 1px solid currentColor;
+}
+
+.va-booking-reference small {
+  color: var(--ui-ink-muted);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.va-booking-reference strong {
+  margin-top: 0.15rem;
+  color: var(--ui-ink);
+  font-family: var(--ui-font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+.va-booking-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ui-spin 700ms linear infinite;
+}
+
+.va-call-transcript {
+  display: grid;
+  gap: 0.55rem;
+  max-height: 11rem;
+  margin: 0.75rem 1rem 0;
+  padding: 0.1rem 0.15rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.va-call-transcript > p {
+  margin: 0;
+  color: var(--ui-ink-muted);
+  font-size: 0.65rem;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.va-call-transcript > div:not(.va-caption-empty) {
+  max-width: 88%;
+  border-left: 2px solid var(--ui-primary-line);
+  padding-left: 0.65rem;
+}
+
+.va-call-transcript > .va-caption-user {
+  justify-self: end;
+  border-right: 2px solid var(--clinic-peacock);
+  border-left: 0;
+  padding-right: 0.65rem;
+  padding-left: 0;
+  text-align: right;
+}
+
+.va-call-transcript span {
+  color: var(--ui-ink-muted);
+  font-size: 0.62rem;
+  font-weight: 720;
+}
+
+.va-call-transcript div p {
+  margin: 0.15rem 0 0;
+  color: var(--ui-ink-soft);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.va-caption-empty {
+  display: grid;
+  min-height: 3.5rem;
+  place-items: center;
+  border: 1px dashed var(--ui-line);
+  border-radius: 0.375rem;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

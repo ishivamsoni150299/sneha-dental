@@ -1,3 +1,8 @@
+import {
+  submitRealtimeBookingRequest,
+  type RealtimeBookingUpdate,
+} from './voice-booking-status';
+
 export type RealtimeSpeaker = 'user' | 'ai';
 export type RealtimeMode = 'listening' | 'speaking';
 
@@ -6,6 +11,7 @@ export interface OpenAIRealtimeCallbacks {
   onDisconnect(): void;
   onModeChange(mode: RealtimeMode): void;
   onCaption(source: RealtimeSpeaker, text: string): void;
+  onBookingUpdate(update: RealtimeBookingUpdate): void;
   onError(message: string): void;
 }
 
@@ -223,24 +229,22 @@ export class OpenAIRealtimeSession {
       args = {};
     }
 
-    let output: Record<string, unknown>;
-    try {
-      const response = await fetch('/api/voice-booking-action', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Voice-Session-Token': this.credentials?.sessionToken ?? '',
-        },
-        body: JSON.stringify({ ...args, clinicId: this.clinicId }),
-      });
-      output = await response.json() as Record<string, unknown>;
-      if (!response.ok && !output['message']) output['message'] = 'The booking request could not be submitted.';
-      if (response.ok && output['success'] === true && output['booking_created'] === true) {
-        this.notifyBooking(String(output['booking_ref'] ?? ''), String(args['phone'] ?? ''));
-      }
-    } catch {
-      output = { success: false, message: 'The booking service is temporarily unavailable.' };
+    this.callbacks.onBookingUpdate({
+      phase: 'submitting',
+      message: 'Securely submitting your appointment request...',
+    });
+
+    const submission = await submitRealtimeBookingRequest(
+      this.clinicId,
+      this.credentials?.sessionToken ?? '',
+      args,
+    );
+    const { output } = submission;
+    if (output['success'] === true && output['booking_created'] === true) {
+      this.notifyBooking(String(output['booking_ref'] ?? ''), String(args['phone'] ?? ''));
     }
+
+    this.callbacks.onBookingUpdate(submission.update);
 
     this.send({
       type: 'conversation.item.create',
