@@ -119,9 +119,22 @@
                   <p class="font-mono text-lg font-bold tracking-widest text-white">{{ appointment()?.bookingRef }}</p>
                 </div>
                 <span class="rounded-full bg-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
-                  {{ appointment()?.status }}
+                  {{ appointmentStatusLabel() }}
                 </span>
               </div>
+
+              @if (appointment()?.status === 'declined' || appointment()?.status === 'expired') {
+                <div class="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:px-6">
+                  @if (appointment()?.status === 'declined') {
+                    The clinic could not confirm this requested time.
+                  } @else {
+                    The clinic did not respond within the confirmation window, so the reserved time was released.
+                  }
+                  @if (appointment()?.cancellationReason) {
+                    <span class="font-semibold"> {{ appointment()?.cancellationReason }}</span>
+                  }
+                </div>
+              }
 
               <div class="space-y-4 p-4 sm:p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,5 +1,7 @@
 import { Injectable, inject, NgZone } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
+import type { ClinicHours } from '../config/clinic.config';
+import type { Doctor } from './doctor.service';
 import { isBookableDateTime, normalizeTimeValue } from './doctor.service';
 import {
   collection,
@@ -13,10 +15,10 @@ import {
   onSnapshot,
   runTransaction,
   serverTimestamp,
-  type Timestamp,
+  Timestamp,
   type Unsubscribe,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import {
   buildAppointmentLookupKey,
   buildLegacyAppointmentLookupKey,
@@ -24,6 +26,123 @@ import {
 
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
 export type PaymentMethod = 'cash' | 'upi' | 'card' | 'insurance' | 'other';
+export type AppointmentSource = 'clinic_website' | 'marketplace' | 'voice' | 'voice_webhook' | 'chat';
+export type AppointmentStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'checked_in'
+  | 'completed'
+  | 'no_show'
+  | 'cancelled'
+  | 'declined'
+  | 'expired';
+export type AppointmentCancellationActor = 'patient' | 'clinic' | 'system';
+
+export interface BookingServiceOption {
+  name: string;
+  price?: string;
+}
+
+export interface AppointmentAttribution {
+  marketplaceSlug?: string;
+  entryPath?: string;
+}
+
+export interface BookingClinicContext {
+  clinicId: string;
+  bookingRefPrefix: string;
+  displayName: string;
+  phone: string;
+  phoneE164: string;
+  whatsappNumber: string;
+  address: string;
+  hours: ClinicHours[];
+  services: BookingServiceOption[];
+  doctors: Doctor[];
+  isOpenNow: boolean;
+  source: AppointmentSource;
+  attribution?: AppointmentAttribution;
+}
+
+const DAY_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+const RESPONSE_WINDOW_MINUTES = 120;
+
+function dayNumbers(value: string): Set<number> {
+  const normalized = value.toLowerCase().replace(/[\u2012-\u2015]/g, '-').trim();
+  if (normalized === 'daily' || normalized === 'every day') {
+    return new Set(DAY_NAMES.map((_, index) => index));
+  }
+
+  const result = new Set<number>();
+  for (const part of normalized.split(/,|&/).map(item => item.trim()).filter(Boolean)) {
+    const [startValue, endValue] = part.split('-').map(item => item.trim());
+    const start = DAY_NAMES.indexOf(startValue.slice(0, 3) as typeof DAY_NAMES[number]);
+    const end = endValue
+      ? DAY_NAMES.indexOf(endValue.slice(0, 3) as typeof DAY_NAMES[number])
+      : start;
+    if (start < 0 || end < 0) continue;
+    let current = start;
+    result.add(current);
+    while (current !== end) {
+      current = (current + 1) % 7;
+      result.add(current);
+    }
+  }
+  return result;
+}
+
+function timeMinutes(value: string): number | null {
+  const match = /^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i.exec(value.trim());
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2] ?? 0);
+  if (hours < 1 || hours > 12 || minutes > 59) return null;
+  if (match[3].toUpperCase() === 'PM' && hours !== 12) hours += 12;
+  if (match[3].toUpperCase() === 'AM' && hours === 12) hours = 0;
+  return (hours * 60) + minutes;
+}
+
+function workingWindows(hours: ClinicHours[], date: Date): Array<{ start: Date; end: Date }> {
+  return hours.flatMap(entry => {
+    if (!dayNumbers(entry.days).has(date.getDay())) return [];
+    const values = entry.time.match(/\d{1,2}(?::\d{2})?\s*(?:AM|PM)/gi) ?? [];
+    if (values.length < 2) return [];
+    const startMinutes = timeMinutes(values[0]!);
+    const endMinutes = timeMinutes(values[1]!);
+    if (startMinutes == null || endMinutes == null || endMinutes <= startMinutes) return [];
+    const start = new Date(date);
+    start.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
+    const end = new Date(date);
+    end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+    return [{ start, end }];
+  }).sort((first, second) => first.start.getTime() - second.start.getTime());
+}
+
+export function isClinicOpenAt(hours: ClinicHours[], now = new Date()): boolean {
+  if (!hours.length) return true;
+  return workingWindows(hours, now).some(window => now >= window.start && now < window.end);
+}
+
+export function calculateConfirmationDeadline(hours: ClinicHours[], now = new Date()): Date {
+  if (!hours.length) return new Date(now.getTime() + (RESPONSE_WINDOW_MINUTES * 60_000));
+
+  let remainingMinutes = RESPONSE_WINDOW_MINUTES;
+  for (let offset = 0; offset < 14; offset++) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + offset);
+    for (const window of workingWindows(hours, date)) {
+      const start = new Date(Math.max(now.getTime(), window.start.getTime()));
+      if (start >= window.end) continue;
+      const availableMinutes = (window.end.getTime() - start.getTime()) / 60_000;
+      if (remainingMinutes <= availableMinutes) {
+        return new Date(start.getTime() + (remainingMinutes * 60_000));
+      }
+      remainingMinutes -= availableMinutes;
+    }
+  }
+
+  return new Date(now.getTime() + (RESPONSE_WINDOW_MINUTES * 60_000));
+}
 
 export interface Appointment {
   id?: string;
@@ -40,9 +159,21 @@ export interface Appointment {
   doctorName?: string | null;   // denormalized for display without extra lookup
   message?: string;
   cancellationReason?: string;
+  cancellationActor?: AppointmentCancellationActor;
+  source?: AppointmentSource;
+  phoneE164?: string;
+  patientUid?: string | null;
+  confirmationDeadline?: Timestamp;
+  confirmationRespondedAt?: Timestamp;
+  confirmationResponseMinutes?: number;
+  confirmationSlaMissed?: boolean;
+  confirmedAt?: Timestamp;
+  declinedAt?: Timestamp;
+  expiredAt?: Timestamp;
+  attribution?: AppointmentAttribution;
   consentVersion?: string;
   consentAt?: Timestamp;
-  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
+  status: AppointmentStatus;
   // Clinical record (filled by clinic after the visit)
   clinicNotes?:    string;
   treatmentDone?:  string;
@@ -50,6 +181,7 @@ export interface Appointment {
   paymentStatus?:  PaymentStatus;
   paymentMethod?:  PaymentMethod;
   createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -98,11 +230,11 @@ export class AppointmentService {
     return doc(db, 'slots', this.buildSlotKey(data.clinicId, data.date, data.time, data.doctorId));
   }
 
-  private generateBookingRef(): string {
+  private generateBookingRef(prefix = this.prefix): string {
     const chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const random = crypto.getRandomValues(new Uint8Array(8));
     const suffix = Array.from(random, b => chars[b % chars.length]).join('');
-    return `${this.prefix}-${suffix}`;
+    return `${prefix}-${suffix}`;
   }
 
   /** True if appointment date is more than 24 hours from now. */
@@ -130,16 +262,18 @@ export class AppointmentService {
    *   `{clinicId}_{doctorId|any}_{date}_{time}` (normalised, no spaces)
    */
   async bookAppointment(
-    data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>
+    data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>,
+    context?: BookingClinicContext,
   ): Promise<string> {
     if (!this.isBookable(data.date, data.time)) {
       throw new Error('Please choose a current or future appointment slot.');
     }
 
-    const bookingRef = this.generateBookingRef();
-    const clinicId   = this.clinicId;
-    const lookupKey  = await buildAppointmentLookupKey(this.clinicId, bookingRef, data.phone);
+    const clinicId = context?.clinicId ?? this.clinicId;
+    const bookingRef = this.generateBookingRef(context?.bookingRefPrefix ?? this.prefix);
+    const lookupKey = await buildAppointmentLookupKey(clinicId, bookingRef, data.phone);
     const normalizedTime = normalizeTimeValue(data.time);
+    const phoneE164 = `+91${this.normalizePhone(data.phone)}`;
     const appointmentPayload = this.stripUndefined({
       ...data,
       clinicId,
@@ -149,6 +283,13 @@ export class AppointmentService {
       doctorId: data.doctorId ?? null,
       doctorName: data.doctorName ?? null,
       status: 'pending' as const,
+      source: context?.source ?? 'clinic_website',
+      phoneE164,
+      patientUid: data.patientUid ?? null,
+      confirmationDeadline: calculateConfirmationDeadline(
+        context?.hours ?? this.clinic.config.hours,
+      ),
+      attribution: context?.attribution,
       consentVersion: '2026-08-29',
       consentAt: serverTimestamp(),
       createdAt: serverTimestamp(),
@@ -278,6 +419,25 @@ export class AppointmentService {
         updatedAt: serverTimestamp(),
       }));
     });
+
+  }
+
+  private async notifyMarketplaceStatus(id: string, status: 'confirmed' | 'declined'): Promise<void> {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      await fetch('/api/voice-booking-action?action=notify-appointment-status', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ appointmentId: id, status }),
+        keepalive: true,
+      });
+    } catch {
+      return;
+    }
   }
 
   /**
@@ -333,17 +493,23 @@ export class AppointmentService {
   /** Set status directly (admin use). */
   async setStatus(
     id: string,
-    status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled',
+    status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled' | 'declined',
     cancellationReason?: string,
   ): Promise<void> {
     const appointmentRef = doc(db, this.COLLECTION, id);
-    await runTransaction(db, async (tx) => {
+    const shouldNotify = await runTransaction(db, async (tx) => {
       const snap = await tx.get(appointmentRef);
       if (!snap.exists()) {
         throw new Error('Appointment not found.');
       }
       const appointment = { id: snap.id, ...snap.data() } as Appointment;
-      if (status === 'cancelled' && appointment.status !== 'cancelled') {
+      if (['confirmed', 'declined'].includes(status) && appointment.status !== 'pending') {
+        throw new Error('This appointment request has already been handled.');
+      }
+      if (status === 'declined' && appointment.source !== 'marketplace') {
+        throw new Error('Only marketplace requests can be declined.');
+      }
+      if (['cancelled', 'declined'].includes(status) && appointment.status !== status) {
         tx.delete(this.slotRefFor({
           clinicId: appointment.clinicId,
           doctorId: appointment.doctorId,
@@ -351,12 +517,31 @@ export class AppointmentService {
           time: appointment.time,
         }));
       }
-      tx.update(appointmentRef, {
+      const respondedAt = serverTimestamp();
+      const isMarketplaceResponse = appointment.source === 'marketplace' &&
+        (status === 'confirmed' || status === 'declined');
+      tx.update(appointmentRef, this.stripUndefined({
         status,
         updatedAt: serverTimestamp(),
-        ...(status === 'cancelled' && cancellationReason ? { cancellationReason } : {}),
-      });
+        ...(isMarketplaceResponse ? {
+          confirmationRespondedAt: respondedAt,
+        } : {}),
+        ...(status === 'confirmed' ? { confirmedAt: respondedAt } : {}),
+        ...(status === 'declined' ? {
+          declinedAt: respondedAt,
+          cancellationActor: 'clinic' as const,
+          cancellationReason,
+        } : {}),
+        ...(status === 'cancelled' ? {
+          cancellationActor: 'clinic' as const,
+          cancellationReason,
+        } : {}),
+      }));
+      return appointment.source === 'marketplace';
     });
+    if (shouldNotify && (status === 'confirmed' || status === 'declined')) {
+      void this.notifyMarketplaceStatus(id, status);
+    }
   }
 
   /** Save clinical record fields (notes, treatment, payment). Strips undefined. */
@@ -399,6 +584,7 @@ export class AppointmentService {
       tx.delete(slotRef);
       tx.update(appointmentRef, {
         status: 'cancelled',
+        cancellationActor: 'patient',
         updatedAt: serverTimestamp(),
       });
     });

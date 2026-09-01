@@ -3,13 +3,19 @@ import type { OnDestroy, OnInit } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
+  Input,
+  Output,
   inject,
   signal,
 } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { AppointmentService } from '../../core/services/appointment.service';
+import {
+  AppointmentService,
+  type BookingClinicContext,
+} from '../../core/services/appointment.service';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import type { Doctor } from '../../core/services/doctor.service';
 import {
@@ -21,6 +27,14 @@ import {
 } from '../../core/services/doctor.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
 
+export interface BookingSubmission {
+  ref: string;
+  name: string;
+  date: string;
+  time: string;
+  service: string;
+}
+
 @Component({
   selector: 'app-appointment',
   standalone: true,
@@ -29,6 +43,9 @@ import { formatLocalDateInput } from '../../core/utils/date-input';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentComponent implements OnInit, OnDestroy {
+  @Input() bookingContext: BookingClinicContext | null = null;
+  @Output() readonly bookingCompleted = new EventEmitter<BookingSubmission>();
+
   private readonly fb                 = inject(FormBuilder);
   private readonly appointmentService = inject(AppointmentService);
   private readonly document           = inject(DOCUMENT);
@@ -103,7 +120,42 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
   readonly formatSlotDisplay = formatSlotDisplay;
 
-  services = [...this.config.services.map(s => s.name), 'Other / Not Sure'];
+  get services(): string[] {
+    const services = this.bookingContext?.services ?? this.config.services;
+    return [...services.map(service => service.name), 'Other / Not Sure'];
+  }
+
+  get clinicDisplayName(): string {
+    return this.bookingContext?.displayName ?? this.clinic.displayName;
+  }
+
+  get isClinicOpenNow(): boolean {
+    return this.bookingContext?.isOpenNow ?? this.clinic.isOpenNow;
+  }
+
+  get hasWhatsapp(): boolean {
+    return Boolean(this.bookingContext?.whatsappNumber ?? (this.clinic.hasWhatsapp ? this.config.whatsappNumber : ''));
+  }
+
+  get whatsappNumber(): string {
+    return this.bookingContext?.whatsappNumber ?? this.config.whatsappNumber;
+  }
+
+  get clinicHours() {
+    return this.bookingContext?.hours ?? this.config.hours;
+  }
+
+  get isMarketplaceBooking(): boolean {
+    return this.bookingContext?.source === 'marketplace';
+  }
+
+  get privacyRoute(): string {
+    return this.isMarketplaceBooking ? '/business/privacy' : '/privacy';
+  }
+
+  get termsRoute(): string {
+    return this.isMarketplaceBooking ? '/business/terms' : '/terms';
+  }
 
   /** Fallback time slots when no doctor is selected or no doctors configured. */
   readonly fallbackSlots = DEFAULT_BOOKING_SLOTS;
@@ -145,8 +197,14 @@ export class AppointmentComponent implements OnInit, OnDestroy {
       this.form.patchValue({ service: match });
     }
 
-    // Load doctors if clinic has a Firestore ID
-    const clinicId = this.clinic.config.clinicId;
+    if (this.bookingContext) {
+      this.doctors.set(this.bookingContext.doctors.filter(doctor => doctor.available));
+      this.doctorsLoading.set(false);
+    }
+
+    // Clinic-domain routes load their doctors here. Marketplace doctors arrive
+    // through the explicit booking context instead.
+    const clinicId = this.bookingContext ? null : this.clinic.config.clinicId;
     if (clinicId) {
       this.doctorSvc.getDoctors(clinicId).then(docs => {
         this.doctors.set(docs.filter(d => d.available));
@@ -204,7 +262,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     this.slotsLoading.set(true);
     try {
       const slots = await this.doctorSvc.getAvailableSlots(
-        this.clinic.config.clinicId!, doctor, date
+        this.bookingContext?.clinicId ?? this.clinic.config.clinicId!, doctor, date
       );
       this.availableSlots.set(slots);
     } catch {
@@ -234,7 +292,8 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   get selectedServicePrice(): string {
     const name = this.form.get('service')?.value;
     if (!name) return '';
-    return this.config.services.find(s => s.name === name)?.price ?? '';
+    const services = this.bookingContext?.services ?? this.config.services;
+    return services.find(service => service.name === name)?.price ?? '';
   }
 
   get selectedDateLabel(): string {
@@ -258,7 +317,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   }
 
   get confirmationWindowLabel(): string {
-    return this.clinic.isOpenNow ? 'Within 2 hours today' : 'Next working window';
+    return this.isClinicOpenNow ? 'Within 2 working hours' : 'Next working window';
   }
 
   doctorInitials(name: string): string {
@@ -323,12 +382,14 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
   get whatsappUrl(): string {
     const { name, service, date } = this.form.value;
-    let msg = `Hi ${this.config.name}! `;
+    let msg = `Hi ${this.clinicDisplayName}! `;
     if (name)    msg += `My name is ${name}. `;
     if (service) msg += `I would like to book for ${service}. `;
     if (date)    msg += `Preferred date: ${date}. `;
     msg += 'Please confirm an available slot.';
-    return this.clinic.whatsappUrl(msg);
+    return this.bookingContext
+      ? `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(msg)}`
+      : this.clinic.whatsappUrl(msg);
   }
 
   async onSubmit() {
@@ -349,9 +410,9 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     this.error.set(null);
 
     try {
-      const val    = this.form.value;
+      const val = this.form.value;
       const doctor = this.selectedDoctor;
-      const ref    = await this.appointmentService.bookAppointment({
+      const ref = await this.appointmentService.bookAppointment({
         name:       val.name!,
         phone:      val.phone!,
         email:      val.email || undefined,
@@ -361,15 +422,20 @@ export class AppointmentComponent implements OnInit, OnDestroy {
         doctorId:   doctor?.id,
         doctorName: doctor?.name,
         message:    val.message || undefined,
-      });
+      }, this.bookingContext ?? undefined);
+      const submission: BookingSubmission = {
+        ref,
+        name: val.name!,
+        date: val.date!,
+        time: val.time!,
+        service: val.service!,
+      };
+      if (this.bookingContext) {
+        this.bookingCompleted.emit(submission);
+        return;
+      }
       void this.router.navigate(['/appointment/confirmed'], {
-        queryParams: {
-          ref,
-          name:    val.name,
-          date:    val.date,
-          time:    val.time,
-          service: val.service,
-        },
+        queryParams: submission,
       });
     } catch (e) {
       console.error('[Appointment] Booking failed:', e);

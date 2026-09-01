@@ -75,11 +75,9 @@
 
         <div class="mt-6 flex flex-wrap gap-3">
           @if (currentClinic.marketplaceProfile!.acceptingNewPatients) {
-            @if (clinicBookingUrl(currentClinic); as bookingUrl) {
-              <a [href]="bookingUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan-700 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-800">
-                Request appointment
-              </a>
-            }
+            <a [routerLink]="['/dentists', currentClinic.marketplaceSlug, 'book']" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan-700 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-800">
+              Request appointment
+            </a>
           }
           @if (phoneUrl(currentClinic); as callUrl) {
             <a [href]="callUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">
@@ -200,13 +198,11 @@
   </div>
 
   @if (currentClinic.marketplaceProfile!.acceptingNewPatients) {
-    @if (clinicBookingUrl(currentClinic); as bookingUrl) {
-      <div class="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white p-3 shadow-lg lg:hidden">
-        <a [href]="bookingUrl" class="mx-auto flex min-h-11 max-w-lg items-center justify-center rounded-lg bg-cyan-700 px-5 py-3 text-sm font-bold text-white">
-          Request appointment
-        </a>
-      </div>
-    }
+    <div class="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white p-3 shadow-lg lg:hidden">
+      <a [routerLink]="['/dentists', currentClinic.marketplaceSlug, 'book']" class="mx-auto flex min-h-11 max-w-lg items-center justify-center rounded-lg bg-cyan-700 px-5 py-3 text-sm font-bold text-white">
+        Request appointment
+      </a>
+    </div>
   }
   }
 }

@@ -5,12 +5,35 @@ interface ClinicStats {
   clinic:    StoredClinic;
   thisMonth: number;
   allTime:   number;
+  marketplaceRequests: number;
+  missedSlaRate: number | null;
 }
 
 interface ServiceCount {
   service: string;
   count:   number;
   pct:     number;
+}
+
+function timestampMillis(value?: { toMillis(): number }): number | null {
+  if (!value) return null;
+  const millis = value.toMillis();
+  return Number.isFinite(millis) ? millis : null;
+}
+
+function responseMinutes(appointment: AppointmentDoc): number | null {
+  const createdAt = timestampMillis(appointment.createdAt);
+  const respondedAt = timestampMillis(appointment.confirmationRespondedAt);
+  return createdAt == null || respondedAt == null
+    ? null
+    : Math.max(0, Math.round((respondedAt - createdAt) / 60_000));
+}
+
+function missedMarketplaceSla(appointment: AppointmentDoc): boolean | null {
+  if (appointment.status === 'expired') return true;
+  const deadline = timestampMillis(appointment.confirmationDeadline);
+  const respondedAt = timestampMillis(appointment.confirmationRespondedAt);
+  return deadline == null || respondedAt == null ? null : respondedAt > deadline;
 }
 
 @Component({
@@ -49,6 +72,7 @@ export class AnalyticsComponent implements OnInit {
         clinic,
         thisMonth: monthAppts.filter(a => a.clinicId === clinic.clinicId || a.clinicId === clinic.id).length,
         allTime:   appts.filter(a => a.clinicId === clinic.clinicId || a.clinicId === clinic.id).length,
+        ...this.marketplaceClinicStats(clinic, appts),
       }))
       .sort((a, b) => b.thisMonth - a.thisMonth);
   });
@@ -93,6 +117,30 @@ export class AnalyticsComponent implements OnInit {
       pending:   appts.filter(a => a.status === 'pending').length,
       confirmed: appts.filter(a => a.status === 'confirmed').length,
       cancelled: appts.filter(a => a.status === 'cancelled').length,
+      declined:  appts.filter(a => a.status === 'declined').length,
+      expired:   appts.filter(a => a.status === 'expired').length,
+    };
+  });
+
+  marketplaceReliability = computed(() => {
+    const requests = this.appointments().filter(appointment => appointment.source === 'marketplace');
+    const confirmed = requests.filter(appointment => appointment.confirmedAt != null).length;
+    const measured = requests
+      .map(missedMarketplaceSla)
+      .filter((value): value is boolean => value !== null);
+    const responseTimes = requests
+      .map(responseMinutes)
+      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+
+    return {
+      requests: requests.length,
+      confirmationRate: requests.length ? Math.round((confirmed / requests.length) * 100) : null,
+      averageResponseMinutes: responseTimes.length
+        ? Math.round(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length)
+        : null,
+      missedSlaRate: measured.length
+        ? Math.round((measured.filter(Boolean).length / measured.length) * 100)
+        : null,
     };
   });
 
@@ -130,5 +178,21 @@ export class AnalyticsComponent implements OnInit {
 
   currentMonth(): string {
     return new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  }
+
+  private marketplaceClinicStats(clinic: StoredClinic, appointments: AppointmentDoc[]) {
+    const requests = appointments.filter(appointment =>
+      appointment.source === 'marketplace' &&
+      (appointment.clinicId === clinic.clinicId || appointment.clinicId === clinic.id),
+    );
+    const measured = requests
+      .map(missedMarketplaceSla)
+      .filter((value): value is boolean => value !== null);
+    return {
+      marketplaceRequests: requests.length,
+      missedSlaRate: measured.length
+        ? Math.round((measured.filter(Boolean).length / measured.length) * 100)
+        : null,
+    };
   }
 }

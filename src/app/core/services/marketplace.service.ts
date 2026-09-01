@@ -72,11 +72,6 @@ export class MarketplaceService {
     return host ? `https://${host}` : null;
   }
 
-  clinicBookingUrl(clinic: MarketplaceClinic): string | null {
-    const website = this.clinicWebsiteUrl(clinic);
-    return website ? `${website}/appointment` : null;
-  }
-
   listingImage(clinic: MarketplaceClinic): string {
     return clinic.marketplaceProfile?.listingImageUrl ||
       clinic.customization?.media?.clinicImages?.[0]?.src ||

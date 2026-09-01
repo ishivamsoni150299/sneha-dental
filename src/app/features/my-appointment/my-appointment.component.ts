@@ -192,6 +192,20 @@ export class MyAppointmentComponent {
     this.view.set('lookup');
   }
 
+  appointmentStatusLabel(): string {
+    const labels: Record<string, string> = {
+      pending: 'Awaiting clinic',
+      confirmed: 'Confirmed',
+      checked_in: 'Arrived',
+      completed: 'Completed',
+      no_show: 'No show',
+      cancelled: 'Cancelled',
+      declined: 'Declined by clinic',
+      expired: 'Not confirmed',
+    };
+    return labels[this.appointment()?.status ?? ''] ?? 'Status unavailable';
+  }
+
   formatDate(dateStr: string): string {
     const d = new Date(`${dateStr  }T00:00:00`);
     return d.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });

@@ -86,7 +86,13 @@ export interface AppointmentDoc {
   service:    string;
   date:       string;
   time:       string;
-  status:     'pending' | 'confirmed' | 'cancelled';
+  status:     'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled' | 'declined' | 'expired';
+  source?:    'clinic_website' | 'marketplace' | 'voice' | 'voice_webhook' | 'chat';
+  confirmationDeadline?: Timestamp;
+  confirmationRespondedAt?: Timestamp;
+  confirmationResponseMinutes?: number;
+  confirmationSlaMissed?: boolean;
+  confirmedAt?: Timestamp;
   createdAt?: Timestamp;
 }
 

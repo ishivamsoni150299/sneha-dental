@@ -18,6 +18,15 @@
       ]
     },
     {
+      "collectionGroup": "appointments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "source", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "confirmationDeadline", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "voiceSessions",
       "queryScope": "COLLECTION",
       "fields": [

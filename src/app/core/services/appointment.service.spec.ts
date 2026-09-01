@@ -15,7 +15,11 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-import { AppointmentService } from './appointment.service';
+import {
+  AppointmentService,
+  calculateConfirmationDeadline,
+  isClinicOpenAt,
+} from './appointment.service';
 import { ClinicConfigService } from './clinic-config.service';
 
 const MOCK_CONFIG = {
@@ -107,6 +111,27 @@ describe('AppointmentService', () => {
       jasmine.clock().mockDate(new Date('2026-04-23T14:15:00'));
       expect(service.isBookable('2026-04-23', '14:00')).toBeFalse();
       jasmine.clock().uninstall();
+    });
+  });
+
+  describe('marketplace confirmation window', () => {
+    const hours = [{ days: 'Monday - Saturday', time: '9:00 AM - 7:00 PM' }];
+
+    it('sets the deadline two working hours after an in-hours request', () => {
+      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-31T10:30:00'));
+      expect(deadline).toEqual(new Date('2026-08-31T12:30:00'));
+    });
+
+    it('carries remaining response time into the next working window', () => {
+      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-31T18:30:00'));
+      expect(deadline).toEqual(new Date('2026-09-01T10:30:00'));
+    });
+
+    it('starts the response window when the clinic next opens', () => {
+      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-30T20:00:00'));
+      expect(deadline).toEqual(new Date('2026-08-31T11:00:00'));
+      expect(isClinicOpenAt(hours, new Date('2026-08-31T10:00:00'))).toBeTrue();
+      expect(isClinicOpenAt(hours, new Date('2026-08-30T10:00:00'))).toBeFalse();
     });
   });
 

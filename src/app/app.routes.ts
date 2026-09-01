@@ -23,6 +23,16 @@ export const routes: Routes = [
         },
       },
       {
+        path: ':slug/book',
+        loadComponent: () =>
+          import('./features/marketplace/marketplace-booking.component').then(m => m.MarketplaceBookingComponent),
+        data: {
+          title: 'Request Dental Appointment',
+          description: 'Request a preferred appointment time with a verified dental clinic.',
+          noIndex: true,
+        },
+      },
+      {
         path: ':slug',
         loadComponent: () =>
           import('./features/marketplace/dentist-profile.component').then(m => m.DentistProfileComponent),
@@ -82,8 +92,8 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/appointment/confirmed/confirmed.component').then(m => m.ConfirmedComponent),
         data: {
-          title: 'Appointment Confirmed',
-          description: 'Your appointment is confirmed. Save your booking reference for future changes.',
+          title: 'Appointment Request Received',
+          description: 'Your appointment request was received. Save your booking reference for future changes.',
           noIndex: true,
         },
       },

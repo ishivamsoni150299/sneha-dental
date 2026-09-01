@@ -115,6 +115,7 @@ Main collections:
 - `providerVerifications` (platform-only dentist registration checks)
 - `providerVerificationEvents` (append-only marketplace review audit trail)
 - `marketplaceSlugs` (platform-only unique public profile reservations)
+- `notifications` (idempotent appointment email delivery records)
 
 Clinic documents contain only public website configuration and the minimum
 subscription state needed to enable the clinic site. Owner identity, billing
@@ -130,6 +131,15 @@ Marketplace status, slug, and patient-facing search profile live on the public
 clinic document. Dentist registration numbers, verification notes, reviewer
 identity, and audit history stay in platform-only collections. A verified badge
 represents an identity and registration check, not a treatment-quality guarantee.
+
+Marketplace bookings reuse the same atomic appointment and slot transaction as
+clinic websites. New requests store their source, normalized E.164 phone,
+confirmation deadline, and privacy-safe attribution. A marketplace request is
+pending until the clinic confirms it. Clinics can decline with a reason;
+unanswered requests expire after their two-working-hour response window and the
+maintenance worker releases the reserved slot. Cancellation actors distinguish
+patient, clinic, and system outcomes. Server-resolved response timestamps drive
+confirmation-time and missed-SLA reporting without affecting paid-plan ranking.
 
 Initialize existing clinics before enabling marketplace discovery. The command
 is a read-only preview unless `--apply` is provided:
@@ -183,6 +193,7 @@ Patient marketplace routes on `mydentalplatform.com`:
 
 - `/dentists`
 - `/dentists/:slug`
+- `/dentists/:slug/book`
 
 The platform root redirects to `/dentists`. Clinic websites keep their own
 hostname-scoped public routes:
@@ -375,6 +386,11 @@ firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
 ```
 
+Vercel invokes `/api/cron-trial-expiry` every 15 minutes. In addition to
+subscription maintenance, the worker expires overdue marketplace requests,
+releases their slots transactionally, and sends an idempotent patient notice.
+Set `CRON_SECRET` in production so only authorized maintenance calls run.
+
 Before deploying the private clinic schema, preview the one-time migration with
 production Firebase Admin environment variables loaded:
 
@@ -401,6 +417,11 @@ Primary commands:
 ```bash
 npm test
 npm run build
+npm run test:appointments
+npm run test:subscriptions
+npm run test:seo
+npm run test:voice
+npm run test:leads
 ```
 
 Critical areas to cover when adding tests:

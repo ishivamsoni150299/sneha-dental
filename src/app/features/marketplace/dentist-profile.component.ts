@@ -70,10 +70,6 @@ export class DentistProfileComponent implements OnInit {
     return this.marketplace.clinicWebsiteUrl(clinic);
   }
 
-  clinicBookingUrl(clinic: MarketplaceClinic): string | null {
-    return this.marketplace.clinicBookingUrl(clinic);
-  }
-
   phoneUrl(clinic: MarketplaceClinic): string | null {
     const digits = String(clinic.phoneE164 || clinic.phone || '').replace(/\D/g, '');
     return digits ? `tel:+${digits}` : null;

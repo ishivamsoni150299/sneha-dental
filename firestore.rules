@@ -43,6 +43,14 @@ service cloud.firestore {
         get(/databases/$(database)/documents/clinics/$(clinicId)).data.active == true;
     }
 
+    function clinicAcceptsMarketplaceAppointments(clinicId) {
+      let clinic = get(/databases/$(database)/documents/clinics/$(clinicId));
+      return clinic.data.active == true &&
+        clinic.data.marketplaceStatus == 'verified' &&
+        clinic.data.marketplaceProfile is map &&
+        clinic.data.marketplaceProfile.acceptingNewPatients == true;
+    }
+
     function clinicAdminAllowedClinicFields() {
       return [
         'name',
@@ -171,7 +179,8 @@ service cloud.firestore {
         request.resource.data.keys().hasOnly([
           'clinicId', 'lookupKey', 'bookingRef', 'name', 'phone', 'email',
           'service', 'date', 'time', 'doctorId', 'doctorName', 'message',
-          'status', 'createdAt', 'updatedAt', 'source',
+          'status', 'createdAt', 'updatedAt', 'source', 'phoneE164',
+          'patientUid', 'confirmationDeadline', 'attribution',
           'consentVersion', 'consentAt'
         ]) &&
         request.resource.id == request.resource.data.lookupKey &&
@@ -185,6 +194,28 @@ service cloud.firestore {
         request.resource.data.phone is string &&
         request.resource.data.phone.size() >= 7 &&
         request.resource.data.phone.size() <= 24 &&
+        request.resource.data.phoneE164 is string &&
+        request.resource.data.phoneE164.matches('^\\+91[6-9][0-9]{9}$') &&
+        request.resource.data.patientUid == null &&
+        request.resource.data.source in ['clinic_website', 'marketplace'] &&
+        request.resource.data.confirmationDeadline is timestamp &&
+        (
+          request.resource.data.source != 'marketplace' ||
+          clinicAcceptsMarketplaceAppointments(request.resource.data.clinicId)
+        ) &&
+        (
+          !request.resource.data.keys().hasAny(['attribution']) ||
+          (
+            request.resource.data.attribution is map &&
+            request.resource.data.attribution.keys().hasOnly(['marketplaceSlug', 'entryPath']) &&
+            (!request.resource.data.attribution.keys().hasAny(['marketplaceSlug']) ||
+              (request.resource.data.attribution.marketplaceSlug is string &&
+                request.resource.data.attribution.marketplaceSlug.size() <= 120)) &&
+            (!request.resource.data.attribution.keys().hasAny(['entryPath']) ||
+              (request.resource.data.attribution.entryPath is string &&
+                request.resource.data.attribution.entryPath.size() <= 240))
+          )
+        ) &&
         request.resource.data.date is string &&
         request.resource.data.time is string &&
         request.resource.data.lookupKey is string &&
@@ -213,13 +244,85 @@ service cloud.firestore {
         request.resource.data.doctorId == resource.data.doctorId &&
         request.resource.data.doctorName == resource.data.doctorName &&
         request.resource.data.createdAt == resource.data.createdAt &&
-        changed.hasOnly(['service', 'date', 'time', 'message', 'status', 'updatedAt']) &&
-        request.resource.data.status in ['pending', 'cancelled'];
+        changed.hasOnly([
+          'service', 'date', 'time', 'message', 'status', 'updatedAt',
+          'cancellationActor'
+        ]) &&
+        request.resource.data.status in ['pending', 'cancelled'] &&
+        (
+          request.resource.data.status != 'cancelled' ||
+          request.resource.data.cancellationActor == 'patient'
+        );
     }
 
     function clinicAdminCanUpdateAppointment() {
       let changed = request.resource.data.diff(resource.data).changedKeys();
       return ownsAppointmentClinic() &&
+        changed.hasOnly([
+          'status', 'updatedAt', 'cancellationReason', 'cancellationActor',
+          'confirmationRespondedAt', 'confirmedAt', 'declinedAt',
+          'clinicNotes', 'treatmentDone', 'amountCharged',
+          'paymentStatus', 'paymentMethod'
+        ]) &&
+        (
+          !changed.hasAny(['status']) ||
+          (
+            request.resource.data.status in [
+              'confirmed', 'checked_in', 'completed', 'no_show',
+              'cancelled', 'declined'
+            ] &&
+            (
+              request.resource.data.status != 'confirmed' ||
+              resource.data.status == 'pending'
+            ) &&
+            (
+              request.resource.data.status != 'declined' ||
+              (resource.data.status == 'pending' && resource.data.source == 'marketplace')
+            ) &&
+            (
+              !(request.resource.data.status in ['cancelled', 'declined']) ||
+              request.resource.data.cancellationActor == 'clinic'
+            )
+          )
+        ) &&
+        (
+          (
+            changed.hasAny(['status']) &&
+            resource.data.status == 'pending' &&
+            request.resource.data.status == 'confirmed' &&
+            request.resource.data.confirmedAt == request.time &&
+            !changed.hasAny(['declinedAt']) &&
+            (
+              (
+                resource.data.source == 'marketplace' &&
+                request.resource.data.confirmationRespondedAt == request.time
+              ) ||
+              (
+                resource.data.source != 'marketplace' &&
+                !changed.hasAny(['confirmationRespondedAt'])
+              )
+            )
+          ) ||
+          (
+            changed.hasAny(['status']) &&
+            resource.data.status == 'pending' &&
+            resource.data.source == 'marketplace' &&
+            request.resource.data.status == 'declined' &&
+            request.resource.data.confirmationRespondedAt == request.time &&
+            request.resource.data.declinedAt == request.time &&
+            !changed.hasAny(['confirmedAt'])
+          ) ||
+          (
+            !changed.hasAny([
+              'confirmationRespondedAt', 'confirmedAt', 'declinedAt'
+            ]) &&
+            !(
+              changed.hasAny(['status']) &&
+              resource.data.status == 'pending' &&
+              request.resource.data.status in ['confirmed', 'declined']
+            )
+          )
+        ) &&
         (
           !changed.hasAny([
             'clinicNotes', 'treatmentDone', 'amountCharged',
@@ -242,7 +345,7 @@ service cloud.firestore {
 
     function canDeleteSlot() {
       let appointment = getAfter(appointmentPath(resource.data.appointmentId));
-      return appointment.data.status == 'cancelled' ||
+      return appointment.data.status in ['cancelled', 'declined', 'expired'] ||
         appointment.data.date != resource.data.date ||
         appointment.data.time != resource.data.time ||
         appointment.data.doctorId != resource.data.doctorId;

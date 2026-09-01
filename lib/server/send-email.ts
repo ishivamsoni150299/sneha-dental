@@ -3,6 +3,8 @@ import nodemailer from 'nodemailer';
 export type EmailTemplate =
   | 'welcome'
   | 'appointment_request_received'
+  | 'appointment_request_declined'
+  | 'appointment_request_expired'
   | 'clinic_booking_alert'
   | 'appointment_confirmation'
   | 'appointment_reminder';
@@ -132,6 +134,47 @@ function buildEmail(template: EmailTemplate, data: Record<string, string>) {
       </table>
     </div>
     <p style="font-size:12px;color:#64748b;text-align:center;line-height:1.6">This is a request, not a confirmed clinical appointment. For urgent dental pain, call ${data['phone']} directly.</p>
+  </div>
+</div></body></html>`,
+      };
+
+    case 'appointment_request_declined':
+      return {
+        from,
+        subject: `Appointment request update - ${data['clinicName']}`,
+        html: `
+<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f8fafc;margin:0;padding:0">
+<div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
+  <div style="background:#881337;padding:28px 32px"><h1 style="color:#fff;margin:0;font-size:22px">Requested time unavailable</h1></div>
+  <div style="padding:32px">
+    <p style="color:#374151;font-size:14px">Hi ${data['patientName']},</p>
+    <p style="color:#374151;font-size:14px;line-height:1.6">${data['clinicName']} could not confirm your requested appointment time.</p>
+    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:18px;margin:20px 0;font-size:14px;color:#374151">
+      <strong>Reason:</strong> ${data['reason'] || 'The requested time is unavailable.'}<br>
+      <strong>Booking ref:</strong> ${data['bookingRef']}
+    </div>
+    <p style="font-size:13px;color:#64748b">No payment was taken. Call ${data['phone']} or return to mydentalplatform to request another time.</p>
+  </div>
+</div></body></html>`,
+      };
+
+    case 'appointment_request_expired':
+      return {
+        from,
+        subject: `Appointment request expired - ${data['clinicName']}`,
+        html: `
+<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f8fafc;margin:0;padding:0">
+<div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
+  <div style="background:#334155;padding:28px 32px"><h1 style="color:#fff;margin:0;font-size:22px">Request window ended</h1></div>
+  <div style="padding:32px">
+    <p style="color:#374151;font-size:14px">Hi ${data['patientName']},</p>
+    <p style="color:#374151;font-size:14px;line-height:1.6">${data['clinicName']} did not confirm your preferred time within the response window, so the request was released.</p>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:20px 0;font-size:14px;color:#374151">
+      <strong>Booking ref:</strong> ${data['bookingRef']}<br>
+      <strong>Requested:</strong> ${data['date']} at ${data['time']}<br>
+      <strong>Service:</strong> ${data['service']}
+    </div>
+    <p style="font-size:13px;color:#64748b">No payment was taken. You can request another clinic or call ${data['phone']} directly.</p>
   </div>
 </div></body></html>`,
       };

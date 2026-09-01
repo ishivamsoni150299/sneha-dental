@@ -16,14 +16,14 @@
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-gray-900 text-sm">Remove this appointment</h3>
+            <h3 class="font-bold text-gray-900 text-sm">{{ isDeclineTarget(cancelTarget()!) ? 'Decline appointment request' : 'Remove this appointment' }}</h3>
             <p class="text-xs text-gray-400">{{ cancelTarget()!.name }} · {{ formatDate(cancelTarget()!.date) }}</p>
           </div>
         </div>
 
         <p class="text-xs font-semibold text-gray-600 mb-2">Reason</p>
         <div class="space-y-1.5 mb-5">
-          @for (r of cancelReasons; track r) {
+          @for (r of removalReasons(cancelTarget()); track r) {
             <label class="flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all"
                    [class]="cancelReason() === r
                      ? 'border-red-400 bg-red-50'
@@ -41,13 +41,13 @@
           <button (click)="dismissCancel()"
                   class="flex-1 border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold
                          py-2.5 rounded-xl text-sm transition-colors">
-            Keep
+            {{ isDeclineTarget(cancelTarget()!) ? 'Go back' : 'Keep' }}
           </button>
           <button (click)="confirmCancel()"
                   [disabled]="!cancelReason()"
                   class="flex-1 bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed
                          text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
-            Remove appointment
+            {{ isDeclineTarget(cancelTarget()!) ? 'Decline request' : 'Remove appointment' }}
           </button>
         </div>
       </div>
@@ -92,6 +92,14 @@
             <span class="w-1.5 h-1.5 rounded-full" [class]="statusDot(detailAppt()!.status)"></span>
             {{ statusLabel(detailAppt()!.status) }}
           </span>
+          @if (isMarketplaceRequest(detailAppt()!)) {
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-bold text-cyan-800">Marketplace request</span>
+              @if (confirmationWindowLabel(detailAppt()!); as responseWindow) {
+                <span class="text-[11px] font-semibold" [class.text-red-600]="responseWindow === 'Response overdue'" [class.text-gray-500]="responseWindow !== 'Response overdue'">{{ responseWindow }}</span>
+              }
+            </div>
+          }
         </div>
 
         <!-- Details grid -->
@@ -325,11 +333,11 @@
               No show
             </button>
           }
-          @if (detailAppt()!.status !== 'cancelled' && detailAppt()!.status !== 'completed' && detailAppt()!.status !== 'no_show') {
+          @if (!isTerminal(detailAppt()!) && detailAppt()!.status !== 'completed') {
             <button (click)="requestCancel(detailAppt()!)"
                     class="w-full border border-red-200 text-red-600 hover:bg-red-50 font-semibold py-3
                            rounded-xl text-sm transition-colors">
-              Cancel appointment
+              {{ isDeclineTarget(detailAppt()!) ? 'Decline request' : 'Cancel appointment' }}
             </button>
           }
 
@@ -1085,8 +1093,8 @@
               <tbody>
                 @for (appt of filteredAppointments(); track appt.id) {
                   <tr class="border-b border-gray-50 last:border-0 transition-colors group"
-                      [class.opacity-40]="appt.status === 'cancelled' || appt.status === 'no_show'"
-                      [class.hover:bg-slate-50]="appt.status !== 'cancelled'"
+                      [class.opacity-40]="isTerminal(appt)"
+                      [class.hover:bg-slate-50]="!isTerminal(appt)"
                       (click)="openDetail(appt)">
                     <td class="px-5 py-3.5 cursor-pointer">
                       <div class="flex items-center gap-3">
@@ -1097,6 +1105,9 @@
                         <div>
                           <p class="font-semibold text-gray-900 text-xs group-hover:text-blue-600 transition-colors truncate max-w-[160px]" [title]="appt.name">{{ appt.name }}</p>
                           <p class="text-[11px] text-gray-400">{{ appt.phone }}</p>
+                          @if (isMarketplaceRequest(appt)) {
+                            <p class="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-700">Marketplace</p>
+                          }
                         </div>
                       </div>
                     </td>
@@ -1155,10 +1166,10 @@
                             No Show
                           </button>
                         }
-                        @if (appt.status !== 'cancelled' && appt.status !== 'completed' && appt.status !== 'no_show') {
+                        @if (!isTerminal(appt) && appt.status !== 'completed') {
                           <button (click)="requestCancel(appt)" [disabled]="updatingId() === appt.id"
                                   class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                            Cancel
+                            {{ isDeclineTarget(appt) ? 'Decline' : 'Cancel' }}
                           </button>
                         }
                         <a [href]="whatsappUrl(appt)" target="_blank" rel="noopener noreferrer" title="WhatsApp"
@@ -1181,7 +1192,7 @@
           <!-- Mobile cards -->
           <div class="md:hidden divide-y divide-gray-50">
             @for (appt of filteredAppointments(); track appt.id) {
-              <div class="px-4 py-4" [class.opacity-40]="appt.status === 'cancelled' || appt.status === 'no_show'">
+              <div class="px-4 py-4" [class.opacity-40]="isTerminal(appt)">
                 <!-- Tap row to open detail -->
                 <div class="flex items-start gap-3 mb-3 cursor-pointer" (click)="openDetail(appt)">
                   <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -1200,6 +1211,9 @@
                       {{ appt.service }} · {{ formatDate(appt.date) }} · {{ appt.time }}
                       @if (isToday(appt.date)) { <span class="font-bold" [style.color]="themeColor.hex"> TODAY</span> }
                     </p>
+                    @if (isMarketplaceRequest(appt)) {
+                      <p class="mt-1 text-[10px] font-bold uppercase tracking-wide text-cyan-700">Marketplace request</p>
+                    }
                   </div>
                 </div>
 
@@ -1235,10 +1249,10 @@
                       No Show
                     </button>
                   }
-                  @if (appt.status !== 'cancelled' && appt.status !== 'completed' && appt.status !== 'no_show') {
+                  @if (!isTerminal(appt) && appt.status !== 'completed') {
                     <button (click)="requestCancel(appt)" [disabled]="updatingId() === appt.id"
                             class="border border-red-200 hover:bg-red-50 text-red-500 text-sm py-2.5 px-4 rounded-xl font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
-                      Cancel
+                      {{ isDeclineTarget(appt) ? 'Decline' : 'Cancel' }}
                     </button>
                   }
                   <button (click)="openDetail(appt)"

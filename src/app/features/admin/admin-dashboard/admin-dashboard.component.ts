@@ -29,7 +29,14 @@ export const CANCEL_REASONS = [
   'Emergency closure',
   'Other',
 ] as const;
-export type CancelReason = typeof CANCEL_REASONS[number];
+export const DECLINE_REASONS = [
+  'Requested time unavailable',
+  'Doctor unavailable',
+  'Service unavailable',
+  'Clinic closed',
+  'Unable to reach patient',
+  'Other',
+] as const;
 
 type UpgradeTeaser = {
   icon: 'palette' | 'badge' | 'globe' | 'mic' | 'whatsapp' | 'moon';
@@ -69,8 +76,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // ── Cancel reason modal ──────────────────────────────────────────────────
   cancelTarget    = signal<Appointment | null>(null);  // appointment to cancel
-  cancelReason    = signal<CancelReason | ''>('');
+  cancelReason    = signal('');
   readonly cancelReasons = CANCEL_REASONS;
+  readonly declineReasons = DECLINE_REASONS;
 
   // ── Appointment detail panel ─────────────────────────────────────────────
   detailAppt      = signal<Appointment | null>(null);  // selected for detail view
@@ -173,7 +181,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }));
 
   activeAppointments = computed(() =>
-    this.appointments().filter(a => a.status !== 'cancelled' && a.status !== 'no_show'),
+    this.appointments().filter(a => !this.isTerminal(a)),
   );
 
   todayAppointmentsList = computed(() =>
@@ -491,14 +499,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.updatingId.set(appt.id!);
     this.actionError.set(null);
     try {
-      await this.appointmentService.setStatus(appt.id!, 'cancelled', reason);
+      const status = this.isDeclineTarget(appt) ? 'declined' : 'cancelled';
+      await this.appointmentService.setStatus(appt.id!, status, reason);
       this.appointments.update(list =>
-        list.map(a => a.id === appt.id ? { ...a, status: 'cancelled', cancellationReason: reason } : a),
+        list.map(a => a.id === appt.id
+          ? { ...a, status, cancellationReason: reason, cancellationActor: 'clinic' }
+          : a),
       );
       if (this.detailAppt()?.id === appt.id) {
-        this.detailAppt.update(a => a ? { ...a, status: 'cancelled', cancellationReason: reason } : null);
+        this.detailAppt.update(a => a
+          ? { ...a, status, cancellationReason: reason, cancellationActor: 'clinic' }
+          : null);
       }
-      this.setSuccess(`${appt.name}'s appointment cancelled.`);
+      this.setSuccess(status === 'declined'
+        ? `${appt.name}'s marketplace request declined.`
+        : `${appt.name}'s appointment cancelled.`);
     } catch {
       this.setError('Could not cancel appointment.');
     } finally {
@@ -635,6 +650,34 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   isToday(dateStr: string): boolean { return dateStr === this.today; }
 
+  isMarketplaceRequest(appointment: Appointment): boolean {
+    return appointment.source === 'marketplace';
+  }
+
+  isDeclineTarget(appointment: Appointment): boolean {
+    return this.isMarketplaceRequest(appointment) && appointment.status === 'pending';
+  }
+
+  isTerminal(appointment: Appointment): boolean {
+    return ['cancelled', 'declined', 'expired', 'no_show'].includes(appointment.status);
+  }
+
+  removalReasons(appointment: Appointment | null): readonly string[] {
+    return appointment && this.isDeclineTarget(appointment)
+      ? this.declineReasons
+      : this.cancelReasons;
+  }
+
+  confirmationWindowLabel(appointment: Appointment): string | null {
+    if (!this.isMarketplaceRequest(appointment) || appointment.status !== 'pending') return null;
+    const deadline = appointment.confirmationDeadline?.toDate?.();
+    if (!deadline) return 'Respond within 2 working hours';
+    if (deadline.getTime() < Date.now()) return 'Response overdue';
+    return `Respond by ${deadline.toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+    })}`;
+  }
+
   whatsappUrl(appt: Appointment): string {
     const msg = `Hi ${appt.name}! Your appointment at ${this.clinicConfig.name} is confirmed for ${this.formatDate(appt.date)} at ${appt.time}. Booking Ref: ${appt.bookingRef}. Address: ${this.clinic.address}. See you soon! — ${this.clinicConfig.doctorName}`;
     return this.clinic.whatsappUrl(msg);
@@ -647,6 +690,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       completed:  'bg-indigo-100 text-indigo-700',
       no_show:    'bg-gray-100 text-gray-500',
       cancelled:  'bg-red-100 text-red-600',
+      declined:   'bg-rose-100 text-rose-700',
+      expired:    'bg-gray-200 text-gray-600',
       pending:    'bg-amber-100 text-amber-700',
     };
     return map[status] ?? 'bg-gray-100 text-gray-600';
@@ -660,6 +705,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       confirmed:  'Confirmed',
       completed:  'Completed',
       cancelled:  'Cancelled',
+      declined:   'Declined',
+      expired:    'Expired',
     };
     return map[status] ?? status;
   }
@@ -681,6 +728,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       completed:  'bg-indigo-500',
       no_show:    'bg-gray-400',
       cancelled:  'bg-red-500',
+      declined:   'bg-rose-500',
+      expired:    'bg-gray-500',
       pending:    'bg-amber-400',
     };
     return map[status] ?? 'bg-gray-400';

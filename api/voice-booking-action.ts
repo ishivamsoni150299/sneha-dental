@@ -2,7 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { createVoiceBookingRequest, type VoiceBookingInput } from './_lib/voice-booking-action';
-import { sendAppointmentNotification } from './_lib/appointment-notification';
+import {
+  sendAppointmentNotification,
+  sendAppointmentStatusNotification,
+} from './_lib/appointment-notification';
 import { verifyVoiceSessionToken, type VoiceSessionCapability } from './_lib/voice-session-auth';
 
 if (!getApps().length) {
@@ -136,6 +139,9 @@ export default async function handler(
 ): Promise<VercelResponse> {
   if (queryValue(req, 'action') === 'notify-web-booking') {
     return sendAppointmentNotification(req, res);
+  }
+  if (queryValue(req, 'action') === 'notify-appointment-status') {
+    return sendAppointmentStatusNotification(req, res);
   }
 
   if (req.method !== 'POST') {

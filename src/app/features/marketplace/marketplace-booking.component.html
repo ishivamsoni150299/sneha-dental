@@ -1,0 +1,82 @@
+@if (loading()) {
+  <div class="mx-auto min-h-[34rem] max-w-5xl animate-pulse px-4 py-10 sm:px-6">
+    <div class="mx-auto h-5 w-36 rounded bg-gray-200"></div>
+    <div class="mx-auto mt-5 h-10 w-80 max-w-full rounded bg-gray-200"></div>
+    <div class="mt-10 h-96 rounded-lg border border-gray-100 bg-white"></div>
+  </div>
+} @else if (error()) {
+  <section class="mx-auto min-h-[34rem] max-w-3xl px-4 py-16 text-center sm:px-6">
+    <div role="alert" class="border-y border-red-200 bg-white px-5 py-10">
+      <h1 class="text-2xl font-bold text-gray-950">Booking unavailable</h1>
+      <p class="mt-3 text-sm text-red-700">{{ error() }}</p>
+      <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-gray-950 px-4 py-2.5 text-sm font-bold text-white">Back to dentists</a>
+    </div>
+  </section>
+} @else if (notFound()) {
+  <section class="mx-auto min-h-[34rem] max-w-3xl px-4 py-16 text-center sm:px-6">
+    <div class="border-y border-gray-200 bg-white px-5 py-12">
+      <h1 class="text-2xl font-bold text-gray-950">Dentist not found</h1>
+      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">This marketplace profile is unavailable or may have moved.</p>
+      <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-gray-950 px-4 py-2.5 text-sm font-bold text-white">Browse dentists</a>
+    </div>
+  </section>
+} @else if (unavailable()) {
+  <section class="mx-auto min-h-[34rem] max-w-3xl px-4 py-16 text-center sm:px-6">
+    <div class="border-y border-gray-200 bg-white px-5 py-12">
+      <h1 class="text-2xl font-bold text-gray-950">Online requests are paused</h1>
+      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">This clinic is not accepting marketplace appointment requests right now.</p>
+      <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-gray-950 px-4 py-2.5 text-sm font-bold text-white">Browse other dentists</a>
+    </div>
+  </section>
+} @else {
+@if (submission(); as booking) {
+  <section class="min-h-[38rem] border-b border-gray-200 bg-gray-50 px-4 py-10 sm:px-6 sm:py-16">
+    <div class="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
+      <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
+        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <p class="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-700">Pending clinic confirmation</p>
+      <h1 class="mt-2 text-3xl font-bold text-gray-950">Your request was sent</h1>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-gray-600">
+        {{ clinic()!.name }} will confirm or decline the requested time within two working hours or during its next working window.
+      </p>
+
+      <dl class="mt-8 grid gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-2">
+        <div class="bg-white p-4 sm:col-span-2">
+          <dt class="text-[11px] font-bold uppercase text-gray-400">Booking reference</dt>
+          <dd class="mt-1 font-mono text-xl font-bold tracking-wider text-cyan-800">{{ booking.ref }}</dd>
+        </div>
+        <div class="bg-white p-4">
+          <dt class="text-[11px] font-bold uppercase text-gray-400">Preferred date</dt>
+          <dd class="mt-1 text-sm font-bold text-gray-950">{{ formattedDate(booking.date) }}</dd>
+        </div>
+        <div class="bg-white p-4">
+          <dt class="text-[11px] font-bold uppercase text-gray-400">Preferred time</dt>
+          <dd class="mt-1 text-sm font-bold text-gray-950">{{ booking.time }}</dd>
+        </div>
+        <div class="bg-white p-4 sm:col-span-2">
+          <dt class="text-[11px] font-bold uppercase text-gray-400">Service</dt>
+          <dd class="mt-1 text-sm font-bold text-gray-950">{{ booking.service }}</dd>
+        </div>
+      </dl>
+
+      <div class="mt-8 border-l-4 border-cyan-600 bg-cyan-50 px-4 py-3 text-sm leading-6 text-cyan-950">
+        Keep this reference. The requested time is reserved while the clinic reviews it, but it is not confirmed yet.
+      </div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center rounded-lg bg-gray-950 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800">Back to clinic profile</a>
+        <a routerLink="/dentists" class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">Find another dentist</a>
+      </div>
+    </div>
+  </section>
+} @else {
+@if (context(); as bookingContext) {
+  <app-appointment
+    [bookingContext]="bookingContext"
+    (bookingCompleted)="onBooked($event)"
+  />
+}
+}
+}

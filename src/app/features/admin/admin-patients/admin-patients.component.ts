@@ -181,6 +181,8 @@ export class AdminPatientsComponent implements OnInit {
       completed:  'bg-indigo-100 text-indigo-700',
       no_show:    'bg-gray-100 text-gray-500',
       cancelled:  'bg-red-100 text-red-600',
+      declined:   'bg-rose-100 text-rose-700',
+      expired:    'bg-gray-200 text-gray-600',
       pending:    'bg-amber-100 text-amber-700',
     };
     return map[status] ?? 'bg-gray-100 text-gray-600';
@@ -190,6 +192,7 @@ export class AdminPatientsComponent implements OnInit {
     const map: Record<string, string> = {
       checked_in: 'Arrived', no_show: 'No Show', pending: 'Pending',
       confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled',
+      declined: 'Declined', expired: 'Expired',
     };
     return map[status] ?? status;
   }

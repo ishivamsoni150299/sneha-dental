@@ -58,14 +58,12 @@ async function renderProfile(acceptingNewPatients = true) {
     'listingImage',
     'hasListingPhoto',
     'clinicWebsiteUrl',
-    'clinicBookingUrl',
   ]);
   marketplace.getVerifiedClinicBySlug.and.resolveTo(clinic);
   marketplace.serviceLabel.and.callFake(id => id === 'root-canal' ? 'Root Canal Treatment' : 'Dental Implants');
   marketplace.listingImage.and.returnValue('https://images.example/clinic.jpg');
   marketplace.hasListingPhoto.and.returnValue(true);
   marketplace.clinicWebsiteUrl.and.returnValue('https://smilecare.mydentalplatform.com');
-  marketplace.clinicBookingUrl.and.returnValue('https://smilecare.mydentalplatform.com/appointment');
 
   const doctors = jasmine.createSpyObj<DoctorService>('DoctorService', ['getDoctors']);
   doctors.getDoctors.and.resolveTo([
@@ -122,7 +120,9 @@ describe('DentistProfileComponent', () => {
     expect(text).toContain('Root Canal Treatment');
     expect(text).toContain('₹500');
     const bookingLinks = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
-    expect(bookingLinks.some(link => link.textContent?.includes('Request appointment'))).toBeTrue();
+    expect(bookingLinks.some(link =>
+      link.textContent?.includes('Request appointment') && link.getAttribute('href') === '/dentists/smile-care-noida/book'
+    )).toBeTrue();
   });
 
   it('does not offer appointment requests when the clinic has paused new-patient intake', async () => {

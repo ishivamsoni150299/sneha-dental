@@ -49,7 +49,6 @@ describe('MarketplaceService public URLs', () => {
 
   it('uses the hosted site for Free clinics even when a custom domain value exists', () => {
     expect(service.clinicWebsiteUrl(clinic())).toBe('https://smilecare.mydentalplatform.com');
-    expect(service.clinicBookingUrl(clinic())).toBe('https://smilecare.mydentalplatform.com/appointment');
   });
 
   it('uses the custom domain only for an active paid entitlement', () => {

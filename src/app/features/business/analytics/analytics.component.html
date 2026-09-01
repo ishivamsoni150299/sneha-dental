@@ -59,6 +59,33 @@
       </div>
     </div>
 
+    @if (marketplaceReliability().requests > 0) {
+      <section class="platform-panel overflow-hidden" aria-labelledby="marketplace-reliability-heading">
+        <div class="border-b border-gray-100 px-6 py-4">
+          <h2 id="marketplace-reliability-heading" class="text-sm font-semibold text-gray-900">Marketplace response reliability</h2>
+          <p class="mt-0.5 text-xs text-gray-400">All-time clinic confirmation performance</p>
+        </div>
+        <dl class="grid divide-y divide-gray-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+          <div class="p-5">
+            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Requests</dt>
+            <dd class="mt-2 text-2xl font-bold text-gray-900">{{ marketplaceReliability().requests }}</dd>
+          </div>
+          <div class="p-5">
+            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Confirmed</dt>
+            <dd class="mt-2 text-2xl font-bold text-emerald-700">{{ marketplaceReliability().confirmationRate ?? '—' }}{{ marketplaceReliability().confirmationRate !== null ? '%' : '' }}</dd>
+          </div>
+          <div class="p-5">
+            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Average response</dt>
+            <dd class="mt-2 text-2xl font-bold text-gray-900">{{ marketplaceReliability().averageResponseMinutes ?? '—' }}{{ marketplaceReliability().averageResponseMinutes !== null ? ' min' : '' }}</dd>
+          </div>
+          <div class="p-5">
+            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Missed SLA</dt>
+            <dd class="mt-2 text-2xl font-bold" [class.text-red-600]="(marketplaceReliability().missedSlaRate ?? 0) > 10" [class.text-gray-900]="(marketplaceReliability().missedSlaRate ?? 0) <= 10">{{ marketplaceReliability().missedSlaRate ?? '—' }}{{ marketplaceReliability().missedSlaRate !== null ? '%' : '' }}</dd>
+          </div>
+        </dl>
+      </section>
+    }
+
     <!-- ── Per-clinic bookings ───────────────────────────────────────────── -->
     <div class="platform-panel overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100">
@@ -77,6 +104,11 @@
               <div>
                 <p class="text-sm font-semibold text-gray-900">{{ stat.clinic.name }}</p>
                 <p class="text-xs text-gray-400">{{ stat.clinic.city }}</p>
+                @if (stat.marketplaceRequests > 0) {
+                  <p class="mt-1 text-[11px] font-medium text-cyan-700">
+                    {{ stat.marketplaceRequests }} marketplace requests · {{ stat.missedSlaRate ?? '—' }}{{ stat.missedSlaRate !== null ? '% missed SLA' : ' SLA pending' }}
+                  </p>
+                }
               </div>
               <div class="text-right">
                 <p class="text-sm font-bold text-gray-900">{{ stat.thisMonth }}</p>
@@ -151,6 +183,14 @@
             </div>
             <span class="text-sm font-bold text-red-600">{{ statusCounts().cancelled }}</span>
           </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2"><div class="h-3 w-3 rounded-full bg-rose-500"></div><span class="text-sm text-gray-700">Declined</span></div>
+            <span class="text-sm font-bold text-rose-700">{{ statusCounts().declined }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2"><div class="h-3 w-3 rounded-full bg-gray-400"></div><span class="text-sm text-gray-700">Expired</span></div>
+            <span class="text-sm font-bold text-gray-600">{{ statusCounts().expired }}</span>
+          </div>
           @if (totalThisMonth() > 0) {
             <div class="pt-2 border-t border-gray-100">
               <div class="flex h-3 rounded-full overflow-hidden gap-px">
@@ -165,6 +205,12 @@
                 @if (statusCounts().cancelled > 0) {
                   <div class="bg-red-400 transition-all"
                        [style.width]="barWidth(statusCounts().cancelled, totalThisMonth())"></div>
+                }
+                @if (statusCounts().declined > 0) {
+                  <div class="bg-rose-500 transition-all" [style.width]="barWidth(statusCounts().declined, totalThisMonth())"></div>
+                }
+                @if (statusCounts().expired > 0) {
+                  <div class="bg-gray-400 transition-all" [style.width]="barWidth(statusCounts().expired, totalThisMonth())"></div>
                 }
               </div>
             </div>
@@ -199,6 +245,8 @@
               <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
                     [class]="appt.status === 'confirmed' ? 'bg-green-100 text-green-700'
                             : appt.status === 'cancelled' ? 'bg-red-100 text-red-600'
+                      : appt.status === 'declined' ? 'bg-rose-100 text-rose-700'
+                      : appt.status === 'expired' ? 'bg-gray-200 text-gray-600'
                             : 'bg-yellow-100 text-yellow-700'">
                 {{ appt.status }}
               </span>
