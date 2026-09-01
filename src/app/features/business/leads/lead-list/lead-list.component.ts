@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   LeadFirestoreService, StoredLead, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-firestore.service';
+import { LeadAiCallService } from '../../../../core/services/lead-ai-call.service';
 
 interface ImportStats {
   imported:    number;
@@ -28,6 +29,23 @@ interface MessageDraft {
   message: string;
 }
 
+type WorkQueue = 'all' | 'attention' | 'ready_to_call' | 'awaiting_reply';
+
+interface AiCallReview {
+  lead: StoredLead;
+  consentConfirmed: boolean;
+  consentSource: string;
+  scheduledFor: string;
+}
+
+type AiCallControlAction = 'cancel' | 'do_not_call' | 'record_consent';
+
+interface AiCallControlReview {
+  lead: StoredLead;
+  action: AiCallControlAction;
+  reason: string;
+}
+
 const SENDER_PHONE    = '9140210648';
 const PLATFORM_URL    = 'https://www.mydentalplatform.com';
 const SENDER_SIG      = `\n\n— Shivam\n📞 ${SENDER_PHONE}\n🌐 ${PLATFORM_URL}`;
@@ -35,6 +53,7 @@ const SENDER_SIG      = `\n\n— Shivam\n📞 ${SENDER_PHONE}\n🌐 ${PLATFORM_U
 const DEMO_WEBSITE_URL = 'https://arogyamdental.mydentalplatform.com';
 const DEMO_VIDEO_URL   = 'https://youtu.be/cJGhGCDmyAk?si=lzHGpFTOp9WtMxMX';
 const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
+const AI_CALL_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-lead-list',
@@ -45,6 +64,7 @@ const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
 })
 export class LeadListComponent implements OnInit, OnDestroy {
   private leadStore = inject(LeadFirestoreService);
+  private aiCalls = inject(LeadAiCallService);
 
   leads           = signal<StoredLead[]>([]);
   loading         = signal(true);
@@ -52,6 +72,9 @@ export class LeadListComponent implements OnInit, OnDestroy {
     (sessionStorage.getItem('leads_tab') as LeadStatus | 'all') || 'all'
   );
   search          = signal('');
+  workQueue       = signal<WorkQueue>(
+    (sessionStorage.getItem('leads_queue') as WorkQueue) || 'all'
+  );
   sortBy          = signal<'newest' | 'followup' | 'score'>(
     (sessionStorage.getItem('leads_sort') as 'newest' | 'followup' | 'score') || 'newest'
   );
@@ -61,6 +84,11 @@ export class LeadListComponent implements OnInit, OnDestroy {
   importingCsv    = signal(false);
   importResult    = signal<ImportStats | null>(null);
   error           = signal<string | null>(null);
+  callNotice      = signal<string | null>(null);
+  aiCallReview    = signal<AiCallReview | null>(null);
+  queueingAiCall  = signal(false);
+  aiCallControl   = signal<AiCallControlReview | null>(null);
+  controllingAiCall = signal(false);
 
   // ── New interaction state ─────────────────────────────────────────────────
   copiedId        = signal<string | null>(null);
@@ -83,12 +111,17 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => sessionStorage.setItem('leads_tab',  this.activeTab()));
+    effect(() => sessionStorage.setItem('leads_queue', this.workQueue()));
     effect(() => sessionStorage.setItem('leads_sort', this.sortBy()));
   }
 
   // ── Computed ──────────────────────────────────────────────────────────────
   filteredLeads = computed(() => {
     let list = this.leads();
+    const queue = this.workQueue();
+    if (queue === 'attention') list = list.filter(lead => this.needsAttention(lead));
+    if (queue === 'ready_to_call') list = list.filter(lead => this.isReadyForAiCall(lead));
+    if (queue === 'awaiting_reply') list = list.filter(lead => this.isAwaitingReply(lead));
     const tab = this.activeTab();
     if (tab !== 'all') list = list.filter(l => l.status === tab);
     const q = this.search().toLowerCase().trim();
@@ -129,6 +162,15 @@ export class LeadListComponent implements OnInit, OnDestroy {
     const active    = all.filter(l => l.status !== 'converted' && l.status !== 'lost').length;
     const rate      = all.length > 0 ? Math.round((converted / all.length) * 100) : 0;
     return { total: all.length, converted, active, rate, overdue: this.overdueLeads().length };
+  });
+
+  workQueueStats = computed(() => {
+    const all = this.leads();
+    return {
+      attention: all.filter(lead => this.needsAttention(lead)).length,
+      readyToCall: all.filter(lead => this.isReadyForAiCall(lead)).length,
+      awaitingReply: all.filter(lead => this.isAwaitingReply(lead)).length,
+    };
   });
 
   /** Top 5 cities by lead count with per-city conversion rate. */
@@ -219,6 +261,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
       const updates: Partial<StoredLead> = {
         status: 'contacted',
         followUpDate: followUp.toISOString().split('T')[0],
+        lastContactedAt: new Date().toISOString(),
       };
       await this.leadStore.update(lead.id, updates);
       this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, ...updates } : l));
@@ -266,6 +309,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
     };
     const daysAhead = autoFollowUp[status];
     const updates: Partial<StoredLead> = { status };
+    if (status === 'contacted') updates.lastContactedAt = new Date().toISOString();
     if (daysAhead && !lead.followUpDate) {
       const d = new Date();
       d.setDate(d.getDate() + daysAhead);
@@ -315,6 +359,284 @@ export class LeadListComponent implements OnInit, OnDestroy {
   }
 
   isHotLead(lead: StoredLead): boolean { return this.leadScore(lead) >= 60; }
+
+  isReadyForAiCall(lead: StoredLead): boolean {
+    const activeCallStatuses = new Set(['preparing', 'scheduled', 'queued', 'ringing', 'in_progress']);
+    return !!lead.phone
+      && lead.callConsent === 'granted'
+      && lead.doNotCall !== true
+      && (lead.aiCallAttempts ?? 0) < 3
+      && !this.isAiCallCoolingDown(lead)
+      && !activeCallStatuses.has(lead.aiCallStatus ?? '')
+      && lead.status !== 'converted'
+      && lead.status !== 'lost';
+  }
+
+  needsAttention(lead: StoredLead): boolean {
+    if (lead.status === 'converted' || lead.status === 'lost') return false;
+    return this.isOverdue(lead)
+      || lead.aiCallStatus === 'failed'
+      || (lead.status === 'new' && this.isHotLead(lead));
+  }
+
+  isAwaitingReply(lead: StoredLead): boolean {
+    return lead.status === 'contacted'
+      && !this.isOverdue(lead)
+      && !['preparing', 'scheduled', 'queued', 'ringing', 'in_progress'].includes(lead.aiCallStatus ?? '');
+  }
+
+  openAiCallReview(lead: StoredLead) {
+    this.callNotice.set(null);
+    this.aiCallReview.set({
+      lead,
+      consentConfirmed: lead.callConsent === 'granted',
+      consentSource: lead.callConsentSource ?? '',
+      scheduledFor: this.defaultCallSlot(lead),
+    });
+  }
+
+  closeAiCallReview() {
+    if (!this.queueingAiCall()) this.aiCallReview.set(null);
+  }
+
+  updateAiCallConsent(consentConfirmed: boolean) {
+    this.aiCallReview.update(review => review ? { ...review, consentConfirmed } : null);
+  }
+
+  updateAiCallConsentSource(consentSource: string) {
+    this.aiCallReview.update(review => review ? { ...review, consentSource } : null);
+  }
+
+  updateAiCallSchedule(scheduledFor: string) {
+    this.aiCallReview.update(review => review ? { ...review, scheduledFor } : null);
+  }
+
+  canQueueAiCall(): boolean {
+    const review = this.aiCallReview();
+    return !!review?.lead.phone
+      && review.lead.doNotCall !== true
+      && review.consentConfirmed
+      && review.consentSource.trim().length >= 3
+      && !!review.scheduledFor
+      && !this.queueingAiCall();
+  }
+
+  aiCallScript(lead: StoredLead): string {
+    const contact = lead.doctorName ? `Dr. ${lead.doctorName}` : 'the clinic owner';
+    return `Hello, may I speak with ${contact}? This is an automated AI assistant calling from My Dental Platform. You previously agreed to receive this call. Is now a good time for a brief conversation about your clinic website and appointment workflow? You can ask me to stop at any time.`;
+  }
+
+  aiCallStatusLabel(lead: StoredLead): string {
+    const labels: Record<string, string> = {
+      preparing: 'Preparing AI call',
+      scheduled: 'AI call scheduled',
+      queued: 'AI call queued',
+      ringing: 'AI call ringing',
+      in_progress: 'AI call in progress',
+      completed: 'AI call completed',
+      failed: 'AI call failed',
+      cancelled: 'AI call cancelled',
+      opted_out: 'Do not call',
+    };
+    return labels[lead.aiCallStatus ?? ''] ?? '';
+  }
+
+  hasActiveAiCall(lead: StoredLead): boolean {
+    return ['preparing', 'scheduled', 'queued', 'ringing', 'in_progress'].includes(lead.aiCallStatus ?? '');
+  }
+
+  isAiCallCoolingDown(lead: StoredLead): boolean {
+    const eligibleAt = this.aiCallNextEligibleDate(lead);
+    return !!eligibleAt && eligibleAt.getTime() > Date.now();
+  }
+
+  aiCallCooldownLabel(lead: StoredLead): string {
+    const eligibleAt = this.aiCallNextEligibleDate(lead);
+    return eligibleAt && eligibleAt.getTime() > Date.now()
+      ? eligibleAt.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+      : '';
+  }
+
+  canReviewAiCall(lead: StoredLead): boolean {
+    return !!lead.phone
+      && lead.doNotCall !== true
+      && lead.aiCallStatus !== 'opted_out'
+      && !this.hasActiveAiCall(lead)
+      && (lead.aiCallAttempts ?? 0) < 3
+      && lead.status !== 'converted'
+      && lead.status !== 'lost';
+  }
+
+  nextBestAction(lead: StoredLead): string {
+    if (lead.doNotCall || lead.aiCallStatus === 'opted_out') return 'Respect this lead\'s call opt-out';
+    if (lead.status === 'converted') return 'Begin onboarding and collect clinic content';
+    if (lead.status === 'lost') return 'Keep closed unless the lead re-engages';
+    if (this.hasActiveAiCall(lead)) return this.aiCallStatusLabel(lead);
+    if (lead.aiCallLastOutcome === 'demo_booked' || lead.status === 'demo') return 'Prepare the tailored product demo';
+    if (lead.aiCallLastOutcome === 'interested' || lead.status === 'interested') return 'Send proof and secure a demo time';
+    if (lead.aiCallLastOutcome === 'callback_requested') return 'Confirm the requested callback time';
+    if ((lead.aiCallAttempts ?? 0) >= 3) return 'Attempt limit reached; review manually';
+    if (this.isAiCallCoolingDown(lead)) return `Next AI call eligible ${this.aiCallCooldownLabel(lead)}`;
+    if (lead.callConsent === 'granted' && lead.phone) return 'Review and schedule an AI qualification call';
+    if (this.isOverdue(lead)) return 'Complete the overdue follow-up today';
+    if (lead.status === 'contacted') return 'Wait for reply or follow up on the due date';
+    if (lead.phone) return 'Get explicit permission before an automated call';
+    return 'Add a valid contact number';
+  }
+
+  aiCallScheduleLabel(lead: StoredLead): string {
+    if (!lead.aiCallScheduledFor) return '';
+    const value = new Date(lead.aiCallScheduledFor);
+    return Number.isNaN(value.getTime())
+      ? ''
+      : value.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  async queueAiCall() {
+    const review = this.aiCallReview();
+    if (!review || !this.canQueueAiCall()) return;
+
+    this.queueingAiCall.set(true);
+    this.error.set(null);
+    try {
+      const result = await this.aiCalls.queue({
+        leadId: review.lead.id,
+        consentConfirmed: true,
+        consentSource: review.consentSource.trim(),
+        scheduledFor: new Date(review.scheduledFor).toISOString(),
+      });
+      const updates: Partial<StoredLead> = {
+        callConsent: 'granted',
+        callConsentSource: review.consentSource.trim(),
+        callConsentAt: result.consentAt,
+        aiCallStatus: result.status,
+        aiCallScheduledFor: result.scheduledFor,
+        aiCallProvider: result.provider,
+        aiCallProviderId: result.callId,
+        aiCallAttempts: result.attempts,
+        aiCallLastAttemptAt: result.scheduledFor,
+      };
+      this.leads.update(list => list.map(lead => lead.id === review.lead.id ? { ...lead, ...updates } : lead));
+      this.callNotice.set(`AI call queued for ${review.lead.clinicName}.`);
+      this.aiCallReview.set(null);
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Could not queue the AI call.');
+    } finally {
+      this.queueingAiCall.set(false);
+    }
+  }
+
+  openAiCallControl(lead: StoredLead, action: AiCallControlAction) {
+    this.callNotice.set(null);
+    this.aiCallControl.set({
+      lead,
+      action,
+      reason: action === 'record_consent'
+        ? ''
+        : action === 'do_not_call'
+          ? 'Lead requested no further calls.'
+          : 'Call cancelled by an administrator.',
+    });
+  }
+
+  closeAiCallControl() {
+    if (!this.controllingAiCall()) this.aiCallControl.set(null);
+  }
+
+  updateAiCallControlReason(reason: string) {
+    this.aiCallControl.update(review => review ? { ...review, reason } : null);
+  }
+
+  canConfirmAiCallControl(): boolean {
+    const review = this.aiCallControl();
+    return !!review && review.reason.trim().length >= 3 && !this.controllingAiCall();
+  }
+
+  async confirmAiCallControl() {
+    const review = this.aiCallControl();
+    if (!review || !this.canConfirmAiCallControl()) return;
+
+    this.controllingAiCall.set(true);
+    this.error.set(null);
+    const reason = review.reason.trim();
+    try {
+      const result = review.action === 'record_consent'
+        ? await this.aiCalls.recordConsent(review.lead.id, reason)
+        : review.action === 'do_not_call'
+          ? await this.aiCalls.doNotCall(review.lead.id, reason)
+          : await this.aiCalls.cancel(review.lead.id, reason);
+      const updates: Partial<StoredLead> = result.status === 'ready'
+        ? {
+            callConsent: 'granted',
+            callConsentSource: reason,
+            callConsentAt: result.consentAt,
+            lastContactedAt: result.consentAt,
+            doNotCall: false,
+            aiCallStatus: 'ready',
+            aiCallProviderId: undefined,
+            aiCallRequestId: undefined,
+            aiCallScheduledFor: undefined,
+            ...(review.lead.status === 'lost' ? { status: 'contacted' as const } : {}),
+          }
+        : result.status === 'opted_out'
+          ? {
+            callConsent: 'revoked',
+            doNotCall: true,
+            aiCallStatus: 'opted_out',
+            aiCallLastOutcome: 'opted_out',
+            aiCallSummary: reason,
+            status: 'lost',
+          }
+          : { aiCallStatus: 'cancelled', aiCallError: undefined };
+      this.leads.update(list => list.map(lead => lead.id === review.lead.id ? { ...lead, ...updates } : lead));
+      const providerNote = result.providerCallCancelled ? ' The provider call was stopped.' : '';
+      this.callNotice.set(
+        result.status === 'ready'
+          ? `New automated-call consent recorded for ${review.lead.clinicName}. Review a call separately when ready.`
+          : result.status === 'opted_out'
+            ? `${review.lead.clinicName} is now marked do not call.${providerNote}`
+            : `AI call cancelled for ${review.lead.clinicName}.${providerNote}`,
+      );
+      this.aiCallControl.set(null);
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Could not update the AI call.');
+    } finally {
+      this.controllingAiCall.set(false);
+    }
+  }
+
+  minimumCallSlot(lead?: StoredLead): string {
+    const cooldownAt = lead ? this.aiCallNextEligibleDate(lead)?.getTime() ?? 0 : 0;
+    const minimum = new Date(Math.max(Date.now() + 10 * 60 * 1000, cooldownAt));
+    if (minimum.getSeconds() || minimum.getMilliseconds()) minimum.setMinutes(minimum.getMinutes() + 1);
+    minimum.setSeconds(0, 0);
+    return this.toDateTimeLocal(minimum);
+  }
+
+  private defaultCallSlot(lead: StoredLead): string {
+    const cooldownAt = this.aiCallNextEligibleDate(lead)?.getTime() ?? 0;
+    const slot = new Date(Math.max(Date.now() + 30 * 60 * 1000, cooldownAt));
+    slot.setSeconds(0, 0);
+    slot.setMinutes(Math.ceil(slot.getMinutes() / 15) * 15);
+    if (slot.getHours() < 9) slot.setHours(10, 0, 0, 0);
+    if (slot.getHours() >= 19) {
+      slot.setDate(slot.getDate() + 1);
+      slot.setHours(10, 0, 0, 0);
+    }
+    while (slot.getDay() === 0) slot.setDate(slot.getDate() + 1);
+    return this.toDateTimeLocal(slot);
+  }
+
+  private aiCallNextEligibleDate(lead: StoredLead): Date | null {
+    if (!lead.aiCallLastAttemptAt) return null;
+    const lastAttemptAt = new Date(lead.aiCallLastAttemptAt).getTime();
+    return Number.isFinite(lastAttemptAt) ? new Date(lastAttemptAt + AI_CALL_COOLDOWN_MS) : null;
+  }
+
+  private toDateTimeLocal(value: Date): string {
+    const local = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
+    return local.toISOString().slice(0, 16);
+  }
 
   // ── Inline quick note ─────────────────────────────────────────────────────
   startNoteEdit(lead: StoredLead) {
@@ -366,6 +688,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
 
       const updates: Partial<StoredLead> = {
         followUpDate: followUp.toISOString().split('T')[0],
+        lastContactedAt: new Date().toISOString(),
         ...(next ? { status: next } : {}),
       };
 
@@ -791,6 +1114,28 @@ export class LeadListComponent implements OnInit, OnDestroy {
     return new Date(`${lead.followUpDate  }T00:00:00`).toLocaleDateString('en-IN', {
       day: 'numeric', month: 'short',
     });
+  }
+
+  lastContactLabel(lead: StoredLead): string {
+    if (!lead.lastContactedAt) return '';
+    const value = new Date(lead.lastContactedAt);
+    if (Number.isNaN(value.getTime())) return '';
+    return value.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  }
+
+  aiCallOutcomeLabel(lead: StoredLead): string {
+    const labels: Record<string, string> = {
+      interested: 'Interested',
+      demo_booked: 'Demo booked',
+      callback_requested: 'Callback requested',
+      not_interested: 'Not interested',
+      no_answer: 'No answer',
+      voicemail: 'Voicemail',
+      wrong_number: 'Wrong number',
+      opted_out: 'Opted out',
+      unknown: 'Needs review',
+    };
+    return labels[lead.aiCallLastOutcome ?? ''] ?? '';
   }
 
   private isMobile(): boolean {

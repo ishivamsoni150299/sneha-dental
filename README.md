@@ -79,6 +79,7 @@ Current serverless endpoints are designed to stay within the Vercel Hobby plan f
 | `api/create-subscription.ts` | POST | Creates clinic billing checkout |
 | `api/openai-voice.ts` | POST/GET | Creates Realtime sessions and manages voice settings and usage |
 | `api/voice-booking-action.ts` | POST | Creates a confirmed appointment request from a signed voice session |
+| `api/lead-ai-call.ts` | POST | Queues, cancels, records consent controls, and reconciles outbound lead calls |
 | `api/razorpay-webhook.ts` | POST | Subscription payment status updates |
 | `api/self-signup.ts` | POST | Clinic self-onboarding |
 
@@ -205,6 +206,12 @@ Set all server-side values in the Vercel project settings. For local work, copy 
 | `OPENAI_VOICE_SIGNING_SECRET` | Yes | Signs short-lived voice booking capabilities |
 | `OPENAI_REALTIME_MODEL` | Optional | Realtime model override; defaults to `gpt-realtime-2.1` |
 | `OPENAI_TRANSCRIPTION_MODEL` | Optional | Input transcription model override |
+| `LEAD_AI_CALLING_ENABLED` | Optional | Fail-closed outbound lead-call switch; must equal `true` to queue calls |
+| `VAPI_API_KEY` | Required when enabled | Vapi private API key for outbound calls and cancellation |
+| `VAPI_LEAD_ASSISTANT_ID` | Required when enabled | Dedicated outbound lead assistant |
+| `VAPI_LEAD_ASSISTANT_VERSION` | Required when enabled | Pinned published assistant version |
+| `VAPI_PHONE_NUMBER_ID` | Required when enabled | Imported outbound caller number |
+| `VAPI_WEBHOOK_SECRET` | Required when enabled | Vapi bearer credential; at least 32 characters |
 | `RAZORPAY_KEY_ID` | Yes | Razorpay API |
 | `RAZORPAY_KEY_SECRET` | Yes | Razorpay API |
 | `RAZORPAY_WEBHOOK_SECRET` | Yes | Razorpay webhook verification |
@@ -259,6 +266,8 @@ Recommended billing setup:
 4. Test microphone permission, interruption, session timeout, and a confirmed booking on the clinic's real domain.
 
 The current implementation handles live voice inside the clinic website through WebRTC. Answering a public telephone number requires a separately configured SIP or telephony carrier; an OpenAI API key alone does not provide PSTN calling.
+
+Consent-based outbound lead qualification uses a separate Vapi phone assistant backed by an OpenAI model. Keep it disabled until the setup, privacy, cancellation, budget, and pilot gates in [docs/OUTBOUND_AI_CALLING.md](docs/OUTBOUND_AI_CALLING.md) pass.
 
 ### Vercel API Token
 

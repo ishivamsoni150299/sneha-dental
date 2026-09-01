@@ -93,6 +93,7 @@
     "api/self-signup.ts":        { "maxDuration": 20 },
     "api/cron-trial-expiry.ts":  { "maxDuration": 30 },
     "api/openai-voice.ts":       { "maxDuration": 30 },
+    "api/lead-ai-call.ts":       { "maxDuration": 20 },
     "api/domain.ts":             { "maxDuration": 15 },
     "api/clinic-owner.ts":       { "maxDuration": 15 },
     "api/voice-booking-action.ts": { "maxDuration": 15 },

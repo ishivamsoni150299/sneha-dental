@@ -41,6 +41,29 @@ if (env.OPENAI_VOICE_SIGNING_SECRET && env.OPENAI_VOICE_SIGNING_SECRET.length < 
   process.exitCode = 1;
 }
 
+const outboundCallingEnabled = String(env.LEAD_AI_CALLING_ENABLED || '').toLowerCase() === 'true';
+if (outboundCallingEnabled) {
+  const outboundRequired = [
+    'VAPI_API_KEY',
+    'VAPI_LEAD_ASSISTANT_ID',
+    'VAPI_LEAD_ASSISTANT_VERSION',
+    'VAPI_PHONE_NUMBER_ID',
+    'VAPI_WEBHOOK_SECRET',
+  ];
+  const outboundMissing = outboundRequired.filter(key => !env[key]);
+  if (outboundMissing.length) {
+    console.error(`FAIL outbound AI calling: missing ${outboundMissing.join(', ')}`);
+    process.exitCode = 1;
+  } else if (env.VAPI_WEBHOOK_SECRET.length < 32) {
+    console.error('FAIL outbound AI calling: VAPI_WEBHOOK_SECRET must be at least 32 characters');
+    process.exitCode = 1;
+  } else {
+    console.log('PASS outbound AI calling: enabled with pinned provider configuration');
+  }
+} else {
+  console.log('PASS outbound AI calling: disabled');
+}
+
 if (!env.SENTRY_DSN) console.warn('WARN SENTRY_DSN is not configured; browser errors will not be reported');
 if (env.FIREBASE_APP_CHECK_ENFORCED === 'true' && !env.FIREBASE_APP_CHECK_SITE_KEY) {
   console.error('FAIL App Check: enforcement is enabled but FIREBASE_APP_CHECK_SITE_KEY is missing');

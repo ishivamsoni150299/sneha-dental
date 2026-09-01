@@ -7,7 +7,30 @@ import { db } from '../firebase';
 
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'demo' | 'converted' | 'lost';
 export type LeadSource = 'google_maps' | 'instagram' | 'referral' | 'ida' | 'walkin' | 'other';
-export type ActivityType = 'whatsapp' | 'called' | 'note' | 'status_change';
+export type LeadCallConsent = 'unknown' | 'granted' | 'revoked';
+export type LeadAiCallStatus =
+  | 'not_ready'
+  | 'ready'
+  | 'preparing'
+  | 'scheduled'
+  | 'queued'
+  | 'ringing'
+  | 'in_progress'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'opted_out';
+export type LeadAiCallOutcome =
+  | 'interested'
+  | 'demo_booked'
+  | 'callback_requested'
+  | 'not_interested'
+  | 'no_answer'
+  | 'voicemail'
+  | 'wrong_number'
+  | 'opted_out'
+  | 'unknown';
+export type ActivityType = 'whatsapp' | 'called' | 'ai_call' | 'note' | 'status_change';
 
 export interface StoredLead {
   id:           string;
@@ -29,6 +52,22 @@ export interface StoredLead {
   mapsLink?:    string;   // Direct Google Maps URL (used as dedup key)
   whatsappTemplateLabel?: string;
   whatsappMessage?: string;
+  callConsent?: LeadCallConsent;
+  callConsentSource?: string;
+  callConsentAt?: string;
+  doNotCall?: boolean;
+  lastContactedAt?: string;
+  aiCallStatus?: LeadAiCallStatus;
+  aiCallScheduledFor?: string;
+  aiCallProvider?: string;
+  aiCallProviderId?: string;
+  aiCallRequestId?: string;
+  aiCallPreparedAt?: string;
+  aiCallAttempts?: number;
+  aiCallLastAttemptAt?: string;
+  aiCallLastOutcome?: LeadAiCallOutcome;
+  aiCallSummary?: string;
+  aiCallError?: string;
   createdAt?:   Timestamp;
 }
 
