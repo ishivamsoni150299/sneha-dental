@@ -1,15 +1,15 @@
 # Outbound AI Calling Runbook
 
-Outbound lead calls are intentionally human-reviewed. The pipeline can prioritize eligible leads and schedule a provider call, but it does not scrape consent, launch bulk campaigns, or call a lead automatically in the background.
+Outbound lead calls are fully administrator-controlled. The pipeline only identifies eligible leads. It never chooses a call time, starts a call, schedules a call, or retries a call automatically.
 
 Keep `LEAD_AI_CALLING_ENABLED=false` until every release gate in this document passes.
 
 ## Runtime Flow
 
-1. A super admin opens **Review AI call** for one lead.
-2. The admin verifies explicit automated-call permission, records the evidence, and chooses a time.
+1. A super admin opens **AI call** for one lead.
+2. The admin chooses **Call now** or **Schedule later**, verifies explicit automated-call permission again, and records the evidence.
 3. The API rechecks consent, opt-out state, phone format, calling hours, cooldown, and attempt count in a Firestore transaction.
-4. Vapi schedules one call using a pinned, published assistant version.
+4. Only the final **Confirm & call now** or **Confirm schedule** action sends one request to Vapi using a pinned, published assistant version. Immediate calls do not include a provider schedule.
 5. Authenticated `status-update` and `end-of-call-report` webhooks update the lead.
 6. Only the normalized outcome and a short summary are saved. Raw transcripts and recordings are not saved in Firestore.
 7. **Cancel AI call** deletes a pending provider call before changing its pipeline status. **Mark do not call** does the same, revokes consent, and blocks future calls.
@@ -18,6 +18,8 @@ Keep `LEAD_AI_CALLING_ENABLED=false` until every release gate in this document p
 The server enforces these limits:
 
 - Explicit consent evidence for every queue request
+- An explicit `now` or `scheduled` choice for every call request
+- No background dialing, automatic scheduling, campaigns, or automatic retries
 - India phone normalization
 - Monday-Saturday, 9:00 AM-7:00 PM India time
 - A 15-minute provider execution window, capped at 7:00 PM India time

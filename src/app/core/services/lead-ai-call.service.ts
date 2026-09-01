@@ -5,7 +5,8 @@ export interface QueueLeadAiCallRequest {
   leadId: string;
   consentConfirmed: true;
   consentSource: string;
-  scheduledFor: string;
+  timing: 'now' | 'scheduled';
+  scheduledFor?: string;
 }
 
 export interface QueueLeadAiCallResponse {
@@ -13,7 +14,9 @@ export interface QueueLeadAiCallResponse {
   callId: string;
   provider: string;
   status: 'scheduled' | 'queued';
-  scheduledFor: string;
+  timing: 'now' | 'scheduled';
+  callAt: string;
+  scheduledFor?: string;
   consentAt: string;
   attempts: number;
 }

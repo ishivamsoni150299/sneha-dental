@@ -7,8 +7,10 @@ import {
   mapProviderCallStatus,
   normalizeIndianPhone,
   providerEventMatchesCall,
+  providerSchedulePlan,
   queuePolicyBlockReason,
   validateCallSchedule,
+  validateImmediateCall,
 } from '../../api/_lib/lead-ai-call-policy.ts';
 
 test('normalizes supported Indian mobile and landline formats', () => {
@@ -26,6 +28,18 @@ test('enforces the India calling window and schedule horizon', () => {
   assert.match(validateCallSchedule('2026-03-16T03:05:00.000Z', now).error ?? '', /10 minutes/);
   assert.equal(latestCallAttemptAt(new Date('2026-03-16T05:00:00.000Z')), '2026-03-16T05:15:00.000Z');
   assert.equal(latestCallAttemptAt(new Date('2026-03-16T13:29:00.000Z')), '2026-03-16T13:29:59.999Z');
+});
+
+test('allows an immediate call only inside the India calling window', () => {
+  const callAt = new Date('2026-03-16T05:00:00.000Z');
+  assert.equal(validateImmediateCall(callAt.getTime()).ok, true);
+  assert.match(validateImmediateCall(Date.parse('2026-03-16T02:00:00.000Z')).error ?? '', /9:00 AM/);
+  assert.match(validateImmediateCall(Date.parse('2026-03-22T05:00:00.000Z')).error ?? '', /Monday-Saturday/);
+  assert.equal(providerSchedulePlan('now', callAt), undefined);
+  assert.deepEqual(providerSchedulePlan('scheduled', callAt), {
+    earliestAt: '2026-03-16T05:00:00.000Z',
+    latestAt: '2026-03-16T05:15:00.000Z',
+  });
 });
 
 test('blocks opt-outs, active calls, attempts, and cooldown violations', () => {

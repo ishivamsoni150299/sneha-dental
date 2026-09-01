@@ -4,46 +4,9 @@
   <div class="platform-page-header flex-wrap">
     <div>
       <h1 class="text-xl font-bold text-gray-900">Leads</h1>
-      <p class="text-sm text-gray-500 mt-0.5">Track prospects through your sales pipeline</p>
+      <p class="text-sm text-gray-500 mt-0.5">Choose a lead, then take the next action.</p>
     </div>
-    <div class="flex items-center gap-2 flex-wrap">
-
-      <!-- CSV Import -->
-      <label class="ui-btn ui-btn-ghost cursor-pointer text-xs text-gray-600"
-             [class.opacity-50]="importingCsv()">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-        </svg>
-        {{ importingCsv() ? 'Importing…' : 'Import CSV' }}
-        <input type="file" accept=".csv" class="hidden"
-               (change)="handleCsvImport($event)" [disabled]="importingCsv()"/>
-      </label>
-
-      <!-- Export CSV -->
-      <button (click)="exportCsv()" [disabled]="sortedLeads().length === 0"
-              class="ui-btn ui-btn-ghost text-xs text-gray-600 disabled:cursor-not-allowed disabled:opacity-40">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        Export
-      </button>
-
-      <a routerLink="/business/leads/discover"
-         class="ui-btn ui-btn-ghost text-xs text-gray-600">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
-        </svg>
-        Discover
-      </a>
-      @if (newLeadsWithPhone().length > 0) {
-        <button (click)="startBlast()"
-                class="ui-btn text-xs font-bold text-white border-0 bg-green-600 hover:bg-green-700 transition-colors">
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-          </svg>
-          Blast {{ newLeadsWithPhone().length }} New
-        </button>
-      }
+    <div class="flex items-center gap-2">
       <a routerLink="/business/leads/new"
          class="ui-btn ui-btn-primary text-xs">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -51,6 +14,28 @@
         </svg>
         Add Lead
       </a>
+      <details class="group/actions relative">
+        <summary class="ui-btn ui-btn-ghost cursor-pointer list-none text-xs text-gray-600 [&::-webkit-details-marker]:hidden">
+          Tools
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <div class="absolute right-0 top-full z-40 mt-2 w-48 rounded-md border border-gray-200 bg-white p-1.5 shadow-xl">
+          <a routerLink="/business/leads/discover" class="block rounded px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">Discover clinics</a>
+          <label class="block cursor-pointer rounded px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50" [class.opacity-50]="importingCsv()">
+            {{ importingCsv() ? 'Importing...' : 'Import CSV' }}
+            <input type="file" accept=".csv" class="hidden" (change)="handleCsvImport($event)" [disabled]="importingCsv()"/>
+          </label>
+          <button type="button" (click)="exportCsv()" [disabled]="sortedLeads().length === 0"
+                  class="block w-full rounded px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">Export CSV</button>
+          @if (newLeadsWithPhone().length > 0) {
+            <button type="button" (click)="startBlast()" class="block w-full rounded px-3 py-2 text-left text-xs font-semibold text-green-700 hover:bg-green-50">
+              WhatsApp {{ newLeadsWithPhone().length }} new leads
+            </button>
+          }
+        </div>
+      </details>
     </div>
   </div>
 
@@ -130,46 +115,14 @@
 
   @if (!loading()) {
 
-    <!-- Summary stats -->
+    <!-- Compact overview -->
     @if (leads().length > 0) {
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="lead-stat-card">
-          <p class="text-2xl font-bold text-gray-900">{{ summaryStats().total }}</p>
-          <p class="text-xs text-gray-400 mt-0.5">Total Leads</p>
-        </div>
-        <div class="lead-stat-card">
-          <p class="text-2xl font-bold text-blue-600">{{ summaryStats().active }}</p>
-          <p class="text-xs text-gray-400 mt-0.5">Active Pipeline</p>
-        </div>
-        <div class="lead-stat-card">
-          <p class="text-2xl font-bold text-green-600">{{ summaryStats().converted }}</p>
-          <p class="text-xs text-gray-400 mt-0.5">Converted</p>
-        </div>
-        <div class="lead-stat-card">
-          <p class="text-2xl font-bold text-purple-600">{{ summaryStats().rate }}%</p>
-          <p class="text-xs text-gray-400 mt-0.5">Conversion Rate</p>
-        </div>
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-gray-200 pb-3 text-xs text-gray-500">
+        <span><strong class="text-base text-gray-950">{{ summaryStats().active }}</strong> active</span>
+        <span><strong class="text-base text-amber-700">{{ summaryStats().overdue }}</strong> overdue</span>
+        <span><strong class="text-base text-teal-700">{{ workQueueStats().readyToCall }}</strong> ready for AI call</span>
+        <span class="sm:ml-auto">{{ summaryStats().converted }} converted · {{ summaryStats().rate }}% rate</span>
       </div>
-
-      <!-- City analytics panel -->
-      @if (cityStats().length > 1) {
-        <div class="lead-panel">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Conversion by City</p>
-          <div class="space-y-2">
-            @for (c of cityStats(); track c.city) {
-              <div class="flex items-center gap-3">
-                <p class="text-xs font-medium text-gray-700 w-28 truncate shrink-0">{{ c.city }}</p>
-                <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div class="h-full bg-blue-500 rounded-full transition-all duration-500"
-                       [style.width]="(c.rate || 2) + '%'"></div>
-                </div>
-                <span class="text-xs font-bold text-gray-900 w-8 text-right shrink-0">{{ c.rate }}%</span>
-                <span class="text-[10px] text-gray-400 w-16 text-right shrink-0">{{ c.converted }}/{{ c.total }}</span>
-              </div>
-            }
-          </div>
-        </div>
-      }
     }
 
     <!-- Action queues -->
@@ -235,44 +188,21 @@
       </div>
     }
 
-    <!-- Pipeline stat cards -->
-    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-      @for (stat of pipelineStats(); track stat.status) {
-        <button (click)="activeTab.set(stat.status)"
-                class="rounded-xl border px-3 py-2.5 text-center transition-all"
-                [class]="activeTab() === stat.status
-                  ? statusClasses(stat.status) + ' border-transparent font-semibold'
-                  : 'bg-white border-gray-200 hover:border-gray-300 text-gray-500'">
-          <p class="text-lg font-bold">{{ stat.count }}</p>
-          <p class="text-[10px] uppercase tracking-wide mt-0.5">{{ statusLabel(stat.status) }}</p>
-        </button>
-      }
-    </div>
-
-    <!-- Tab filter + search + sort -->
-    <div class="lead-filters flex flex-col sm:flex-row gap-3">
-      <div class="flex gap-1 overflow-x-auto pb-1 flex-1">
-        @for (tab of tabs; track tab.key) {
-          <button (click)="activeTab.set(tab.key)"
-                  class="ui-tab shrink-0"
-                  [class]="activeTab() === tab.key
-                    ? 'ui-tab ui-tab-active'
-                    : 'ui-tab border border-[color:var(--color-line)] bg-white'">
-            {{ tab.label }}
-          </button>
-        }
-      </div>
-      <div class="flex gap-2">
-        <input type="search" placeholder="Search clinic, area, address…"
-               [ngModel]="search()" (ngModelChange)="search.set($event)"
-               class="w-full sm:w-52"/>
-        <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)"
-                class="bg-white text-gray-600">
+    <!-- Search and filters -->
+    <div class="lead-filters grid gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_10rem]">
+        <input type="search" placeholder="Search leads"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" class="w-full"/>
+        <select [ngModel]="activeTab()" (ngModelChange)="activeTab.set($event)" class="bg-white text-gray-600" aria-label="Filter by stage">
+          <option value="all">All stages</option>
+          @for (status of statuses; track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
+        </select>
+        <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)" class="bg-white text-gray-600" aria-label="Sort leads">
           <option value="newest">Newest first</option>
           <option value="followup">By follow-up</option>
-          <option value="score">By score 🔥</option>
+          <option value="score">Highest priority</option>
         </select>
-      </div>
     </div>
 
     <!-- Lead list -->
@@ -340,17 +270,6 @@
                   {{ aiCallStatusLabel(lead) }}
                 </span>
               }
-              @if (lead.rating) {
-                <span class="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                  <svg class="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                  </svg>
-                  {{ lead.rating }}
-                  @if (lead.reviewCount) {
-                    <span class="text-amber-500">({{ lead.reviewCount }})</span>
-                  }
-                </span>
-              }
             </div>
 
             <!-- Status row — prominent, labeled, with save feedback -->
@@ -376,6 +295,33 @@
               }
             </div>
 
+            <div class="mt-3 flex flex-col gap-2 border-l-2 border-gray-200 pl-3 sm:flex-row sm:items-center">
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] font-bold uppercase text-gray-400">Next action</p>
+                <p class="mt-0.5 text-xs font-semibold" [class]="hasActiveAiCall(lead) ? 'text-teal-700' : 'text-gray-800'">
+                  {{ nextBestAction(lead) }}
+                  @if (hasActiveAiCall(lead) && aiCallScheduleLabel(lead)) { · {{ aiCallScheduleLabel(lead) }} }
+                </p>
+              </div>
+              @if (canReviewAiCall(lead)) {
+                <button type="button" (click)="openAiCallReview(lead)"
+                        class="ui-btn ui-btn-ghost shrink-0 px-3 py-1.5 text-xs text-teal-800">
+                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                  </svg>
+                  AI call
+                </button>
+              }
+            </div>
+
+            <details class="group/details mt-3 border-t border-gray-100 pt-2">
+              <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-gray-800 [&::-webkit-details-marker]:hidden">
+                Details
+                <svg class="h-3 w-3 transition-transform group-open/details:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 border-l border-gray-200 pl-3">
             <!-- Row 2: address / area / categories -->
             @if (lead.address || lead.area) {
               <p class="text-xs text-gray-500 mt-0.5 truncate max-w-lg">
@@ -394,6 +340,9 @@
               <span class="text-gray-500">{{ sourceLabel(lead.source) }}</span>
               @if (lead.categories) {
                 · <span class="text-gray-400 italic">{{ lead.categories }}</span>
+              }
+              @if (lead.rating) {
+                · <span class="text-amber-700">{{ lead.rating }} rating{{ lead.reviewCount ? ' (' + lead.reviewCount + ')' : '' }}</span>
               }
               @if (lead.referredBy) {
                 · <span class="text-gray-500">via {{ lead.referredBy }}</span>
@@ -419,25 +368,6 @@
                 <p class="mt-0.5 line-clamp-2 text-[11px] leading-4 text-gray-600" [title]="lead.aiCallSummary">{{ lead.aiCallSummary }}</p>
               </div>
             }
-
-            <div class="mt-3 flex flex-col gap-2 border-l-2 border-gray-200 pl-3 sm:flex-row sm:items-center">
-              <div class="min-w-0 flex-1">
-                <p class="text-[10px] font-bold uppercase text-gray-400">Next best action</p>
-                <p class="mt-0.5 text-xs font-semibold" [class]="hasActiveAiCall(lead) ? 'text-teal-700' : 'text-gray-800'">
-                  {{ nextBestAction(lead) }}
-                  @if (hasActiveAiCall(lead) && aiCallScheduleLabel(lead)) { · {{ aiCallScheduleLabel(lead) }} }
-                </p>
-              </div>
-              @if (canReviewAiCall(lead)) {
-                <button type="button" (click)="openAiCallReview(lead)"
-                        class="ui-btn ui-btn-ghost shrink-0 px-3 py-1.5 text-xs text-teal-800">
-                  <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                  </svg>
-                  Review AI call
-                </button>
-              }
-            </div>
 
             <div class="mt-2 flex flex-wrap items-center gap-2">
               <span class="ui-chip ui-chip-success">
@@ -524,6 +454,8 @@
                 </button>
               </div>
             }
+              </div>
+            </details>
           </div>
 
           <!-- Actions — icon-only on mobile, full labels on sm+ -->
@@ -539,7 +471,7 @@
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
-                <span class="hidden sm:inline">Call</span>
+                <span class="hidden sm:inline">Phone</span>
               </a>
 
               <button (click)="sendWhatsApp(lead)" [disabled]="sendingWa() === lead.id"
@@ -679,17 +611,38 @@
             <p class="mt-2 text-[11px] text-gray-500">The assistant must identify itself, state the purpose, and honor an opt-out immediately.</p>
           </div>
 
-          <div class="space-y-3">
+          <div class="space-y-4">
             <div>
-              <label for="ai-call-time" class="text-xs font-bold text-gray-900">Call window</label>
-              <input id="ai-call-time" type="datetime-local" class="mt-1.5 w-full text-sm"
-                [min]="minimumCallSlot(review.lead)"
-                     [ngModel]="review.scheduledFor"
-                     (ngModelChange)="updateAiCallSchedule($event)">
-              <p class="mt-1 text-[10px] text-gray-500">Calls run Monday-Saturday, 9:00 AM-7:00 PM India time.</p>
-              @if (aiCallCooldownLabel(review.lead); as eligibleAt) {
-                <p class="mt-1 text-[10px] font-semibold text-teal-700">24-hour cooldown ends {{ eligibleAt }}.</p>
+              <p class="text-xs font-bold text-gray-900">When should the call start?</p>
+              <div class="mt-1.5 grid grid-cols-2 gap-2" role="group" aria-label="AI call timing">
+                <button type="button" (click)="selectAiCallTiming('now')"
+                        class="rounded-md border px-3 py-2.5 text-left text-xs transition-colors"
+                        [class]="review.timing === 'now'
+                          ? 'border-teal-700 bg-teal-50 font-bold text-teal-900'
+                          : 'border-gray-200 bg-white font-semibold text-gray-700 hover:border-gray-400'">
+                  <span class="block">Call now</span>
+                  <span class="mt-0.5 block text-[10px] font-normal text-gray-500">Starts only after confirm</span>
+                </button>
+                <button type="button" (click)="selectAiCallTiming('scheduled')"
+                        class="rounded-md border px-3 py-2.5 text-left text-xs transition-colors"
+                        [class]="review.timing === 'scheduled'
+                          ? 'border-teal-700 bg-teal-50 font-bold text-teal-900'
+                          : 'border-gray-200 bg-white font-semibold text-gray-700 hover:border-gray-400'">
+                  <span class="block">Schedule later</span>
+                  <span class="mt-0.5 block text-[10px] font-normal text-gray-500">You choose the time</span>
+                </button>
+              </div>
+              @if (review.timing === 'now' && immediateAiCallBlockReason(review.lead); as reason) {
+                <p class="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-[10px] font-semibold text-amber-800">{{ reason }}</p>
               }
+              @if (review.timing === 'scheduled') {
+                <label for="ai-call-time" class="mt-3 block text-xs font-bold text-gray-900">Date and time</label>
+                <input id="ai-call-time" type="datetime-local" class="mt-1.5 w-full text-sm"
+                       [min]="minimumCallSlot(review.lead)"
+                       [ngModel]="review.scheduledFor"
+                       (ngModelChange)="updateAiCallSchedule($event)">
+              }
+              <p class="mt-1.5 text-[10px] text-gray-500">Monday-Saturday, 9:00 AM-7:00 PM India time.</p>
             </div>
 
             <div>
@@ -718,13 +671,15 @@
       </div>
 
       <footer class="flex flex-col-reverse gap-2 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-[10px] text-gray-500">Maximum 3 attempts. Every state change is logged.</p>
+        <p class="text-[10px] text-gray-500">No automatic calls or retries. Every action is logged.</p>
         <div class="flex gap-2">
           <button type="button" (click)="closeAiCallReview()" [disabled]="queueingAiCall()"
                   class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none">Cancel</button>
           <button type="button" (click)="queueAiCall()" [disabled]="!canQueueAiCall()"
                   class="ui-btn ui-btn-primary flex-1 text-xs disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none">
-            {{ queueingAiCall() ? 'Queuing call...' : 'Confirm & queue' }}
+            {{ queueingAiCall()
+              ? (review.timing === 'now' ? 'Starting call...' : 'Scheduling...')
+              : (review.timing === 'now' ? 'Confirm & call now' : (review.timing === 'scheduled' ? 'Confirm schedule' : 'Choose call timing')) }}
           </button>
         </div>
       </footer>

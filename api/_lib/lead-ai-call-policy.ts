@@ -41,6 +41,15 @@ export interface ScheduleValidation {
   error?: string;
 }
 
+function indiaCallingWindowError(atMs: number): string {
+  const indiaTime = new Date(atMs + 330 * 60 * 1000);
+  const day = indiaTime.getUTCDay();
+  const minuteOfDay = indiaTime.getUTCHours() * 60 + indiaTime.getUTCMinutes();
+  return day === 0 || minuteOfDay < 9 * 60 || minuteOfDay >= 19 * 60
+    ? 'Calls are available Monday-Saturday between 9:00 AM and 7:00 PM India time.'
+    : '';
+}
+
 function timestampMs(value: unknown): number | null {
   if (typeof value === 'string' || typeof value === 'number') {
     const parsed = new Date(value).getTime();
@@ -80,14 +89,19 @@ export function validateCallSchedule(value: unknown, nowMs = Date.now()): Schedu
     return { ok: false, error: 'Schedule calls no more than 30 days ahead.' };
   }
 
-  const indiaTime = new Date(scheduledMs + 330 * 60 * 1000);
-  const day = indiaTime.getUTCDay();
-  const minuteOfDay = indiaTime.getUTCHours() * 60 + indiaTime.getUTCMinutes();
-  if (day === 0 || minuteOfDay < 9 * 60 || minuteOfDay >= 19 * 60) {
-    return { ok: false, error: 'Choose Monday-Saturday between 9:00 AM and 7:00 PM India time.' };
+  const callingWindowError = indiaCallingWindowError(scheduledMs);
+  if (callingWindowError) {
+    return { ok: false, error: callingWindowError.replace('Calls are available', 'Choose') };
   }
 
   return { ok: true, scheduledAt: new Date(scheduledMs) };
+}
+
+export function validateImmediateCall(nowMs = Date.now()): ScheduleValidation {
+  const callingWindowError = indiaCallingWindowError(nowMs);
+  return callingWindowError
+    ? { ok: false, error: callingWindowError }
+    : { ok: true, scheduledAt: new Date(nowMs) };
 }
 
 export function latestCallAttemptAt(scheduledAt: Date): string {
@@ -100,6 +114,15 @@ export function latestCallAttemptAt(scheduledAt: Date): string {
     19,
   ) - 330 * 60 * 1000 - 1;
   return new Date(Math.min(scheduledMs + AI_CALL_PROVIDER_WINDOW_MS, indiaCutoffMs)).toISOString();
+}
+
+export function providerSchedulePlan(
+  timing: 'now' | 'scheduled',
+  callAt: Date,
+): { earliestAt: string; latestAt: string } | undefined {
+  return timing === 'scheduled'
+    ? { earliestAt: callAt.toISOString(), latestAt: latestCallAttemptAt(callAt) }
+    : undefined;
 }
 
 export function providerEventMatchesCall(

@@ -30,11 +30,13 @@ interface MessageDraft {
 }
 
 type WorkQueue = 'all' | 'attention' | 'ready_to_call' | 'awaiting_reply';
+type AiCallTiming = '' | 'now' | 'scheduled';
 
 interface AiCallReview {
   lead: StoredLead;
   consentConfirmed: boolean;
   consentSource: string;
+  timing: AiCallTiming;
   scheduledFor: string;
 }
 
@@ -151,11 +153,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
     return list; // newest — already ordered by Firestore
   });
 
-  pipelineStats = computed(() => {
-    const stages: LeadStatus[] = ['new', 'contacted', 'interested', 'demo', 'converted', 'lost'];
-    return stages.map(s => ({ status: s, count: this.leads().filter(l => l.status === s).length }));
-  });
-
   summaryStats = computed(() => {
     const all       = this.leads();
     const converted = all.filter(l => l.status === 'converted').length;
@@ -171,27 +168,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
       readyToCall: all.filter(lead => this.isReadyForAiCall(lead)).length,
       awaitingReply: all.filter(lead => this.isAwaitingReply(lead)).length,
     };
-  });
-
-  /** Top 5 cities by lead count with per-city conversion rate. */
-  cityStats = computed(() => {
-    const map = new Map<string, { total: number; converted: number }>();
-    for (const l of this.leads()) {
-      const city = (l.city || l.area || 'Unknown').trim();
-      const entry = map.get(city) ?? { total: 0, converted: 0 };
-      entry.total++;
-      if (l.status === 'converted') entry.converted++;
-      map.set(city, entry);
-    }
-    return Array.from(map.entries())
-      .map(([city, d]) => ({
-        city,
-        total:     d.total,
-        converted: d.converted,
-        rate:      d.total > 0 ? Math.round((d.converted / d.total) * 100) : 0,
-      }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 6);
   });
 
   newLeadsWithPhone = computed(() =>
@@ -389,9 +365,10 @@ export class LeadListComponent implements OnInit, OnDestroy {
     this.callNotice.set(null);
     this.aiCallReview.set({
       lead,
-      consentConfirmed: lead.callConsent === 'granted',
+      consentConfirmed: false,
       consentSource: lead.callConsentSource ?? '',
-      scheduledFor: this.defaultCallSlot(lead),
+      timing: '',
+      scheduledFor: '',
     });
   }
 
@@ -411,14 +388,33 @@ export class LeadListComponent implements OnInit, OnDestroy {
     this.aiCallReview.update(review => review ? { ...review, scheduledFor } : null);
   }
 
+  selectAiCallTiming(timing: Exclude<AiCallTiming, ''>) {
+    this.aiCallReview.update(review => review
+      ? { ...review, timing, scheduledFor: '' }
+      : null);
+  }
+
   canQueueAiCall(): boolean {
     const review = this.aiCallReview();
     return !!review?.lead.phone
       && review.lead.doNotCall !== true
       && review.consentConfirmed
       && review.consentSource.trim().length >= 3
-      && !!review.scheduledFor
+      && (review.timing === 'now' || (review.timing === 'scheduled' && !!review.scheduledFor))
+      && (review.timing !== 'now' || !this.immediateAiCallBlockReason(review.lead))
       && !this.queueingAiCall();
+  }
+
+  immediateAiCallBlockReason(lead: StoredLead): string {
+    if (this.isAiCallCoolingDown(lead)) {
+      return `Available after ${this.aiCallCooldownLabel(lead)}.`;
+    }
+    const now = new Date(Date.now() + 330 * 60 * 1000);
+    const day = now.getUTCDay();
+    const minute = now.getUTCHours() * 60 + now.getUTCMinutes();
+    return day === 0 || minute < 9 * 60 || minute >= 19 * 60
+      ? 'Available Monday-Saturday, 9:00 AM-7:00 PM India time.'
+      : '';
   }
 
   aiCallScript(lead: StoredLead): string {
@@ -503,7 +499,10 @@ export class LeadListComponent implements OnInit, OnDestroy {
         leadId: review.lead.id,
         consentConfirmed: true,
         consentSource: review.consentSource.trim(),
-        scheduledFor: new Date(review.scheduledFor).toISOString(),
+        timing: review.timing as Exclude<AiCallTiming, ''>,
+        ...(review.timing === 'scheduled'
+          ? { scheduledFor: new Date(review.scheduledFor).toISOString() }
+          : {}),
       });
       const updates: Partial<StoredLead> = {
         callConsent: 'granted',
@@ -514,10 +513,12 @@ export class LeadListComponent implements OnInit, OnDestroy {
         aiCallProvider: result.provider,
         aiCallProviderId: result.callId,
         aiCallAttempts: result.attempts,
-        aiCallLastAttemptAt: result.scheduledFor,
+        aiCallLastAttemptAt: result.callAt,
       };
       this.leads.update(list => list.map(lead => lead.id === review.lead.id ? { ...lead, ...updates } : lead));
-      this.callNotice.set(`AI call queued for ${review.lead.clinicName}.`);
+      this.callNotice.set(result.timing === 'now'
+        ? `AI call started for ${review.lead.clinicName}.`
+        : `AI call scheduled for ${review.lead.clinicName}.`);
       this.aiCallReview.set(null);
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Could not queue the AI call.');
@@ -1037,16 +1038,6 @@ export class LeadListComponent implements OnInit, OnDestroy {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  readonly tabs: Array<{ key: LeadStatus | 'all'; label: string }> = [
-    { key: 'all',        label: 'All' },
-    { key: 'new',        label: 'New' },
-    { key: 'contacted',  label: 'Contacted' },
-    { key: 'interested', label: 'Interested' },
-    { key: 'demo',       label: 'Demo' },
-    { key: 'converted',  label: 'Converted' },
-    { key: 'lost',       label: 'Lost' },
-  ];
-
   readonly templateOptions: Array<{ status: LeadStatus; label: string }> = [
     { status: 'new',        label: 'First Touch' },
     { status: 'contacted',  label: 'Follow-up' },

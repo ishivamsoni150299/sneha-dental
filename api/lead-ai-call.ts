@@ -6,12 +6,13 @@ import { FieldValue, getFirestore, type DocumentReference } from 'firebase-admin
 import {
   advanceCallStatus,
   deriveCallOutcome,
-  latestCallAttemptAt,
   mapProviderCallStatus,
   normalizeIndianPhone,
   providerEventMatchesCall,
+  providerSchedulePlan,
   queuePolicyBlockReason,
   validateCallSchedule,
+  validateImmediateCall,
   type LeadCallOutcome,
   type LeadCallStatus,
 } from './_lib/lead-ai-call-policy';
@@ -195,6 +196,7 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
   const body = asRecord(req.body);
   const leadId = cleanText(body['leadId'], 128);
   const consentSource = cleanText(body['consentSource'], 160);
+  const timing = cleanText(body['timing'], 16);
 
   if (!/^[A-Za-z0-9_-]+$/.test(leadId)) throw new RequestError(400, 'Choose a valid lead.');
   if (body['consentConfirmed'] !== true) {
@@ -203,17 +205,22 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
   if (consentSource.length < 3) {
     throw new RequestError(400, 'Describe where and when call consent was received.');
   }
+  if (timing !== 'now' && timing !== 'scheduled') {
+    throw new RequestError(400, 'Choose whether to start the call now or schedule it for later.');
+  }
 
-  const schedule = validateCallSchedule(body['scheduledFor']);
+  const schedule = timing === 'now'
+    ? validateImmediateCall()
+    : validateCallSchedule(body['scheduledFor']);
   if (!schedule.ok || !schedule.scheduledAt) {
-    throw new RequestError(400, schedule.error ?? 'Choose a valid call time.');
+    throw new RequestError(400, schedule.error ?? 'Choose a valid call timing.');
   }
 
   const leadRef = db.collection('leads').doc(leadId);
   const requestId = randomUUID();
   const preparedAt = new Date().toISOString();
   const consentAt = preparedAt;
-  const scheduledFor = schedule.scheduledAt.toISOString();
+  const callAt = schedule.scheduledAt.toISOString();
   let reservedLead: ReservedLead | null = null;
 
   await db.runTransaction(async transaction => {
@@ -224,7 +231,7 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
     if (blockReason) throw new RequestError(409, blockReason);
 
     const phone = normalizeIndianPhone(lead['phone']);
-    if (!phone) throw new RequestError(400, 'Add a valid Indian phone number before scheduling a call.');
+    if (!phone) throw new RequestError(400, 'Add a valid Indian phone number before starting a call.');
     const attempts = typeof lead['aiCallAttempts'] === 'number' && Number.isFinite(lead['aiCallAttempts'])
       ? lead['aiCallAttempts']
       : 0;
@@ -244,7 +251,7 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
       aiCallProvider: 'vapi',
       aiCallRequestId: requestId,
       aiCallPreparedAt: preparedAt,
-      aiCallScheduledFor: scheduledFor,
+      aiCallScheduledFor: timing === 'scheduled' ? callAt : FieldValue.delete(),
       aiCallError: FieldValue.delete(),
     });
   });
@@ -255,35 +262,34 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
   let providerData: Record<string, unknown>;
 
   try {
+    const providerRequest: Record<string, unknown> = {
+      assistantId: config.assistantId,
+      assistantVersion: config.assistantVersion,
+      phoneNumberId: config.phoneNumberId,
+      customer: {
+        number: lead.phone,
+        name: lead.clinicName,
+      },
+      assistantOverrides: {
+        variableValues: {
+          clinicName: lead.clinicName,
+          doctorName: lead.doctorName || 'clinic owner',
+          city: lead.city || 'India',
+          openingScript: openingScript(lead),
+          platformUrl: PLATFORM_URL,
+          leadRequestId: requestId,
+        },
+      },
+    };
+    const schedulePlan = providerSchedulePlan(timing, schedule.scheduledAt);
+    if (schedulePlan) providerRequest['schedulePlan'] = schedulePlan;
     providerResponse = await fetch(VAPI_CALL_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        assistantId: config.assistantId,
-        assistantVersion: config.assistantVersion,
-        phoneNumberId: config.phoneNumberId,
-        customer: {
-          number: lead.phone,
-          name: lead.clinicName,
-        },
-        assistantOverrides: {
-          variableValues: {
-            clinicName: lead.clinicName,
-            doctorName: lead.doctorName || 'clinic owner',
-            city: lead.city || 'India',
-            openingScript: openingScript(lead),
-            platformUrl: PLATFORM_URL,
-            leadRequestId: requestId,
-          },
-        },
-        schedulePlan: {
-          earliestAt: scheduledFor,
-          latestAt: latestCallAttemptAt(schedule.scheduledAt),
-        },
-      }),
+      body: JSON.stringify(providerRequest),
     });
     const responseText = await providerResponse.text();
     providerData = asRecord(responseText ? JSON.parse(responseText) : {});
@@ -305,7 +311,9 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
     throw new RequestError(502, 'The voice provider returned an invalid call ID.');
   }
   const providerStatus = mapProviderCallStatus(providerData['status']);
-  const queuedStatus: LeadCallStatus = providerStatus === 'queued' ? 'queued' : 'scheduled';
+  const queuedStatus: LeadCallStatus = timing === 'now'
+    ? 'queued'
+    : providerStatus === 'queued' ? 'queued' : 'scheduled';
 
   const finalizeResult = await db.runTransaction(async transaction => {
     const snapshot = await transaction.get(leadRef);
@@ -327,12 +335,14 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
       aiCallStatus: advanceCallStatus(current['aiCallStatus'], queuedStatus),
       aiCallProviderId: callId,
       aiCallAttempts: lead.attempts + 1,
-      aiCallLastAttemptAt: scheduledFor,
+      aiCallLastAttemptAt: callAt,
       aiCallPreparedAt: FieldValue.delete(),
     });
     transaction.set(leadRef.collection('activities').doc(`ai_call_${requestId}_queued`), {
       type: 'ai_call',
-      note: `AI call scheduled for ${scheduledFor}; consent verified via ${consentSource}.`,
+      note: timing === 'now'
+        ? `AI call started manually; consent verified via ${consentSource}.`
+        : `AI call scheduled manually for ${callAt}; consent verified via ${consentSource}.`,
       actorUid: actor.uid,
       createdAt: FieldValue.serverTimestamp(),
     }, { merge: true });
@@ -368,7 +378,9 @@ async function queueCall(req: VercelRequest, res: VercelResponse): Promise<Verce
     callId,
     provider: 'vapi',
     status: queuedStatus,
-    scheduledFor,
+    timing,
+    callAt,
+    ...(timing === 'scheduled' ? { scheduledFor: callAt } : {}),
     consentAt,
     attempts: lead.attempts + 1,
   });
