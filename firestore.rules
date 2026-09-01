@@ -70,6 +70,12 @@ service cloud.firestore {
         resource.data.subscriptionPlan in ['starter', 'pro'];
     }
 
+    function clinicHasActiveOperationsPlan(clinicId) {
+      let clinic = get(/databases/$(database)/documents/clinics/$(clinicId));
+      return clinic.data.subscriptionStatus == 'active' &&
+        clinic.data.subscriptionPlan in ['starter', 'pro'];
+    }
+
     function canClinicAdminUpdateClinic(clinicId) {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       return isClinicAdmin(clinicId) &&
@@ -135,6 +141,18 @@ service cloud.firestore {
         request.resource.data.status in ['pending', 'cancelled'];
     }
 
+    function clinicAdminCanUpdateAppointment() {
+      let changed = request.resource.data.diff(resource.data).changedKeys();
+      return ownsAppointmentClinic() &&
+        (
+          !changed.hasAny([
+            'clinicNotes', 'treatmentDone', 'amountCharged',
+            'paymentStatus', 'paymentMethod'
+          ]) ||
+          clinicHasActiveOperationsPlan(resource.data.clinicId)
+        );
+    }
+
     function canCreateSlot() {
       let appointment = getAfter(appointmentPath(request.resource.data.appointmentId));
       return request.resource.data.keys().hasOnly([
@@ -171,13 +189,15 @@ service cloud.firestore {
       // ── Sensitive billing / auth data (never exposed to patients) ─────────
       // Stored separately so `allow read: if true` on the parent doc is safe.
       match /private/{docId} {
-        allow read, write: if isClinicAdmin(clinicId) || isSuperAdmin();
+        allow read:  if isClinicAdmin(clinicId) || isSuperAdmin();
+        allow write: if isSuperAdmin();
       }
 
       // ── Doctors subcollection ─────────────────────────────────────────────
       match /doctors/{doctorId} {
         allow read:  if true;
-        allow write: if isClinicAdmin(clinicId) || isSuperAdmin();
+        allow write: if isSuperAdmin() ||
+          (isClinicAdmin(clinicId) && clinicHasActiveOperationsPlan(clinicId));
       }
 
       // Usage reservations and signed booking attempts are server-owned.
@@ -199,7 +219,7 @@ service cloud.firestore {
       allow create: if canCreateAppointment();
       allow get:    if ownsAppointmentClinic() || isSuperAdmin() || !hasClinicalOrPaymentData();
       allow list:   if ownsAppointmentClinic() || isSuperAdmin();
-      allow update: if ownsAppointmentClinic() || isSuperAdmin() || canSelfServeAppointment();
+      allow update: if clinicAdminCanUpdateAppointment() || isSuperAdmin() || canSelfServeAppointment();
       allow delete: if isSuperAdmin();
     }
 

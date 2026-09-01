@@ -11,7 +11,13 @@ import {
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { environment } from '../../../../environments/environment';
-import { getPlatformPlanAmount, type ClinicTheme } from '../../../core/config/clinic.config';
+import {
+  getPlatformPlanAmount,
+  PLATFORM_FEATURE_LABELS,
+  PLATFORM_PLANS,
+  type ClinicTheme,
+  type PlatformPlanId,
+} from '../../../core/config/clinic.config';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
 import { db, getFirebaseAppCheckToken } from '../../../core/firebase';
 
@@ -29,7 +35,7 @@ function toSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
 }
 
-type SignupPlan = 'trial' | 'starter' | 'pro';
+type SignupPlan = PlatformPlanId;
 type SignupBillingCycle = 'monthly' | 'yearly';
 
 interface MarketingAttribution {
@@ -131,7 +137,7 @@ export class SignupComponent implements OnInit {
     if (attribution.offer) return attribution.offer;
     if (attribution.plan === 'pro') return 'After-hours booking capture';
     if (attribution.plan === 'starter') return 'Domain-ready growth plan';
-    return '30-day launch trial';
+    return 'Free clinic launch';
   });
 
   readonly showCampaignBanner = computed(() => {
@@ -340,27 +346,14 @@ export class SignupComponent implements OnInit {
   readonly selectedPlan = signal<SignupPlan>('trial');
   readonly selectedBillingCycle = signal<SignupBillingCycle>('monthly');
 
-  readonly plans = [
-    {
-      id: 'trial' as const, name: 'Free Trial', price: '₹0', period: '30 days',
-      desc: 'Full website · no card needed',
-      features: ['Responsive clinic website', 'Online appointment booking', 'Instant booking alerts',
-                 'Patient admin dashboard', 'Free subdomain (yourname.mydentalplatform.com)', '30-day free trial'],
-    },
-    {
-      id: 'starter' as const, name: 'Starter', price: '₹999', period: '/month',
-      desc: 'For solo clinics',
-      features: ['Everything in Trial', 'Custom domain (connect your own)', 'Auto SSL certificate',
-                 'Services catalogue', '1 content update/month (text, image, or section)', 'Email + WhatsApp support'],
-    },
-    {
-      id: 'pro' as const, name: 'Pro', price: '₹2,499', period: '/month',
-      desc: 'Most popular',
-      features: ['Everything in Starter', 'AI Voice Receptionist 24/7 (Hindi + English)',
-                 '30 voice min/month · ₹20/min after', '3 content updates/month', '1 onboarding call (20 min)',
-                 'Priority WhatsApp support', 'Revenue & analytics dashboard'],
-    },
-  ];
+  readonly plans = (['trial', 'starter', 'pro'] as const).map(id => ({
+    id,
+    name: PLATFORM_PLANS[id].label,
+    price: `₹${PLATFORM_PLANS[id].monthly.toLocaleString('en-IN')}`,
+    period: id === 'trial' ? 'forever' : '/month',
+    desc: PLATFORM_PLANS[id].description,
+    features: PLATFORM_PLANS[id].features.map(feature => PLATFORM_FEATURE_LABELS[feature]),
+  }));
 
   planAmount(plan: SignupPlan): number {
     if (plan === 'trial') return 0;
@@ -372,7 +365,7 @@ export class SignupComponent implements OnInit {
   }
 
   planPeriodLabel(plan: SignupPlan): string {
-    if (plan === 'trial') return '30 days';
+    if (plan === 'trial') return 'forever';
     return this.selectedBillingCycle() === 'yearly' ? '/year' : '/month';
   }
 
@@ -548,7 +541,7 @@ export class SignupComponent implements OnInit {
           slug,
           plan:  this.selectedPlan(),
           billingCycle: this.selectedBillingCycle(),
-          theme: this.selectedTheme().id,
+          theme: this.selectedPlan() === 'trial' ? 'blue' : this.selectedTheme().id,
           marketing: this.attribution(),
           logoDataUrl: null,
           hours,
@@ -622,7 +615,7 @@ export class SignupComponent implements OnInit {
     { text: 'Visit your website and try booking an appointment as a patient' },
     { text: 'Log into your admin dashboard to manage and confirm bookings' },
     { text: 'Share your website link on WhatsApp with existing patients' },
-    { text: 'Upgrade to Starter to connect your own custom domain' },
+    { text: 'Upgrade to Basic for patient records, clinic branding, and a custom domain' },
   ];
 
   copyUrl(url: string): void {

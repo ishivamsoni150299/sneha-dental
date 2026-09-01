@@ -23,10 +23,12 @@ export class RevenueComponent implements OnInit {
   savingCosts  = signal(false);
 
   // ── Derived stats ─────────────────────────────────────────────────────────
-  activeClinics  = computed(() => this.clinics().filter(c => c.subscriptionStatus === 'active'));
-  trialClinics   = computed(() => this.clinics().filter(c => c.subscriptionStatus === 'trial'));
+  activeClinics  = computed(() => this.clinics().filter(c =>
+    c.subscriptionStatus === 'active' && !this.isFree(c)));
+  freeClinics    = computed(() => this.clinics().filter(c => this.isFree(c)));
   expiredClinics = computed(() => this.clinics().filter(c =>
-    c.subscriptionStatus === 'expired' || c.subscriptionStatus === 'cancelled'));
+    !this.isFree(c) &&
+    (c.subscriptionStatus === 'expired' || c.subscriptionStatus === 'cancelled')));
 
   mrr = computed(() =>
     this.activeClinics().reduce((sum, c) => {
@@ -47,15 +49,14 @@ export class RevenueComponent implements OnInit {
   profit       = computed(() => this.mrr() - this.totalCosts());
   profitMargin = computed(() => this.mrr() > 0 ? Math.round((this.profit() / this.mrr()) * 100) : 0);
 
-  // Clinics expiring within 7 days (trial or active subscription)
+  // Paid subscriptions renewing within 7 days.
   expiringSoon = computed(() => {
     const in7 = new Date();
     in7.setDate(in7.getDate() + 7);
     const today = new Date();
     return this.clinics().filter(c => {
-      const status = c.subscriptionStatus ?? 'trial';
-      if (status === 'expired' || status === 'cancelled') return false;
-      const dateStr = status === 'trial' ? c.trialEndDate : c.subscriptionEndDate;
+      if (this.isFree(c) || c.subscriptionStatus !== 'active') return false;
+      const dateStr = c.subscriptionEndDate;
       if (!dateStr) return false;
       const d = new Date(dateStr);
       return d >= today && d <= in7;
@@ -67,16 +68,14 @@ export class RevenueComponent implements OnInit {
   }
 
   expiryDate(clinic: StoredClinic): string {
-    return clinic.subscriptionStatus === 'trial'
-      ? (clinic.trialEndDate ?? '')
-      : (clinic.subscriptionEndDate ?? '');
+    return clinic.subscriptionEndDate ?? '';
   }
 
-  // Clinics sorted: active first by renewal date, then trial by trial end
+  // Paid renewals first; Free clinics without renewal dates sort last.
   sortedClinics = computed(() =>
     [...this.clinics()].sort((a, b) => {
-      const dateA = a.subscriptionEndDate || a.trialEndDate || '9999';
-      const dateB = b.subscriptionEndDate || b.trialEndDate || '9999';
+      const dateA = this.isFree(a) ? '9999' : (a.subscriptionEndDate || '9999');
+      const dateB = this.isFree(b) ? '9999' : (b.subscriptionEndDate || '9999');
       return dateA.localeCompare(dateB);
     })
   );
@@ -121,7 +120,12 @@ export class RevenueComponent implements OnInit {
     return PLATFORM_PLANS[plan]?.label ?? '—';
   }
 
+  isFree(clinic: StoredClinic): boolean {
+    return (clinic.subscriptionPlan ?? 'trial') === 'trial';
+  }
+
   statusClasses(clinic: StoredClinic): string {
+    if (this.isFree(clinic)) return 'bg-blue-100 text-blue-700';
     const s = clinic.subscriptionStatus ?? 'trial';
     if (s === 'active')    return 'bg-green-100 text-green-700';
     if (s === 'expired')   return 'bg-red-100 text-red-700';
@@ -130,18 +134,18 @@ export class RevenueComponent implements OnInit {
   }
 
   statusLabel(clinic: StoredClinic): string {
+    if (this.isFree(clinic)) return 'Free · No expiry';
     const s = clinic.subscriptionStatus ?? 'trial';
     if (s === 'active')    return 'Active';
+    if (s === 'pending')   return 'Pending payment';
     if (s === 'expired')   return 'Expired';
     if (s === 'cancelled') return 'Cancelled';
-    // trial — days left
-    const end = clinic.trialEndDate ? new Date(clinic.trialEndDate) : null;
-    const days = end ? Math.ceil((end.getTime() - Date.now()) / 86_400_000) : null;
-    return days !== null ? (days > 0 ? `Trial · ${days}d left` : 'Trial · Ended') : 'Trial';
+    return 'Plan not set';
   }
 
   renewalDate(clinic: StoredClinic): string {
-    const d = clinic.subscriptionEndDate || clinic.trialEndDate;
+    if (this.isFree(clinic)) return 'No expiry';
+    const d = clinic.subscriptionEndDate;
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }

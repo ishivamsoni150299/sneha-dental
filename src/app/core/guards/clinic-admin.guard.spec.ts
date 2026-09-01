@@ -11,7 +11,10 @@ describe('clinicAdminGuard', () => {
     authenticated?: boolean;
     role?: AuthRole | null;
     loaded?: boolean;
+    plan?: 'trial' | 'starter' | 'pro';
     status?: 'trial' | 'active' | 'expired' | 'cancelled';
+    trialEndDate?: string | null;
+    subscriptionEndDate?: string | null;
   } = {}) {
     router = jasmine.createSpyObj('Router', ['createUrlTree']);
     router.createUrlTree.and.callFake((commands: unknown[]) => ({ commands }) as never);
@@ -26,9 +29,10 @@ describe('clinicAdminGuard', () => {
       isLoaded: options.loaded ?? true,
       loadByUid: jasmine.createSpy('loadByUid').and.resolveTo(true),
       config: {
+        subscriptionPlan: options.plan ?? 'trial',
         subscriptionStatus: options.status ?? 'trial',
-        trialEndDate: null,
-        subscriptionEndDate: null,
+        trialEndDate: options.trialEndDate ?? null,
+        subscriptionEndDate: options.subscriptionEndDate ?? null,
       },
     };
 
@@ -77,7 +81,26 @@ describe('clinicAdminGuard', () => {
   });
 
   it('sends an expired clinic to the renewal page', async () => {
-    setup({ status: 'expired' });
+    setup({ plan: 'starter', status: 'expired' });
+    await run();
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/clinic/expired']);
+  });
+
+  it('keeps legacy Free clinics active after their old trial date', async () => {
+    setup({
+      plan: 'trial',
+      status: 'expired',
+      trialEndDate: '2020-01-01',
+    });
+    expect(await run()).toBeTrue();
+  });
+
+  it('blocks an active paid plan after its renewal grace period', async () => {
+    setup({
+      plan: 'pro',
+      status: 'active',
+      subscriptionEndDate: '2020-01-01',
+    });
     await run();
     expect(router.createUrlTree).toHaveBeenCalledWith(['/business/clinic/expired']);
   });

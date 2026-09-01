@@ -14,7 +14,11 @@ import {
   ClinicHours,
   ClinicConfig,
   ClinicService,
+  PLATFORM_FEATURE_LABELS,
+  PLATFORM_PLANS,
+  clinicHasPlatformFeature,
   formatPlatformPlanPrice,
+  hasPlatformFeature,
 } from '../../../core/config/clinic.config';
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
@@ -145,23 +149,16 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     { id: 'voice',        label: 'Voice Agent' },
   ];
 
-  readonly PLANS = [
-    {
-      id: 'trial', label: 'Free Trial', price: '₹0', period: '30 days',
-      features: ['Clinic website', 'Online booking', 'WhatsApp integration', 'Patient admin dashboard', 'Free subdomain'],
-      locked: ['Custom logo upload', 'Theme controls', 'Remove mydentalplatform branding', 'Custom domain'],
-    },
-    {
-      id: 'starter', label: 'Starter', price: '₹999', period: '/month',
-      features: ['Everything in Trial', 'Custom logo & theme controls', 'Remove mydentalplatform branding', 'Custom domain setup', 'Free SSL certificate', 'Email + WhatsApp support'],
-      locked: ['AI Voice Receptionist', 'WhatsApp AI auto replies', 'Voice minutes'],
-    },
-    {
-      id: 'pro', label: 'Pro', price: '₹2,499', period: '/month',
-      features: ['Everything in Starter', 'AI Voice Receptionist 24/7', 'Hindi + English + Hinglish', '30 voice min/month included', '₹20/min after 30 min', '3 content updates/month', '1 onboarding call (20 min)', 'Revenue & analytics dashboard', 'Priority support'],
-      locked: [],
-    },
-  ] as const;
+  readonly PLANS = (['trial', 'starter', 'pro'] as const).map(id => ({
+    id,
+    label: PLATFORM_PLANS[id].label,
+    description: PLATFORM_PLANS[id].description,
+    period: id === 'trial' ? 'forever' : '/month',
+    features: PLATFORM_PLANS[id].features.map(feature => PLATFORM_FEATURE_LABELS[feature]),
+    locked: PLATFORM_PLANS.pro.features
+      .filter(feature => !hasPlatformFeature(id, feature))
+      .map(feature => PLATFORM_FEATURE_LABELS[feature]),
+  }));
 
   readonly themeOptions: ThemeOption[] = [
     { value: 'blue',    label: 'Clinical Blue',   note: 'Trusted and premium',      primary: '#1E56DC', dark: '#1235A9', light: '#EBF2FF', gradient: 'linear-gradient(135deg,#1E56DC,#1235A9)' },
@@ -242,20 +239,13 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     return this.themeOptions.find(opt => opt.value === this.selectedTheme()) ?? this.themeOptions[0];
   }
   get isVoiceEnabled() { return this.cfg.voiceAgentEnabled === true; }
-  get trialDaysLeft(): number {
-    if (!this.cfg.trialEndDate) return 30;
-    const end = new Date(this.cfg.trialEndDate).getTime();
-    return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-  }
-  get isExpired() {
-    return this.planStatus === 'expired' || (this.planStatus === 'trial' && this.trialDaysLeft <= 0);
-  }
+  get isExpired() { return this.plan !== 'trial' && this.planStatus === 'expired'; }
   get isPending() { return this.planStatus === 'pending'; }
-  get isTrial() { return this.planStatus === 'trial' && this.trialDaysLeft > 0; }
+  get isTrial() { return this.plan === 'trial'; }
   get isStarter() { return this.plan === 'starter' && this.planStatus === 'active'; }
   get isPro() { return this.plan === 'pro' && this.planStatus === 'active'; }
-  get canManageBranding() { return this.isStarter || this.isPro; }
-  get canManageVoice() { return this.isPro; }
+  get canManageBranding() { return clinicHasPlatformFeature(this.cfg, 'customBranding'); }
+  get canManageVoice() { return clinicHasPlatformFeature(this.cfg, 'aiVoiceReceptionist'); }
 
   get setupChecklist(): Array<{ label: string; done: boolean; tab: TabId; hint: string }> {
     const c = this.cfg;
@@ -283,15 +273,15 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   currentPlanLabel(): string {
     const cycle = this.cfg.billingCycle ?? 'monthly';
 
-    if (this.isExpired) return 'Trial expired';
+    if (this.isExpired) return 'Subscription expired';
     if (this.isPending) {
-      const pendingPlan = this.plan === 'pro' ? 'Pro' : 'Starter';
+      const pendingPlan = PLATFORM_PLANS[this.plan].label;
       return `${pendingPlan} pending payment`;
     }
-    if (this.isTrial) return `Free Trial - ${this.trialDaysLeft} days left`;
-    if (this.isStarter) return `Starter - ${formatPlatformPlanPrice('starter', cycle)}`;
+    if (this.isTrial) return 'Free - active forever';
+    if (this.isStarter) return `Basic - ${formatPlatformPlanPrice('starter', cycle)}`;
     if (this.isPro) return `Pro - ${formatPlatformPlanPrice('pro', cycle)}`;
-    return 'Trial';
+    return 'Free';
   }
 
   upgradeTargetPlan(): BillingPlan {
@@ -302,7 +292,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   upgradeButtonLabel(plan: BillingPlan): string {
     const prefix = this.isPending && this.plan === plan ? 'Complete' : 'Upgrade to';
-    return `${prefix} ${plan === 'pro' ? 'Pro' : 'Starter'} - ${this.planPrice(plan)}`;
+    return `${prefix} ${PLATFORM_PLANS[plan].label} - ${this.planPrice(plan)}`;
   }
 
   markDirty(tab: TabId) { this.dirtyTabs.update(set => new Set([...set, tab])); }
@@ -647,7 +637,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     if (this.canManageBranding) return true;
 
     this.activeTab.set('subscription');
-    this.showToast(`Upgrade to Starter to unlock ${feature}.`, 'error');
+    this.showToast(`Upgrade to Basic to unlock ${feature}.`, 'error');
     return false;
   }
 

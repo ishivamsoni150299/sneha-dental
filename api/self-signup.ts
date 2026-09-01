@@ -5,6 +5,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getAppCheck } from 'firebase-admin/app-check';
 import { sendEmail } from '../lib/server/send-email';
+import { PLATFORM_PLANS } from '../src/app/core/config/platform-entitlements';
 import {
   createRazorpayCheckout,
   type BillingCycle,
@@ -213,10 +214,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const domain = `${slug}.mydentalplatform.com`;
   const siteUrl = `https://${domain}`;
 
-  const trialEnd = new Date();
-  trialEnd.setDate(trialEnd.getDate() + 30);
-  const trialEndDate = trialEnd.toISOString().slice(0, 10);
-
   const totalClinics = await db.collection('clinics').count().get();
   const clinicCount = totalClinics.data().count;
   const isGrandfathered = clinicCount < 20 && plan !== 'trial';
@@ -249,7 +246,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     active: true,
     subscriptionPlan: plan,
     subscriptionStatus: plan === 'trial' ? 'trial' : 'pending',
-    trialEndDate: plan === 'trial' ? trialEndDate : null,
+    trialEndDate: null,
     createdAt: FieldValue.serverTimestamp(),
   };
 
@@ -351,7 +348,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (checkout.subscriptionId) {
         await db.collection('clinics').doc(clinicId).collection('private').doc('account').set({
-          razorpaySubscriptionId: checkout.subscriptionId,
+          pendingRazorpaySubscriptionId: checkout.subscriptionId,
+          pendingPlan: plan,
+          pendingBillingCycle: billingCycle,
           updatedAt: FieldValue.serverTimestamp(),
         }, { merge: true }).catch(() => null);
       }
@@ -366,8 +365,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     siteUrl,
     adminUrl: 'https://www.mydentalplatform.com/business/login',
     email,
-    plan,
-    trialEndDate: plan === 'trial' ? trialEndDate : '',
+    planLabel: PLATFORM_PLANS[plan as 'trial' | 'starter' | 'pro'].label,
     supportPhone: process.env['SUPPORT_PHONE'] ?? '',
   }).catch(() => undefined);
 
@@ -383,7 +381,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     paymentUrl,
     manualPaymentUrl,
     paymentMode,
-    trialEndDate: plan === 'trial' ? trialEndDate : null,
+    trialEndDate: null,
     domainRegistered: vercelDomainAdded,
   } satisfies SelfSignupResponse);
 }

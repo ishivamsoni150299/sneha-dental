@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment, PaymentStatus, PaymentMethod } from '../../../core/services/appointment.service';
+import { clinicHasPlatformFeature } from '../../../core/config/clinic.config';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 
@@ -33,7 +34,7 @@ export type CancelReason = typeof CANCEL_REASONS[number];
 type UpgradeTeaser = {
   icon: 'palette' | 'badge' | 'globe' | 'mic' | 'whatsapp' | 'moon';
   color: 'blue' | 'emerald' | 'teal' | 'purple';
-  plan: 'Starter' | 'Pro';
+  plan: 'Basic' | 'Pro';
   title: string;
   desc: string;
   cta: string;
@@ -317,20 +318,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   get plan()   { return this.clinicConfig.subscriptionPlan   ?? 'trial'; }
   get status() { return this.clinicConfig.subscriptionStatus ?? 'trial'; }
 
-  get trialDaysLeft(): number {
-    if (!this.clinicConfig.trialEndDate) return 30;
-    const end = new Date(this.clinicConfig.trialEndDate).getTime();
-    return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-  }
-
-  get isExpired()       { return this.status === 'expired' || (this.status === 'trial' && this.trialDaysLeft <= 0); }
-  get isTrialUrgent()   { return this.status === 'trial' && this.trialDaysLeft > 0 && this.trialDaysLeft <= 7; }
-  get isTrial()         { return this.status === 'trial' && this.trialDaysLeft > 0; }
+  get isFree()          { return !this.isStarter && !this.isPro; }
   get isStarter()       { return this.plan === 'starter' && this.status === 'active'; }
   get isPro()           { return this.plan === 'pro' && this.status === 'active'; }
+  get canManageOperations() { return clinicHasPlatformFeature(this.clinicConfig, 'patientRecords'); }
+  get canViewRevenue()       { return clinicHasPlatformFeature(this.clinicConfig, 'revenueInsights'); }
   get showUpgradeBanner() { return !this.isPro; }
-  get upgradeHeading() { return this.isStarter ? 'Unlock with Pro' : 'Grow with Starter'; }
-  get upgradeLinkLabel() { return this.isStarter ? 'See Pro plan →' : 'See Starter plan →'; }
+  get upgradeHeading() { return this.isStarter ? 'Unlock with Pro' : 'Run your clinic with Basic'; }
+  get upgradeLinkLabel() { return this.isStarter ? 'See Pro plan →' : 'See Basic plan →'; }
   get upgradeTeasers(): UpgradeTeaser[] {
     if (this.isStarter) {
       return [
@@ -339,24 +334,24 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           color: 'purple',
           plan: 'Pro',
           title: 'AI Voice Receptionist',
-          desc: 'Answers calls in Hindi and English, books appointments, and handles after-hours enquiries.',
+          desc: 'Speaks with website visitors in Hindi and English, answers questions, and submits appointment requests.',
           cta: 'Unlock with Pro',
         },
         {
-          icon: 'whatsapp',
+          icon: 'badge',
           color: 'emerald',
           plan: 'Pro',
-          title: 'WhatsApp AI Replies',
-          desc: 'Let your clinic AI answer inbound WhatsApp messages from one business number automatically.',
+          title: 'Revenue Insights',
+          desc: 'See collected, outstanding, and daily payment totals without calculating them manually.',
           cta: 'Upgrade to Pro',
         },
         {
-          icon: 'moon',
+          icon: 'globe',
           color: 'teal',
           plan: 'Pro',
-          title: 'Missed-Call Recovery',
-          desc: 'Capture leads when the clinic is closed and convert more enquiries into booked appointments.',
-          cta: 'Get Pro Automation',
+          title: 'Priority Support',
+          desc: 'Get priority help for your clinic website, booking flow, and AI receptionist.',
+          cta: 'Get Pro Support',
         },
       ];
     }
@@ -365,26 +360,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       {
         icon: 'badge',
         color: 'emerald',
-        plan: 'Starter',
-        title: 'Custom Logo',
-        desc: 'Replace the default launch mark with your clinic logo across the website and booking flow.',
-        cta: 'Upgrade to Starter',
+        plan: 'Basic',
+        title: 'Patient Records',
+        desc: 'Keep visit history, clinical notes, treatments, and payment status together for each patient.',
+        cta: 'Upgrade to Basic',
       },
       {
         icon: 'palette',
         color: 'blue',
-        plan: 'Starter',
-        title: 'Brand Theme Controls',
-        desc: 'Choose your dental color palette and make every CTA look like your own clinic brand.',
+        plan: 'Basic',
+        title: 'Clinic Branding',
+        desc: 'Add your logo, choose a theme, remove platform branding, and connect your own domain.',
         cta: 'Unlock Branding',
       },
       {
         icon: 'globe',
         color: 'teal',
-        plan: 'Starter',
-        title: 'Custom Domain',
-        desc: 'Move from the free subdomain to your clinic domain for better trust and stronger marketing.',
-        cta: 'Own Your Domain',
+        plan: 'Basic',
+        title: 'Doctor Management',
+        desc: 'Add doctor profiles, availability, and schedules used by the appointment booking flow.',
+        cta: 'Manage Your Team',
       },
     ];
   }

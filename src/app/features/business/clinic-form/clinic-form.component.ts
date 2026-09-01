@@ -237,10 +237,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     } else {
       this.addHour();
 
-      // Default trial: starts today, ends in 30 days
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + 30);
-      this.form.controls.trialEndDate.setValue(trialEnd.toISOString().split('T')[0]);
       this.form.controls.subscriptionPlan.setValue('trial');
       this.form.controls.subscriptionStatus.setValue('trial');
 

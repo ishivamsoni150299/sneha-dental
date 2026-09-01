@@ -2,6 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHash, randomUUID } from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { AggregateField, FieldValue, getFirestore, type DocumentReference } from 'firebase-admin/firestore';
+import {
+  clinicHasPlatformFeature,
+  type PlatformSubscriptionAccess,
+} from '../../src/app/core/config/platform-entitlements';
 import { buildAgentSystemPrompt, resolveVoiceAgentSettings } from './voice-agent-config';
 import { createVoiceSessionToken, verifyVoiceSessionToken } from './voice-session-auth';
 
@@ -203,9 +207,10 @@ export async function handleVoiceSession(
   const origin = headerValue(req.headers.origin);
   if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
 
-  if (clinic['active'] !== true
-      || clinic['subscriptionPlan'] !== 'pro'
-      || clinic['subscriptionStatus'] !== 'active') {
+  if (clinic['active'] !== true || !clinicHasPlatformFeature(
+    clinic as PlatformSubscriptionAccess,
+    'aiVoiceReceptionist',
+  )) {
     return res.status(403).json({ error: 'Live voice is not active for this clinic.' });
   }
 

@@ -32,7 +32,7 @@ const PLATFORM_NAME = 'mydentalplatform';
 const PLATFORM_ORIGIN = 'https://mydentalplatform.com';
 const PLATFORM_DEFAULT_TITLE = 'Dental Clinic Website & Booking Software | mydentalplatform';
 const PLATFORM_DEFAULT_DESCRIPTION =
-  'Launch a dental clinic website with online appointment booking, WhatsApp, and a 24/7 AI receptionist. Built for clinics in India. Start a 30-day free trial.';
+  'Launch a free dental clinic website with online appointment booking and WhatsApp. Upgrade to Basic for clinic operations or Pro for an AI receptionist.';
 const INDEXABLE_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 const NOINDEX_ROBOTS = 'noindex,nofollow';
 
@@ -156,7 +156,7 @@ export class SeoService {
           ],
           offers: Object.entries(PLATFORM_PLANS).map(([planId, plan]) => ({
             '@type': 'Offer',
-            name: planId === 'trial' ? '30-day Free Trial' : `${plan.label} monthly plan`,
+            name: planId === 'trial' ? 'Free plan' : `${plan.label} monthly plan`,
             price: plan.monthly,
             priceCurrency: 'INR',
             availability: 'https://schema.org/InStock',

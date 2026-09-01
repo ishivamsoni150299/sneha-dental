@@ -4,6 +4,15 @@ export type BillingPlan = 'starter' | 'pro';
 export type BillingCycle = 'monthly' | 'yearly';
 export type PaymentMode = 'subscription' | 'manual';
 
+export interface BillingSubscriptionMetadata {
+  clinicId: string;
+  plan: BillingPlan;
+  billingCycle: BillingCycle;
+}
+
+export type BillingWebhookEventKind = 'pending' | 'activate' | 'terminate';
+export type BillingWebhookAction = 'apply' | 'keep-current' | 'clear-pending' | 'ignore-stale';
+
 interface BillingPlanMeta {
   amount: number;
   label: string;
@@ -17,7 +26,7 @@ const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
   starter: {
     monthly: {
       amount: 999,
-      label: 'Starter',
+      label: 'Basic',
       cycleLabel: 'monthly',
       periodLabel: 'month',
       envKeys: ['RAZORPAY_PLAN_STARTER_MONTHLY'],
@@ -25,7 +34,7 @@ const PLAN_META: Record<BillingPlan, Record<BillingCycle, BillingPlanMeta>> = {
     },
     yearly: {
       amount: 9999,
-      label: 'Starter',
+      label: 'Basic',
       cycleLabel: 'yearly',
       periodLabel: 'year',
       envKeys: ['RAZORPAY_PLAN_STARTER_YEARLY'],
@@ -87,6 +96,39 @@ function firstEnvValue(keys: string[]): string | null {
   return null;
 }
 
+export function parseBillingSubscriptionMetadata(value: unknown): BillingSubscriptionMetadata | null {
+  if (typeof value !== 'object' || value === null) return null;
+
+  const notes = value as Record<string, unknown>;
+  const clinicId = typeof notes['clinicId'] === 'string' ? notes['clinicId'].trim() : '';
+  const plan = notes['plan'];
+  const billingCycle = notes['billingCycle'];
+  if (!clinicId || clinicId.length > 128 || clinicId.includes('/')) return null;
+  if (plan !== 'starter' && plan !== 'pro') return null;
+  if (billingCycle !== 'monthly' && billingCycle !== 'yearly') return null;
+
+  return { clinicId, plan, billingCycle };
+}
+
+export function resolveBillingWebhookAction(
+  currentSubscriptionId: unknown,
+  pendingSubscriptionId: unknown,
+  incomingSubscriptionId: string,
+  eventKind: BillingWebhookEventKind,
+): BillingWebhookAction {
+  const currentId = typeof currentSubscriptionId === 'string' ? currentSubscriptionId : '';
+  const pendingId = typeof pendingSubscriptionId === 'string' ? pendingSubscriptionId : '';
+  const matchesCurrent = currentId === incomingSubscriptionId;
+  const matchesPending = pendingId === incomingSubscriptionId;
+
+  if ((currentId || pendingId) && !matchesCurrent && !matchesPending) return 'ignore-stale';
+  if (matchesPending && currentId && !matchesCurrent) {
+    if (eventKind === 'pending') return 'keep-current';
+    if (eventKind === 'terminate') return 'clear-pending';
+  }
+  return 'apply';
+}
+
 export function getBillingPlanDetails(plan: BillingPlan, billingCycle: BillingCycle): BillingPlanDetails {
   const meta = PLAN_META[plan][billingCycle];
   const planId = firstEnvValue(meta.envKeys) ?? meta.defaultPlanId ?? null;
@@ -115,6 +157,19 @@ export function nextBillingDateIso(billingCycle: BillingCycle, from = new Date()
     next.setMonth(next.getMonth() + 1);
   }
   return next.toISOString().slice(0, 10);
+}
+
+export function razorpaySubscriptionEndDateIso(
+  currentEnd: unknown,
+  billingCycle: BillingCycle,
+  from = new Date(),
+): string {
+  if (typeof currentEnd === 'number' && Number.isFinite(currentEnd) && currentEnd > 0) {
+    const providerEnd = new Date(currentEnd * 1000);
+    if (!Number.isNaN(providerEnd.getTime())) return providerEnd.toISOString().slice(0, 10);
+  }
+
+  return nextBillingDateIso(billingCycle, from);
 }
 
 export async function createRazorpayCheckout(input: CreateCheckoutInput): Promise<RazorpayCheckoutResult> {

@@ -50,7 +50,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 
           <div class="mb-6 grid gap-3 text-left sm:grid-cols-2">
             <div class="admin-panel p-5 transition-colors hover:border-blue-300">
-              <p class="mb-0.5 font-bold text-gray-900">Starter</p>
+              <p class="mb-0.5 font-bold text-gray-900">Basic</p>
               <p class="mb-1 text-2xl font-extrabold text-blue-600">{{ starterPrice }}</p>
               <ul class="space-y-1.5 text-xs text-gray-600">
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Professional website live instantly</li>
@@ -67,7 +67,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
                   <span class="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></span>
                   Opening checkout...
                 } @else {
-                  Reactivate with Starter
+                  Reactivate with Basic
                 }
               </button>
             </div>
@@ -79,7 +79,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
               <p class="mb-0.5 mt-1 font-bold">Pro</p>
               <p class="mb-1 text-2xl font-extrabold">{{ proPrice }}</p>
               <ul class="space-y-1.5 text-xs opacity-90">
-                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Everything in Starter</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Everything in Basic</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>AI receptionist 24/7</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>SEO-optimised pages</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Priority support</li>
@@ -144,8 +144,9 @@ export class AdminExpiredComponent {
     if (status === 'cancelled') return 'Subscription cancelled';
     if (status === 'expired') return 'Subscription expired';
 
-    const end = this.clinicCfg.config.trialEndDate;
-    return end ? `Free trial ended ${end}` : 'Trial expired';
+    return this.clinicCfg.config.subscriptionPlan === 'trial'
+      ? 'Free account cancelled'
+      : 'Subscription expired';
   }
 
   async reactivate(plan: BillingPlan): Promise<void> {

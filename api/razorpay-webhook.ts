@@ -2,9 +2,10 @@ import crypto from 'crypto';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import {
-  nextBillingDateIso,
-  type BillingCycle,
-  type BillingPlan,
+  parseBillingSubscriptionMetadata,
+  razorpaySubscriptionEndDateIso,
+  resolveBillingWebhookAction,
+  type BillingWebhookEventKind,
 } from './_lib/razorpay-billing';
 
 if (!getApps().length) {
@@ -67,39 +68,101 @@ export default {
     };
     const subscriptionEntity = typedPayload.payload?.subscription?.entity ?? {};
     const paymentEntity = typedPayload.payload?.payment?.entity ?? {};
-    const subscriptionId = subscriptionEntity['id'] as string | undefined;
-    const notes = subscriptionEntity['notes'] as Record<string, string> | undefined;
-    const clinicId = notes?.['clinicId'];
-    const plan = (notes?.['plan'] ?? 'starter') as BillingPlan;
-    const billingCycle = (notes?.['billingCycle'] ?? 'monthly') as BillingCycle;
+    const subscriptionId = typeof subscriptionEntity['id'] === 'string'
+      ? subscriptionEntity['id']
+      : undefined;
+    const metadata = parseBillingSubscriptionMetadata(subscriptionEntity['notes']);
 
-    if (!clinicId) {
-      return jsonResponse({ ok: true });
+    if (!metadata || !subscriptionId) {
+      console.warn(`Ignored Razorpay event ${event || 'unknown'} with invalid subscription metadata`);
+      return jsonResponse({ ok: true, ignored: true });
     }
+
+    const { clinicId, plan, billingCycle } = metadata;
+    const providerEventId = req.headers.get('x-razorpay-event-id')?.trim() ?? '';
+    const eventKey = crypto.createHash('sha256')
+      .update(providerEventId || rawBody)
+      .digest('hex');
 
     const clinicRef = db.collection('clinics').doc(clinicId);
     const privateRef = clinicRef.collection('private').doc('account');
+    const eventRef = db.collection('billingWebhookEvents').doc(eventKey);
     const todayIso = new Date().toISOString().slice(0, 10);
     const publicUpdateBase = {
       subscriptionPlan: plan,
     };
-    const privateUpdateBase = {
-      billingCycle,
-      razorpaySubscriptionId: subscriptionId ?? FieldValue.delete(),
-    };
+    const privateUpdateBase = { billingCycle };
 
     const applyBillingUpdate = async (
       publicUpdate: Record<string, unknown>,
       privateUpdate: Record<string, unknown> = {},
+      eventKind: BillingWebhookEventKind,
     ): Promise<void> => {
-      const batch = db.batch();
-      batch.update(clinicRef, { ...publicUpdateBase, ...publicUpdate });
-      batch.set(privateRef, {
-        ...privateUpdateBase,
-        ...privateUpdate,
-        updatedAt: FieldValue.serverTimestamp(),
-      }, { merge: true });
-      await batch.commit();
+      await db.runTransaction(async transaction => {
+        const [processedEvent, privateAccount] = await Promise.all([
+          transaction.get(eventRef),
+          transaction.get(privateRef),
+        ]);
+        if (processedEvent.exists) return;
+
+        const privateData = privateAccount.data() ?? {};
+        const webhookAction = resolveBillingWebhookAction(
+          privateData['razorpaySubscriptionId'],
+          privateData['pendingRazorpaySubscriptionId'],
+          subscriptionId,
+          eventKind,
+        );
+        if (webhookAction === 'ignore-stale' || webhookAction === 'keep-current') {
+          transaction.set(eventRef, {
+            clinicId,
+            event,
+            providerEventId: providerEventId || null,
+            ignoredReason: webhookAction === 'ignore-stale'
+              ? 'superseded_subscription'
+              : 'pending_upgrade_keeps_current_plan',
+            processedAt: FieldValue.serverTimestamp(),
+          });
+          return;
+        }
+        if (webhookAction === 'clear-pending') {
+          transaction.set(privateRef, {
+            pendingRazorpaySubscriptionId: FieldValue.delete(),
+            pendingPlan: FieldValue.delete(),
+            pendingBillingCycle: FieldValue.delete(),
+            updatedAt: FieldValue.serverTimestamp(),
+          }, { merge: true });
+          transaction.set(eventRef, {
+            clinicId,
+            event,
+            providerEventId: providerEventId || null,
+            ignoredReason: 'pending_subscription_closed',
+            processedAt: FieldValue.serverTimestamp(),
+          });
+          return;
+        }
+
+        const activatesPendingSubscription =
+          privateData['pendingRazorpaySubscriptionId'] === subscriptionId && eventKind === 'activate';
+
+        transaction.update(clinicRef, { ...publicUpdateBase, ...publicUpdate });
+        transaction.set(privateRef, {
+          ...privateUpdateBase,
+          ...privateUpdate,
+          ...(eventKind === 'activate' ? { razorpaySubscriptionId: subscriptionId } : {}),
+          ...(activatesPendingSubscription ? {
+            pendingRazorpaySubscriptionId: FieldValue.delete(),
+            pendingPlan: FieldValue.delete(),
+            pendingBillingCycle: FieldValue.delete(),
+          } : {}),
+          updatedAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+        transaction.set(eventRef, {
+          clinicId,
+          event,
+          providerEventId: providerEventId || null,
+          processedAt: FieldValue.serverTimestamp(),
+        });
+      });
     };
 
     try {
@@ -108,7 +171,7 @@ export default {
         case 'subscription.pending':
           await applyBillingUpdate({
             subscriptionStatus: 'pending',
-          });
+          }, {}, 'pending');
           break;
 
         case 'subscription.activated':
@@ -116,7 +179,10 @@ export default {
           await applyBillingUpdate({
             subscriptionStatus: 'active',
             active: true,
-            subscriptionEndDate: nextBillingDateIso(billingCycle),
+            subscriptionEndDate: razorpaySubscriptionEndDateIso(
+              subscriptionEntity['current_end'],
+              billingCycle,
+            ),
           }, {
             lastPaymentDate: todayIso,
             lastPaymentAmount: typeof paymentEntity['amount'] === 'number'
@@ -125,28 +191,32 @@ export default {
             lastPaymentRef: typeof paymentEntity['id'] === 'string'
               ? paymentEntity['id']
               : FieldValue.delete(),
-          });
+          }, 'activate');
           break;
 
         case 'subscription.halted':
           await applyBillingUpdate({
             subscriptionStatus: 'expired',
             active: false,
-          });
+          }, {}, 'terminate');
           break;
 
         case 'subscription.cancelled':
           await applyBillingUpdate({
             subscriptionStatus: 'cancelled',
             active: false,
-          });
+          }, {}, 'terminate');
           break;
 
         case 'subscription.resumed':
           await applyBillingUpdate({
             subscriptionStatus: 'active',
             active: true,
-          });
+            subscriptionEndDate: razorpaySubscriptionEndDateIso(
+              subscriptionEntity['current_end'],
+              billingCycle,
+            ),
+          }, {}, 'activate');
           break;
 
         default:

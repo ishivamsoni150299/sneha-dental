@@ -104,6 +104,9 @@ const PRIVATE_CLINIC_FIELDS = new Set([
   'lastPaymentAmount',
   'lastPaymentRef',
   'razorpaySubscriptionId',
+  'pendingRazorpaySubscriptionId',
+  'pendingPlan',
+  'pendingBillingCycle',
   'leadSource',
   'marketingAttribution',
   'grandfatheredUntil',
@@ -195,17 +198,6 @@ export class ClinicFirestoreService {
 
   async getActiveSubscriptions(): Promise<StoredClinic[]> {
     const q    = query(collection(db, this.COL), where('subscriptionStatus', '==', 'active'));
-    const snap = await getDocs(q);
-    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
-  }
-
-  async getExpiredTrials(): Promise<StoredClinic[]> {
-    const today = new Date().toISOString().split('T')[0];
-    const q     = query(
-      collection(db, this.COL),
-      where('subscriptionStatus', '==', 'trial'),
-      where('trialEndDate', '<', today),
-    );
     const snap = await getDocs(q);
     return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
   }

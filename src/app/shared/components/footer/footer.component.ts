@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { clinicHasPlatformFeature } from '../../../core/config/clinic.config';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
 
@@ -19,9 +20,7 @@ export class FooterComponent {
   readonly platformUrl = 'https://www.mydentalplatform.com';
 
   get showPoweredByBadge(): boolean {
-    const plan = this.config.subscriptionPlan ?? 'trial';
-    const status = this.config.subscriptionStatus ?? 'trial';
-    return plan === 'trial' || status === 'trial';
+    return !clinicHasPlatformFeature(this.config, 'removePlatformBranding');
   }
 
   readonly quickLinks = [

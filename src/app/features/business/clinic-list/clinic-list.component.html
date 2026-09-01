@@ -334,7 +334,9 @@
 
                       <section class="border-t border-ui-line pt-5 xl:border-l xl:border-t-0 xl:px-5 xl:pt-0">
                         <p class="ui-label">Voice receptionist</p>
-                        @if (clinic.voiceAgentEnabled) {
+                        @if (!hasVoiceAccess(clinic)) {
+                          <p class="ui-caption">Requires an active Pro subscription.</p>
+                        } @else if (clinic.voiceAgentEnabled) {
                           <span class="ui-badge ui-badge-success">
                             <span class="ui-status-dot" aria-hidden="true"></span>
                             OpenAI active
@@ -375,7 +377,7 @@
                               class="ui-tab border border-ui-line"
                               [class.ui-tab-active]="billingPlan() === 'starter'"
                               (click)="billingPlan.set('starter')">
-                              Starter {{ billingPlanPrice('starter') }}
+                              Basic {{ billingPlanPrice('starter') }}
                             </button>
                             <button
                               type="button"

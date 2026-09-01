@@ -10,7 +10,7 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  *  1. Firebase Auth session is restored (handles page refresh)
  *  2. User is authenticated
  *  3. A clinic doc exists for this user
- *  4. The clinic's subscription is not expired / cancelled
+ *  4. A paid clinic's subscription is not expired / cancelled
  *
  * Expired/cancelled clinics → /business/clinic/expired (upgrade prompt).
  */
@@ -57,20 +57,15 @@ export const clinicAdminGuard: CanActivateFn = async (_route, state) => {
   const cfg    = clinicCfg.config;
   const status = cfg.subscriptionStatus ?? 'trial';
 
-  // Explicitly terminated
-  if (status === 'cancelled' || status === 'expired') {
+  const isFree = (cfg.subscriptionPlan ?? 'trial') === 'trial';
+
+  // Free is permanent. Paid plans still require a current subscription.
+  if (status === 'cancelled' || (!isFree && status === 'expired')) {
     return router.createUrlTree(['/business/clinic/expired']);
   }
 
-  // Trial past end date (+ 3-day grace)
-  if (status === 'trial' && cfg.trialEndDate) {
-    if (isPastGrace(cfg.trialEndDate, 3)) {
-      return router.createUrlTree(['/business/clinic/expired']);
-    }
-  }
-
   // Paid subscription past renewal date (+ 3-day grace)
-  if (status === 'active' && cfg.subscriptionEndDate) {
+  if (!isFree && status === 'active' && cfg.subscriptionEndDate) {
     if (isPastGrace(cfg.subscriptionEndDate, 3)) {
       return router.createUrlTree(['/business/clinic/expired']);
     }

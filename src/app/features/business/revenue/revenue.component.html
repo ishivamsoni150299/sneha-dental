@@ -48,9 +48,9 @@
         <p class="text-xs text-green-600 mt-1">Paying clients</p>
       </div>
       <div class="platform-metric-card border-yellow-200 bg-yellow-50">
-        <p class="text-xs text-yellow-600 uppercase tracking-wide font-semibold mb-1">Trial</p>
-        <p class="text-2xl font-bold text-yellow-700">{{ trialClinics().length }}</p>
-        <p class="text-xs text-yellow-600 mt-1">To convert</p>
+        <p class="text-xs text-yellow-600 uppercase tracking-wide font-semibold mb-1">Free</p>
+        <p class="text-2xl font-bold text-yellow-700">{{ freeClinics().length }}</p>
+        <p class="text-xs text-yellow-600 mt-1">No expiry</p>
       </div>
     </div>
 
@@ -136,7 +136,7 @@
               <div>
                 <p class="text-sm font-semibold text-gray-900">{{ clinic.name }}</p>
                 <p class="text-xs text-amber-700">
-                  {{ clinic.subscriptionStatus === 'trial' ? 'Trial' : planLabel(clinic) }} ends in
+                  {{ planLabel(clinic) }} renews in
                   <strong>{{ daysUntil(expiryDate(clinic)) }} day{{ daysUntil(expiryDate(clinic)) !== 1 ? 's' : '' }}</strong>
                   ({{ renewalDate(clinic) }})
                 </p>
@@ -155,7 +155,7 @@
     <div class="platform-panel overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <h2 class="text-sm font-semibold text-gray-900">All Clinics</h2>
-        <span class="text-xs text-gray-400">Sorted by renewal date (soonest first)</span>
+        <span class="text-xs text-gray-400">Paid renewals first</span>
       </div>
 
       @if (sortedClinics().length === 0) {
@@ -200,31 +200,31 @@
 
             <!-- Renewal date -->
             <div class="text-sm min-w-32">
-              <span class="text-gray-500 text-xs block">Renewal / Trial End</span>
+              <span class="text-gray-500 text-xs block">Renewal</span>
               <span class="font-medium text-gray-900">{{ renewalDate(clinic) }}</span>
             </div>
 
             <!-- Actions -->
             <div class="flex items-center gap-2 shrink-0">
-              @if (clinic.subscriptionStatus === 'trial') {
+              @if (isFree(clinic)) {
                 <a [routerLink]="['/business/clinics', clinic.id, 'edit']"
                    class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                  Convert
+                  Upgrade
                 </a>
               }
-              @if (clinic.subscriptionStatus === 'active') {
+              @if (!isFree(clinic) && clinic.subscriptionStatus === 'active') {
                 <a [href]="whatsappReminder(clinic)" target="_blank" rel="noopener"
                    class="text-xs bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
                   Send Reminder
                 </a>
               }
-              @if (clinic.subscriptionStatus === 'expired' || clinic.subscriptionStatus === 'cancelled') {
+              @if (!isFree(clinic) && (clinic.subscriptionStatus === 'expired' || clinic.subscriptionStatus === 'cancelled')) {
                 <a [routerLink]="['/business/clinics', clinic.id, 'edit']"
                    class="text-xs bg-gray-600 hover:bg-gray-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">
                   Reactivate
                 </a>
               }
-              @if (!clinic.subscriptionStatus) {
+              @if (!isFree(clinic) && !clinic.subscriptionStatus) {
                 <a [routerLink]="['/business/clinics', clinic.id, 'edit']"
                    class="text-xs border border-gray-200 hover:border-gray-300 text-gray-600 font-semibold px-3 py-1.5 rounded-lg transition-colors">
                   Set Plan

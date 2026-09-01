@@ -1,6 +1,7 @@
 import type { Routes } from '@angular/router';
 import { superAdminGuard } from '../../core/guards/super-admin.guard';
 import { clinicAdminGuard } from '../../core/guards/clinic-admin.guard';
+import { clinicFeatureGuard } from '../../core/guards/clinic-feature.guard';
 
 export const businessRoutes: Routes = [
   // ── Public landing page (no auth required) ────────────────────────────────
@@ -11,7 +12,7 @@ export const businessRoutes: Routes = [
       import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
     data: {
       title: 'Dental Clinic Website & Booking Software | mydentalplatform',
-      description: 'Launch a dental clinic website with online appointment booking, WhatsApp, and a 24/7 AI receptionist. Built for clinics in India. Start a 30-day free trial.',
+      description: 'Launch a free dental clinic website with online booking and WhatsApp. Upgrade to Basic for clinic operations or Pro for an AI receptionist.',
     },
   },
 
@@ -113,15 +114,17 @@ export const businessRoutes: Routes = [
       },
       {
         path: 'doctors',
+        canActivate: [clinicFeatureGuard],
         loadComponent: () =>
           import('../admin/admin-doctors/admin-doctors.component').then(m => m.AdminDoctorsComponent),
-        data: { title: 'Doctor Management', noIndex: true },
+        data: { title: 'Doctor Management', noIndex: true, platformFeature: 'doctorManagement' },
       },
       {
         path: 'patients',
+        canActivate: [clinicFeatureGuard],
         loadComponent: () =>
           import('../admin/admin-patients/admin-patients.component').then(m => m.AdminPatientsComponent),
-        data: { title: 'Patient Directory', noIndex: true },
+        data: { title: 'Patient Directory', noIndex: true, platformFeature: 'patientRecords' },
       },
     ],
   },

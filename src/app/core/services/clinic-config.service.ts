@@ -1,7 +1,13 @@
 import { Injectable, signal } from '@angular/core';
 import { getIdTokenResult } from 'firebase/auth';
 import { collection, getDoc, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
-import { CLINIC_THEMES, clinicConfig, type ClinicConfig, type ClinicTheme } from '../config/clinic.config';
+import {
+  CLINIC_THEMES,
+  clinicConfig,
+  clinicHasPlatformFeature,
+  type ClinicConfig,
+  type ClinicTheme,
+} from '../config/clinic.config';
 export type { ClinicConfig };
 import { auth, db } from '../firebase';
 
@@ -164,8 +170,7 @@ export class ClinicConfigService {
 
   get hasLiveVoice(): boolean {
     const config = this.config;
-    return config.subscriptionPlan === 'pro'
-      && config.subscriptionStatus === 'active'
+    return clinicHasPlatformFeature(config, 'aiVoiceReceptionist')
       && config.voiceAgentEnabled === true
       && config.voiceProvider === 'openai';
   }
@@ -200,53 +205,53 @@ export class ClinicConfigService {
     }
     try {
       // 1st attempt — match on primary custom domain
-      let snap = await getDocs(query(
+      const customDomainSnap = await getDocs(query(
         collection(db, 'clinics'),
         where('domain', '==', host),
         where('active', '==', true),
         limit(1)
       ));
+      let matchedClinic = customDomainSnap.docs.find(candidate =>
+        clinicHasPlatformFeature(candidate.data() as Partial<ClinicConfig>, 'customDomain')
+      );
 
       // 2nd attempt — fall back to vercelDomain (e.g. sneha-dental.vercel.app)
-      if (snap.empty) {
-        snap = await getDocs(query(
+      if (!matchedClinic) {
+        const hostedDomainSnap = await getDocs(query(
           collection(db, 'clinics'),
           where('vercelDomain', '==', host),
           where('active', '==', true),
           limit(1)
         ));
+        matchedClinic = hostedDomainSnap.docs[0];
       }
 
-      if (!snap.empty) {
-        const docId = snap.docs[0].id;
-        const rest = clinicConfigData(snap.docs[0].data() as Record<string, unknown>);
-        const config = {
+      if (matchedClinic) {
+        const docId = matchedClinic.id;
+        const rest = clinicConfigData(matchedClinic.data() as Record<string, unknown>);
+        const loadedConfig: ClinicConfig = {
           ...(rest as unknown as ClinicConfig),
           clinicId: docId,
           theme: normalizeTheme((rest as Partial<ClinicConfig>).theme),
         };
+        const config: ClinicConfig = clinicHasPlatformFeature(loadedConfig, 'customBranding')
+          ? loadedConfig
+          : { ...loadedConfig, theme: 'blue', logoDataUrl: undefined };
         applyTheme(config.theme);
 
-        // Enforce subscription — block site if explicitly expired/cancelled,
-        // OR if dates show the trial/subscription has ended (with 3-day grace period).
+        // Free clinics remain live indefinitely. Paid clinics are blocked when
+        // cancelled or past their subscription grace period.
         // clinicRequiredGuard then redirects visitors to the platform landing page.
         const GRACE_DAYS = 3;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const isFree = (config.subscriptionPlan ?? 'trial') === 'trial';
+        const isExplicitlyBlocked = config.subscriptionStatus === 'cancelled' ||
+          (!isFree && config.subscriptionStatus === 'expired');
 
-        const isExplicitlyBlocked =
-          config.subscriptionStatus === 'expired' ||
-          config.subscriptionStatus === 'cancelled';
-
-        const isTrialExpired = config.subscriptionStatus === 'trial' &&
-          !!config.trialEndDate &&
-          this.isPastWithGrace(config.trialEndDate, GRACE_DAYS);
-
-        const isSubExpired = config.subscriptionStatus === 'active' &&
+        const isSubExpired = !isFree && config.subscriptionStatus === 'active' &&
           !!config.subscriptionEndDate &&
           this.isPastWithGrace(config.subscriptionEndDate, GRACE_DAYS);
 
-        if (isExplicitlyBlocked || isTrialExpired || isSubExpired) {
+        if (isExplicitlyBlocked || isSubExpired) {
           return; // _isLoaded stays false → guard redirects to /business
         }
 
@@ -318,11 +323,14 @@ export class ClinicConfigService {
     }
 
     const rest = clinicConfigData({ ...publicData, ...privateData });
-    const config = {
+    const loadedConfig: ClinicConfig = {
       ...(rest as unknown as ClinicConfig),
       clinicId,
       theme: normalizeTheme((rest as Partial<ClinicConfig>).theme),
     };
+    const config: ClinicConfig = clinicHasPlatformFeature(loadedConfig, 'customBranding')
+      ? loadedConfig
+      : { ...loadedConfig, theme: 'blue', logoDataUrl: undefined };
     applyTheme(config.theme);
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme-context', 'clinic-admin');

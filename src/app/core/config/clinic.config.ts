@@ -108,7 +108,7 @@ export interface ClinicConfig {
   // ── Subscription & Billing (managed by platform admin) ───────────────────
   subscriptionPlan?:   'trial' | 'starter' | 'pro';
   subscriptionStatus?: 'trial' | 'pending' | 'active' | 'expired' | 'cancelled';
-  trialEndDate?:       string;     // ISO date e.g. "2026-05-07"
+  trialEndDate?:       string;     // Legacy field retained for older clinic documents
   subscriptionEndDate?: string;    // ISO date — next renewal / expiry date
   billingCycle?:       'monthly' | 'yearly';
   lastPaymentDate?:    string;     // ISO date
@@ -175,32 +175,6 @@ export const clinicConfig: ClinicConfig = {
   testimonials: [],
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PLATFORM PLANS — pricing for the SaaS subscription (not clinic health plans)
-// ─────────────────────────────────────────────────────────────────────────────
-export const PLATFORM_PLANS = {
-  trial:   { label: 'Free Trial', monthly: 0,   yearly: 0    },
-  starter: { label: 'Starter',    monthly: 999, yearly: 9999 },
-  pro:     { label: 'Pro',        monthly: 2499, yearly: 24999 },
-} as const;
-
-export type PlatformPlanId = keyof typeof PLATFORM_PLANS;
-export type PaidPlatformPlanId = Exclude<PlatformPlanId, 'trial'>;
-export type PlatformBillingCycle = 'monthly' | 'yearly';
-
-export function getPlatformPlanAmount(
-  plan: PlatformPlanId,
-  billingCycle: PlatformBillingCycle,
-): number {
-  return PLATFORM_PLANS[plan][billingCycle];
-}
-
-export function formatPlatformPlanPrice(
-  plan: PlatformPlanId,
-  billingCycle: PlatformBillingCycle,
-  includePeriod = true,
-): string {
-  const amount = getPlatformPlanAmount(plan, billingCycle).toLocaleString('en-IN');
-  const suffix = billingCycle === 'yearly' ? '/year' : '/month';
-  return includePeriod ? `₹${amount}${suffix}` : `₹${amount}`;
-}
+// Re-exported here to preserve existing imports while keeping plan access rules
+// framework-neutral for Angular, Vercel APIs, and tests.
+export * from './platform-entitlements';

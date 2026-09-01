@@ -2,6 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import {
+  clinicHasPlatformFeature,
+  type PlatformSubscriptionAccess,
+} from '../src/app/core/config/platform-entitlements';
 import { normalizeOpenAIVoice, normalizeVoiceLanguage } from './_lib/voice-agent-config';
 import {
   getOpenAIVoiceUsage,
@@ -59,6 +63,15 @@ async function canManageClinic(req: VercelRequest, clinicId: string): Promise<bo
     db.collection('superAdmins').doc(decoded.uid).get(),
   ]);
   return superAdmin.exists || clinic.data()?.['adminUid'] === decoded.uid;
+}
+
+async function clinicHasVoiceAccess(clinicId: string): Promise<boolean> {
+  const clinic = await db.collection('clinics').doc(clinicId).get();
+  if (!clinic.exists || clinic.data()?.['active'] !== true) return false;
+  return clinicHasPlatformFeature(
+    clinic.data() as PlatformSubscriptionAccess,
+    'aiVoiceReceptionist',
+  );
 }
 
 function assertOpenAIConfigured(res: VercelResponse): boolean {
@@ -137,6 +150,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     if (!clinicId) return res.status(400).json({ error: 'Clinic is required.' });
     if (!await canManageClinic(req, clinicId)) {
       return res.status(403).json({ error: 'You do not have access to this clinic.' });
+    }
+    if (!await clinicHasVoiceAccess(clinicId)) {
+      return res.status(403).json({ error: 'An active Pro plan is required for the AI Voice Receptionist.' });
     }
 
     if (action === 'enable') return enableVoice(req, res, clinicId);

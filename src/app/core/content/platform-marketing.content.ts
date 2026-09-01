@@ -3,7 +3,7 @@ import type { ClinicFaq } from '../config/clinic.config';
 export const PLATFORM_FAQS: readonly ClinicFaq[] = [
   {
     q: 'Do I need to own a domain name?',
-    a: 'No. We give you a free subdomain like yourclinic.mydentalplatform.com to start on the Trial plan. If you want your own domain (e.g. snehadental.com), we help you buy and set it up — included in the Starter plan at no extra charge.',
+    a: 'No. The Free plan includes a subdomain like yourclinic.mydentalplatform.com with no expiry. Basic and Pro let you connect your own domain, such as snehadental.com, with SSL included.',
   },
   {
     q: 'How do patients book appointments?',
@@ -11,7 +11,7 @@ export const PLATFORM_FAQS: readonly ClinicFaq[] = [
   },
   {
     q: 'Can I update my services and clinic info later?',
-    a: 'Yes. You get an admin dashboard to view appointments. For content updates, just WhatsApp us — Starter includes 1 update/month, Pro includes 3 updates/month. One update = one text change, image swap, or section edit. Additional updates: ₹500 each. Turnaround: 24–48 hours on business days.',
+    a: 'Yes. Every plan includes clinic profile, contact, hours, services, testimonials, and social-link controls. Basic and Pro also unlock your clinic logo, theme, platform-brand removal, patient records, and doctor management.',
   },
   {
     q: 'What if I already have a website?',
@@ -22,8 +22,8 @@ export const PLATFORM_FAQS: readonly ClinicFaq[] = [
     a: 'No lock-in. Monthly subscription — cancel anytime. Your domain and content always belong to you.',
   },
   {
-    q: 'Do you support multiple clinic branches?',
-    a: 'Yes — the Pro plan supports multi-doctor clinics. For multi-location chains with separate websites per branch, contact us for a custom quote.',
+    q: 'Do you support multiple doctors or clinic branches?',
+    a: 'Basic and Pro support multiple doctor profiles and schedules. Each clinic workspace represents one location; multi-location chains with separate websites per branch can contact us for a custom quote.',
   },
   {
     q: 'What is the early adopter pricing guarantee?',

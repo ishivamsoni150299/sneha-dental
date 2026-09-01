@@ -1299,7 +1299,7 @@ I know we spoke a while back — just wanted to check in. A few things have impr
 • Same-day setup — your clinic can be live today
 • AI receptionist that handles patient queries after clinic hours
 • Several clinics in ${city} are already live and getting online bookings
-• Still free for the first 30 days
+• Free plan available with no expiry
 ${referredBy ? `\n${referredBy} had mentioned your clinic earlier so I wanted to reconnect.` : ''}
 
 ${DEMO_WEBSITE_URL}

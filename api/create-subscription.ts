@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import {
   createRazorpayCheckout,
   type BillingCycle,
@@ -111,6 +111,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       billingCycle: billingCycle as BillingCycle,
       phone: trustedPhone,
     });
+
+    if (checkout.subscriptionId) {
+      await clinic.ref.collection('private').doc('account').set({
+        pendingRazorpaySubscriptionId: checkout.subscriptionId,
+        pendingPlan: plan,
+        pendingBillingCycle: billingCycle,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
 
     return res.status(200).json({
       subscriptionId: checkout.subscriptionId,

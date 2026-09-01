@@ -490,8 +490,13 @@
           <!-- Custom Domain -->
           <div>
             <label class="form-label">Custom Domain <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="domain" type="text" placeholder="snehadental.com" class="form-input">
-            <p class="text-xs text-gray-400 mt-1">Client's own domain once DNS is pointed.</p>
+            <input formControlName="domain" type="text" placeholder="snehadental.com" class="form-input"
+                   [readonly]="form.controls.subscriptionPlan.value === 'trial'">
+            @if (form.controls.subscriptionPlan.value === 'trial') {
+              <p class="text-xs text-amber-600 mt-1">Choose Basic or Pro before assigning the clinic's own domain.</p>
+            } @else {
+              <p class="text-xs text-gray-400 mt-1">Becomes available once the paid plan is active and DNS is pointed.</p>
+            }
           </div>
 
           <!-- Preview Address -->
@@ -1067,8 +1072,8 @@
           <div>
             <label class="form-label">Platform Plan</label>
             <select formControlName="subscriptionPlan" class="form-input">
-              <option value="trial">Free Trial</option>
-              <option value="starter">Starter — ₹999/month</option>
+              <option value="trial">Free — no expiry</option>
+              <option value="starter">Basic — ₹999/month</option>
               <option value="pro">Pro — ₹2,499/month</option>
             </select>
           </div>
@@ -1079,12 +1084,15 @@
             <select formControlName="subscriptionStatus" class="form-input"
                     [class]="form.controls.subscriptionStatus.value === 'expired' || form.controls.subscriptionStatus.value === 'cancelled'
                       ? 'border-red-200 bg-red-50 text-red-700' : ''">
-              <option value="trial">Trial</option>
+              <option value="trial">Free</option>
+              <option value="pending">Pending Payment</option>
               <option value="active">Active (Paid)</option>
               <option value="expired">Expired</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            @if (form.controls.subscriptionStatus.value === 'expired' || form.controls.subscriptionStatus.value === 'cancelled') {
+              <p class="mt-1 text-xs text-gray-400">Razorpay subscriptions update automatically. Set Active manually only after verifying a Razorpay.me payment and recording its reference.</p>
+              @if (form.controls.subscriptionStatus.value === 'cancelled' ||
+                (form.controls.subscriptionPlan.value !== 'trial' && form.controls.subscriptionStatus.value === 'expired')) {
               <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
                 <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -1101,13 +1109,6 @@
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
             </select>
-          </div>
-
-          <!-- Trial end -->
-          <div>
-            <label class="form-label">Trial End Date</label>
-            <input formControlName="trialEndDate" type="date" class="form-input">
-            <p class="text-xs text-gray-400 mt-1">Auto-set to today + 30 days for new clinics.</p>
           </div>
 
           <!-- Last payment date -->
@@ -1155,7 +1156,7 @@
                   <span class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">For Clinic Owner</span>
                 </div>
                 <p class="text-xs leading-5 text-sky-700">
-                  Create a login for your client (the clinic owner / doctor) so they can access <strong>their own clinic dashboard</strong> — view appointments, patients, and settings. This is <em>not</em> your platform admin account.
+                  Create a login for your client (the clinic owner / doctor) so they can access <strong>their own clinic dashboard</strong> — manage bookings and settings, plus patient records when their plan includes them. This is <em>not</em> your platform admin account.
                 </p>
                 <a href="https://www.mydentalplatform.com/business/login" target="_blank" rel="noopener"
                    class="inline-flex items-center gap-1 mt-1 text-[11px] font-semibold text-sky-600 hover:underline">

@@ -1,8 +1,14 @@
 import { Component, ChangeDetectionStrategy, HostListener, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { formatPlatformPlanPrice } from '../../../core/config/clinic.config';
+import {
+  formatPlatformPlanPrice,
+  hasPlatformFeature,
+  PLATFORM_FEATURE_LABELS,
+  PLATFORM_PLANS,
+  type PlatformPlanId,
+} from '../../../core/config/clinic.config';
 import { PLATFORM_FAQS } from '../../../core/content/platform-marketing.content';
-type PlanId = 'trial' | 'starter' | 'pro';
+type PlanId = PlatformPlanId;
 
 @Component({
   selector: 'app-platform-landing',
@@ -19,7 +25,7 @@ export class PlatformLandingComponent {
   readonly billingYearly = signal(false);
   readonly mobileMenuOpen = signal(false);
   readonly showMobileCta = signal(false);
-  readonly roiPlan = signal<'Starter' | 'Pro'>('Starter');
+  readonly roiPlan = signal<'Basic' | 'Pro'>('Basic');
   readonly monthlyMissedLeads = signal(12);
   readonly avgCaseValue = signal(3500);
   readonly leadCloseRate = signal(40);
@@ -58,90 +64,36 @@ export class PlatformLandingComponent {
     },
   ];
 
-  readonly plans = [
-    {
-      id: 'trial' as const,
-      name: 'Trial',
-      tag: 'Try for free',
-      monthly: 0,
-      yearly: 0,
-      trialDays: 30,
-      highlighted: false,
-      features: [
-        '30-day free trial · no card needed',
-        'Fully responsive clinic website',
-        'Online appointment booking',
-        'Instant clinic booking alerts',
-        'Patient admin dashboard',
-        'Free subdomain (yourname.mydentalplatform.com)',
-      ],
-      notIncluded: [
-        'Custom domain',
-        'AI Voice Receptionist',
-        'Content updates',
-      ],
-    },
-    {
-      id: 'starter' as const,
-      name: 'Starter',
-      tag: 'For solo clinics',
-      monthly: 999,
-      yearly: 9999,
-      trialDays: null,
-      highlighted: false,
-      features: [
-        'Everything in Trial',
-        'Custom domain (connect your own)',
-        'Auto SSL certificate',
-        'Services catalogue management',
-        '1 content update/month (text, image, or section)',
-        'Email + WhatsApp support',
-      ],
-      notIncluded: [
-        'AI Voice Receptionist',
-        'Voice minutes',
-      ],
-    },
-    {
-      id: 'pro' as const,
-      name: 'Pro',
-      tag: 'Most popular',
-      monthly: 2499,
-      yearly: 24999,
-      trialDays: null,
-      highlighted: true,
-      features: [
-        'Everything in Starter',
-        'AI Voice Receptionist 24/7',
-        'Hindi + English + Hinglish support',
-        '30 voice min/month included',
-        '₹20/min after 30 min (usage-based)',
-        '3 content updates/month (text, image, or section)',
-        '1 onboarding call included (20 min)',
-        'Priority WhatsApp support',
-        'Revenue & analytics dashboard',
-      ],
-      notIncluded: [],
-    },
-  ];
+  readonly plans = (['trial', 'starter', 'pro'] as const).map(id => ({
+    id,
+    name: PLATFORM_PLANS[id].label,
+    tag: id === 'trial' ? 'Free forever' : id === 'starter' ? 'For growing clinics' : 'AI-powered',
+    monthly: PLATFORM_PLANS[id].monthly,
+    yearly: PLATFORM_PLANS[id].yearly,
+    highlighted: id === 'pro',
+    features: PLATFORM_PLANS[id].features.map(feature => PLATFORM_FEATURE_LABELS[feature]),
+    notIncluded: PLATFORM_PLANS.pro.features
+      .filter(feature => !hasPlatformFeature(id, feature))
+      .map(feature => PLATFORM_FEATURE_LABELS[feature]),
+  }));
 
   readonly growthPaths = [
     {
       eyebrow: 'Start lean',
-      title: 'Trial launch for first-time clinics',
-      summary: 'Go live before you spend. Test bookings, share your link, and validate demand with zero setup risk.',
-      outcome: 'Free for 30 days with booking capture from day one.',
+      title: 'Free launch for first-time clinics',
+      summary: 'Go live before you spend. Accept bookings and share your platform link without a time limit.',
+      outcome: 'Free forever with booking capture from day one.',
       planId: 'trial' as const,
       cta: 'Start free',
-      offer: '30-day launch trial',
+      offer: 'Free clinic launch',
     },
     {
       eyebrow: 'Most chosen',
-      title: 'Starter for solo clinics ready to grow',
-      summary: 'Use your own domain, look established, and turn search traffic into consultations without agency fees.',
-      outcome: 'Best for owner-led clinics targeting steady monthly bookings.',
+      title: 'Basic for clinics ready to grow',
+      summary: 'Add patient records, doctor schedules, your own brand, and a custom domain.',
+      outcome: 'Best for clinics that need daily operational tools and a fully owned identity.',
       planId: 'starter' as const,
-      cta: 'Choose Starter',
+      cta: 'Choose Basic',
       offer: 'Domain-ready growth plan',
     },
     {
@@ -293,7 +245,7 @@ export class PlatformLandingComponent {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  setRoiPlan(planName: 'Starter' | 'Pro'): void {
+  setRoiPlan(planName: 'Basic' | 'Pro'): void {
     this.roiPlan.set(planName);
   }
 

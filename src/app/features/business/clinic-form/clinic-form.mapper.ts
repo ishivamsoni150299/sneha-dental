@@ -23,7 +23,7 @@ export interface ClinicFormRawValue {
   domain: string;
   active: boolean;
   subscriptionPlan: 'trial' | 'starter' | 'pro';
-  subscriptionStatus: 'trial' | 'active' | 'expired' | 'cancelled';
+  subscriptionStatus: 'trial' | 'pending' | 'active' | 'expired' | 'cancelled';
   billingCycle: 'monthly' | 'yearly';
   trialEndDate: string;
   subscriptionEndDate: string;

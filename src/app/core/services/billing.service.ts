@@ -46,7 +46,7 @@ export class BillingService {
   }
 
   planLabel(plan: BillingPlan, billingCycle: BillingCycle): string {
-    const title = plan === 'pro' ? 'Pro' : 'Starter';
+    const title = plan === 'pro' ? 'Pro' : 'Basic';
     return `${title} (${formatPlatformPlanPrice(plan, billingCycle)})`;
   }
 

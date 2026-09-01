@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
-import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
+import { clinicHasPlatformFeature, PLATFORM_PLANS } from '../../../core/config/clinic.config';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 
 interface Toast { msg: string; type: 'success' | 'error' }
@@ -107,10 +107,13 @@ export class ClinicListComponent implements OnInit {
 
   clinicNeedsAttention(clinic: StoredClinic): boolean {
     const subscriptionStatus = clinic.subscriptionStatus ?? 'trial';
+    const isPaid = (clinic.subscriptionPlan ?? 'trial') !== 'trial';
     return this.clinicReadiness(clinic).percentage < 100
-      || subscriptionStatus === 'expired'
-      || subscriptionStatus === 'cancelled'
-      || subscriptionStatus === 'pending';
+      || (isPaid && (
+        subscriptionStatus === 'expired'
+        || subscriptionStatus === 'cancelled'
+        || subscriptionStatus === 'pending'
+      ));
   }
 
   clearFilters(): void {
@@ -127,6 +130,7 @@ export class ClinicListComponent implements OnInit {
   }
 
   private subscriptionPriority(clinic: StoredClinic): number {
+    if ((clinic.subscriptionPlan ?? 'trial') === 'trial') return 3;
     const priorities: Record<string, number> = {
       expired: 0,
       cancelled: 1,
@@ -201,7 +205,11 @@ export class ClinicListComponent implements OnInit {
   subscriptionBadge(clinic: StoredClinic): { label: string; classes: string } {
     const status = clinic.subscriptionStatus ?? 'trial';
     const plan   = clinic.subscriptionPlan   ?? 'trial';
-    const planLabel = PLATFORM_PLANS[plan]?.label ?? 'Trial';
+    const planLabel = PLATFORM_PLANS[plan]?.label ?? 'Free';
+
+    if (plan === 'trial') {
+      return { label: 'Free · No expiry', classes: 'ui-badge ui-badge-info' };
+    }
 
     if (status === 'active') {
       return { label: `${planLabel} · Active`, classes: 'ui-badge ui-badge-success' };
@@ -215,15 +223,11 @@ export class ClinicListComponent implements OnInit {
     if (status === 'cancelled') {
       return { label: 'Cancelled', classes: 'ui-badge' };
     }
-    // trial — show days left
-    const endDate  = clinic.trialEndDate ? new Date(clinic.trialEndDate) : null;
-    const daysLeft = endDate
-      ? Math.ceil((endDate.getTime() - Date.now()) / 86_400_000)
-      : null;
-    const dayStr = daysLeft !== null
-      ? (daysLeft > 0 ? ` · ${daysLeft}d left` : ' · Ended')
-      : '';
-    return { label: `Trial${dayStr}`, classes: 'ui-badge ui-badge-warning' };
+    return { label: 'Plan not set', classes: 'ui-badge ui-badge-warning' };
+  }
+
+  hasVoiceAccess(clinic: StoredClinic): boolean {
+    return clinicHasPlatformFeature(clinic, 'aiVoiceReceptionist');
   }
 
   // ── Billing ───────────────────────────────────────────────────────────────
@@ -256,13 +260,6 @@ export class ClinicListComponent implements OnInit {
         clinic.name,
         phone,
       );
-
-      // Store subscription ID in Firestore so we can track it
-      if (result.subscriptionId) {
-        await this.clinicStore.update(clinic.id, {
-          razorpaySubscriptionId: result.subscriptionId,
-        } as Parameters<typeof this.clinicStore.update>[1]);
-      }
 
       // Open WhatsApp with payment link — clinic owner clicks once, Razorpay does the rest
       const waUrl = this.billing.whatsappPaymentMessage(

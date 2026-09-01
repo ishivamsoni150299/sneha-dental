@@ -816,11 +816,11 @@
               <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div class="max-w-2xl">
                   <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">
-                    Starter Feature
+                    Basic Feature
                   </span>
                   <h2 class="mt-4 text-xl font-bold text-gray-900">Unlock custom dental theme controls</h2>
                   <p class="mt-2 text-sm leading-relaxed text-gray-600">
-                    Trial clinics stay on a curated theme so every launch looks clean and conversion-focused. Upgrade to Starter to choose your own palette, remove the mydentalplatform footer badge, and match the website to your clinic brand.
+                    Free clinics stay on a curated theme so every launch looks clean and conversion-focused. Upgrade to Basic to choose your own palette, remove the mydentalplatform footer badge, and match the website to your clinic brand.
                   </p>
                   <div class="mt-4 flex flex-wrap gap-2">
                     <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Choose your color palette</span>
@@ -840,7 +840,7 @@
                       <p class="mt-2 truncate text-lg font-bold">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
                       <p class="mt-1 text-sm text-slate-300">{{ selectedThemeMeta.label }} · {{ selectedThemeMeta.note }}</p>
                       <div class="mt-4 flex flex-wrap gap-2 text-xs">
-                        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">Trial branding active</span>
+                        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">Free plan branding active</span>
                         <span class="rounded-full px-3 py-1 font-semibold text-white" [style.background]="selectedThemeMeta.primary">Book Appointment</span>
                       </div>
                     </div>
@@ -849,7 +849,7 @@
               </div>
 
               <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-xs text-blue-800">Booking, WhatsApp, services, and hours continue to work on trial. This upgrade is only for branding control.</p>
+                <p class="text-xs text-blue-800">Booking, WhatsApp, services, and hours stay available on Free. Basic adds full branding control.</p>
                 <button type="button"
                         (click)="upgradePlan('starter')"
                         [disabled]="upgrading()"
@@ -860,7 +860,7 @@
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
                   }
-                  Upgrade to Starter — ₹999/month
+                  Upgrade to Basic — ₹999/month
                 </button>
               </div>
             </div>
@@ -1015,11 +1015,11 @@
               <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div class="max-w-2xl">
                   <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-700">
-                    Starter Feature
+                    Basic Feature
                   </span>
                   <h2 class="mt-4 text-xl font-bold text-gray-900">Unlock your clinic logo</h2>
                   <p class="mt-2 text-sm leading-relaxed text-gray-600">
-                    Trial clinics use the default dental mark so every site launches fast and stays visually consistent. Upgrade to Starter to upload your clinic logo across the navbar, footer, and booking journey for stronger patient trust.
+                    Free clinics use the default dental mark so every site launches fast and stays visually consistent. Upgrade to Basic to upload your clinic logo across the navbar, footer, and booking journey for stronger patient trust.
                   </p>
                   <div class="mt-4 flex flex-wrap gap-2">
                     <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Custom logo on website header</span>
@@ -1041,7 +1041,7 @@
                       }
                       <div class="min-w-0">
                         <p class="truncate text-sm font-bold text-gray-900">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
-                        <p class="text-xs text-gray-500">Starter removes the default trial branding.</p>
+                        <p class="text-xs text-gray-500">Basic removes the default platform branding.</p>
                       </div>
                     </div>
                   </div>
@@ -1049,7 +1049,7 @@
               </div>
 
               <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-xs text-emerald-800">Patients can already book on trial. Starter is where the website starts looking fully clinic-owned.</p>
+                <p class="text-xs text-emerald-800">Patients can already book on Free. Basic is where the website starts looking fully clinic-owned.</p>
                 <button type="button"
                         (click)="upgradePlan('starter')"
                         [disabled]="upgrading()"
@@ -1060,7 +1060,7 @@
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
                   }
-                    Upgrade to Starter — ₹999/month
+                    Upgrade to Basic — ₹999/month
                 </button>
               </div>
             </div>
@@ -1082,7 +1082,7 @@
               </p>
               <p class="font-bold text-gray-900 text-lg leading-tight">{{ currentPlanLabel() }}</p>
               @if (isTrial && !isExpired) {
-                <p class="text-blue-700 text-xs mt-1">Your website goes offline when the trial ends. Upgrade to keep it live.</p>
+                <p class="text-blue-700 text-xs mt-1">Your website and booking page stay live. Upgrade when you need patient records, doctors, branding, or a custom domain.</p>
               }
               @if (isPending) {
                 <p class="text-amber-700 text-xs mt-1">Your plan is created but payment is still pending. Complete checkout to activate paid features and automatic renewals.</p>
@@ -1091,7 +1091,7 @@
                 <p class="text-red-600 text-xs mt-1">Your website is currently hidden from patients. Upgrade now to restore it.</p>
               }
               @if (isStarter) {
-                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro to unlock AI Voice Receptionist — answers patient calls 24/7 in Hindi & English.</p>
+                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro for the AI Voice Receptionist and clinic revenue insights.</p>
               }
               @if (isPro) {
                 <p class="text-purple-700 text-xs mt-1">You're on the best plan. All features are unlocked.</p>
@@ -1152,23 +1152,24 @@
                 <div class="flex items-start justify-between mb-3">
                   <div>
                     <p class="font-bold text-gray-900 text-sm">{{ p.label }}</p>
+                    <p class="mt-1 max-w-[15rem] text-xs leading-relaxed text-gray-500">{{ p.description }}</p>
                     <p class="text-2xl font-extrabold mt-0.5"
                        [class]="p.id === 'pro' ? 'text-purple-600' : p.id === 'starter' ? 'text-blue-600' : 'text-gray-500'">
                       @if (p.id === 'trial') {
-                        ?0<span class="text-xs font-semibold text-gray-400 ml-0.5">{{ p.period }}</span>
+                        ₹0<span class="text-xs font-semibold text-gray-400 ml-1">{{ p.period }}</span>
                       } @else {
                         {{ planPrice(p.id === 'pro' ? 'pro' : 'starter') }}
                       }
                     </p>
                   </div>
-                  @if ((p.id === 'trial' && (isTrial || isExpired)) ||
+                  @if ((p.id === 'trial' && isTrial) ||
                        (p.id === 'starter' && plan === 'starter' && isPending) ||
                        (p.id === 'pro' && plan === 'pro' && isPending) ||
                        (p.id === 'starter' && isStarter) ||
                        (p.id === 'pro' && isPro)) {
                     <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full"
-                          [class]="isExpired && p.id === 'trial' ? 'bg-red-100 text-red-600' : isPending && plan === p.id ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
-                      {{ isExpired && p.id === 'trial' ? 'Expired' : isPending && plan === p.id ? 'Pending' : 'Current' }}
+                          [class]="isPending && plan === p.id ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+                      {{ isPending && plan === p.id ? 'Pending' : 'Current' }}
                     </span>
                   }
                 </div>
