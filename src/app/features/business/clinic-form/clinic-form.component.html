@@ -1209,6 +1209,216 @@
       <!-- Tab 5 nav -->
       <div class="flex items-center justify-between gap-3 pt-2">
         <button type="button" (click)="activeTab.set(4)" class="ui-btn ui-btn-ghost text-sm">← Website Content</button>
+        <button type="button" (click)="activeTab.set(6)" class="ui-btn ui-btn-primary text-sm">Continue to Marketplace →</button>
+      </div>
+
+      } <!-- /tab 5 -->
+
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 6 — MARKETPLACE                                                    -->
+      <!-- ══════════════════════════════════════════════════════════════════════ -->
+      @if (activeTab() === 6) {
+
+      <section class="space-y-5 rounded-2xl border border-cyan-200 bg-cyan-50/40 p-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-widest text-cyan-700">Patient marketplace</p>
+            <h2 class="mt-1 text-base font-bold text-gray-950">Listing control</h2>
+            <p class="mt-1 max-w-2xl text-xs leading-5 text-gray-600">
+              Only verified listings will appear in patient search. Subscription plan never changes search rank.
+            </p>
+          </div>
+          <span class="w-fit rounded-full px-3 py-1 text-[11px] font-bold uppercase"
+                [class]="form.controls.marketplaceStatus.value === 'verified'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : form.controls.marketplaceStatus.value === 'pending'
+                    ? 'bg-amber-100 text-amber-700'
+                    : form.controls.marketplaceStatus.value === 'suspended'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-200 text-gray-600'">
+            {{ form.controls.marketplaceStatus.value }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="form-label" for="marketplaceStatus">Listing Status</label>
+            <select id="marketplaceStatus" formControlName="marketplaceStatus" class="form-input">
+              <option value="unlisted">Unlisted</option>
+              <option value="pending">Pending verification</option>
+              <option value="verified">Verified and visible</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="marketplaceSlug">Public profile path</label>
+            <div class="flex overflow-hidden rounded-xl border border-gray-200 bg-white focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-100">
+              <span class="flex items-center border-r border-gray-200 bg-gray-50 px-3 text-xs text-gray-500">/dentists/</span>
+              <input id="marketplaceSlug" formControlName="marketplaceSlug" type="text"
+                     placeholder="smile-care-noida"
+                     class="min-w-0 flex-1 border-0 px-3 py-2.5 text-sm text-gray-900 outline-none">
+            </div>
+            <p class="mt-1 text-xs text-gray-500">Lowercase letters, numbers, and hyphens. Saving reserves it uniquely.</p>
+          </div>
+        </div>
+
+        @if (form.controls.marketplaceStatus.value === 'verified') {
+          <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs leading-5 text-emerald-800">
+            Publishing requires a locality, at least one service, dentist registration details, and completed phone and address checks.
+          </div>
+        } @else if (form.controls.marketplaceStatus.value === 'suspended') {
+          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-700">
+            Suspended clinics are removed from search and future marketplace profile sitemaps while their clinic website remains governed by its subscription status.
+          </div>
+        }
+      </section>
+
+      <section class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6">
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Public information</p>
+          <h2 class="mt-1 text-base font-bold text-gray-950">Search profile</h2>
+          <p class="mt-1 text-xs leading-5 text-gray-500">These fields may be shown to patients. Do not add private notes or registration evidence here.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <label class="form-label" for="marketplaceRegion">Launch region</label>
+            <select id="marketplaceRegion" formControlName="marketplaceRegion" class="form-input">
+              @for (region of marketplaceRegions; track region.id) {
+                <option [value]="region.id">{{ region.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label" for="marketplaceLocality">Locality</label>
+            <input id="marketplaceLocality" formControlName="marketplaceLocality" type="text"
+                   placeholder="Sector 18, Noida" class="form-input">
+          </div>
+          <div>
+            <label class="form-label" for="marketplaceLatitude">Latitude</label>
+            <input id="marketplaceLatitude" formControlName="marketplaceLatitude" type="number"
+                   min="-90" max="90" step="0.000001" placeholder="28.570800" class="form-input">
+          </div>
+          <div>
+            <label class="form-label" for="marketplaceLongitude">Longitude</label>
+            <input id="marketplaceLongitude" formControlName="marketplaceLongitude" type="number"
+                   min="-180" max="180" step="0.000001" placeholder="77.321800" class="form-input">
+          </div>
+          <div>
+            <label class="form-label" for="marketplaceConsultationFee">Consultation fee (₹)</label>
+            <input id="marketplaceConsultationFee" formControlName="marketplaceConsultationFee" type="number"
+                   min="0" max="100000" step="1" placeholder="500" class="form-input">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label" for="marketplaceLanguages">Languages</label>
+            <input id="marketplaceLanguages" formControlName="marketplaceLanguages" type="text"
+                   placeholder="Hindi, English, Punjabi" class="form-input">
+            <p class="mt-1 text-xs text-gray-500">Comma-separated, maximum eight.</p>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-3">
+            <label class="form-label" for="marketplaceListingImageUrl">Listing image URL</label>
+            <input id="marketplaceListingImageUrl" formControlName="marketplaceListingImageUrl" type="url"
+                   placeholder="https://example.com/clinic-reception.jpg" class="form-input">
+          </div>
+        </div>
+
+        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <input formControlName="marketplaceAcceptingNewPatients" type="checkbox"
+                 class="mt-0.5 h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
+          <span>
+            <span class="block text-sm font-semibold text-gray-900">Accepting new patients</span>
+            <span class="mt-0.5 block text-xs leading-5 text-gray-500">Allows this clinic to receive new marketplace appointment requests.</span>
+          </span>
+        </label>
+
+        <div>
+          <p class="form-label">Dental services</p>
+          <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            @for (service of marketplaceServices; track service.id) {
+              <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                <input type="checkbox"
+                       [checked]="form.controls.marketplaceServiceIds.value.includes(service.id)"
+                       (change)="toggleMarketplaceService(service.id, $event)"
+                       class="h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
+                <span>{{ service.label }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div>
+          <p class="form-label">Accepted payment methods</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (method of marketplacePaymentMethods; track method.id) {
+              <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <input type="checkbox"
+                       [checked]="form.controls.marketplacePaymentMethods.value.includes(method.id)"
+                       (change)="toggleMarketplacePaymentMethod(method.id, $event)"
+                       class="h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
+                <span>{{ method.label }}</span>
+              </label>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/30 p-6">
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-widest text-amber-700">Private platform record</p>
+          <h2 class="mt-1 text-base font-bold text-gray-950">Provider verification</h2>
+          <p class="mt-1 max-w-3xl text-xs leading-5 text-gray-600">
+            Registration details and review notes are restricted to platform staff. A verified badge confirms identity and registration checks; it is not a guarantee of treatment quality.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="form-label" for="verificationRegistrationNumber">Dentist registration number</label>
+            <input id="verificationRegistrationNumber" formControlName="verificationRegistrationNumber"
+                   type="text" placeholder="A-12345" class="form-input">
+          </div>
+          <div>
+            <label class="form-label" for="verificationRegistrationCouncil">Registration council</label>
+            <input id="verificationRegistrationCouncil" formControlName="verificationRegistrationCouncil"
+                   type="text" placeholder="Delhi Dental Council" class="form-input">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="form-label" for="marketplaceVerifiedDoctorIds">Verified doctor document IDs</label>
+            <input id="marketplaceVerifiedDoctorIds" formControlName="marketplaceVerifiedDoctorIds"
+                   type="text" placeholder="doctor-id-1, doctor-id-2" class="form-input font-mono text-sm">
+            <p class="mt-1 text-xs text-gray-500">Comma-separated IDs from this clinic's doctor records. The principal dentist profile remains available from clinic details.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-white px-4 py-3">
+            <input formControlName="verificationClinicAddress" type="checkbox"
+                   class="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+            <span>
+              <span class="block text-sm font-semibold text-gray-900">Clinic address checked</span>
+              <span class="mt-0.5 block text-xs leading-5 text-gray-500">The operating address matches the reviewed evidence.</span>
+            </span>
+          </label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-amber-200 bg-white px-4 py-3">
+            <input formControlName="verificationPhone" type="checkbox"
+                   class="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+            <span>
+              <span class="block text-sm font-semibold text-gray-900">Phone ownership checked</span>
+              <span class="mt-0.5 block text-xs leading-5 text-gray-500">Clinic staff answered or completed the agreed verification step.</span>
+            </span>
+          </label>
+        </div>
+
+        <div>
+          <label class="form-label" for="verificationNotes">Internal verification notes</label>
+          <textarea id="verificationNotes" formControlName="verificationNotes" rows="3"
+                    placeholder="Record what was checked and any follow-up required. Do not paste identity documents."
+                    class="form-input resize-none text-sm"></textarea>
+        </div>
+      </section>
+
+      <div class="flex items-center justify-between gap-3 pt-2">
+        <button type="button" (click)="activeTab.set(5)" class="ui-btn ui-btn-ghost text-sm">← Billing & Access</button>
         <button type="submit"
                 [disabled]="saving() || success() || accountAlreadyLinked"
                 class="ui-btn ui-btn-primary text-sm disabled:cursor-not-allowed disabled:opacity-50">
@@ -1221,7 +1431,7 @@
         </button>
       </div>
 
-      } <!-- /tab 5 -->
+      } <!-- /tab 6 -->
 
       <!-- ── Inline error ───────────────────────────────────────────────────── -->
       @if (error()) {

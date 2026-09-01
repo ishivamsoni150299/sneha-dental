@@ -64,6 +64,8 @@ export class ClinicListComponent implements OnInit {
           clinic.city,
           clinic.domain,
           clinic.vercelDomain,
+          clinic.marketplaceSlug,
+          clinic.marketplaceProfile?.locality,
         ].some(value => value?.toLowerCase().includes(q));
 
         if (!matchesQuery) return false;
@@ -224,6 +226,20 @@ export class ClinicListComponent implements OnInit {
       return { label: 'Cancelled', classes: 'ui-badge' };
     }
     return { label: 'Plan not set', classes: 'ui-badge ui-badge-warning' };
+  }
+
+  marketplaceBadge(clinic: StoredClinic): { label: string; classes: string } {
+    const status = clinic.marketplaceStatus ?? 'unlisted';
+    if (status === 'verified') {
+      return { label: 'Marketplace · Verified', classes: 'ui-badge ui-badge-success' };
+    }
+    if (status === 'pending') {
+      return { label: 'Marketplace · Pending', classes: 'ui-badge ui-badge-warning' };
+    }
+    if (status === 'suspended') {
+      return { label: 'Marketplace · Suspended', classes: 'ui-badge ui-badge-danger' };
+    }
+    return { label: 'Marketplace · Not listed', classes: 'ui-badge' };
   }
 
   hasVoiceAccess(clinic: StoredClinic): boolean {

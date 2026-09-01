@@ -1,0 +1,41 @@
+<div class="min-h-screen bg-gray-50 text-gray-950">
+  <a href="#marketplace-content"
+     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-gray-950 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+    Skip to results
+  </a>
+
+  <header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <a routerLink="/dentists" class="flex min-w-0 items-center gap-3" aria-label="mydentalplatform dentist search">
+        <img src="/assets/brand/mydentalplatform-logo.svg" alt="" class="h-9 w-9 shrink-0">
+        <span class="truncate text-base font-bold text-gray-950">mydentalplatform</span>
+      </a>
+
+      <nav aria-label="Patient navigation" class="flex items-center gap-2">
+        <a routerLink="/dentists" routerLinkActive="bg-gray-100 text-gray-950"
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-950">
+          Find a dentist
+        </a>
+        <a routerLink="/business" class="hidden rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:inline-flex">
+          For clinics
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="marketplace-content">
+    <router-outlet />
+  </main>
+
+  <footer class="border-t border-gray-200 bg-white">
+    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+      <p>© 2026 mydentalplatform</p>
+      <div class="flex gap-5">
+        <a routerLink="/business/privacy" class="hover:text-gray-900">Privacy</a>
+        <a routerLink="/business/terms" class="hover:text-gray-900">Terms</a>
+        <a routerLink="/business" class="hover:text-gray-900 sm:hidden">For clinics</a>
+      </div>
+    </div>
+  </footer>
+</div>

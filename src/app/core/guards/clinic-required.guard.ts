@@ -6,7 +6,7 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  * Blocks patient-facing routes when no clinic config was loaded.
  *
  * On the platform domain (mydentalplatform.com) with no clinic match:
- *   → redirect to /business (platform portal)
+ *   → redirect to /dentists (patient marketplace)
  *
  * On a clinic subdomain (e.g. smile.mydentalplatform.com) with no match:
  *   → hard cross-origin redirect to www.mydentalplatform.com
@@ -27,7 +27,7 @@ export const clinicRequiredGuard: CanActivateFn = (): boolean | UrlTree => {
 
   if (isPlatformHost) {
     clinic.resetToPlatformTheme();
-    return router.createUrlTree(['/business']);
+    return router.createUrlTree(['/dentists']);
   }
 
   if (!clinic.isLoaded) {

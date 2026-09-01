@@ -244,6 +244,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     testimonials: [],
     vercelDomain: domain,
     active: true,
+    marketplaceStatus: 'unlisted',
     subscriptionPlan: plan,
     subscriptionStatus: plan === 'trial' ? 'trial' : 'pending',
     trialEndDate: null,

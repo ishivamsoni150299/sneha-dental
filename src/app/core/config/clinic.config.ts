@@ -4,6 +4,11 @@
 // CHOOSE US, VALUES, TRUST BAR labels) is hardcoded in the components.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type {
+  MarketplaceListingStatus,
+  MarketplaceProfile,
+} from './marketplace.config';
+
 export interface ClinicService { iconPath: string; name: string; description: string; benefit: string; price: string }
 export interface HealthPlan    { tag: string; name: string; subtitle: string; price: string; period: string; highlighted: boolean; features: string[] }
 export interface Testimonial   { name: string; location: string; rating: number; review: string }
@@ -86,6 +91,13 @@ export interface ClinicConfig {
   vercelDomain?: string;           // vercel preview  e.g. "sneha-dental.vercel.app"
   active?: boolean;                // false = paused deployment
   googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
+
+  // ── Patient marketplace (verification is platform-managed) ──────────────
+  marketplaceStatus?: MarketplaceListingStatus;
+  marketplaceSlug?: string;
+  marketplaceVerifiedAt?: string;
+  marketplaceVerifiedDoctorIds?: string[];
+  marketplaceProfile?: MarketplaceProfile;
 
   // ── Launch Mode ────────────────────────────────────────────────────────────
   comingSoon?: boolean;            // true = show "Launching Soon" page instead of full site
@@ -178,3 +190,4 @@ export const clinicConfig: ClinicConfig = {
 // Re-exported here to preserve existing imports while keeping plan access rules
 // framework-neutral for Angular, Vercel APIs, and tests.
 export * from './platform-entitlements';
+export * from './marketplace.config';

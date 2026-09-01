@@ -1,4 +1,13 @@
-import type { ClinicCustomization, ClinicTheme } from '../../../core/config/clinic.config';
+import {
+  MARKETPLACE_DENTAL_SERVICES,
+  type ClinicCustomization,
+  type ClinicTheme,
+  type MarketplaceDentalServiceId,
+  type MarketplaceListingAdminUpdate,
+  type MarketplaceListingStatus,
+  type MarketplacePaymentMethod,
+  type MarketplaceRegionId,
+} from '../../../core/config/clinic.config';
 
 export interface ClinicImageFormValue {
   src: string;
@@ -67,6 +76,27 @@ export interface ClinicFormRawValue {
   clinicImages: ClinicImageFormValue[];
 }
 
+export interface MarketplaceFormRawValue {
+  marketplaceStatus: string;
+  marketplaceSlug: string;
+  marketplaceRegion: string;
+  marketplaceLocality: string;
+  marketplaceLatitude: number | null;
+  marketplaceLongitude: number | null;
+  marketplaceServiceIds: string[];
+  marketplaceLanguages: string;
+  marketplaceConsultationFee: number | null;
+  marketplacePaymentMethods: string[];
+  marketplaceAcceptingNewPatients: boolean;
+  marketplaceListingImageUrl: string;
+  marketplaceVerifiedDoctorIds: string;
+  verificationRegistrationNumber: string;
+  verificationRegistrationCouncil: string;
+  verificationClinicAddress: boolean;
+  verificationPhone: boolean;
+  verificationNotes: string;
+}
+
 export interface BuildClinicPayloadInput {
   values: ClinicFormRawValue;
   hostedDomain: string;
@@ -86,6 +116,64 @@ function splitList(value: string): string[] {
     .map(item => item.trim())
     .filter(Boolean)
     .slice(0, 12);
+}
+
+function optionalNumber(value: number | null, min: number, max: number): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max
+    ? value
+    : null;
+}
+
+export function buildMarketplaceListingUpdate(
+  values: MarketplaceFormRawValue,
+  principalDentistName: string,
+  googlePlaceId: string,
+): MarketplaceListingAdminUpdate {
+  const allowedServices = new Set<string>(MARKETPLACE_DENTAL_SERVICES.map(service => service.id));
+  const serviceIds = [...new Set(values.marketplaceServiceIds)]
+    .filter((serviceId): serviceId is MarketplaceDentalServiceId => allowedServices.has(serviceId));
+  const allowedPaymentMethods = new Set<MarketplacePaymentMethod>(['cash', 'upi', 'card', 'insurance']);
+  const paymentMethods = [...new Set(values.marketplacePaymentMethods)]
+    .filter((method): method is MarketplacePaymentMethod => allowedPaymentMethods.has(method as MarketplacePaymentMethod));
+  const status = ['unlisted', 'pending', 'verified', 'suspended'].includes(values.marketplaceStatus)
+    ? values.marketplaceStatus as MarketplaceListingStatus
+    : 'unlisted';
+  const locality = values.marketplaceLocality.trim();
+  const hasProfileData = Boolean(
+    locality || serviceIds.length || values.marketplaceLanguages.trim() ||
+    values.marketplaceConsultationFee || values.marketplaceListingImageUrl.trim(),
+  );
+
+  return {
+    status,
+    slug: values.marketplaceSlug.trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || null,
+    verifiedDoctorIds: [...new Set(splitList(values.marketplaceVerifiedDoctorIds))],
+    profile: status === 'unlisted' && !hasProfileData ? null : {
+      region: (values.marketplaceRegion === 'delhi-ncr'
+        ? values.marketplaceRegion
+        : 'delhi-ncr') as MarketplaceRegionId,
+      locality,
+      latitude: optionalNumber(values.marketplaceLatitude, -90, 90),
+      longitude: optionalNumber(values.marketplaceLongitude, -180, 180),
+      serviceIds,
+      languages: splitList(values.marketplaceLanguages).slice(0, 8),
+      consultationFee: optionalNumber(values.marketplaceConsultationFee, 0, 100000),
+      paymentMethods,
+      acceptingNewPatients: values.marketplaceAcceptingNewPatients,
+      listingImageUrl: optionalText(values.marketplaceListingImageUrl),
+    },
+    verification: {
+      principalDentistName: principalDentistName.trim(),
+      registrationNumber: values.verificationRegistrationNumber.trim(),
+      registrationCouncil: values.verificationRegistrationCouncil.trim(),
+      clinicAddressVerified: values.verificationClinicAddress,
+      phoneVerified: values.verificationPhone,
+      googlePlaceId: optionalText(googlePlaceId),
+      notes: optionalText(values.verificationNotes),
+    },
+  };
 }
 
 export function buildClinicFirestorePayload({

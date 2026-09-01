@@ -1,6 +1,8 @@
 import {
   buildClinicFirestorePayload,
+  buildMarketplaceListingUpdate,
   type ClinicFormRawValue,
+  type MarketplaceFormRawValue,
 } from './clinic-form.mapper';
 
 interface ClinicPayloadCustomization {
@@ -308,5 +310,86 @@ describe('buildClinicFirestorePayload', () => {
     const payload = buildPayload({ billingEmail: 'billing@clinic.test' });
 
     expect(payload.billingEmail).toBe('billing@clinic.test');
+  });
+});
+
+describe('buildMarketplaceListingUpdate', () => {
+  function marketplaceValue(overrides: Partial<MarketplaceFormRawValue> = {}): MarketplaceFormRawValue {
+    return {
+      marketplaceStatus: 'verified',
+      marketplaceSlug: ' Smile Care — Noida ',
+      marketplaceRegion: 'delhi-ncr',
+      marketplaceLocality: ' Sector 18, Noida ',
+      marketplaceLatitude: 28.5708,
+      marketplaceLongitude: 77.3218,
+      marketplaceServiceIds: ['root-canal', 'unknown-service', 'root-canal', 'dental-implants'],
+      marketplaceLanguages: ' Hindi, English, Punjabi ',
+      marketplaceConsultationFee: 500,
+      marketplacePaymentMethods: ['cash', 'upi', 'bitcoin', 'upi'],
+      marketplaceAcceptingNewPatients: true,
+      marketplaceListingImageUrl: ' https://example.com/clinic.jpg ',
+      marketplaceVerifiedDoctorIds: 'doctor-1, doctor-2, doctor-1',
+      verificationRegistrationNumber: ' DCI-12345 ',
+      verificationRegistrationCouncil: ' Delhi Dental Council ',
+      verificationClinicAddress: true,
+      verificationPhone: true,
+      verificationNotes: ' Documents checked in person. ',
+      ...overrides,
+    };
+  }
+
+  it('normalizes the public profile and rejects unsupported option values', () => {
+    const update = buildMarketplaceListingUpdate(
+      marketplaceValue(),
+      ' Dr. Asha Verma ',
+      ' place-123 ',
+    );
+
+    expect(update.slug).toBe('smile-care-noida');
+    expect(update.verifiedDoctorIds).toEqual(['doctor-1', 'doctor-2']);
+    expect(update.profile).toEqual({
+      region: 'delhi-ncr',
+      locality: 'Sector 18, Noida',
+      latitude: 28.5708,
+      longitude: 77.3218,
+      serviceIds: ['root-canal', 'dental-implants'],
+      languages: ['Hindi', 'English', 'Punjabi'],
+      consultationFee: 500,
+      paymentMethods: ['cash', 'upi'],
+      acceptingNewPatients: true,
+      listingImageUrl: 'https://example.com/clinic.jpg',
+    });
+    expect(update.verification).toEqual({
+      principalDentistName: 'Dr. Asha Verma',
+      registrationNumber: 'DCI-12345',
+      registrationCouncil: 'Delhi Dental Council',
+      clinicAddressVerified: true,
+      phoneVerified: true,
+      googlePlaceId: 'place-123',
+      notes: 'Documents checked in person.',
+    });
+  });
+
+  it('falls back to an unlisted profile when marketplace input is empty or invalid', () => {
+    const update = buildMarketplaceListingUpdate(
+      marketplaceValue({
+        marketplaceStatus: 'unexpected',
+        marketplaceSlug: '',
+        marketplaceLocality: '',
+        marketplaceLatitude: 100,
+        marketplaceLongitude: 200,
+        marketplaceServiceIds: [],
+        marketplaceLanguages: '',
+        marketplaceConsultationFee: null,
+        marketplacePaymentMethods: [],
+        marketplaceListingImageUrl: '',
+      }),
+      'Dr. Asha Verma',
+      '',
+    );
+
+    expect(update.status).toBe('unlisted');
+    expect(update.slug).toBeNull();
+    expect(update.profile).toBeNull();
   });
 });

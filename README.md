@@ -112,6 +112,9 @@ Main collections:
 - `analytics`
 - `platform`
 - `rateLimits` (server-only abuse-control buckets)
+- `providerVerifications` (platform-only dentist registration checks)
+- `providerVerificationEvents` (append-only marketplace review audit trail)
+- `marketplaceSlugs` (platform-only unique public profile reservations)
 
 Clinic documents contain only public website configuration and the minimum
 subscription state needed to enable the clinic site. Owner identity, billing
@@ -122,6 +125,19 @@ New appointment document IDs are SHA-256 lookup keys derived from clinic ID,
 booking reference, and phone number. The slot collection therefore never
 exposes those values in plain text. Legacy appointment keys remain readable by
 the patient lookup flow during migration.
+
+Marketplace status, slug, and patient-facing search profile live on the public
+clinic document. Dentist registration numbers, verification notes, reviewer
+identity, and audit history stay in platform-only collections. A verified badge
+represents an identity and registration check, not a treatment-quality guarantee.
+
+Initialize existing clinics before enabling marketplace discovery. The command
+is a read-only preview unless `--apply` is provided:
+
+```bash
+npm run migrate:marketplace-fields
+npm run migrate:marketplace-fields -- --apply
+```
 
 Typical `clinics` fields include:
 
@@ -163,7 +179,13 @@ Custom domain flow:
 
 ## 7. Routing and Guards
 
-Public routes:
+Patient marketplace routes on `mydentalplatform.com`:
+
+- `/dentists`
+- `/dentists/:slug`
+
+The platform root redirects to `/dentists`. Clinic websites keep their own
+hostname-scoped public routes:
 
 - `/`
 - `/services`

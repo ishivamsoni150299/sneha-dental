@@ -1,0 +1,212 @@
+@if (loading()) {
+  <div aria-live="polite" aria-label="Loading clinic profile" class="mx-auto max-w-7xl animate-pulse px-4 py-10 sm:px-6 lg:px-8">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)]">
+      <div class="aspect-[4/3] rounded-lg bg-gray-200"></div>
+      <div class="space-y-4 py-6">
+        <div class="h-5 w-28 rounded bg-gray-200"></div>
+        <div class="h-10 w-4/5 rounded bg-gray-200"></div>
+        <div class="h-5 w-1/2 rounded bg-gray-100"></div>
+        <div class="mt-8 h-28 rounded bg-gray-100"></div>
+      </div>
+    </div>
+  </div>
+} @else if (error()) {
+  <section class="mx-auto min-h-[34rem] max-w-4xl px-4 py-16 text-center sm:px-6">
+    <div role="alert" class="border-y border-red-200 bg-white px-5 py-10">
+      <h1 class="text-2xl font-bold text-gray-950">Profile unavailable</h1>
+      <p class="mt-3 text-sm text-red-700">{{ error() }}</p>
+      <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-gray-950 px-4 py-2.5 text-sm font-bold text-white">Back to dentists</a>
+    </div>
+  </section>
+} @else if (notFound()) {
+  <section class="mx-auto min-h-[34rem] max-w-4xl px-4 py-16 text-center sm:px-6">
+    <div class="border-y border-gray-200 bg-white px-5 py-12">
+      <img src="/assets/brand/mydentalplatform-logo.svg" alt="" class="mx-auto h-14 w-14 opacity-70">
+      <h1 class="mt-5 text-2xl font-bold text-gray-950">Clinic profile not found</h1>
+      <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">The listing may still be under review or is no longer available.</p>
+      <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-gray-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-gray-800">Browse verified dentists</a>
+    </div>
+  </section>
+} @else {
+  @if (clinic(); as currentClinic) {
+  <nav aria-label="Breadcrumb" class="border-b border-gray-200 bg-white">
+    <div class="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 text-xs text-gray-500 sm:px-6 lg:px-8">
+      <a routerLink="/dentists" class="font-semibold hover:text-gray-900">Dentists</a>
+      <span aria-hidden="true">/</span>
+      <span class="truncate text-gray-700">{{ currentClinic.name }}</span>
+    </div>
+  </nav>
+
+  <section class="border-b border-gray-200 bg-white">
+    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:px-8 lg:py-10">
+      <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+        <img [src]="listingImage(currentClinic)"
+             [alt]="hasListingPhoto(currentClinic) ? currentClinic.name : ''"
+             class="h-full w-full"
+             [class.object-cover]="hasListingPhoto(currentClinic)"
+             [class.object-contain]="!hasListingPhoto(currentClinic)"
+             [class.p-16]="!hasListingPhoto(currentClinic)">
+        <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-sm">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          Verified provider
+        </span>
+      </div>
+
+      <div class="flex flex-col justify-center">
+        <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">{{ currentClinic.marketplaceProfile!.locality }}</p>
+        <h1 class="mt-3 text-3xl font-bold leading-tight text-gray-950 sm:text-4xl">{{ currentClinic.name }}</h1>
+        <p class="mt-3 text-lg font-semibold text-gray-700">{{ currentClinic.doctorName }}</p>
+        @if (currentClinic.doctorQualification) {
+          <p class="mt-1 text-sm text-gray-500">{{ currentClinic.doctorQualification }}</p>
+        }
+
+        <div class="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200">
+          <div class="bg-white p-4">
+            <p class="text-[11px] font-bold uppercase text-gray-400">Consultation</p>
+            <p class="mt-1 text-base font-bold text-gray-950">{{ formattedFee(currentClinic) }}</p>
+          </div>
+          <div class="bg-white p-4">
+            <p class="text-[11px] font-bold uppercase text-gray-400">New patients</p>
+            <p class="mt-1 text-base font-bold" [class.text-emerald-700]="currentClinic.marketplaceProfile!.acceptingNewPatients" [class.text-gray-600]="!currentClinic.marketplaceProfile!.acceptingNewPatients">
+              {{ currentClinic.marketplaceProfile!.acceptingNewPatients ? 'Accepting' : 'Call first' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          @if (currentClinic.marketplaceProfile!.acceptingNewPatients) {
+            @if (clinicBookingUrl(currentClinic); as bookingUrl) {
+              <a [href]="bookingUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan-700 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-800">
+                Request appointment
+              </a>
+            }
+          }
+          @if (phoneUrl(currentClinic); as callUrl) {
+            <a [href]="callUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">
+              Call clinic
+            </a>
+          }
+          @if (whatsappUrl(currentClinic); as whatsapp) {
+            <a [href]="whatsapp" target="_blank" rel="noopener noreferrer"
+               class="inline-flex min-h-11 items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-800 hover:bg-emerald-100">
+              WhatsApp
+            </a>
+          }
+        </div>
+        <p class="mt-3 text-xs leading-5 text-gray-500">The clinic confirms the requested time during its next working window.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-10 pb-28 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)] lg:px-8 lg:pb-12">
+    <div class="space-y-10">
+      <section aria-labelledby="services-heading">
+        <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Care available</p>
+        <h2 id="services-heading" class="mt-2 text-2xl font-bold text-gray-950">Dental services</h2>
+        <div class="mt-5 grid gap-2 sm:grid-cols-2">
+          @for (service of serviceLabels(currentClinic); track service) {
+            <div class="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800">{{ service }}</div>
+          }
+        </div>
+      </section>
+
+      <section aria-labelledby="doctors-heading" class="border-t border-gray-200 pt-10">
+        <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Clinical team</p>
+        <h2 id="doctors-heading" class="mt-2 text-2xl font-bold text-gray-950">Dentists</h2>
+        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+          <article class="rounded-lg border border-gray-200 bg-white p-4">
+            <div class="flex items-start gap-3">
+              <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cyan-100 text-sm font-bold text-cyan-900">{{ doctorInitials(currentClinic.doctorName) }}</div>
+              <div>
+                <h3 class="font-bold text-gray-950">{{ currentClinic.doctorName }}</h3>
+                <p class="mt-0.5 text-sm text-gray-500">{{ currentClinic.doctorQualification || 'Principal dentist' }}</p>
+                <p class="mt-2 text-xs font-bold text-emerald-700">Registration checked</p>
+              </div>
+            </div>
+          </article>
+          @for (doctor of verifiedDoctors(); track doctor.id) {
+            <article class="rounded-lg border border-gray-200 bg-white p-4">
+              <div class="flex items-start gap-3">
+                <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gray-100 text-sm font-bold text-gray-700">{{ doctorInitials(doctor.name) }}</div>
+                <div>
+                  <h3 class="font-bold text-gray-950">{{ doctor.name }}</h3>
+                  <p class="mt-0.5 text-sm text-gray-500">{{ doctor.qualification || doctor.speciality }}</p>
+                  <p class="mt-2 text-xs font-bold text-emerald-700">Registration checked</p>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+
+      @if (currentClinic.customization?.media?.clinicImages?.length) {
+        <section aria-labelledby="gallery-heading" class="border-t border-gray-200 pt-10">
+          <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Clinic view</p>
+          <h2 id="gallery-heading" class="mt-2 text-2xl font-bold text-gray-950">Inside the clinic</h2>
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            @for (image of currentClinic.customization!.media!.clinicImages!.slice(0, 4); track image.src) {
+              <figure class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                <img [src]="image.src" [alt]="image.alt" class="aspect-[4/3] w-full object-cover">
+                @if (image.label) {
+                  <figcaption class="px-3 py-2 text-xs font-medium text-gray-600">{{ image.label }}</figcaption>
+                }
+              </figure>
+            }
+          </div>
+        </section>
+      }
+    </div>
+
+    <aside class="space-y-7 lg:border-l lg:border-gray-200 lg:pl-8">
+      <section aria-labelledby="location-heading">
+        <h2 id="location-heading" class="text-lg font-bold text-gray-950">Location</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">{{ address(currentClinic) }}</p>
+        @if (currentClinic.mapDirectionsUrl) {
+          <a [href]="currentClinic.mapDirectionsUrl" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex text-sm font-bold text-cyan-700 hover:text-cyan-900">Open directions →</a>
+        }
+      </section>
+
+      @if (currentClinic.hours.length) {
+        <section aria-labelledby="hours-heading" class="border-t border-gray-200 pt-7">
+          <h2 id="hours-heading" class="text-lg font-bold text-gray-950">Clinic hours</h2>
+          <dl class="mt-3 space-y-2.5">
+            @for (slot of currentClinic.hours; track slot.days + slot.time) {
+              <div class="flex justify-between gap-4 text-sm">
+                <dt class="text-gray-600">{{ slot.days }}</dt>
+                <dd class="text-right font-semibold text-gray-900">{{ slot.time }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+      }
+
+      @if (currentClinic.marketplaceProfile!.languages.length) {
+        <section aria-labelledby="languages-heading" class="border-t border-gray-200 pt-7">
+          <h2 id="languages-heading" class="text-lg font-bold text-gray-950">Languages</h2>
+          <p class="mt-3 text-sm leading-6 text-gray-600">{{ currentClinic.marketplaceProfile!.languages.join(', ') }}</p>
+        </section>
+      }
+
+      <section aria-labelledby="verification-heading" class="border-t border-gray-200 pt-7">
+        <h2 id="verification-heading" class="text-lg font-bold text-gray-950">Provider verification</h2>
+        <p class="mt-3 text-sm leading-6 text-gray-600">Identity, dentist registration, clinic phone, and operating address were checked by mydentalplatform.</p>
+        <p class="mt-2 text-xs leading-5 text-gray-500">Verification does not guarantee a clinical outcome. Discuss diagnosis, treatment options, and total cost directly with your dentist.</p>
+      </section>
+
+      @if (clinicWebsiteUrl(currentClinic); as websiteUrl) {
+        <a [href]="websiteUrl" class="inline-flex text-sm font-bold text-gray-700 hover:text-gray-950">Visit clinic website →</a>
+      }
+    </aside>
+  </div>
+
+  @if (currentClinic.marketplaceProfile!.acceptingNewPatients) {
+    @if (clinicBookingUrl(currentClinic); as bookingUrl) {
+      <div class="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white p-3 shadow-lg lg:hidden">
+        <a [href]="bookingUrl" class="mx-auto flex min-h-11 max-w-lg items-center justify-center rounded-lg bg-cyan-700 px-5 py-3 text-sm font-bold text-white">
+          Request appointment
+        </a>
+      </div>
+    }
+  }
+  }
+}

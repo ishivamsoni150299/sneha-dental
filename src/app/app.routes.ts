@@ -5,6 +5,35 @@ import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-
 
 export const routes: Routes = [
 
+  // ── Patient marketplace on the platform domain ──────────────────────────
+  {
+    path: 'dentists',
+    canActivate: [platformOnlyGuard],
+    loadComponent: () =>
+      import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: {
+          title: 'Verified Dentists in Delhi NCR',
+          description: 'Find verified dentists and dental clinics across Delhi NCR. Compare services, consultation fees, and clinics accepting new patients.',
+        },
+      },
+      {
+        path: ':slug',
+        loadComponent: () =>
+          import('./features/marketplace/dentist-profile.component').then(m => m.DentistProfileComponent),
+        data: {
+          title: 'Verified Dental Clinic in Delhi NCR',
+          description: 'View verified dentist details, services, consultation fees, clinic hours, and request an appointment.',
+        },
+      },
+    ],
+  },
+
   // ── Clinic-facing routes (navbar + footer + WhatsApp button) ──────────────
   {
     path: '',

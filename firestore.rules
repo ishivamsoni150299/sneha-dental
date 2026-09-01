@@ -19,6 +19,10 @@ service cloud.firestore {
         request.auth.token.clinicId == clinicId;
     }
 
+    function validMarketplaceStatus(status) {
+      return status in ['unlisted', 'pending', 'verified', 'suspended'];
+    }
+
     // True when the authenticated user is the admin of a specific clinic doc.
     function isClinicAdmin(clinicId) {
       return hasVerifiedEmail() &&
@@ -60,9 +64,52 @@ service cloud.firestore {
         'social',
         'theme',
         'logoDataUrl',
+        'marketplaceProfile',
         'onboardingDismissed',
         'onboardingSharedWebsite'
       ];
+    }
+
+    function validMarketplaceProfile(profile) {
+      return profile is map &&
+        profile.keys().hasOnly([
+          'region', 'locality', 'latitude', 'longitude', 'serviceIds',
+          'languages', 'consultationFee', 'paymentMethods',
+          'acceptingNewPatients', 'listingImageUrl'
+        ]) &&
+        profile.keys().hasAll([
+          'region', 'locality', 'serviceIds', 'languages',
+          'paymentMethods', 'acceptingNewPatients'
+        ]) &&
+        profile.region == 'delhi-ncr' &&
+        profile.locality is string &&
+        profile.locality.size() >= 2 &&
+        profile.locality.size() <= 120 &&
+        (!profile.keys().hasAny(['latitude']) || profile.latitude == null ||
+          (profile.latitude is number && profile.latitude >= -90 && profile.latitude <= 90)) &&
+        (!profile.keys().hasAny(['longitude']) || profile.longitude == null ||
+          (profile.longitude is number && profile.longitude >= -180 && profile.longitude <= 180)) &&
+        profile.serviceIds is list &&
+        profile.serviceIds.size() >= 1 &&
+        profile.serviceIds.size() <= 16 &&
+        profile.serviceIds.hasOnly([
+          'dental-consultation', 'cleaning-scaling', 'tooth-fillings',
+          'root-canal', 'tooth-extraction', 'wisdom-tooth',
+          'dental-implants', 'crowns-bridges', 'dentures',
+          'braces-orthodontics', 'clear-aligners', 'pediatric-dentistry',
+          'gum-treatment', 'teeth-whitening', 'veneers-smile-design',
+          'emergency-dental-care'
+        ]) &&
+        profile.languages is list &&
+        profile.languages.size() <= 8 &&
+        (!profile.keys().hasAny(['consultationFee']) || profile.consultationFee == null ||
+          (profile.consultationFee is number &&
+            profile.consultationFee >= 0 && profile.consultationFee <= 100000)) &&
+        profile.paymentMethods is list &&
+        profile.paymentMethods.hasOnly(['cash', 'upi', 'card', 'insurance']) &&
+        profile.acceptingNewPatients is bool &&
+        (!profile.keys().hasAny(['listingImageUrl']) || profile.listingImageUrl == null ||
+          (profile.listingImageUrl is string && profile.listingImageUrl.size() <= 2000));
     }
 
     function clinicAdminCanManageBranding() {
@@ -83,6 +130,35 @@ service cloud.firestore {
         (
           !changed.hasAny(['theme', 'logoDataUrl']) ||
           clinicAdminCanManageBranding()
+        ) &&
+        (
+          !changed.hasAny(['marketplaceProfile']) ||
+          validMarketplaceProfile(request.resource.data.marketplaceProfile)
+        ) &&
+        (
+          !resource.data.keys().hasAny(['marketplaceStatus']) ||
+          resource.data.marketplaceStatus != 'verified' ||
+          !changed.hasAny([
+            'doctorName', 'doctorQualification', 'phone', 'phoneE164',
+            'addressLine1', 'addressLine2', 'city', 'googlePlaceId'
+          ])
+        );
+    }
+
+    function superAdminCanUpdateClinic(clinicId) {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let verificationPath = /databases/$(database)/documents/providerVerifications/$(clinicId);
+      return isSuperAdmin() &&
+        (
+          !changed.hasAny([
+            'marketplaceStatus', 'marketplaceSlug', 'marketplaceVerifiedAt',
+            'marketplaceVerifiedDoctorIds', 'marketplaceProfile'
+          ]) ||
+          (
+            existsAfter(verificationPath) &&
+            getAfter(verificationPath).data.status == request.resource.data.marketplaceStatus &&
+            getAfter(verificationPath).data.reviewedBy == request.auth.uid
+          )
         );
     }
 
@@ -182,8 +258,8 @@ service cloud.firestore {
     // Update/delete: the clinic's own admin OR a platform super admin.
     match /clinics/{clinicId} {
       allow read:   if true;
-      allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin() || canClinicAdminUpdateClinic(clinicId);
+      allow create: if isSuperAdmin() && request.resource.data.marketplaceStatus == 'unlisted';
+      allow update: if superAdminCanUpdateClinic(clinicId) || canClinicAdminUpdateClinic(clinicId);
       allow delete: if isSuperAdmin();
 
       // ── Sensitive billing / auth data (never exposed to patients) ─────────
@@ -260,6 +336,43 @@ service cloud.firestore {
       match /activities/{activityId} {
         allow read, write: if isSuperAdmin();
       }
+    }
+
+    // ── Marketplace provider verification ──────────────────────────────────
+    // Registration evidence and review notes never live on public clinic docs.
+    // Listing state, slugs, evidence, and audit records are platform-owned.
+    match /providerVerifications/{clinicId} {
+      allow read: if isSuperAdmin();
+      allow create, update: if isSuperAdmin() &&
+        request.resource.data.clinicId == clinicId &&
+        validMarketplaceStatus(request.resource.data.status) &&
+        request.resource.data.reviewedBy == request.auth.uid &&
+        getAfter(/databases/$(database)/documents/clinics/$(clinicId)).data.marketplaceStatus ==
+          request.resource.data.status;
+      allow delete: if false;
+    }
+
+    match /providerVerificationEvents/{eventId} {
+      allow read: if isSuperAdmin();
+      allow create: if isSuperAdmin() &&
+        request.resource.data.clinicId is string &&
+        validMarketplaceStatus(request.resource.data.status) &&
+        request.resource.data.reviewerUid == request.auth.uid &&
+        getAfter(/databases/$(database)/documents/clinics/$(request.resource.data.clinicId)).data.marketplaceStatus ==
+          request.resource.data.status;
+      allow update, delete: if false;
+    }
+
+    match /marketplaceSlugs/{slug} {
+      allow read: if isSuperAdmin();
+      allow create, update: if isSuperAdmin() &&
+        request.resource.data.clinicId is string &&
+        getAfter(/databases/$(database)/documents/clinics/$(request.resource.data.clinicId)).data.marketplaceSlug == slug;
+      allow delete: if isSuperAdmin() &&
+        (
+          !getAfter(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.keys().hasAny(['marketplaceSlug']) ||
+          getAfter(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.marketplaceSlug != slug
+        );
     }
 
     // ── Super Admins ──────────────────────────────────────────────────────────

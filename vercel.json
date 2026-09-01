@@ -7,7 +7,7 @@
     {
       "source": "/",
       "has": [{ "type": "host", "value": "^www\\.mydentalplatform\\.com$" }],
-      "destination": "https://mydentalplatform.com/business",
+      "destination": "https://mydentalplatform.com/dentists",
       "permanent": true
     },
     {
@@ -19,7 +19,7 @@
     {
       "source": "/",
       "has": [{ "type": "host", "value": "^mydentalplatform\\.com$" }],
-      "destination": "https://mydentalplatform.com/business",
+      "destination": "https://mydentalplatform.com/dentists",
       "permanent": true
     }
   ],

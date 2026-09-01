@@ -2,9 +2,19 @@ import { Injectable } from '@angular/core';
 import {
   collection, getDocs, getDoc, setDoc, updateDoc,
   deleteDoc, deleteField, doc, query, orderBy, where, serverTimestamp, writeBatch,
-  type Timestamp, type UpdateData, type DocumentData, limit,
+  runTransaction, type Timestamp, type UpdateData, type DocumentData, limit,
 } from 'firebase/firestore';
-import type { ClinicConfig, ClinicHours, ClinicService, Testimonial } from '../config/clinic.config';
+import type {
+  ClinicConfig,
+  ClinicHours,
+  ClinicService,
+  MarketplaceProfile,
+  Testimonial,
+} from '../config/clinic.config';
+import type {
+  MarketplaceListingAdminUpdate,
+  ProviderVerification,
+} from '../config/marketplace.config';
 import { db } from '../firebase';
 
 // ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
@@ -30,6 +40,7 @@ export interface ClinicSettingsPayload {
   social?:              { facebook?: string; instagram?: string; linkedin?: string };
   theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
   logoDataUrl?:         string | null;   // null = remove logo
+  marketplaceProfile?: MarketplaceProfile;
   onboardingDismissed?: boolean;
   onboardingSharedWebsite?: boolean;
 }
@@ -54,6 +65,7 @@ const CLINIC_SETTINGS_ALLOWED_KEYS = new Set<keyof ClinicSettingsPayload>([
   'social',
   'theme',
   'logoDataUrl',
+  'marketplaceProfile',
   'onboardingDismissed',
   'onboardingSharedWebsite',
 ]);
@@ -196,6 +208,99 @@ export class ClinicFirestoreService {
     return clinics.find(clinic => clinic.adminUid === uid) ?? null;
   }
 
+  async getProviderVerification(clinicId: string): Promise<ProviderVerification | null> {
+    const snap = await getDoc(doc(db, 'providerVerifications', clinicId));
+    return snap.exists() ? snap.data() as ProviderVerification : null;
+  }
+
+  async saveMarketplaceListing(
+    clinicId: string,
+    update: MarketplaceListingAdminUpdate,
+    reviewerUid: string,
+  ): Promise<void> {
+    const slug = update.slug ?? '';
+    if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      throw new Error('Marketplace slug may contain lowercase letters, numbers, and hyphens only.');
+    }
+    if (update.status !== 'unlisted' && !slug) {
+      throw new Error('Add a marketplace slug before submitting this listing for review.');
+    }
+    if (update.status === 'verified') {
+      if (!update.profile?.locality || update.profile.serviceIds.length === 0) {
+        throw new Error('Verified listings require a locality and at least one dental service.');
+      }
+      if (!update.verification.registrationNumber || !update.verification.registrationCouncil) {
+        throw new Error('Verify the dentist registration number and council before publishing.');
+      }
+      if (!update.verification.clinicAddressVerified || !update.verification.phoneVerified) {
+        throw new Error('Verify both the clinic address and phone before publishing.');
+      }
+    }
+
+    const clinicRef = doc(db, this.COL, clinicId);
+    const verificationRef = doc(db, 'providerVerifications', clinicId);
+    const eventRef = doc(collection(db, 'providerVerificationEvents'));
+
+    await runTransaction(db, async transaction => {
+      const clinicSnap = await transaction.get(clinicRef);
+      if (!clinicSnap.exists()) throw new Error('Clinic not found.');
+
+      const currentSlug = String(clinicSnap.data()['marketplaceSlug'] ?? '');
+      const currentStatus = String(clinicSnap.data()['marketplaceStatus'] ?? 'unlisted');
+      const verificationSnap = await transaction.get(verificationRef);
+      const nextSlugRef = slug ? doc(db, 'marketplaceSlugs', slug) : null;
+      const currentSlugRef = currentSlug && currentSlug !== slug
+        ? doc(db, 'marketplaceSlugs', currentSlug)
+        : null;
+      const nextSlugSnap = nextSlugRef ? await transaction.get(nextSlugRef) : null;
+      const currentSlugSnap = currentSlugRef ? await transaction.get(currentSlugRef) : null;
+      const ownsCurrentSlug = currentSlugSnap?.exists() === true &&
+        currentSlugSnap.data()['clinicId'] === clinicId;
+
+      if (nextSlugSnap?.exists() && nextSlugSnap.data()['clinicId'] !== clinicId) {
+        throw new Error('That marketplace slug is already assigned to another clinic.');
+      }
+
+      const verifiedAt = update.status === 'verified'
+        ? String(clinicSnap.data()['marketplaceVerifiedAt'] ?? new Date().toISOString())
+        : update.status === 'suspended'
+          ? clinicSnap.data()['marketplaceVerifiedAt'] ?? null
+          : null;
+      transaction.set(clinicRef, {
+        marketplaceStatus: update.status,
+        marketplaceSlug: slug || deleteField(),
+        marketplaceVerifiedAt: verifiedAt ?? deleteField(),
+        marketplaceVerifiedDoctorIds: update.verifiedDoctorIds,
+        marketplaceProfile: update.profile ?? deleteField(),
+      }, { merge: true });
+
+      transaction.set(verificationRef, {
+        clinicId,
+        status: update.status,
+        ...update.verification,
+        reviewedBy: reviewerUid,
+        reviewedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
+        ...(verificationSnap.exists() ? {} : { createdAt: serverTimestamp() }),
+      }, { merge: true });
+
+      transaction.set(eventRef, {
+        clinicId,
+        previousStatus: currentStatus,
+        status: update.status,
+        reviewerUid,
+        createdAt: serverTimestamp(),
+      });
+
+      if (nextSlugRef) {
+        transaction.set(nextSlugRef, { clinicId, updatedAt: serverTimestamp() });
+      }
+      if (currentSlugRef && ownsCurrentSlug) {
+        transaction.delete(currentSlugRef);
+      }
+    });
+  }
+
   async getActiveSubscriptions(): Promise<StoredClinic[]> {
     const q    = query(collection(db, this.COL), where('subscriptionStatus', '==', 'active'));
     const snap = await getDocs(q);
@@ -206,7 +311,12 @@ export class ClinicFirestoreService {
     const ref = doc(collection(db, this.COL));
     const { publicData, privateData } = partitionClinicData(data as unknown as Record<string, unknown>);
     const batch = writeBatch(db);
-    batch.set(ref, { ...toFirestoreData(publicData), clinicId: ref.id, createdAt: serverTimestamp() });
+    batch.set(ref, {
+      ...toFirestoreData(publicData),
+      clinicId: ref.id,
+      marketplaceStatus: publicData['marketplaceStatus'] ?? 'unlisted',
+      createdAt: serverTimestamp(),
+    });
     if (Object.keys(privateData).length > 0) {
       batch.set(doc(ref, 'private', 'account'), {
         ...toFirestoreData(privateData),

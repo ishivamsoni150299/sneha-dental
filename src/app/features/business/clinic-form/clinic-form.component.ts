@@ -9,11 +9,18 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   ClinicFirestoreService, StoredClinic,
 } from '../../../core/services/clinic-firestore.service';
-import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
+import {
+  MARKETPLACE_DENTAL_SERVICES,
+  MARKETPLACE_REGIONS,
+  PLATFORM_PLANS,
+  type ProviderVerification,
+} from '../../../core/config/clinic.config';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
 import {
   buildClinicFirestorePayload,
+  buildMarketplaceListingUpdate,
   type ClinicFormRawValue,
+  type MarketplaceFormRawValue,
 } from './clinic-form.mapper';
 
 const CLINIC_THEME_OPTIONS = [
@@ -88,6 +95,14 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   readonly platformPlans = PLATFORM_PLANS;
   readonly themeOptions  = CLINIC_THEME_OPTIONS;
+  readonly marketplaceRegions = MARKETPLACE_REGIONS;
+  readonly marketplaceServices = MARKETPLACE_DENTAL_SERVICES;
+  readonly marketplacePaymentMethods = [
+    { id: 'cash', label: 'Cash' },
+    { id: 'upi', label: 'UPI' },
+    { id: 'card', label: 'Card' },
+    { id: 'insurance', label: 'Insurance' },
+  ] as const;
 
   loading        = signal(false);
   saving         = signal(false);
@@ -103,10 +118,12 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     { num: 3, label: 'Services',         required: false, hint: 'Treatment menu and patient health plans.' },
     { num: 4, label: 'Website Content',  required: false, hint: 'Homepage copy, clinic photos, and patient testimonials.' },
     { num: 5, label: 'Billing & Access', required: true,  hint: 'Subscription plan and the clinic owner login credentials.' },
+    { num: 6, label: 'Marketplace',      required: false, hint: 'Control the patient listing, public search details, and provider verification.' },
   ];
 
   private previewDomainManuallyEdited = false;
   private originalHostedDomain = '';
+  private originalMarketplaceStatus = 'unlisted';
   private existingCustomization: StoredClinic['customization'] | undefined;
 
   isEdit   = false;
@@ -135,6 +152,26 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     domain:        [''],
     vercelDomain:  [''],
     active:        [true],
+
+    // Marketplace listing and provider verification
+    marketplaceStatus:      ['unlisted'],
+    marketplaceSlug:        [''],
+    marketplaceRegion:      ['delhi-ncr'],
+    marketplaceLocality:    [''],
+    marketplaceLatitude:    this.fb.control<number | null>(null),
+    marketplaceLongitude:   this.fb.control<number | null>(null),
+    marketplaceServiceIds:  this.fb.nonNullable.control<string[]>([]),
+    marketplaceLanguages:   [''],
+    marketplaceConsultationFee: this.fb.control<number | null>(null),
+    marketplacePaymentMethods: this.fb.nonNullable.control<string[]>([]),
+    marketplaceAcceptingNewPatients: [true],
+    marketplaceListingImageUrl: [''],
+    marketplaceVerifiedDoctorIds: [''],
+    verificationRegistrationNumber: [''],
+    verificationRegistrationCouncil: [''],
+    verificationClinicAddress: [false],
+    verificationPhone: [false],
+    verificationNotes: [''],
 
     // Subscription & Billing
     subscriptionPlan:    ['trial'],
@@ -226,8 +263,11 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     if (this.isEdit) {
       this.loading.set(true);
       try {
-        const clinic = await this.clinicStore.getById(this.clinicId!);
-        if (clinic) this.patchForm(clinic);
+        const [clinic, verification] = await Promise.all([
+          this.clinicStore.getById(this.clinicId!),
+          this.clinicStore.getProviderVerification(this.clinicId!),
+        ]);
+        if (clinic) this.patchForm(clinic, verification);
         else this.error.set('Clinic not found.');
       } catch {
         this.error.set('Failed to load clinic data.');
@@ -277,6 +317,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         if (slug && !this.previewDomainManuallyEdited) {
           this.form.controls.vercelDomain.setValue(`${slug}.mydentalplatform.com`, { emitEvent: false });
         }
+        if (slug && !this.form.controls.marketplaceSlug.dirty) {
+          this.form.controls.marketplaceSlug.setValue(slug, { emitEvent: false });
+        }
       }));
     }
 
@@ -307,8 +350,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
 
   // ── Patch from Firestore ──────────────────────────────────────────────────
-  private patchForm(c: StoredClinic) {
+  private patchForm(c: StoredClinic, verification: ProviderVerification | null) {
     this.originalHostedDomain = normalizeHostedDomain(c.vercelDomain ?? '');
+    this.originalMarketplaceStatus = c.marketplaceStatus ?? 'unlisted';
     this.existingCustomization = c.customization;
     const home = c.customization?.content?.home ?? {};
     const communication = c.customization?.communication ?? {};
@@ -325,6 +369,24 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       mapDirectionsUrl: c.mapDirectionsUrl ?? '',
       googlePlaceId: c.googlePlaceId ?? '',
       domain: c.domain ?? '', vercelDomain: c.vercelDomain ?? '', active: c.active ?? true,
+      marketplaceStatus: c.marketplaceStatus ?? 'unlisted',
+      marketplaceSlug: c.marketplaceSlug ?? '',
+      marketplaceRegion: c.marketplaceProfile?.region ?? 'delhi-ncr',
+      marketplaceLocality: c.marketplaceProfile?.locality ?? '',
+      marketplaceLatitude: c.marketplaceProfile?.latitude ?? null,
+      marketplaceLongitude: c.marketplaceProfile?.longitude ?? null,
+      marketplaceServiceIds: c.marketplaceProfile?.serviceIds ?? [],
+      marketplaceLanguages: (c.marketplaceProfile?.languages ?? []).join(', '),
+      marketplaceConsultationFee: c.marketplaceProfile?.consultationFee ?? null,
+      marketplacePaymentMethods: c.marketplaceProfile?.paymentMethods ?? [],
+      marketplaceAcceptingNewPatients: c.marketplaceProfile?.acceptingNewPatients ?? true,
+      marketplaceListingImageUrl: c.marketplaceProfile?.listingImageUrl ?? '',
+      marketplaceVerifiedDoctorIds: (c.marketplaceVerifiedDoctorIds ?? []).join(', '),
+      verificationRegistrationNumber: verification?.registrationNumber ?? '',
+      verificationRegistrationCouncil: verification?.registrationCouncil ?? '',
+      verificationClinicAddress: verification?.clinicAddressVerified ?? false,
+      verificationPhone: verification?.phoneVerified ?? false,
+      verificationNotes: verification?.notes ?? '',
       subscriptionPlan:    c.subscriptionPlan    ?? 'trial',
       subscriptionStatus:  c.subscriptionStatus  ?? 'trial',
       billingCycle:        c.billingCycle         ?? 'monthly',
@@ -437,6 +499,53 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
   removeClinicImage(i: number) { this.clinicImagesArr.removeAt(i); }
 
+  toggleMarketplaceService(serviceId: string, event: Event): void {
+    this.toggleStringSelection(
+      this.form.controls.marketplaceServiceIds,
+      serviceId,
+      (event.target as HTMLInputElement).checked,
+    );
+  }
+
+  toggleMarketplacePaymentMethod(methodId: string, event: Event): void {
+    this.toggleStringSelection(
+      this.form.controls.marketplacePaymentMethods,
+      methodId,
+      (event.target as HTMLInputElement).checked,
+    );
+  }
+
+  private toggleStringSelection(
+    control: { value: string[]; setValue(value: string[]): void; markAsDirty(): void },
+    value: string,
+    selected: boolean,
+  ): void {
+    const next = selected
+      ? [...new Set([...control.value, value])]
+      : control.value.filter(item => item !== value);
+    control.setValue(next);
+    control.markAsDirty();
+  }
+
+  private marketplaceFieldsChanged(): boolean {
+    return [
+      'marketplaceStatus', 'marketplaceSlug', 'marketplaceRegion', 'marketplaceLocality',
+      'marketplaceLatitude', 'marketplaceLongitude', 'marketplaceServiceIds',
+      'marketplaceLanguages', 'marketplaceConsultationFee', 'marketplacePaymentMethods',
+      'marketplaceAcceptingNewPatients', 'marketplaceListingImageUrl',
+      'marketplaceVerifiedDoctorIds', 'verificationRegistrationNumber',
+      'verificationRegistrationCouncil', 'verificationClinicAddress',
+      'verificationPhone', 'verificationNotes',
+    ].some(field => this.form.get(field)?.dirty === true);
+  }
+
+  private marketplaceIdentityChanged(): boolean {
+    return [
+      'doctorName', 'doctorQualification', 'phone', 'phoneE164',
+      'addressLine1', 'addressLine2', 'city', 'googlePlaceId',
+    ].some(field => this.form.get(field)?.dirty === true);
+  }
+
   // ── Submit ────────────────────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
@@ -474,7 +583,26 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         ownerEmail,
         existingCustomization: this.existingCustomization,
       });
+      const marketplaceUpdate = buildMarketplaceListingUpdate(
+        v as unknown as MarketplaceFormRawValue,
+        v.doctorName,
+        v.googlePlaceId,
+      );
+      const saveMarketplace = this.marketplaceFieldsChanged();
+      if (
+        this.isEdit &&
+        this.originalMarketplaceStatus === 'verified' &&
+        this.marketplaceIdentityChanged() &&
+        marketplaceUpdate.status === 'verified'
+      ) {
+        throw new Error('Set the marketplace listing to Pending before changing verified dentist, phone, or address details.');
+      }
       let savedClinicId = this.clinicId;
+
+      if (this.isEdit && saveMarketplace) {
+        await this.saveMarketplaceListing(this.clinicId!, marketplaceUpdate);
+      }
+
       if (this.isEdit) {
         await this.clinicStore.update(
           this.clinicId!,
@@ -500,6 +628,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         this.originalHostedDomain = hostedDomain;
       }
 
+      if (!this.isEdit && saveMarketplace) {
+        await this.saveMarketplaceListing(savedClinicId!, marketplaceUpdate);
+      }
+
       if (ownerEmail) {
         await this.createOrUpdateClinicOwner(savedClinicId!, ownerEmail, ownerPassword, v.name);
       }
@@ -518,6 +650,18 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private async saveMarketplaceListing(
+    clinicId: string,
+    update: ReturnType<typeof buildMarketplaceListingUpdate>,
+  ): Promise<void> {
+    await this.superAuth.authReady;
+    const reviewer = this.superAuth.currentUser();
+    if (!reviewer) {
+      throw new Error('Your session expired before marketplace verification could be saved.');
+    }
+    await this.clinicStore.saveMarketplaceListing(clinicId, update, reviewer.uid);
   }
 
   private async createOrUpdateClinicOwner(

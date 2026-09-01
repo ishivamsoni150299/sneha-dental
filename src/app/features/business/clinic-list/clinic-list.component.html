@@ -211,6 +211,7 @@
                         {{ clinic.active ? (clinic.comingSoon ? 'Coming soon' : 'Live') : 'Inactive' }}
                       </span>
                       <span [class]="subscriptionBadge(clinic).classes">{{ subscriptionBadge(clinic).label }}</span>
+                      <span [class]="marketplaceBadge(clinic).classes">{{ marketplaceBadge(clinic).label }}</span>
                     </div>
                     <p class="ui-caption mt-3 lg:hidden">
                       {{ clinic.phone || 'Phone missing' }}<br>
@@ -230,6 +231,7 @@
                     {{ clinic.active ? (clinic.comingSoon ? 'Coming soon' : 'Live') : 'Inactive' }}
                   </span>
                   <span [class]="subscriptionBadge(clinic).classes">{{ subscriptionBadge(clinic).label }}</span>
+                  <span [class]="marketplaceBadge(clinic).classes">{{ marketplaceBadge(clinic).label }}</span>
                 </div>
               </td>
 

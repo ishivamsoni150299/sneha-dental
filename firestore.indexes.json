@@ -24,6 +24,27 @@
         { "fieldPath": "startedAt",       "order": "ASCENDING" },
         { "fieldPath": "durationSeconds", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "clinics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "marketplaceStatus", "order": "ASCENDING" },
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "marketplaceProfile.region", "order": "ASCENDING" },
+        { "fieldPath": "marketplaceVerifiedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "clinics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "marketplaceStatus", "order": "ASCENDING" },
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "marketplaceProfile.region", "order": "ASCENDING" },
+        { "fieldPath": "marketplaceProfile.serviceIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "marketplaceVerifiedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

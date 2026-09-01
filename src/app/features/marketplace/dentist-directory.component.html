@@ -1,0 +1,150 @@
+<section class="border-b border-gray-200 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+    <div class="max-w-3xl">
+      <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Delhi NCR dental network</p>
+      <h1 class="mt-3 text-3xl font-bold leading-tight text-gray-950 sm:text-4xl">Find a verified dentist near you</h1>
+      <p class="mt-3 max-w-2xl text-base leading-7 text-gray-600">
+        Compare location, services, consultation fees, and whether each clinic is accepting new patients.
+      </p>
+    </div>
+
+    <div role="search" aria-label="Find a dentist" class="mt-8 grid gap-3 border-y border-gray-200 py-5 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div>
+        <label for="dentist-search" class="mb-1.5 block text-xs font-bold text-gray-700">Clinic, dentist, or treatment</label>
+        <input id="dentist-search" type="search" [value]="searchTerm()" (input)="updateSearch($event)"
+               placeholder="Root canal, Dr. Sharma, Smile Care"
+               class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3.5 text-sm text-gray-950 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100">
+      </div>
+      <div>
+        <label for="dentist-locality" class="mb-1.5 block text-xs font-bold text-gray-700">Locality</label>
+        <select id="dentist-locality" [value]="locality()" (change)="updateLocality($event)"
+                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3.5 text-sm text-gray-950 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100">
+          <option value="">All Delhi NCR localities</option>
+          @for (option of localities(); track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="dentist-service" class="mb-1.5 block text-xs font-bold text-gray-700">Dental service</label>
+        <select id="dentist-service" [value]="serviceId()" (change)="updateService($event)"
+                class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3.5 text-sm text-gray-950 outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100">
+          <option value="">All services</option>
+          @for (service of services; track service.id) {
+            <option [value]="service.id">{{ service.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto min-h-[28rem] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div aria-live="polite" aria-label="Loading dentists" class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div class="aspect-[16/9] animate-pulse bg-gray-200"></div>
+          <div class="space-y-3 p-5">
+            <div class="h-4 w-2/3 animate-pulse rounded bg-gray-200"></div>
+            <div class="h-3 w-1/2 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-9 animate-pulse rounded bg-gray-100"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div role="alert" class="border-l-4 border-red-500 bg-white px-5 py-4 text-sm text-red-700 shadow-sm">
+      {{ error() }}
+    </div>
+  } @else {
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm font-semibold text-gray-700">
+        {{ filteredClinics().length }} verified {{ filteredClinics().length === 1 ? 'clinic' : 'clinics' }}
+      </p>
+      @if (hasFilters()) {
+        <button type="button" (click)="clearFilters()" class="text-sm font-semibold text-cyan-700 hover:text-cyan-900">
+          Clear filters
+        </button>
+      }
+    </div>
+
+    @if (filteredClinics().length > 0) {
+      <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        @for (clinic of filteredClinics(); track clinic.id) {
+          <article class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md">
+            <a [routerLink]="['/dentists', clinic.marketplaceSlug]" class="block">
+              <div class="relative aspect-[16/9] overflow-hidden bg-gray-100">
+                <img [src]="listingImage(clinic)" [alt]="hasListingPhoto(clinic) ? clinic.name : ''"
+                     class="h-full w-full transition duration-500 group-hover:scale-[1.02]"
+                     [class.object-cover]="hasListingPhoto(clinic)"
+                     [class.object-contain]="!hasListingPhoto(clinic)"
+                     [class.p-10]="!hasListingPhoto(clinic)">
+                <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700 shadow-sm">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                  Verified
+                </span>
+              </div>
+
+              <div class="p-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h2 class="truncate text-lg font-bold text-gray-950 group-hover:text-cyan-800">{{ clinic.name }}</h2>
+                    <p class="mt-1 truncate text-sm font-medium text-gray-600">{{ clinic.doctorName }}</p>
+                  </div>
+                  @if (clinic.marketplaceProfile!.acceptingNewPatients) {
+                    <span class="shrink-0 rounded-full bg-cyan-50 px-2 py-1 text-[10px] font-bold uppercase text-cyan-800">Accepting</span>
+                  }
+                </div>
+
+                <p class="mt-3 text-sm text-gray-600">{{ clinic.marketplaceProfile!.locality }}</p>
+
+                <div class="mt-4 flex min-h-14 flex-wrap content-start gap-1.5">
+                  @for (service of serviceLabels(clinic); track service) {
+                    <span class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">{{ service }}</span>
+                  }
+                  @if (clinic.marketplaceProfile!.serviceIds.length > 3) {
+                    <span class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">+{{ clinic.marketplaceProfile!.serviceIds.length - 3 }}</span>
+                  }
+                </div>
+
+                <div class="mt-5 flex items-end justify-between gap-3 border-t border-gray-100 pt-4">
+                  <div>
+                    <p class="text-[11px] font-semibold uppercase text-gray-400">Consultation</p>
+                    <p class="mt-0.5 text-sm font-bold text-gray-900">
+                      @if (clinic.marketplaceProfile!.consultationFee != null) {
+                        ₹{{ clinic.marketplaceProfile!.consultationFee }}
+                      } @else {
+                        Ask clinic
+                      }
+                    </p>
+                  </div>
+                  <span class="text-sm font-bold text-cyan-700">View profile →</span>
+                </div>
+              </div>
+            </a>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="border-y border-gray-200 bg-white px-5 py-14 text-center">
+        <img src="/assets/brand/mydentalplatform-logo.svg" alt="" class="mx-auto h-14 w-14 opacity-70">
+        <h2 class="mt-5 text-xl font-bold text-gray-950">
+          {{ clinics().length ? 'No dentists match these filters' : 'Delhi NCR listings are being verified' }}
+        </h2>
+        <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-gray-600">
+          {{ clinics().length ? 'Try another locality, treatment, or clinic name.' : 'Clinics appear here only after their identity and dentist registration are checked.' }}
+        </p>
+        @if (hasFilters()) {
+          <button type="button" (click)="clearFilters()" class="mt-5 rounded-lg bg-gray-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-gray-800">
+            Show all clinics
+          </button>
+        } @else {
+          <a routerLink="/business/signup" class="mt-5 inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-bold text-gray-800 hover:bg-gray-50">
+            List your clinic
+          </a>
+        }
+      </div>
+    }
+  }
+</section>

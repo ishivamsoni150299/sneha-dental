@@ -17,7 +17,8 @@
     "test:subscriptions": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/subscriptions/platform-entitlements.test.mjs",
     "lint": "eslint src api --max-warnings 0",
     "release:check": "node scripts/release-check.mjs",
-    "migrate:clinic-private-data": "node scripts/migrate-clinic-private-data.mjs"
+    "migrate:clinic-private-data": "node scripts/migrate-clinic-private-data.mjs",
+    "migrate:marketplace-fields": "node scripts/migrate-marketplace-fields.mjs"
   },
   "private": true,
   "engines": {

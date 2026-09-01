@@ -10,12 +10,15 @@ import {
 const rootUrl = new URL('../../', import.meta.url);
 const vercelConfig = JSON.parse(readFileSync(new URL('vercel.json', rootUrl), 'utf8'));
 
-test('publishes only the platform sales page in platform sitemaps', () => {
+test('publishes the patient directory and clinic sales page in platform sitemaps', () => {
   for (const hostname of ['mydentalplatform.com', 'www.mydentalplatform.com']) {
     assert.equal(isPlatformHost(hostname), true);
     assert.deepEqual(
       getSitemapUrls(`https://${hostname}`, hostname),
-      [`https://${hostname}/business`],
+      [
+        `https://${hostname}/dentists`,
+        `https://${hostname}/business`,
+      ],
     );
   }
 });
@@ -41,6 +44,7 @@ test('advertises the canonical sitemap and excludes private platform areas', () 
   const robots = getRobotsTxt('https://mydentalplatform.com', 'mydentalplatform.com');
 
   assert.match(robots, /^User-agent: \*$/m);
+  assert.match(robots, /^Allow: \/dentists$/m);
   assert.match(robots, /^Allow: \/business$/m);
   assert.match(robots, /^Disallow: \/business\/clinic$/m);
   assert.match(robots, /^Sitemap: https:\/\/mydentalplatform\.com\/sitemap\.xml$/m);
@@ -62,7 +66,7 @@ test('limits permanent platform redirects to exact platform hosts', () => {
     vercelConfig.redirects.some(rule =>
       rule.source === '/'
       && new RegExp(rule.has[0].value).test('mydentalplatform.com')
-      && rule.destination === 'https://mydentalplatform.com/business'),
+      && rule.destination === 'https://mydentalplatform.com/dentists'),
     true,
   );
 });
