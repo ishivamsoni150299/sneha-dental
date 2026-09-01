@@ -66,6 +66,7 @@
         Keep this reference. The requested time is reserved while the clinic reviews it, but it is not confirmed yet.
       </div>
       <div class="mt-8 flex flex-wrap gap-3">
+        <a routerLink="/appointments" [queryParams]="{ claim: booking.ref }" class="inline-flex min-h-11 items-center rounded-lg bg-cyan-800 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-900">Verify phone and track request</a>
         <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center rounded-lg bg-gray-950 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800">Back to clinic profile</a>
         <a routerLink="/dentists" class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">Find another dentist</a>
       </div>

@@ -1,0 +1,226 @@
+<div id="patient-phone-recaptcha" aria-hidden="true"></div>
+
+<section class="border-b border-gray-200 bg-white">
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+    <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Patient appointments</p>
+    <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="max-w-2xl text-3xl font-bold text-gray-950 sm:text-4xl">Your visits, across clinics</h1>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">Verify the mobile number used for booking to track requests and manage upcoming appointments.</p>
+      </div>
+      @if (step() === 'appointments') {
+        <button type="button" (click)="logout()" class="self-start text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-950">
+          Sign out
+        </button>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="min-h-[36rem] bg-gray-50 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+  <div class="mx-auto max-w-6xl">
+    @if (patientAuth.role() && patientAuth.role() !== 'patient') {
+      <div class="mx-auto max-w-2xl border-y border-amber-200 bg-white px-5 py-10 text-center sm:px-10">
+        <p class="text-xs font-bold uppercase tracking-widest text-amber-700">Business session active</p>
+        <h2 class="mt-3 text-2xl font-bold text-gray-950">Use a separate patient session</h2>
+        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">Sign out of the clinic or platform account, then verify the mobile number used for your appointment.</p>
+        <button type="button" (click)="logout()" class="mt-6 rounded-lg bg-gray-950 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800">Sign out business account</button>
+      </div>
+    } @else if (step() === 'phone') {
+      <div class="mx-auto grid max-w-4xl gap-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm md:grid-cols-[minmax(0,1fr)_280px]">
+        <form [formGroup]="phoneForm" (ngSubmit)="sendCode()" class="p-6 sm:p-9">
+          <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Step 1 of 2</p>
+          <h2 class="mt-3 text-2xl font-bold text-gray-950">Verify your mobile</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600">Use the same number entered when the appointment was requested.</p>
+
+          <label for="patient-phone" class="mt-7 block text-sm font-bold text-gray-800">Mobile number</label>
+          <div class="mt-2 flex overflow-hidden rounded-lg border border-gray-300 bg-white focus-within:border-cyan-600 focus-within:ring-2 focus-within:ring-cyan-100">
+            <span class="flex items-center border-r border-gray-200 bg-gray-50 px-3 text-sm font-semibold text-gray-600">+91</span>
+            <input id="patient-phone" formControlName="phone" type="tel" inputmode="numeric" autocomplete="tel-national"
+                   maxlength="10" placeholder="98765 43210"
+                   class="min-h-12 min-w-0 flex-1 border-0 px-4 text-base text-gray-950 outline-none">
+          </div>
+          @if (phoneForm.controls.phone.touched && phoneForm.controls.phone.invalid) {
+            <p class="mt-2 text-sm text-red-700">Enter a valid 10-digit Indian mobile number.</p>
+          }
+
+          @if (error()) {
+            <div role="alert" class="mt-5 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</div>
+          }
+
+          <button type="submit" [disabled]="sendingCode()" class="mt-6 flex min-h-12 w-full items-center justify-center rounded-lg bg-gray-950 px-5 text-sm font-bold text-white hover:bg-gray-800 disabled:cursor-wait disabled:opacity-60">
+            {{ sendingCode() ? 'Sending code...' : 'Send verification code' }}
+          </button>
+          <p class="mt-4 text-xs leading-5 text-gray-500">SMS delivery is protected by reCAPTCHA. Standard carrier charges may apply.</p>
+        </form>
+
+        <aside class="border-t border-gray-200 bg-cyan-950 p-6 text-cyan-50 md:border-l md:border-t-0 sm:p-8">
+          <p class="text-xs font-bold uppercase tracking-widest text-cyan-300">Private by design</p>
+          <p class="mt-4 text-sm leading-6">The portal shows appointment coordination details only. Clinical notes, treatment records, and clinic billing data stay private to each clinic.</p>
+          <a routerLink="/dentists" class="mt-8 inline-flex text-sm font-bold text-white underline decoration-cyan-500 underline-offset-4">Return to dentist search</a>
+        </aside>
+      </div>
+    } @else if (step() === 'code') {
+      <form [formGroup]="codeForm" (ngSubmit)="verifyCode()" class="mx-auto max-w-xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-9">
+        <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Step 2 of 2</p>
+        <h2 class="mt-3 text-2xl font-bold text-gray-950">Enter the 6-digit code</h2>
+        <p class="mt-2 text-sm leading-6 text-gray-600">Sent to <strong>{{ phoneMasked() }}</strong></p>
+        <label for="patient-code" class="mt-7 block text-sm font-bold text-gray-800">Verification code</label>
+        <input id="patient-code" formControlName="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" placeholder="000000"
+               class="mt-2 min-h-14 w-full rounded-lg border border-gray-300 px-4 text-center font-mono text-2xl font-bold tracking-[0.3em] text-gray-950 outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100">
+        @if (codeForm.controls.code.touched && codeForm.controls.code.invalid) {
+          <p class="mt-2 text-sm text-red-700">Enter all 6 digits.</p>
+        }
+        @if (error()) {
+          <div role="alert" class="mt-5 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</div>
+        }
+        <button type="submit" [disabled]="verifyingCode()" class="mt-6 flex min-h-12 w-full items-center justify-center rounded-lg bg-gray-950 px-5 text-sm font-bold text-white hover:bg-gray-800 disabled:cursor-wait disabled:opacity-60">
+          {{ verifyingCode() ? 'Verifying...' : 'Verify and continue' }}
+        </button>
+        <button type="button" (click)="resetVerification()" class="mt-4 w-full text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4">Use a different number</button>
+      </form>
+    } @else {
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Verified {{ phoneMasked() }}</p>
+              <h2 class="mt-1 text-2xl font-bold text-gray-950">Appointments</h2>
+            </div>
+            <button type="button" (click)="loadSession()" [disabled]="loading()" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-60">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>
+          </div>
+
+          @if (error()) {
+            <div role="alert" class="mt-5 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</div>
+          }
+
+          @if (!loading() && appointments().length === 0) {
+            <div class="mt-6 border-y border-gray-200 bg-white px-5 py-12 text-center">
+              <h3 class="text-xl font-bold text-gray-950">No linked appointments yet</h3>
+              <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">Link a guest booking with its reference, or request a new appointment while signed in.</p>
+              <a routerLink="/dentists" class="mt-5 inline-flex rounded-lg bg-gray-950 px-5 py-3 text-sm font-bold text-white">Find a dentist</a>
+            </div>
+          }
+
+          <div class="mt-6 space-y-4">
+            @for (appointment of appointments(); track appointment.id) {
+              <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="min-w-0">
+                    <h3 class="truncate text-lg font-bold text-gray-950">{{ appointment.clinicName }}</h3>
+                    <p class="mt-1 font-mono text-xs font-bold text-cyan-800">{{ appointment.bookingRef }}</p>
+                  </div>
+                  <span class="self-start rounded-full px-3 py-1 text-xs font-bold" [class]="statusClass(appointment.status)">{{ statusLabel(appointment.status) }}</span>
+                </div>
+
+                @if (appointment.status === 'declined' || appointment.status === 'expired') {
+                  <div class="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+                    {{ appointment.status === 'declined' ? 'The clinic could not confirm this request.' : 'The confirmation window passed and the reserved time was released.' }}
+                    @if (appointment.cancellationReason) { <span class="font-semibold"> {{ appointment.cancellationReason }}</span> }
+                  </div>
+                }
+
+                <dl class="grid gap-px bg-gray-100 sm:grid-cols-3">
+                  <div class="bg-white px-5 py-4 sm:col-span-2">
+                    <dt class="text-xs font-bold uppercase text-gray-400">Date and time</dt>
+                    <dd class="mt-1 text-sm font-bold text-gray-950">{{ formatDate(appointment.date) }} at {{ formatSlotDisplay(appointment.time) }}</dd>
+                  </div>
+                  <div class="bg-white px-5 py-4">
+                    <dt class="text-xs font-bold uppercase text-gray-400">Service</dt>
+                    <dd class="mt-1 text-sm font-bold text-gray-950">{{ appointment.service }}</dd>
+                  </div>
+                  @if (appointment.doctorName) {
+                    <div class="bg-white px-5 py-4">
+                      <dt class="text-xs font-bold uppercase text-gray-400">Dentist</dt>
+                      <dd class="mt-1 text-sm font-bold text-gray-950">{{ appointment.doctorName }}</dd>
+                    </div>
+                  }
+                  <div class="bg-white px-5 py-4" [class.sm:col-span-2]="!appointment.doctorName">
+                    <dt class="text-xs font-bold uppercase text-gray-400">Clinic</dt>
+                    <dd class="mt-1 text-sm text-gray-700">{{ appointment.clinicAddress || 'Address available from the clinic' }}</dd>
+                  </div>
+                </dl>
+
+                @if (rescheduleId() === appointment.id) {
+                  <form [formGroup]="rescheduleForm" (ngSubmit)="saveReschedule()" class="border-t border-cyan-200 bg-cyan-50 p-5">
+                    <h4 class="text-sm font-bold text-cyan-950">Request a different time</h4>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label [for]="'reschedule-date-' + appointment.id" class="text-xs font-bold uppercase text-cyan-900">Date</label>
+                        <input [id]="'reschedule-date-' + appointment.id" formControlName="date" type="date" [min]="minDate" (change)="onRescheduleDateChange()" class="mt-1 min-h-11 w-full rounded-lg border border-cyan-200 bg-white px-3 text-sm">
+                      </div>
+                      <div>
+                        <label [for]="'reschedule-time-' + appointment.id" class="text-xs font-bold uppercase text-cyan-900">Time</label>
+                        @if (loadingRescheduleSlots()) {
+                          <div class="mt-1 flex min-h-11 items-center rounded-lg border border-cyan-200 bg-white px-3 text-sm text-cyan-800" role="status">Checking open times...</div>
+                        } @else if (rescheduleSlots().length > 0) {
+                          <select [id]="'reschedule-time-' + appointment.id" formControlName="time" class="mt-1 min-h-11 w-full rounded-lg border border-cyan-200 bg-white px-3 text-sm">
+                            <option value="">Select an open time</option>
+                            @for (slot of rescheduleSlots(); track slot) { <option [value]="slot">{{ formatSlotDisplay(slot) }}</option> }
+                          </select>
+                        } @else {
+                          <div class="mt-1 flex min-h-11 items-center rounded-lg border border-amber-200 bg-amber-50 px-3 text-sm text-amber-800" role="status">No open times on this date</div>
+                        }
+                      </div>
+                    </div>
+                    <p class="mt-3 text-xs leading-5 text-cyan-900">Changing the time creates a new pending request for clinic confirmation.</p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="submit" [disabled]="mutatingId() === appointment.id" class="rounded-lg bg-cyan-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{{ mutatingId() === appointment.id ? 'Saving...' : 'Save request' }}</button>
+                      <button type="button" (click)="closeReschedule()" class="rounded-lg border border-cyan-300 bg-white px-4 py-2.5 text-sm font-bold text-cyan-950">Keep current time</button>
+                    </div>
+                  </form>
+                }
+
+                @if (confirmCancelId() === appointment.id) {
+                  <div class="border-t border-rose-200 bg-rose-50 p-5">
+                    <p class="text-sm font-bold text-rose-950">Cancel this appointment?</p>
+                    <p class="mt-1 text-sm text-rose-800">The clinic will see it as cancelled and the reserved slot will be released.</p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="button" (click)="cancelAppointment(appointment.id)" [disabled]="mutatingId() === appointment.id" class="rounded-lg bg-rose-700 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{{ mutatingId() === appointment.id ? 'Cancelling...' : 'Yes, cancel' }}</button>
+                      <button type="button" (click)="confirmCancelId.set(null)" class="rounded-lg border border-rose-300 bg-white px-4 py-2.5 text-sm font-bold text-rose-900">Keep appointment</button>
+                    </div>
+                  </div>
+                }
+
+                <div class="flex flex-wrap items-center gap-2 px-5 py-4">
+                  @if (canManage(appointment) && rescheduleId() !== appointment.id) {
+                    <button type="button" (click)="openReschedule(appointment)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Change time</button>
+                  }
+                  @if (canCancel(appointment) && confirmCancelId() !== appointment.id) {
+                    <button type="button" (click)="confirmCancelId.set(appointment.id); rescheduleId.set(null)" class="rounded-lg px-3 py-2 text-sm font-bold text-rose-700 hover:bg-rose-50">Cancel</button>
+                  }
+                  @if (appointment.clinicPhone) {
+                    <a [href]="'tel:' + appointment.clinicPhone" class="ml-auto text-sm font-bold text-cyan-800 underline decoration-cyan-200 underline-offset-4">Call clinic</a>
+                  }
+                  @if (appointment.marketplaceSlug) {
+                    <a [routerLink]="['/dentists', appointment.marketplaceSlug]" class="text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4">Clinic profile</a>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+
+        <aside class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Link a guest booking</p>
+          <h2 class="mt-2 text-xl font-bold text-gray-950">Have a booking reference?</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-600">The booking must use this verified mobile number.</p>
+          <form [formGroup]="claimForm" (ngSubmit)="claimBooking()" class="mt-5">
+            <label for="claim-booking-ref" class="text-sm font-bold text-gray-800">Booking reference</label>
+            <input id="claim-booking-ref" formControlName="bookingRef" type="text" autocomplete="off" autocapitalize="characters"
+                   (input)="normaliseBookingRef($event)" placeholder="SC-ABCDEFGH"
+                   class="mt-2 min-h-12 w-full rounded-lg border border-gray-300 px-4 font-mono uppercase text-gray-950 outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100">
+            @if (claimForm.controls.bookingRef.touched && claimForm.controls.bookingRef.invalid) {
+              <p class="mt-2 text-sm text-red-700">Enter the complete booking reference.</p>
+            }
+            @if (claimMessage()) {
+              <p role="status" class="mt-3 border-l-4 border-emerald-500 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{{ claimMessage() }}</p>
+            }
+            <button type="submit" [disabled]="claiming()" class="mt-4 min-h-11 w-full rounded-lg bg-gray-950 px-4 text-sm font-bold text-white hover:bg-gray-800 disabled:opacity-60">{{ claiming() ? 'Linking...' : 'Link appointment' }}</button>
+          </form>
+        </aside>
+      </div>
+    }
+  </div>
+</section>

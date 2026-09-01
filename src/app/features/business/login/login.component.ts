@@ -81,6 +81,11 @@ export class LoginComponent implements OnInit {
   private async routeResolvedUser(role: AuthRole, fromAttempt: boolean): Promise<void> {
     const returnUrl = this.safeReturnUrl();
 
+    if (role === 'patient') {
+      await this.router.navigateByUrl('/appointments', { replaceUrl: true });
+      return;
+    }
+
     if (role === 'unverified') {
       await this.router.navigate(['/business/verify-email'], {
         queryParams: returnUrl ? { returnUrl } : undefined,

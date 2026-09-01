@@ -59,6 +59,15 @@ describe('SignupComponent', () => {
     expect(component.step()).toBe(0);
   });
 
+  it('keeps a patient identity out of clinic onboarding', async () => {
+    const component = create('patient');
+
+    await component.createAccountWithGoogle();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/appointments']);
+    expect(component.step()).toBe(0);
+  });
+
   it('routes an unverified identity to email verification', async () => {
     const component = create('unverified');
 

@@ -8,6 +8,13 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email_verified == true;
     }
 
+    function isPhonePatient() {
+      return request.auth != null &&
+        request.auth.token.phone_number is string &&
+        request.auth.token.phone_number.matches('^\\+91[6-9][0-9]{9}$') &&
+        request.auth.token.firebase.sign_in_provider == 'phone';
+    }
+
     function isSuperAdmin() {
       return hasVerifiedEmail() &&
         exists(/databases/$(database)/documents/superAdmins/$(request.auth.uid));
@@ -196,7 +203,14 @@ service cloud.firestore {
         request.resource.data.phone.size() <= 24 &&
         request.resource.data.phoneE164 is string &&
         request.resource.data.phoneE164.matches('^\\+91[6-9][0-9]{9}$') &&
-        request.resource.data.patientUid == null &&
+        (
+          request.resource.data.patientUid == null ||
+          (
+            isPhonePatient() &&
+            request.resource.data.patientUid == request.auth.uid &&
+            request.resource.data.phoneE164 == request.auth.token.phone_number
+          )
+        ) &&
         request.resource.data.source in ['clinic_website', 'marketplace'] &&
         request.resource.data.confirmationDeadline is timestamp &&
         (
@@ -400,6 +414,21 @@ service cloud.firestore {
       allow list:   if ownsAppointmentClinic() || isSuperAdmin();
       allow update: if clinicAdminCanUpdateAppointment() || isSuperAdmin() || canSelfServeAppointment();
       allow delete: if isSuperAdmin();
+    }
+
+    // ── Patient portal profiles ─────────────────────────────────────────────
+    // Created and updated only by the authenticated patient API. Patients can
+    // read their own minimal profile; appointment history remains API-only so
+    // clinical and billing fields can never leak through full Firestore docs.
+    match /patients/{uid} {
+      allow get: if isSuperAdmin() ||
+        (
+          isPhonePatient() &&
+          request.auth.uid == uid &&
+          resource.data.phoneE164 == request.auth.token.phone_number
+        );
+      allow list: if isSuperAdmin();
+      allow create, update, delete: if false;
     }
 
     // ── Contacts ─────────────────────────────────────────────────────────────

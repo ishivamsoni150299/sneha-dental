@@ -86,6 +86,14 @@ describe('VerifyEmailComponent', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/patients', { replaceUrl: true });
   });
 
+  it('returns a patient session to the appointment hub', async () => {
+    const component = create({ role: 'patient' });
+
+    await component.ngOnInit();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/appointments', { replaceUrl: true });
+  });
+
   it('resumes onboarding after verification when no clinic exists', async () => {
     const component = create();
     auth.refreshVerificationStatus.and.resolveTo('incomplete-signup');

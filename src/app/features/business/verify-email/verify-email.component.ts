@@ -77,7 +77,9 @@ export class VerifyEmailComponent implements OnInit {
   }
 
   private async continueForRole(role: AuthRole): Promise<void> {
-    if (role === 'platform-admin') {
+    if (role === 'patient') {
+      await this.router.navigateByUrl('/appointments', { replaceUrl: true });
+    } else if (role === 'platform-admin') {
       await this.router.navigateByUrl('/business/clinics', { replaceUrl: true });
     } else if (role === 'clinic-admin') {
       await this.router.navigateByUrl(this.returnUrl() || '/business/clinic/dashboard', { replaceUrl: true });

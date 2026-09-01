@@ -66,6 +66,7 @@ export interface BookingClinicContext {
 
 const DAY_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 const RESPONSE_WINDOW_MINUTES = 120;
+const INDIA_OFFSET_MS = 330 * 60_000;
 
 function dayNumbers(value: string): Set<number> {
   const normalized = value.toLowerCase().replace(/[\u2012-\u2015]/g, '-').trim();
@@ -102,18 +103,25 @@ function timeMinutes(value: string): number | null {
   return (hours * 60) + minutes;
 }
 
-function workingWindows(hours: ClinicHours[], date: Date): Array<{ start: Date; end: Date }> {
+function workingWindows(
+  hours: ClinicHours[],
+  reference: Date,
+  dayOffset = 0,
+): Array<{ start: Date; end: Date }> {
+  const indiaDate = new Date(reference.getTime() + INDIA_OFFSET_MS + dayOffset * 24 * 60 * 60_000);
+  const day = indiaDate.getUTCDay();
+  const year = indiaDate.getUTCFullYear();
+  const month = indiaDate.getUTCMonth();
+  const date = indiaDate.getUTCDate();
   return hours.flatMap(entry => {
-    if (!dayNumbers(entry.days).has(date.getDay())) return [];
+    if (!dayNumbers(entry.days).has(day)) return [];
     const values = entry.time.match(/\d{1,2}(?::\d{2})?\s*(?:AM|PM)/gi) ?? [];
     if (values.length < 2) return [];
     const startMinutes = timeMinutes(values[0]!);
     const endMinutes = timeMinutes(values[1]!);
     if (startMinutes == null || endMinutes == null || endMinutes <= startMinutes) return [];
-    const start = new Date(date);
-    start.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
-    const end = new Date(date);
-    end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
+    const start = new Date(Date.UTC(year, month, date, 0, startMinutes) - INDIA_OFFSET_MS);
+    const end = new Date(Date.UTC(year, month, date, 0, endMinutes) - INDIA_OFFSET_MS);
     return [{ start, end }];
   }).sort((first, second) => first.start.getTime() - second.start.getTime());
 }
@@ -128,9 +136,7 @@ export function calculateConfirmationDeadline(hours: ClinicHours[], now = new Da
 
   let remainingMinutes = RESPONSE_WINDOW_MINUTES;
   for (let offset = 0; offset < 14; offset++) {
-    const date = new Date(now);
-    date.setDate(now.getDate() + offset);
-    for (const window of workingWindows(hours, date)) {
+    for (const window of workingWindows(hours, now, offset)) {
       const start = new Date(Math.max(now.getTime(), window.start.getTime()));
       if (start >= window.end) continue;
       const availableMinutes = (window.end.getTime() - start.getTime()) / 60_000;

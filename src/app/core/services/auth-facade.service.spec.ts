@@ -5,9 +5,10 @@ import { AuthFacade } from './auth-facade.service';
 describe('AuthFacade', () => {
   let service: AuthFacade;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(AuthFacade);
+    await service.authReady;
   });
 
   it('represents an unauthenticated session', () => {
@@ -36,7 +37,7 @@ describe('AuthFacade', () => {
     expect(service.role()).toBe('platform-admin');
   });
 
-  it('requires verification regardless of the sign-in provider', async () => {
+  it('requires email verification for non-patient sign-in providers', async () => {
     const user = {
       uid: 'unverified-user',
       emailVerified: false,
@@ -46,6 +47,33 @@ describe('AuthFacade', () => {
     const role = await service['resolveUser'](user);
 
     expect(role).toBe('unverified');
+  });
+
+  it('recognizes a phone-only Firebase identity as a patient', async () => {
+    const user = {
+      uid: 'patient-user',
+      email: null,
+      emailVerified: false,
+      phoneNumber: '+919876543210',
+      providerData: [{ providerId: 'phone' }],
+    } as User;
+
+    const role = await service['resolveUser'](user);
+
+    expect(role).toBe('patient');
+    expect(service.currentUser()).toBe(user);
+  });
+
+  it('does not replace clinic email verification with a linked phone provider', async () => {
+    const user = {
+      uid: 'clinic-user',
+      email: 'owner@example.com',
+      emailVerified: false,
+      phoneNumber: '+919876543210',
+      providerData: [{ providerId: 'password' }, { providerId: 'phone' }],
+    } as User;
+
+    expect(await service['resolveUser'](user)).toBe('unverified');
   });
 
   it('does not apply a role resolved for a stale auth revision', async () => {

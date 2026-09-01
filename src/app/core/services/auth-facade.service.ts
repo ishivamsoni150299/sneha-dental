@@ -16,7 +16,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db, firebaseAppCheckReady } from '../firebase';
 import { ClinicConfigService } from './clinic-config.service';
 
-export type AuthRole = 'clinic-admin' | 'platform-admin' | 'incomplete-signup' | 'unverified';
+export type AuthRole = 'patient' | 'clinic-admin' | 'platform-admin' | 'incomplete-signup' | 'unverified';
 
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
@@ -139,7 +139,13 @@ export class AuthFacade {
     const revision = expectedRevision ?? ++this.authRevision;
     let role: AuthRole;
 
-    if (!user.emailVerified) {
+    const isPhoneOnlyPatient = !user.email &&
+      Boolean(user.phoneNumber) &&
+      user.providerData.some(provider => provider.providerId === 'phone');
+
+    if (isPhoneOnlyPatient) {
+      role = 'patient';
+    } else if (!user.emailVerified) {
       role = 'unverified';
     } else {
       const superAdmin = await getDoc(doc(db, 'superAdmins', user.uid));

@@ -118,20 +118,20 @@ describe('AppointmentService', () => {
     const hours = [{ days: 'Monday - Saturday', time: '9:00 AM - 7:00 PM' }];
 
     it('sets the deadline two working hours after an in-hours request', () => {
-      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-31T10:30:00'));
-      expect(deadline).toEqual(new Date('2026-08-31T12:30:00'));
+      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-31T05:00:00.000Z'));
+      expect(deadline).toEqual(new Date('2026-08-31T07:00:00.000Z'));
     });
 
     it('carries remaining response time into the next working window', () => {
-      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-31T18:30:00'));
-      expect(deadline).toEqual(new Date('2026-09-01T10:30:00'));
+      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-31T13:00:00.000Z'));
+      expect(deadline).toEqual(new Date('2026-09-01T05:00:00.000Z'));
     });
 
     it('starts the response window when the clinic next opens', () => {
-      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-30T20:00:00'));
-      expect(deadline).toEqual(new Date('2026-08-31T11:00:00'));
-      expect(isClinicOpenAt(hours, new Date('2026-08-31T10:00:00'))).toBeTrue();
-      expect(isClinicOpenAt(hours, new Date('2026-08-30T10:00:00'))).toBeFalse();
+      const deadline = calculateConfirmationDeadline(hours, new Date('2026-08-30T14:30:00.000Z'));
+      expect(deadline).toEqual(new Date('2026-08-31T05:30:00.000Z'));
+      expect(isClinicOpenAt(hours, new Date('2026-08-31T04:30:00.000Z'))).toBeTrue();
+      expect(isClinicOpenAt(hours, new Date('2026-08-30T04:30:00.000Z'))).toBeFalse();
     });
   });
 

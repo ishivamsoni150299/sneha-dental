@@ -43,6 +43,25 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'appointments',
+    canActivate: [platformOnlyGuard],
+    loadComponent: () =>
+      import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/marketplace/patient-appointments.component').then(m => m.PatientAppointmentsComponent),
+        data: {
+          title: 'My Dental Appointments',
+          description: 'Verify your mobile number to securely manage dental appointment requests.',
+          noIndex: true,
+        },
+      },
+    ],
+  },
 
   // ── Clinic-facing routes (navbar + footer + WhatsApp button) ──────────────
   {

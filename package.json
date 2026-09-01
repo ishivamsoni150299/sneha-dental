@@ -11,7 +11,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:appointments": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/appointments/marketplace-appointment-policy.test.mjs",
+    "test:appointments": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/appointments/*.test.mjs",
     "test:seo": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/seo/seo-routing.test.mjs",
     "test:voice": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/voice/voice-session-auth.test.mjs tests/voice/voice-behavior.test.mjs",
     "test:leads": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/leads/lead-ai-call-policy.test.mjs",

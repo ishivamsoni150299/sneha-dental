@@ -26,6 +26,7 @@ import {
   isPastDate,
 } from '../../core/services/doctor.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
+import { PatientAuthService } from '../../core/services/patient-auth.service';
 
 export interface BookingSubmission {
   ref: string;
@@ -52,6 +53,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   private readonly router             = inject(Router);
   private readonly route              = inject(ActivatedRoute);
   private readonly doctorSvc          = inject(DoctorService);
+  private readonly patientAuth        = inject(PatientAuthService);
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
 
@@ -422,6 +424,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
         doctorId:   doctor?.id,
         doctorName: doctor?.name,
         message:    val.message || undefined,
+        patientUid: this.patientAuth.matchingPatientUid(val.phone!),
       }, this.bookingContext ?? undefined);
       const submission: BookingSubmission = {
         ref,

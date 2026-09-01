@@ -79,6 +79,7 @@ Current serverless endpoints are designed to stay within the Vercel Hobby plan f
 | `api/create-subscription.ts` | POST | Creates clinic billing checkout |
 | `api/openai-voice.ts` | POST/GET | Creates Realtime sessions and manages voice settings and usage |
 | `api/voice-booking-action.ts` | POST | Creates a confirmed appointment request from a signed voice session |
+| `api/patient.ts` | POST | Verifies patient phone sessions and safely claims, lists, checks availability, reschedules, or cancels linked appointments |
 | `api/lead-ai-call.ts` | POST | Queues, cancels, records consent controls, and reconciles outbound lead calls |
 | `api/razorpay-webhook.ts` | POST | Subscription payment status updates |
 | `api/self-signup.ts` | POST | Clinic self-onboarding |
@@ -91,6 +92,7 @@ Authentication providers:
 
 - Email/password for clinic owners and super admins
 - Google OAuth for clinic owners when enabled
+- Phone OTP for patient appointment access when enabled
 
 Deploy rules and indexes manually when they change:
 
@@ -116,6 +118,7 @@ Main collections:
 - `providerVerificationEvents` (append-only marketplace review audit trail)
 - `marketplaceSlugs` (platform-only unique public profile reservations)
 - `notifications` (idempotent appointment email delivery records)
+- `patients` (minimal server-owned phone identity for the appointment portal)
 
 Clinic documents contain only public website configuration and the minimum
 subscription state needed to enable the clinic site. Owner identity, billing
@@ -194,6 +197,7 @@ Patient marketplace routes on `mydentalplatform.com`:
 - `/dentists`
 - `/dentists/:slug`
 - `/dentists/:slug/book`
+- `/appointments`
 
 The platform root redirects to `/dentists`. Clinic websites keep their own
 hostname-scoped public routes:
@@ -269,6 +273,23 @@ Angular Firebase client config stays in `src/environments/environment.ts`. Those
 1. Firebase Console -> Project Settings -> Service Accounts
 2. Generate a new private key
 3. Copy `project_id`, `client_email`, and `private_key` into Vercel env vars
+
+### Firebase Phone Authentication
+
+Patient portal OTP is disabled until the Firebase project is configured:
+
+1. Enable the Phone provider in Firebase Authentication.
+2. Allow India in the Authentication SMS region policy.
+3. Add `mydentalplatform.com`, `www.mydentalplatform.com`, and each test host to authorised domains.
+4. Configure Firebase test phone numbers before using real SMS messages.
+5. Confirm reCAPTCHA works on desktop and mobile, then monitor SMS quota, abuse, and billing alerts.
+6. Deploy the updated Firestore rules and indexes only after emulator authorization tests pass.
+
+Phone-only users resolve to the `patient` role. Clinic and platform accounts still
+require verified email. The browser never reads full patient appointment documents;
+`/api/patient` verifies the Firebase ID token and returns a DTO that excludes
+clinical notes, treatment details, payment data, raw contact fields, and internal
+lookup keys.
 
 ### Razorpay
 

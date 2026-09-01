@@ -69,6 +69,10 @@
     {
       "source": "/business/leads/:path*",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/appointments",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ],
   "rewrites": [
@@ -97,6 +101,7 @@
     "api/domain.ts":             { "maxDuration": 15 },
     "api/clinic-owner.ts":       { "maxDuration": 15 },
     "api/voice-booking-action.ts": { "maxDuration": 15 },
+    "api/patient.ts":             { "maxDuration": 15 },
     "api/seo.ts":                { "maxDuration": 10 }
   }
 }
