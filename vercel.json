@@ -90,7 +90,7 @@
   "crons": [
     {
       "path":     "/api/cron-trial-expiry",
-      "schedule": "*/15 * * * *"
+      "schedule": "30 2 * * *"
     }
   ],
   "functions": {

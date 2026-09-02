@@ -1,12 +1,14 @@
 /**
  * GET /api/cron-trial-expiry
  *
- * Vercel Cron Job — runs every 15 minutes.
+ * Scheduled maintenance endpoint. Vercel Hobby runs it once daily as a safety
+ * pass; an external scheduler must invoke it every 15 minutes for marketplace
+ * confirmation expiry SLAs.
  * Expires overdue marketplace appointment requests, releases their reserved
  * slots, sends queued patient notices, and cleans expired rate-limit records.
  *
  * Schedule is declared in vercel.json:
- *   The Vercel schedule runs this endpoint every fifteen minutes.
+ *   The Vercel schedule runs this endpoint daily at 02:30 UTC.
  *
  * Required env vars:
  *   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY

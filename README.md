@@ -407,10 +407,13 @@ firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
 ```
 
-Vercel invokes `/api/cron-trial-expiry` every 15 minutes. In addition to
+Vercel Hobby invokes `/api/cron-trial-expiry` daily at 02:30 UTC as a safety
+run. Configure an external scheduler to call the same endpoint every 15 minutes
+to enforce marketplace confirmation deadlines promptly. In addition to
 subscription maintenance, the worker expires overdue marketplace requests,
 releases their slots transactionally, and sends an idempotent patient notice.
-Set `CRON_SECRET` in production so only authorized maintenance calls run.
+Set `CRON_SECRET` in production so only authorized maintenance calls run. The
+external scheduler must send `Authorization: Bearer <CRON_SECRET>`.
 
 Before deploying the private clinic schema, preview the one-time migration with
 production Firebase Admin environment variables loaded:
