@@ -71,6 +71,10 @@
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
+      "source": "/business/reviews",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/appointments",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }

@@ -71,13 +71,16 @@ test('limits permanent platform redirects to exact platform hosts', () => {
   );
 });
 
-test('serves host-aware robots through the API and noindexes signup at the edge', () => {
+test('serves host-aware robots and noindexes private workflows at the edge', () => {
   const robotsRewrite = vercelConfig.rewrites.find(rule => rule.source === '/robots.txt');
   const signupHeaders = vercelConfig.headers.find(rule => rule.source === '/business/signup');
+  const clinicReviewHeaders = vercelConfig.headers.find(rule => rule.source === '/business/clinic/:path*');
+  const moderationHeaders = vercelConfig.headers.find(rule => rule.source === '/business/reviews');
+  const noIndexHeaders = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }];
 
   assert.equal(robotsRewrite?.destination, '/api/seo?type=robots');
   assert.equal(existsSync(new URL('public/robots.txt', rootUrl)), false);
-  assert.deepEqual(signupHeaders?.headers, [
-    { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
-  ]);
+  assert.deepEqual(signupHeaders?.headers, noIndexHeaders);
+  assert.deepEqual(clinicReviewHeaders?.headers, noIndexHeaders);
+  assert.deepEqual(moderationHeaders?.headers, noIndexHeaders);
 });
