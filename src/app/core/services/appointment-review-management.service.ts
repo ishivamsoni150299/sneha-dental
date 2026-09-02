@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -36,6 +37,7 @@ export interface AppointmentReviewReport {
   details: string;
   status: 'pending' | 'resolved' | 'dismissed';
   createdAt: string | null;
+  review: ManagedAppointmentReview | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,7 +59,16 @@ export class AppointmentReviewManagementService {
       orderBy('createdAt', 'asc'),
       limit(100),
     ));
-    return snapshot.docs.map(document => this.report(document));
+    return Promise.all(snapshot.docs.map(async document => {
+      const report = this.report(document);
+      const review = report.reviewId
+        ? await getDoc(doc(db, 'appointmentReviews', report.reviewId))
+        : null;
+      return {
+        ...report,
+        review: review?.exists() ? this.review(review) : null,
+      };
+    }));
   }
 
   async moderate(reviewId: string, status: Exclude<ReviewModerationStatus, 'pending'>): Promise<void> {
@@ -85,7 +96,11 @@ export class AppointmentReviewManagementService {
     });
   }
 
-  async resolveReport(reportId: string, status: 'resolved' | 'dismissed'): Promise<void> {
+  async resolveReport(
+    reportId: string,
+    status: 'resolved' | 'dismissed',
+    rejectReview = false,
+  ): Promise<void> {
     const reviewerUid = auth.currentUser?.uid;
     if (!reviewerUid) throw new Error('Platform administrator session required.');
     await runTransaction(db, async transaction => {
@@ -93,6 +108,28 @@ export class AppointmentReviewManagementService {
       const report = await transaction.get(reportRef);
       if (!report.exists() || report.data()['status'] !== 'pending') {
         throw new Error('This report is no longer pending.');
+      }
+      const reviewId = this.text(report.data()['reviewId'], 80);
+      const reviewRef = doc(db, 'appointmentReviews', reviewId);
+      const moderationRef = doc(db, 'appointmentReviewModeration', reviewId);
+      const [review, moderation] = rejectReview
+        ? await Promise.all([transaction.get(reviewRef), transaction.get(moderationRef)])
+        : [null, null];
+      if (rejectReview && (!review?.exists() || !moderation?.exists())) {
+        throw new Error('The reported review is unavailable.');
+      }
+      if (rejectReview) {
+        transaction.update(reviewRef, {
+          moderationStatus: 'rejected',
+          publishedAt: null,
+          updatedAt: serverTimestamp(),
+        });
+        transaction.update(moderationRef, {
+          status: 'rejected',
+          reviewedBy: reviewerUid,
+          reviewedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
       }
       transaction.update(reportRef, {
         status,
@@ -162,6 +199,7 @@ export class AppointmentReviewManagementService {
       details: this.text(data['details'], 500),
       status: data['status'] as AppointmentReviewReport['status'],
       createdAt: this.timestamp(data['createdAt']),
+      review: null,
     };
   }
 

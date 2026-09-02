@@ -54,12 +54,16 @@ export class ReviewModerationComponent implements OnInit {
     }
   }
 
-  async resolveReport(reportId: string, status: 'resolved' | 'dismissed'): Promise<void> {
+  async resolveReport(
+    reportId: string,
+    status: 'resolved' | 'dismissed',
+    rejectReview = false,
+  ): Promise<void> {
     if (this.updatingId()) return;
     this.updatingId.set(reportId);
     this.error.set(null);
     try {
-      await this.reviewsApi.resolveReport(reportId, status);
+      await this.reviewsApi.resolveReport(reportId, status, rejectReview);
       this.reports.update(reports => reports.filter(report => report.id !== reportId));
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Report status could not be updated.');

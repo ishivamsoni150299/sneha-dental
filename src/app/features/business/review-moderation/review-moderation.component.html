@@ -41,9 +41,20 @@
         <p class="font-bold capitalize text-ui-ink">{{ report.reason }}</p>
         <p class="mt-1 font-mono text-xs text-ui-ink-muted">Review {{ report.reviewId }}</p>
         @if (report.details) { <p class="mt-3 text-sm leading-6 text-ui-ink-soft">{{ report.details }}</p> }
+        @if (report.review; as review) {
+          <div class="mt-4 border-y border-ui-line bg-ui-muted px-4 py-3">
+            <p class="text-sm font-bold text-ui-ink">{{ review.patientAlias }} · {{ review.rating }}/5</p>
+            <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-ui-ink-soft">{{ review.text || 'Rating only' }}</p>
+            @if (review.clinicResponse) { <p class="mt-2 text-xs text-ui-ink-muted"><strong>Clinic response:</strong> {{ review.clinicResponse }}</p> }
+          </div>
+        } @else {
+          <p class="mt-4 text-sm text-ui-danger">The reported review is unavailable.</p>
+        }
         <div class="mt-4 flex flex-wrap gap-2">
-          <button type="button" (click)="resolveReport(report.id, 'resolved')" [disabled]="updatingId() === report.id" class="ui-btn ui-btn-primary ui-btn-sm">Resolve</button>
-          <button type="button" (click)="resolveReport(report.id, 'dismissed')" [disabled]="updatingId() === report.id" class="ui-btn ui-btn-secondary ui-btn-sm">Dismiss</button>
+          @if (report.review) {
+            <button type="button" (click)="resolveReport(report.id, 'resolved', true)" [disabled]="updatingId() === report.id" class="ui-btn ui-btn-primary ui-btn-sm">Remove review</button>
+          }
+          <button type="button" (click)="resolveReport(report.id, 'dismissed')" [disabled]="updatingId() === report.id" class="ui-btn ui-btn-secondary ui-btn-sm">Keep review</button>
         </div>
       </article>
     } @empty {
