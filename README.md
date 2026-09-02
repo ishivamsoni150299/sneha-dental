@@ -79,7 +79,7 @@ Current serverless endpoints are designed to stay within the Vercel Hobby plan f
 | `api/create-subscription.ts` | POST | Creates clinic billing checkout |
 | `api/openai-voice.ts` | POST/GET | Creates Realtime sessions and manages voice settings and usage |
 | `api/voice-booking-action.ts` | POST | Creates a confirmed appointment request from a signed voice session |
-| `api/patient.ts` | POST | Verifies patient phone sessions and safely claims, lists, checks availability, reschedules, or cancels linked appointments |
+| `api/patient.ts` | POST | Verifies patient phone sessions; manages linked appointments; submits and reports appointment-verified reviews |
 | `api/lead-ai-call.ts` | POST | Queues, cancels, records consent controls, and reconciles outbound lead calls |
 | `api/razorpay-webhook.ts` | POST | Subscription payment status updates |
 | `api/self-signup.ts` | POST | Clinic self-onboarding |
@@ -119,6 +119,9 @@ Main collections:
 - `marketplaceSlugs` (platform-only unique public profile reservations)
 - `notifications` (idempotent appointment email delivery records)
 - `patients` (minimal server-owned phone identity for the appointment portal)
+- `appointmentReviews` (public-safe review content; only published records are publicly readable)
+- `appointmentReviewModeration` (private appointment ownership and moderation audit records)
+- `appointmentReviewReports` (private patient reports and platform resolution state)
 
 Clinic documents contain only public website configuration and the minimum
 subscription state needed to enable the clinic site. Owner identity, billing
@@ -143,6 +146,13 @@ unanswered requests expire after their two-working-hour response window and the
 maintenance worker releases the reserved slot. Cancellation actors distinguish
 patient, clinic, and system outcomes. Server-resolved response timestamps drive
 confirmation-time and missed-SLA reporting without affecting paid-plan ranking.
+
+Completed linked appointments may create one deterministic review. The patient
+API writes public-safe content and private appointment ownership in one server
+transaction. New reviews remain pending until a platform administrator publishes
+or rejects them. Clinic owners can respond only to their own published reviews;
+they cannot edit patient ratings or text. Patient UIDs, appointment IDs, reporter
+UIDs, and report details never live in publicly readable review documents.
 
 Initialize existing clinics before enabling marketplace discovery. The command
 is a read-only preview unless `--apply` is provided:
@@ -218,7 +228,9 @@ Business routes:
 - `/business/signup`
 - `/business/login`
 - `/business/clinic/*`
+- `/business/clinic/reviews`
 - `/business/clinics`
+- `/business/reviews`
 - `/business/revenue`
 - `/business/analytics`
 - `/business/leads`

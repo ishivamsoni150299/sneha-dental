@@ -126,6 +126,12 @@ export const businessRoutes: Routes = [
           import('../admin/admin-patients/admin-patients.component').then(m => m.AdminPatientsComponent),
         data: { title: 'Patient Directory', noIndex: true, platformFeature: 'patientRecords' },
       },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('../admin/admin-reviews/admin-reviews.component').then(m => m.AdminReviewsComponent),
+        data: { title: 'Patient Reviews', noIndex: true },
+      },
     ],
   },
 
@@ -167,6 +173,12 @@ export const businessRoutes: Routes = [
         loadComponent: () =>
           import('./analytics/analytics.component').then(m => m.AnalyticsComponent),
         data: { title: 'Business Analytics', noIndex: true },
+      },
+      {
+        path: 'reviews',
+        loadComponent: () =>
+          import('./review-moderation/review-moderation.component').then(m => m.ReviewModerationComponent),
+        data: { title: 'Review Moderation', noIndex: true },
       },
       {
         path: 'leads',

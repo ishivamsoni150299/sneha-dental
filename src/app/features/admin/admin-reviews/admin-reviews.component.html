@@ -1,0 +1,36 @@
+<div class="clinic-admin-shell min-h-screen">
+  <header class="admin-topbar">
+    <div class="admin-topbar-inner max-w-5xl">
+      <div class="flex items-center gap-3">
+        <a routerLink="/business/clinic/dashboard" class="grid size-9 place-items-center rounded-lg bg-gray-100 text-gray-700" aria-label="Back to dashboard">←</a>
+        <div><h1 class="admin-page-title leading-none">Patient reviews</h1><p class="admin-page-subtitle">Respond to published appointment reviews</p></div>
+      </div>
+      <app-clinic-account-menu />
+    </div>
+  </header>
+
+  <main class="admin-page max-w-5xl">
+    @if (error()) { <div role="alert" class="mb-5 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</div> }
+    @if (message()) { <div role="status" class="mb-5 border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ message() }}</div> }
+    <div class="space-y-4">
+      @for (review of reviews(); track review.id) {
+        <article class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="font-bold text-gray-950">{{ review.patientAlias }}</p><p class="mt-1 text-sm font-bold text-amber-600">{{ review.rating }}/5</p></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Published</span></div>
+          @if (review.text) { <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-gray-700">{{ review.text }}</p> }
+          @if (editingId() === review.id) {
+            <form (ngSubmit)="save(review.id)" class="mt-5 border-t border-gray-200 pt-4">
+              <label [for]="'response-' + review.id" class="text-sm font-bold text-gray-800">Clinic response</label>
+              <textarea [id]="'response-' + review.id" [ngModel]="response()" (ngModelChange)="response.set($event)" name="response" required minlength="2" maxlength="600" rows="4" class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Thank the patient or address their feedback professionally."></textarea>
+              <div class="mt-3 flex gap-2"><button type="submit" [disabled]="updatingId() === review.id" class="rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{{ updatingId() === review.id ? 'Publishing...' : 'Publish response' }}</button><button type="button" (click)="editingId.set(null)" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-bold text-gray-700">Cancel</button></div>
+            </form>
+          } @else {
+            @if (review.clinicResponse) { <div class="mt-4 border-l-2 border-[var(--accent)] bg-gray-50 px-3 py-2 text-sm text-gray-700"><strong>Your response:</strong> {{ review.clinicResponse }}</div> }
+            <button type="button" (click)="edit(review)" class="mt-4 rounded-lg border border-gray-300 px-4 py-2 text-sm font-bold text-gray-700">{{ review.clinicResponse ? 'Edit response' : 'Write response' }}</button>
+          }
+        </article>
+      } @empty {
+        @if (!loading()) { <div class="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">No published appointment reviews yet.</div> }
+      }
+    </div>
+  </main>
+</div>

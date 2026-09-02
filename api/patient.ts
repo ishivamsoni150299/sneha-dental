@@ -5,6 +5,15 @@ import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore, type DocumentSnapshot } from 'firebase-admin/firestore';
 import { buildAppointmentSlotId } from './_lib/marketplace-appointment-policy';
 import {
+  appointmentReviewId,
+  canSubmitAppointmentReview,
+  normalizeAppointmentReviewInput,
+  normalizeAppointmentReviewReport,
+  patientReviewAlias,
+  toPatientAppointmentReviewDto,
+  type AppointmentReviewRecord,
+} from './_lib/appointment-review-policy';
+import {
   canClaimPatientAppointment,
   canPatientCancelAppointment,
   canPatientManageAppointment,
@@ -34,8 +43,16 @@ const RATE_WINDOW_MS = 10 * 60_000;
 const MAX_LIST_REQUESTS = 60;
 const MAX_CLAIM_REQUESTS = 8;
 const MAX_MUTATION_REQUESTS = 20;
+const MAX_REVIEW_REQUESTS = 8;
 
-type PatientAction = 'session' | 'claim' | 'cancel' | 'availability' | 'reschedule';
+type PatientAction =
+  | 'session'
+  | 'claim'
+  | 'cancel'
+  | 'availability'
+  | 'reschedule'
+  | 'review-submit'
+  | 'review-report';
 type VerifiedIdentity = { uid: string; phoneE164: string };
 
 class PatientApiError extends Error {
@@ -57,7 +74,10 @@ function bearerToken(req: VercelRequest): string {
 
 function requestedAction(req: VercelRequest): PatientAction | null {
   const action = Array.isArray(req.query['action']) ? req.query['action'][0] : req.query['action'];
-  return ['session', 'claim', 'cancel', 'availability', 'reschedule'].includes(action ?? '')
+  return [
+    'session', 'claim', 'cancel', 'availability', 'reschedule',
+    'review-submit', 'review-report',
+  ].includes(action ?? '')
     ? action as PatientAction
     : null;
 }
@@ -90,7 +110,9 @@ async function enforceRateLimit(identity: VerifiedIdentity, action: PatientActio
   const scope = action === 'session' || action === 'availability' ? 'list' : action;
   const limit = action === 'session' || action === 'availability'
     ? MAX_LIST_REQUESTS
-    : action === 'claim' ? MAX_CLAIM_REQUESTS : MAX_MUTATION_REQUESTS;
+    : action === 'claim'
+      ? MAX_CLAIM_REQUESTS
+      : action.startsWith('review-') ? MAX_REVIEW_REQUESTS : MAX_MUTATION_REQUESTS;
   const digest = createHash('sha256')
     .update(`patient-api:${identity.uid}:${identity.phoneE164}:${scope}:${bucket}`)
     .digest('hex');
@@ -137,6 +159,10 @@ function appointmentRecord(snapshot: DocumentSnapshot): PatientAppointmentRecord
   return { id: snapshot.id, ...(snapshot.data() ?? {}) };
 }
 
+function reviewRecord(snapshot: DocumentSnapshot): AppointmentReviewRecord {
+  return { id: snapshot.id, ...(snapshot.data() ?? {}) };
+}
+
 async function clinicRecords(appointments: PatientAppointmentRecord[]): Promise<Map<string, Record<string, unknown>>> {
   const clinicIds = [...new Set(appointments.map(appointment => clean(appointment.clinicId, 128)).filter(Boolean))];
   const clinics = await Promise.all(clinicIds.map(async clinicId => {
@@ -148,10 +174,24 @@ async function clinicRecords(appointments: PatientAppointmentRecord[]): Promise<
 
 async function safeAppointments(appointments: PatientAppointmentRecord[]) {
   const clinics = await clinicRecords(appointments);
-  return appointments.map(appointment => toPatientAppointmentDto(
-    appointment,
-    clinics.get(clean(appointment.clinicId, 128)) ?? {},
-  ));
+  const reviewEntries = appointments.flatMap(appointment => {
+    const reviewId = appointmentReviewId(appointment.id);
+    return reviewId ? [{ appointmentId: clean(appointment.id, 128), reviewId }] : [];
+  });
+  const reviewSnapshots = reviewEntries.length
+    ? await db.getAll(...reviewEntries.map(entry => db.collection('appointmentReviews').doc(entry.reviewId)))
+    : [];
+  const reviews = new Map(reviewSnapshots.map((snapshot, index) => [
+    reviewEntries[index]!.appointmentId,
+    snapshot.exists ? toPatientAppointmentReviewDto(reviewRecord(snapshot)) : null,
+  ]));
+  return appointments.map(appointment => ({
+    ...toPatientAppointmentDto(
+      appointment,
+      clinics.get(clean(appointment.clinicId, 128)) ?? {},
+    ),
+    review: reviews.get(clean(appointment.id, 128)) ?? null,
+  }));
 }
 
 async function listAppointments(identity: VerifiedIdentity) {
@@ -273,6 +313,99 @@ async function appointmentAvailability(
   });
 }
 
+async function submitAppointmentReview(
+  identity: VerifiedIdentity,
+  appointmentIdValue: unknown,
+  ratingValue: unknown,
+  textValue: unknown,
+  anonymousValue: unknown,
+) {
+  const appointmentId = validAppointmentId(appointmentIdValue);
+  const reviewId = appointmentReviewId(appointmentId);
+  const input = normalizeAppointmentReviewInput(ratingValue, textValue, anonymousValue);
+  if (!appointmentId || !reviewId || !input) {
+    throw new PatientApiError(400, 'Choose a rating from 1 to 5 and keep your review under 1,200 characters.');
+  }
+  const appointmentRef = db.collection('appointments').doc(appointmentId);
+  const reviewRef = db.collection('appointmentReviews').doc(reviewId);
+  const moderationRef = db.collection('appointmentReviewModeration').doc(reviewId);
+  await db.runTransaction(async transaction => {
+    const [appointmentSnapshot, reviewSnapshot] = await Promise.all([
+      transaction.get(appointmentRef),
+      transaction.get(reviewRef),
+    ]);
+    const appointment = appointmentRecord(appointmentSnapshot);
+    if (!appointmentSnapshot.exists || !canSubmitAppointmentReview(appointment, identity)) {
+      throw new PatientApiError(409, 'A review is available only after your linked appointment is completed.');
+    }
+    if (reviewSnapshot.exists) {
+      throw new PatientApiError(409, 'A review has already been submitted for this appointment.');
+    }
+    const clinicId = clean(appointment.clinicId, 128);
+    if (!clinicId || clinicId.includes('/')) {
+      throw new PatientApiError(409, 'This clinic cannot receive a review right now.');
+    }
+    transaction.create(reviewRef, {
+      clinicId,
+      rating: input.rating,
+      text: input.text,
+      patientAlias: patientReviewAlias(appointment.name, input.anonymous),
+      moderationStatus: 'pending',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    transaction.create(moderationRef, {
+      reviewId,
+      appointmentId,
+      clinicId,
+      patientUid: identity.uid,
+      status: 'pending',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+  const created = await reviewRef.get();
+  return toPatientAppointmentReviewDto(reviewRecord(created));
+}
+
+async function reportAppointmentReview(
+  identity: VerifiedIdentity,
+  reviewIdValue: unknown,
+  reasonValue: unknown,
+  detailsValue: unknown,
+): Promise<void> {
+  const reviewId = clean(reviewIdValue, 80);
+  const report = normalizeAppointmentReviewReport(reasonValue, detailsValue);
+  if (!/^review_[a-f0-9]{64}$/.test(reviewId) || !report) {
+    throw new PatientApiError(400, 'Choose a valid reason and keep details under 500 characters.');
+  }
+  const digest = createHash('sha256')
+    .update(`appointment-review-report:${reviewId}:${identity.uid}`)
+    .digest('hex');
+  const reviewRef = db.collection('appointmentReviews').doc(reviewId);
+  const reportRef = db.collection('appointmentReviewReports').doc(`report_${digest}`);
+  await db.runTransaction(async transaction => {
+    const [review, existingReport] = await Promise.all([
+      transaction.get(reviewRef),
+      transaction.get(reportRef),
+    ]);
+    if (!review.exists || review.data()?.['moderationStatus'] !== 'published') {
+      throw new PatientApiError(404, 'This published review is unavailable.');
+    }
+    if (existingReport.exists) return;
+    transaction.create(reportRef, {
+      reviewId,
+      clinicId: clean(review.data()?.['clinicId'], 128),
+      reporterUid: identity.uid,
+      reason: report.reason,
+      details: report.details,
+      status: 'pending',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+}
+
 async function rescheduleAppointment(
   identity: VerifiedIdentity,
   appointmentIdValue: unknown,
@@ -377,6 +510,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return res.status(200).json({
         slots: await appointmentAvailability(identity, req.body?.appointmentId, req.body?.date),
       });
+    }
+    if (action === 'review-submit') {
+      return res.status(201).json({
+        review: await submitAppointmentReview(
+          identity,
+          req.body?.appointmentId,
+          req.body?.rating,
+          req.body?.text,
+          req.body?.anonymous,
+        ),
+      });
+    }
+    if (action === 'review-report') {
+      await reportAppointmentReview(identity, req.body?.reviewId, req.body?.reason, req.body?.details);
+      return res.status(200).json({ ok: true });
     }
     return res.status(200).json({
       appointment: await rescheduleAppointment(

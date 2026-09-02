@@ -1,29 +1,50 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type { Doctor } from '../../core/services/doctor.service';
 import { DoctorService } from '../../core/services/doctor.service';
 import {
   MarketplaceService,
   type MarketplaceClinic,
+  type MarketplaceReview,
 } from '../../core/services/marketplace.service';
+import { PatientAppointmentApiService } from '../../core/services/patient-appointment-api.service';
+import { PatientAuthService } from '../../core/services/patient-auth.service';
 
 @Component({
   selector: 'app-dentist-profile',
   standalone: true,
-  imports: [RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './dentist-profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DentistProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder);
   private readonly marketplace = inject(MarketplaceService);
   private readonly doctorService = inject(DoctorService);
+  private readonly patientApi = inject(PatientAppointmentApiService);
+  readonly patientAuth = inject(PatientAuthService);
 
   readonly clinic = signal<MarketplaceClinic | null>(null);
   readonly verifiedDoctors = signal<Doctor[]>([]);
+  readonly reviews = signal<MarketplaceReview[]>([]);
+  readonly averageRating = computed(() => {
+    const reviews = this.reviews();
+    if (!reviews.length) return null;
+    return reviews.reduce((total, review) => total + review.rating, 0) / reviews.length;
+  });
   readonly loading = signal(true);
   readonly notFound = signal(false);
   readonly error = signal<string | null>(null);
+  readonly reportId = signal<string | null>(null);
+  readonly reporting = signal(false);
+  readonly reportMessage = signal<string | null>(null);
+  readonly reportedReviewIds = signal(new Set<string>());
+  readonly reportForm = this.fb.nonNullable.group({
+    reason: ['misleading', Validators.required],
+    details: ['', Validators.maxLength(500)],
+  });
 
   async ngOnInit(): Promise<void> {
     const slug = this.route.snapshot.paramMap.get('slug') ?? '';
@@ -35,6 +56,11 @@ export class DentistProfileComponent implements OnInit {
       }
 
       this.clinic.set(clinic);
+      try {
+        this.reviews.set(await this.marketplace.getPublishedReviews(clinic.id));
+      } catch (error) {
+        console.error('[Marketplace] Published reviews could not be loaded:', error);
+      }
       const verifiedIds = new Set(clinic.marketplaceVerifiedDoctorIds ?? []);
       if (verifiedIds.size > 0) {
         try {
@@ -98,5 +124,38 @@ export class DentistProfileComponent implements OnInit {
 
   doctorInitials(name: string): string {
     return name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  }
+
+  openReport(reviewId: string): void {
+    this.reportMessage.set(null);
+    if (!this.patientAuth.isSignedIn() || this.patientAuth.role() !== 'patient') {
+      this.reportMessage.set('Verify your mobile in My appointments before reporting a review.');
+      return;
+    }
+    this.reportForm.reset({ reason: 'misleading', details: '' });
+    this.reportId.set(reviewId);
+  }
+
+  async submitReport(reviewId: string): Promise<void> {
+    this.reportForm.markAllAsTouched();
+    if (this.reportForm.invalid || this.reporting()) return;
+    this.reporting.set(true);
+    this.reportMessage.set(null);
+    try {
+      const { reason, details } = this.reportForm.getRawValue();
+      await this.patientApi.reportReview(reviewId, reason, details);
+      this.reportedReviewIds.update(ids => new Set(ids).add(reviewId));
+      this.reportId.set(null);
+      this.reportMessage.set('Thanks. The platform team will review this report.');
+    } catch (error) {
+      this.reportMessage.set(error instanceof Error ? error.message : 'The report could not be sent.');
+    } finally {
+      this.reporting.set(false);
+    }
+  }
+
+  formatReviewDate(value: string | null): string {
+    if (!value) return 'Recently published';
+    return new Date(value).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
   }
 }

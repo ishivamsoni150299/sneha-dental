@@ -183,12 +183,56 @@
                   </div>
                 }
 
+                @if (reviewId() === appointment.id && !appointment.review) {
+                  <form [formGroup]="reviewForm" (ngSubmit)="submitReview(appointment.id)" class="border-t border-cyan-200 bg-cyan-50 p-5">
+                    <h4 class="text-sm font-bold text-cyan-950">Review your visit</h4>
+                    <p class="mt-1 text-xs leading-5 text-cyan-900">Your review is checked before it appears publicly. Appointment details are never published.</p>
+                    <fieldset class="mt-4">
+                      <legend class="text-xs font-bold uppercase text-cyan-900">Rating</legend>
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        @for (rating of [1, 2, 3, 4, 5]; track rating) {
+                          <label class="cursor-pointer">
+                            <input type="radio" formControlName="rating" [value]="rating" class="peer sr-only">
+                            <span class="flex size-10 items-center justify-center rounded-lg border border-cyan-300 bg-white text-sm font-bold text-cyan-950 peer-checked:border-cyan-900 peer-checked:bg-cyan-900 peer-checked:text-white">{{ rating }}</span>
+                          </label>
+                        }
+                      </div>
+                    </fieldset>
+                    <label [for]="'review-text-' + appointment.id" class="mt-4 block text-xs font-bold uppercase text-cyan-900">Review <span class="font-normal normal-case">(optional)</span></label>
+                    <textarea [id]="'review-text-' + appointment.id" formControlName="text" rows="4" maxlength="1200" placeholder="What should other patients know?" class="mt-1 w-full resize-y rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm text-gray-950 outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100"></textarea>
+                    <label class="mt-3 flex items-start gap-2 text-sm text-cyan-950">
+                      <input type="checkbox" formControlName="anonymous" class="mt-0.5 size-4 rounded border-cyan-300 text-cyan-800">
+                      <span>Publish without using my first name</span>
+                    </label>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <button type="submit" [disabled]="mutatingId() === appointment.id" class="rounded-lg bg-cyan-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{{ mutatingId() === appointment.id ? 'Submitting...' : 'Submit review' }}</button>
+                      <button type="button" (click)="reviewId.set(null)" class="rounded-lg border border-cyan-300 bg-white px-4 py-2.5 text-sm font-bold text-cyan-950">Not now</button>
+                    </div>
+                  </form>
+                }
+
+                @if (appointment.review) {
+                  <div class="border-t border-gray-200 bg-gray-50 px-5 py-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <p class="text-sm font-bold text-gray-950">Your review · {{ appointment.review.rating }}/5</p>
+                      <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-700">{{ reviewStatusLabel(appointment.review.moderationStatus) }}</span>
+                    </div>
+                    @if (appointment.review.text) { <p class="mt-2 text-sm leading-6 text-gray-700">{{ appointment.review.text }}</p> }
+                    @if (appointment.review.clinicResponse) {
+                      <div class="mt-3 border-l-2 border-cyan-500 pl-3 text-sm text-gray-700"><strong>Clinic response:</strong> {{ appointment.review.clinicResponse }}</div>
+                    }
+                  </div>
+                }
+
                 <div class="flex flex-wrap items-center gap-2 px-5 py-4">
                   @if (canManage(appointment) && rescheduleId() !== appointment.id) {
                     <button type="button" (click)="openReschedule(appointment)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Change time</button>
                   }
                   @if (canCancel(appointment) && confirmCancelId() !== appointment.id) {
                     <button type="button" (click)="confirmCancelId.set(appointment.id); rescheduleId.set(null)" class="rounded-lg px-3 py-2 text-sm font-bold text-rose-700 hover:bg-rose-50">Cancel</button>
+                  }
+                  @if (appointment.status === 'completed' && !appointment.review && reviewId() !== appointment.id) {
+                    <button type="button" (click)="openReview(appointment.id)" class="rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-bold text-cyan-900 hover:bg-cyan-100">Review visit</button>
                   }
                   @if (appointment.clinicPhone) {
                     <a [href]="'tel:' + appointment.clinicPhone" class="ml-auto text-sm font-bold text-cyan-800 underline decoration-cyan-200 underline-offset-4">Call clinic</a>

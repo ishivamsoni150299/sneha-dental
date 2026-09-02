@@ -28,14 +28,14 @@ function appointmentSummary(): PatientAppointmentSummary {
     patientName: 'Riya', service: 'Consultation', date: '2026-09-10', time: '10:00',
     doctorName: 'Dr. Asha', status: 'confirmed', cancellationReason: '',
     confirmationDeadline: null, confirmationRespondedAt: null, confirmedAt: null,
-    declinedAt: null, expiredAt: null, createdAt: null, updatedAt: null,
+    declinedAt: null, expiredAt: null, createdAt: null, updatedAt: null, review: null,
   };
 }
 
 async function createFixture(options: { signedIn?: boolean; claim?: string } = {}) {
   const auth = patientAuth(options.signedIn === true);
   const api = jasmine.createSpyObj<PatientAppointmentApiService>('PatientAppointmentApiService', [
-    'session', 'claim', 'cancel', 'availability', 'reschedule',
+    'session', 'claim', 'cancel', 'availability', 'reschedule', 'submitReview', 'reportReview',
   ]);
   api.session.and.resolveTo({ profile: { phoneMasked: '+91 ••••••3210' }, appointments: [] });
   api.availability.and.resolveTo([]);
@@ -107,5 +107,25 @@ describe('PatientAppointmentsComponent', () => {
       fixture.nativeElement.querySelectorAll('select[id^="reschedule-time-"] option') as NodeListOf<HTMLOptionElement>,
     ).map(option => option.value);
     expect(values).toEqual(['', '11:30', '12:00']);
+  });
+
+  it('submits a review only for a completed appointment and shows moderation state', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const appointment = { ...appointmentSummary(), status: 'completed' };
+    api.submitReview.and.resolveTo({
+      id: 'review-1', rating: 5, text: 'Thoughtful care.', patientAlias: 'Riya',
+      moderationStatus: 'pending', clinicResponse: '', createdAt: null,
+      publishedAt: null, clinicRespondedAt: null,
+    });
+    fixture.componentInstance.appointments.set([appointment]);
+    fixture.componentInstance.openReview(appointment.id);
+    fixture.componentInstance.reviewForm.patchValue({ text: 'Thoughtful care.', anonymous: true });
+
+    await fixture.componentInstance.submitReview(appointment.id);
+    fixture.detectChanges();
+
+    expect(api.submitReview).toHaveBeenCalledWith(appointment.id, 5, 'Thoughtful care.', true);
+    expect(fixture.nativeElement.textContent).toContain('Awaiting moderation');
+    expect(fixture.nativeElement.textContent).not.toContain('Review visit');
   });
 });

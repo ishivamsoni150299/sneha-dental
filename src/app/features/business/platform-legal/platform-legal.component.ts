@@ -42,6 +42,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
               <p class="mt-2">The patient appointment portal uses Firebase phone authentication and reCAPTCHA. A verified number may be used to link appointments booked with that same number. The portal exposes scheduling details only; clinical notes, treatment records, and clinic billing fields are not part of the shared patient profile.</p>
             </section>
             <section>
+              <h2 class="ui-title">Appointment reviews</h2>
+              <p class="mt-2">A patient may submit one review after a linked appointment is marked completed. Public reviews show the rating, review text, a limited patient alias or “Verified patient,” publication date, and any clinic response. Appointment identifiers, verified phone numbers, account identifiers, and moderation reports are kept in restricted records and are not published. Platform staff may moderate reviews and investigate reports; clinics may respond to published reviews but cannot edit patient feedback.</p>
+            </section>
+            <section>
               <h2 class="ui-title">Retention and requests</h2>
               <p class="mt-2">Clinics control retention of their appointment and care records, subject to applicable obligations. The platform retains a minimal portal identity while needed for appointment coordination, security, and recovery. Clinic account owners and patients may request access, correction, export, or deletion by contacting support.</p>
             </section>
@@ -55,6 +59,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
             <section>
               <h2 class="ui-title">Patient portal</h2>
               <p class="mt-2">Patients must verify the mobile number used for a booking before linking or managing it. Patients are responsible for keeping access to that number secure and for providing accurate appointment information. Online changes may close near the appointment time, in which case the clinic must be contacted directly.</p>
+            </section>
+            <section>
+              <h2 class="ui-title">Reviews and moderation</h2>
+              <p class="mt-2">Only patients with a completed linked appointment may submit a review, with one review allowed per appointment. Reviews must reflect a genuine experience and must not contain unlawful, abusive, misleading, confidential, or unnecessary personal information. Reviews may be rejected, removed, or investigated after a report. Clinics may post a professional response but may not alter the patient’s rating or text.</p>
             </section>
             <section>
               <h2 class="ui-title">Account responsibilities</h2>

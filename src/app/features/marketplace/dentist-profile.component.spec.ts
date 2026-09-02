@@ -1,8 +1,11 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { DEFAULT_SCHEDULE, DoctorService } from '../../core/services/doctor.service';
 import type { MarketplaceClinic } from '../../core/services/marketplace.service';
 import { MarketplaceService } from '../../core/services/marketplace.service';
+import { PatientAppointmentApiService } from '../../core/services/patient-appointment-api.service';
+import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { DentistProfileComponent } from './dentist-profile.component';
 
 function verifiedClinic(acceptingNewPatients = true): MarketplaceClinic {
@@ -54,12 +57,18 @@ async function renderProfile(acceptingNewPatients = true) {
   const clinic = verifiedClinic(acceptingNewPatients);
   const marketplace = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
     'getVerifiedClinicBySlug',
+    'getPublishedReviews',
     'serviceLabel',
     'listingImage',
     'hasListingPhoto',
     'clinicWebsiteUrl',
   ]);
   marketplace.getVerifiedClinicBySlug.and.resolveTo(clinic);
+  marketplace.getPublishedReviews.and.resolveTo([{
+    id: 'review-1', clinicId: clinic.id, rating: 5, text: 'Clear and gentle care.',
+    patientAlias: 'Riya S.', publishedAt: '2026-08-15T10:00:00.000Z',
+    clinicResponse: 'Thank you for visiting.', clinicRespondedAt: '2026-08-16T10:00:00.000Z',
+  }]);
   marketplace.serviceLabel.and.callFake(id => id === 'root-canal' ? 'Root Canal Treatment' : 'Dental Implants');
   marketplace.listingImage.and.returnValue('https://images.example/clinic.jpg');
   marketplace.hasListingPhoto.and.returnValue(true);
@@ -84,6 +93,9 @@ async function renderProfile(acceptingNewPatients = true) {
       schedule: DEFAULT_SCHEDULE,
     },
   ]);
+  const patientApi = jasmine.createSpyObj<PatientAppointmentApiService>('PatientAppointmentApiService', ['reportReview']);
+  patientApi.reportReview.and.resolveTo();
+  const patientAuth = { isSignedIn: signal(true), role: signal('patient') };
 
   await TestBed.configureTestingModule({
     imports: [DentistProfileComponent],
@@ -95,6 +107,8 @@ async function renderProfile(acceptingNewPatients = true) {
       },
       { provide: MarketplaceService, useValue: marketplace },
       { provide: DoctorService, useValue: doctors },
+      { provide: PatientAppointmentApiService, useValue: patientApi },
+      { provide: PatientAuthService, useValue: patientAuth },
     ],
   }).compileComponents();
 
@@ -102,7 +116,7 @@ async function renderProfile(acceptingNewPatients = true) {
   fixture.detectChanges();
   await fixture.whenStable();
   fixture.detectChanges();
-  return { fixture, marketplace };
+  return { fixture, marketplace, patientApi };
 }
 
 describe('DentistProfileComponent', () => {
@@ -119,6 +133,9 @@ describe('DentistProfileComponent', () => {
     expect(text).not.toContain('Dr. Unverified Example');
     expect(text).toContain('Root Canal Treatment');
     expect(text).toContain('₹500');
+    expect(text).toContain('5.0');
+    expect(text).toContain('Clear and gentle care.');
+    expect(text).toContain('Thank you for visiting.');
     const bookingLinks = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
     expect(bookingLinks.some(link =>
       link.textContent?.includes('Request appointment') && link.getAttribute('href') === '/dentists/smile-care-noida/book'
@@ -131,5 +148,17 @@ describe('DentistProfileComponent', () => {
 
     expect(links.some(link => link.textContent?.includes('Request appointment'))).toBeFalse();
     expect(fixture.nativeElement.textContent).toContain('Call first');
+  });
+
+  it('submits a review report from a verified patient session', async () => {
+    const { fixture, patientApi } = await renderProfile();
+    fixture.componentInstance.openReport('review-1');
+    fixture.componentInstance.reportForm.patchValue({ reason: 'privacy', details: 'Contains a name.' });
+
+    await fixture.componentInstance.submitReport('review-1');
+    fixture.detectChanges();
+
+    expect(patientApi.reportReview).toHaveBeenCalledWith('review-1', 'privacy', 'Contains a name.');
+    expect(fixture.nativeElement.textContent).toContain('platform team will review');
   });
 });

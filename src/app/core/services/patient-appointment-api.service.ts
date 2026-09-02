@@ -1,6 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthenticatedApiService } from './authenticated-api.service';
 
+export interface PatientAppointmentReview {
+  id: string;
+  rating: number;
+  text: string;
+  patientAlias: string;
+  moderationStatus: 'pending' | 'published' | 'rejected';
+  clinicResponse: string;
+  createdAt: string | null;
+  publishedAt: string | null;
+  clinicRespondedAt: string | null;
+}
+
 export interface PatientAppointmentSummary {
   id: string;
   clinicId: string;
@@ -23,6 +35,7 @@ export interface PatientAppointmentSummary {
   expiredAt: string | null;
   createdAt: string | null;
   updatedAt: string | null;
+  review: PatientAppointmentReview | null;
 }
 
 export interface PatientSession {
@@ -60,6 +73,25 @@ export class PatientAppointmentApiService {
       time,
     });
     return response.appointment;
+  }
+
+  async submitReview(
+    appointmentId: string,
+    rating: number,
+    text: string,
+    anonymous: boolean,
+  ): Promise<PatientAppointmentReview> {
+    const response = await this.request<{ review: PatientAppointmentReview }>('review-submit', {
+      appointmentId,
+      rating,
+      text,
+      anonymous,
+    });
+    return response.review;
+  }
+
+  async reportReview(reviewId: string, reason: string, details: string): Promise<void> {
+    await this.request<{ ok: true }>('review-report', { reviewId, reason, details });
   }
 
   private async request<T>(action: string, body: Record<string, unknown> = {}): Promise<T> {

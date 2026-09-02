@@ -431,6 +431,77 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // ── Appointment-verified reviews ──────────────────────────────────────
+    // Trusted server code creates reviews after checking completed appointment
+    // ownership. Public documents contain no patient UID or appointment ID.
+    match /appointmentReviews/{reviewId} {
+      allow read: if resource.data.moderationStatus == 'published' || isSuperAdmin();
+      allow create, delete: if false;
+      allow update: if
+        (
+          isSuperAdmin() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'moderationStatus', 'publishedAt', 'updatedAt'
+          ]) &&
+          request.resource.data.moderationStatus in ['published', 'rejected'] &&
+          request.resource.data.updatedAt == request.time &&
+          (
+            (request.resource.data.moderationStatus == 'published' &&
+              request.resource.data.publishedAt == request.time) ||
+            (request.resource.data.moderationStatus == 'rejected' &&
+              request.resource.data.publishedAt == null)
+          ) &&
+          getAfter(/databases/$(database)/documents/appointmentReviewModeration/$(reviewId)).data.status ==
+            request.resource.data.moderationStatus &&
+          getAfter(/databases/$(database)/documents/appointmentReviewModeration/$(reviewId)).data.reviewedBy ==
+            request.auth.uid
+        ) ||
+        (
+          isClinicAdmin(resource.data.clinicId) &&
+          resource.data.moderationStatus == 'published' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'clinicResponse', 'clinicRespondedAt', 'updatedAt'
+          ]) &&
+          request.resource.data.clinicResponse is string &&
+          request.resource.data.clinicResponse.size() >= 2 &&
+          request.resource.data.clinicResponse.size() <= 600 &&
+          request.resource.data.clinicRespondedAt == request.time &&
+          request.resource.data.updatedAt == request.time
+        );
+    }
+
+    // Appointment linkage and reviewer ownership remain platform-private.
+    match /appointmentReviewModeration/{reviewId} {
+      allow read: if isSuperAdmin();
+      allow create, delete: if false;
+      allow update: if isSuperAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedBy', 'reviewedAt', 'updatedAt'
+        ]) &&
+        request.resource.data.status in ['published', 'rejected'] &&
+        request.resource.data.reviewedBy == request.auth.uid &&
+        request.resource.data.reviewedAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        getAfter(/databases/$(database)/documents/appointmentReviews/$(reviewId)).data.moderationStatus ==
+          request.resource.data.status;
+    }
+
+    // Reports are submitted through the authenticated patient API. Reporter
+    // identity is never readable by clinics or public marketplace visitors.
+    match /appointmentReviewReports/{reportId} {
+      allow read: if isSuperAdmin();
+      allow create, delete: if false;
+      allow update: if isSuperAdmin() &&
+        resource.data.status == 'pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedBy', 'reviewedAt', 'updatedAt'
+        ]) &&
+        request.resource.data.status in ['resolved', 'dismissed'] &&
+        request.resource.data.reviewedBy == request.auth.uid &&
+        request.resource.data.reviewedAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+    }
+
     // ── Contacts ─────────────────────────────────────────────────────────────
     // Public create: submitted via the unauthenticated contact form on clinic
     // sites and the platform landing page. Sensitive data (read/edit/delete)

@@ -3,6 +3,7 @@ import {
   collection,
   getDocs,
   limit,
+  orderBy,
   query,
   where,
   type DocumentSnapshot,
@@ -18,6 +19,17 @@ import { db } from '../firebase';
 
 export interface MarketplaceClinic extends ClinicConfig {
   id: string;
+}
+
+export interface MarketplaceReview {
+  id: string;
+  clinicId: string;
+  rating: number;
+  text: string;
+  patientAlias: string;
+  publishedAt: string | null;
+  clinicResponse: string;
+  clinicRespondedAt: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -56,6 +68,33 @@ export class MarketplaceService {
       .map(document => this.toMarketplaceClinic(document))
       .find(candidate => candidate?.marketplaceSlug === normalizedSlug);
     return clinic ?? null;
+  }
+
+  async getPublishedReviews(clinicId: string): Promise<MarketplaceReview[]> {
+    const normalizedClinicId = clinicId.trim();
+    if (!normalizedClinicId || normalizedClinicId.includes('/')) return [];
+    const snapshot = await getDocs(query(
+      collection(db, 'appointmentReviews'),
+      where('clinicId', '==', normalizedClinicId),
+      where('moderationStatus', '==', 'published'),
+      orderBy('publishedAt', 'desc'),
+      limit(50),
+    ));
+    return snapshot.docs.flatMap(document => {
+      const data = document.data();
+      const rating = Number(data['rating']);
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) return [];
+      return [{
+        id: document.id,
+        clinicId: normalizedClinicId,
+        rating,
+        text: this.cleanText(data['text'], 1200),
+        patientAlias: this.cleanText(data['patientAlias'], 48) || 'Verified patient',
+        publishedAt: this.timestampIso(data['publishedAt']),
+        clinicResponse: this.cleanText(data['clinicResponse'], 600),
+        clinicRespondedAt: this.timestampIso(data['clinicRespondedAt']),
+      }];
+    });
   }
 
   serviceLabel(serviceId: MarketplaceDentalServiceId): string {
@@ -98,5 +137,17 @@ export class MarketplaceService {
       return null;
     }
     return clinic;
+  }
+
+  private cleanText(value: unknown, max: number): string {
+    return typeof value === 'string' ? value.trim().slice(0, max) : '';
+  }
+
+  private timestampIso(value: unknown): string | null {
+    if (!value || typeof value !== 'object' || !('toDate' in value)) return null;
+    const toDate = value.toDate;
+    if (typeof toDate !== 'function') return null;
+    const date = toDate.call(value) as unknown;
+    return date instanceof Date && Number.isFinite(date.getTime()) ? date.toISOString() : null;
   }
 }

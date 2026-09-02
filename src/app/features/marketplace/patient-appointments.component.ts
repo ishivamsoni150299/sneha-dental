@@ -34,6 +34,7 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly mutatingId = signal<string | null>(null);
   readonly confirmCancelId = signal<string | null>(null);
   readonly rescheduleId = signal<string | null>(null);
+  readonly reviewId = signal<string | null>(null);
   readonly rescheduleSlots = signal<string[]>([]);
   readonly loadingRescheduleSlots = signal(false);
   readonly error = signal<string | null>(null);
@@ -54,6 +55,11 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly rescheduleForm = this.fb.nonNullable.group({
     date: ['', Validators.required],
     time: ['', Validators.required],
+  });
+  readonly reviewForm = this.fb.nonNullable.group({
+    rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
+    text: ['', [Validators.maxLength(1200)]],
+    anonymous: [false],
   });
 
   async ngOnInit(): Promise<void> {
@@ -217,6 +223,38 @@ export class PatientAppointmentsComponent implements OnInit {
     } finally {
       this.mutatingId.set(null);
     }
+  }
+
+  openReview(appointmentId: string): void {
+    this.reviewForm.reset({ rating: 5, text: '', anonymous: false });
+    this.reviewId.set(appointmentId);
+    this.error.set(null);
+  }
+
+  async submitReview(appointmentId: string): Promise<void> {
+    this.reviewForm.markAllAsTouched();
+    if (this.reviewForm.invalid || this.mutatingId()) return;
+    this.mutatingId.set(appointmentId);
+    this.error.set(null);
+    try {
+      const { rating, text, anonymous } = this.reviewForm.getRawValue();
+      const review = await this.patientApi.submitReview(appointmentId, rating, text, anonymous);
+      this.appointments.update(appointments => appointments.map(appointment => (
+        appointment.id === appointmentId ? { ...appointment, review } : appointment
+      )));
+      this.reviewId.set(null);
+    } catch (error) {
+      this.error.set(this.errorMessage(error));
+    } finally {
+      this.mutatingId.set(null);
+    }
+  }
+
+  reviewStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      pending: 'Awaiting moderation', published: 'Published', rejected: 'Not published',
+    };
+    return labels[status] ?? 'Status unavailable';
   }
 
   async logout(): Promise<void> {
