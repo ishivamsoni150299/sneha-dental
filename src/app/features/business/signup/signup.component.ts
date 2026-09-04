@@ -9,7 +9,7 @@ import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import {
   collection, query, where, limit, getDocs,
 } from 'firebase/firestore';
-import type { User } from 'firebase/auth';
+import type { PlatformUser } from '../../../core/services/auth-facade.service';
 import { environment } from '../../../../environments/environment';
 import {
   getPlatformPlanAmount,
@@ -160,7 +160,7 @@ export class SignupComponent implements OnInit {
   readonly googleLoading = signal(false);
   readonly authError     = signal<string | null>(null);
   readonly showPassword  = signal(false);
-  private  authUser      = signal<User | null>(null);
+  private  authUser      = signal<PlatformUser | null>(null);
   readonly authEmail     = computed(() => this.authUser()?.email ?? '');
 
   readonly step0 = this.fb.nonNullable.group({
@@ -455,7 +455,7 @@ export class SignupComponent implements OnInit {
     if (user && role) await this.routeAuthenticatedUser(user, role);
   }
 
-  private async routeAuthenticatedUser(user: User, role: AuthRole): Promise<void> {
+  private async routeAuthenticatedUser(user: PlatformUser, role: AuthRole): Promise<void> {
     if (role === 'patient') {
       await this.router.navigate(['/appointments']);
       return;

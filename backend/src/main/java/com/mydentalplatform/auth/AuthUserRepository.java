@@ -3,6 +3,7 @@ package com.mydentalplatform.auth;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -25,6 +26,17 @@ public class AuthUserRepository {
             from users
             where lower(email) = lower(?)
             """, USER_MAPPER, email).stream().findFirst();
+    }
+
+    public AuthUser createClinicSignup(String email, String passwordHash) {
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update("""
+            insert into users (id, role, email, password_hash, email_verified)
+            values (?, 'incomplete_signup', lower(?), ?, true)
+            """, id, email, passwordHash);
+        return new AuthUser(
+            id, null, UserRole.INCOMPLETE_SIGNUP, email.toLowerCase(), null,
+            passwordHash, true, false, true, false);
     }
 
     private static AuthUser mapUser(ResultSet resultSet, int rowNumber) throws SQLException {

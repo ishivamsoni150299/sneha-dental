@@ -1,17 +1,15 @@
-import { Injectable } from '@angular/core';
-import { getIdToken } from 'firebase/auth';
-import { auth } from '../firebase';
+import { Injectable, inject } from '@angular/core';
+import { AuthFacade } from './auth-facade.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticatedApiService {
-  async fetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Please sign in again to continue.');
+  private readonly auth = inject(AuthFacade);
 
-    const idToken = await getIdToken(user, true);
+  async fetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+    const idToken = await this.auth.getFreshIdToken();
     const headers = new Headers(init.headers);
     headers.set('Authorization', `Bearer ${idToken}`);
 
-    return fetch(input, { ...init, headers });
+    return fetch(input, { ...init, headers, credentials: 'include' });
   }
 }

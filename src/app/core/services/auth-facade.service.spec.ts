@@ -1,11 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import type { User } from 'firebase/auth';
-import { AuthFacade } from './auth-facade.service';
+import { AuthFacade, type PlatformUser } from './auth-facade.service';
 
 describe('AuthFacade', () => {
   let service: AuthFacade;
+  let fetchSpy: jasmine.Spy;
 
   beforeEach(async () => {
+    fetchSpy = spyOn(globalThis, 'fetch').and.resolveTo(new Response(
+      JSON.stringify({ code: 'invalid_credentials' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } },
+    ));
     TestBed.configureTestingModule({});
     service = TestBed.inject(AuthFacade);
     await service.authReady;
@@ -20,7 +24,7 @@ describe('AuthFacade', () => {
   });
 
   it('derives authentication from the current user signal', () => {
-    service.currentUser.set({ uid: 'clinic-owner' } as User);
+    service.currentUser.set({ uid: 'clinic-owner' } as PlatformUser);
     expect(service.isAuthenticated).toBeTrue();
 
     service.currentUser.set(null);
@@ -28,7 +32,7 @@ describe('AuthFacade', () => {
   });
 
   it('represents clinic and platform roles independently from identity', () => {
-    service.currentUser.set({ uid: 'authorised-user' } as User);
+    service.currentUser.set({ uid: 'authorised-user' } as PlatformUser);
 
     service.role.set('clinic-admin');
     expect(service.role()).toBe('clinic-admin');
@@ -37,56 +41,21 @@ describe('AuthFacade', () => {
     expect(service.role()).toBe('platform-admin');
   });
 
-  it('requires email verification for non-patient sign-in providers', async () => {
-    const user = {
-      uid: 'unverified-user',
-      emailVerified: false,
-      providerData: [{ providerId: 'google.com' }],
-    } as User;
+  it('creates a Spring session from the clinic login response', async () => {
+    fetchSpy.and.resolveTo(new Response(JSON.stringify({
+      accessToken: 'access-token',
+      expiresIn: 900,
+      user: {
+        id: 'clinic-owner',
+        clinicId: 'clinic-1',
+        role: 'clinic-admin',
+        email: 'owner@example.com',
+      },
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
 
-    const role = await service['resolveUser'](user);
-
-    expect(role).toBe('unverified');
-  });
-
-  it('recognizes a phone-only Firebase identity as a patient', async () => {
-    const user = {
-      uid: 'patient-user',
-      email: null,
-      emailVerified: false,
-      phoneNumber: '+919876543210',
-      providerData: [{ providerId: 'phone' }],
-    } as User;
-
-    const role = await service['resolveUser'](user);
-
-    expect(role).toBe('patient');
-    expect(service.currentUser()).toBe(user);
-  });
-
-  it('does not replace clinic email verification with a linked phone provider', async () => {
-    const user = {
-      uid: 'clinic-user',
-      email: 'owner@example.com',
-      emailVerified: false,
-      phoneNumber: '+919876543210',
-      providerData: [{ providerId: 'password' }, { providerId: 'phone' }],
-    } as User;
-
-    expect(await service['resolveUser'](user)).toBe('unverified');
-  });
-
-  it('does not apply a role resolved for a stale auth revision', async () => {
-    const user = {
-      uid: 'stale-user',
-      emailVerified: false,
-      providerData: [],
-    } as unknown as User;
-
-    const role = await service['resolveUser'](user, 999);
-
-    expect(role).toBe('unverified');
-    expect(service.currentUser()).toBeNull();
-    expect(service.role()).toBeNull();
+    expect(await service.signInWithEmail('owner@example.com', 'password')).toBe('clinic-admin');
+    expect(service.currentUser()?.uid).toBe('clinic-owner');
+    expect(service.currentUser()?.clinicId).toBe('clinic-1');
+    expect(service.isAuthenticated).toBeTrue();
   });
 });

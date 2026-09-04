@@ -1,39 +1,43 @@
 import { Injectable, inject, signal } from '@angular/core';
-import {
-  createUserWithEmailAndPassword,
-  getIdToken,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  reload,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  type User,
-} from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db, firebaseAppCheckReady } from '../firebase';
 import { ClinicConfigService } from './clinic-config.service';
 
 export type AuthRole = 'patient' | 'clinic-admin' | 'platform-admin' | 'incomplete-signup' | 'unverified';
 
+export interface PlatformUser {
+  uid: string;
+  email: string | null;
+  emailVerified: boolean;
+  phoneNumber: string | null;
+  clinicId: string | null;
+}
+
+interface AuthResponse {
+  accessToken: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    clinicId: string | null;
+    role: AuthRole;
+    email: string | null;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
   private readonly clinicConfig = inject(ClinicConfigService);
-  private authRevision = 0;
+  private accessToken: string | null = null;
+  private accessTokenExpiresAt = 0;
   private readyResolved = false;
   private resolveReady!: () => void;
+  private refreshRequest: Promise<string> | null = null;
 
-  readonly currentUser = signal<User | null>(null);
+  readonly currentUser = signal<PlatformUser | null>(null);
   readonly role = signal<AuthRole | null>(null);
   readonly ready = signal(false);
   readonly authReady = new Promise<void>(resolve => { this.resolveReady = resolve; });
 
   constructor() {
-    onAuthStateChanged(auth, user => {
-      void this.syncSession(user);
-    });
+    void this.restoreSession();
   }
 
   get isAuthenticated(): boolean {
@@ -41,91 +45,66 @@ export class AuthFacade {
   }
 
   async signInWithEmail(email: string, password: string): Promise<AuthRole> {
-    await firebaseAppCheckReady;
-    const credential = await signInWithEmailAndPassword(auth, email, password);
-    return this.resolveUser(credential.user);
+    return this.applySession(await this.authRequest('/api/auth/clinic/login', { email, password }));
   }
 
   async signInWithGoogle(): Promise<AuthRole> {
-    await firebaseAppCheckReady;
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    const credential = await signInWithPopup(auth, provider);
-    return this.resolveUser(credential.user);
+    throw this.authError('auth/provider-disabled', 'Google sign-in is not enabled.');
   }
 
-  async createAccountWithEmail(email: string, password: string): Promise<User> {
-    await firebaseAppCheckReady;
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await this.resolveUser(credential.user);
-    try {
-      await sendEmailVerification(credential.user, this.actionCodeSettings('/business/verify-email'));
-    } catch (error) {
-      console.error('[Auth] Initial verification email could not be sent:', error);
-    }
-    return credential.user;
+  async createAccountWithEmail(email: string, password: string): Promise<PlatformUser> {
+    this.applySession(await this.authRequest('/api/auth/clinic/signup', { email, password }));
+    return this.currentUser()!;
   }
 
-  async createAccountWithGoogle(): Promise<{ user: User; role: AuthRole }> {
-    await firebaseAppCheckReady;
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    const credential = await signInWithPopup(auth, provider);
-    const role = await this.resolveUser(credential.user);
-    return { user: credential.user, role };
+  async createAccountWithGoogle(): Promise<{ user: PlatformUser; role: AuthRole }> {
+    throw this.authError('auth/provider-disabled', 'Google sign-in is not enabled.');
   }
 
   async resendVerificationEmail(): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Your session has expired. Please sign in again.');
-    await sendEmailVerification(user, this.actionCodeSettings('/business/verify-email'));
+    throw this.authError('auth/provider-disabled', 'Email verification is not required for new accounts.');
   }
 
   async refreshVerificationStatus(): Promise<AuthRole> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Your session has expired. Please sign in again.');
-    await reload(user);
-    return this.resolveUser(user);
+    return (await this.resolveCurrentUser()) ?? 'incomplete-signup';
   }
 
-  async sendPasswordReset(email: string): Promise<void> {
-    await sendPasswordResetEmail(auth, email, this.actionCodeSettings('/business/login'));
+  async sendPasswordReset(_email: string): Promise<void> {
+    throw this.authError('auth/provider-disabled', 'Password reset is being migrated. Contact support.');
   }
 
   async getFreshIdToken(): Promise<string> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Your session has expired. Please sign in again.');
-    return getIdToken(user, true);
+    if (this.accessToken && Date.now() < this.accessTokenExpiresAt - 30_000) return this.accessToken;
+    if (!this.refreshRequest) {
+      this.refreshRequest = this.refreshSession().finally(() => { this.refreshRequest = null; });
+    }
+    return this.refreshRequest;
   }
 
   async resolveCurrentUser(): Promise<AuthRole | null> {
-    const user = auth.currentUser;
-    return user ? this.resolveUser(user) : null;
+    try {
+      await this.refreshSession();
+      return this.role();
+    } catch {
+      this.clearSession();
+      return null;
+    }
   }
 
   async logout(): Promise<void> {
-    this.authRevision += 1;
-    await signOut(auth);
-    this.currentUser.set(null);
-    this.role.set(null);
-    this.clinicConfig.resetToPlatformTheme();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } finally {
+      this.clearSession();
+      this.clinicConfig.resetToPlatformTheme();
+    }
   }
 
-  private async syncSession(user: User | null): Promise<void> {
-    const revision = ++this.authRevision;
+  private async restoreSession(): Promise<void> {
     try {
-      if (!user) {
-        this.currentUser.set(null);
-        this.role.set(null);
-        return;
-      }
-      await this.resolveUser(user, revision);
-    } catch (error) {
-      if (revision === this.authRevision) {
-        this.currentUser.set(user);
-        this.role.set(null);
-      }
-      console.error('[Auth] Failed to resolve the current account:', error);
+      await this.refreshSession();
+    } catch {
+      this.clearSession();
     } finally {
       if (!this.readyResolved) {
         this.readyResolved = true;
@@ -135,38 +114,51 @@ export class AuthFacade {
     }
   }
 
-  private async resolveUser(user: User, expectedRevision?: number): Promise<AuthRole> {
-    const revision = expectedRevision ?? ++this.authRevision;
-    let role: AuthRole;
-
-    const isPhoneOnlyPatient = !user.email &&
-      Boolean(user.phoneNumber) &&
-      user.providerData.some(provider => provider.providerId === 'phone');
-
-    if (isPhoneOnlyPatient) {
-      role = 'patient';
-    } else if (!user.emailVerified) {
-      role = 'unverified';
-    } else {
-      const superAdmin = await getDoc(doc(db, 'superAdmins', user.uid));
-      if (superAdmin.exists()) {
-        role = 'platform-admin';
-      } else {
-        role = await this.clinicConfig.loadByUid(user.uid)
-          ? 'clinic-admin'
-          : 'incomplete-signup';
-      }
-    }
-
-    if (revision === this.authRevision) {
-      this.currentUser.set(user);
-      this.role.set(role);
-    }
-    return role;
+  private async refreshSession(): Promise<string> {
+    const response = await this.authRequest('/api/auth/refresh');
+    this.applySession(response);
+    return response.accessToken;
   }
 
-  private actionCodeSettings(path: string): { url: string; handleCodeInApp: false } {
-    const origin = typeof window === 'undefined' ? 'https://www.mydentalplatform.com' : window.location.origin;
-    return { url: `${origin}${path}`, handleCodeInApp: false };
+  private async authRequest(path: string, body?: object): Promise<AuthResponse> {
+    const response = await fetch(path, {
+      method: 'POST',
+      credentials: 'include',
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await response.json().catch(() => ({})) as AuthResponse & { code?: string; message?: string };
+    if (!response.ok) {
+      const code = response.status === 409 ? 'auth/email-already-in-use' :
+        data.code === 'password_migration_required' ? 'auth/password-migration-required' :
+        'auth/invalid-credential';
+      throw this.authError(code, data.message ?? 'Authentication failed.');
+    }
+    return data;
+  }
+
+  private applySession(response: AuthResponse): AuthRole {
+    this.accessToken = response.accessToken;
+    this.accessTokenExpiresAt = Date.now() + response.expiresIn * 1000;
+    this.currentUser.set({
+      uid: response.user.id,
+      email: response.user.email,
+      emailVerified: true,
+      phoneNumber: null,
+      clinicId: response.user.clinicId,
+    });
+    this.role.set(response.user.role);
+    return response.user.role;
+  }
+
+  private clearSession(): void {
+    this.accessToken = null;
+    this.accessTokenExpiresAt = 0;
+    this.currentUser.set(null);
+    this.role.set(null);
+  }
+
+  private authError(code: string, message: string): Error & { code: string } {
+    return Object.assign(new Error(message), { code });
   }
 }

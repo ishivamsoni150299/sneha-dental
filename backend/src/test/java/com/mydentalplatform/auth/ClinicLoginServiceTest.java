@@ -108,6 +108,28 @@ class ClinicLoginServiceTest {
         verify(refreshTokenRepository).revokeByHash("refresh-token-hash", NOW);
     }
 
+    @Test
+    void signupHashesPasswordAndStartsAnIncompleteClinicSession() {
+        AuthUser user = new AuthUser(
+            UUID.randomUUID(), null, UserRole.INCOMPLETE_SIGNUP, "new@example.com", null,
+            "encoded-password", true, false, true, false);
+        TokenService.RefreshToken refreshToken = new TokenService.RefreshToken(
+            "plain-refresh-token", "hashed-refresh-token", NOW.plusSeconds(604_800));
+        when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("strong-password")).thenReturn("encoded-password");
+        when(userRepository.createClinicSignup("new@example.com", "encoded-password")).thenReturn(user);
+        when(tokenService.createRefreshToken(NOW)).thenReturn(refreshToken);
+        when(tokenService.createAccessToken(user, NOW)).thenReturn("access-token");
+        when(tokenService.accessTokenExpiresInSeconds()).thenReturn(900L);
+
+        ClinicLoginService.LoginResult result = loginService.signup(
+            "NEW@example.com", "strong-password", "test-browser");
+
+        assertEquals(UserRole.INCOMPLETE_SIGNUP, result.user().role());
+        verify(refreshTokenRepository).create(
+            user.id(), "hashed-refresh-token", refreshToken.expiresAt(), "test-browser");
+    }
+
     private AuthUser clinicAdmin(boolean passwordMigrationRequired) {
         return new AuthUser(
             UUID.fromString("f982a5a0-c77d-4fb9-a45b-e35fe73556b1"),

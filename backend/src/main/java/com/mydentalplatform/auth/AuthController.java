@@ -46,6 +46,16 @@ public class AuthController {
         return loginResponse(result);
     }
 
+    @PostMapping("/clinic/signup")
+    ResponseEntity<LoginResponse> clinicSignup(
+        @Valid @RequestBody SignupRequest request,
+        HttpServletRequest servletRequest
+    ) {
+        ClinicLoginService.LoginResult result = loginService.signup(
+            request.email(), request.password(), servletRequest.getHeader(HttpHeaders.USER_AGENT));
+        return loginResponse(result);
+    }
+
     @PostMapping("/refresh")
     ResponseEntity<LoginResponse> refresh(
         @CookieValue(name = "refresh_token", required = false) String refreshToken,
@@ -105,10 +115,17 @@ public class AuthController {
         String code = error instanceof PasswordMigrationRequiredException
             ? "password_migration_required"
             : "invalid_credentials";
-        return ResponseEntity.status(401).body(new ErrorResponse(code, error.getMessage()));
+        int status = error instanceof AuthConflictException ? 409 : 401;
+        return ResponseEntity.status(status).body(new ErrorResponse(code, error.getMessage()));
     }
 
     record LoginRequest(@Email @NotBlank String email, @NotBlank String password) {
+    }
+
+    record SignupRequest(
+        @Email @NotBlank String email,
+        @NotBlank @jakarta.validation.constraints.Size(min = 8, max = 72) String password
+    ) {
     }
 
     record LoginResponse(String accessToken, long expiresIn, UserResponse user) {

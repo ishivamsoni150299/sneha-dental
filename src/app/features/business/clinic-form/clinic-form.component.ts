@@ -678,7 +678,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        idToken: await user.getIdToken(),
+        idToken: await this.superAuth.getFreshIdToken(),
         clinicId,
         email,
         password: password || undefined,
@@ -755,7 +755,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         domain,
-        idToken: await user.getIdToken(),
+        idToken: await this.superAuth.getFreshIdToken(),
       }),
     });
 

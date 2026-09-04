@@ -63,6 +63,24 @@ public class ClinicLoginService {
     }
 
     @Transactional
+    public LoginResult signup(String email, String password, String userAgent) {
+        String normalizedEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
+        if (userRepository.findByEmail(normalizedEmail).isPresent()) {
+            throw new AuthConflictException("An account already exists for this email.");
+        }
+        AuthUser user = userRepository.createClinicSignup(
+            normalizedEmail, passwordEncoder.encode(password));
+        Instant now = clock.instant();
+        TokenService.RefreshToken refreshToken = tokenService.createRefreshToken(now);
+        refreshTokenRepository.create(user.id(), refreshToken.hash(), refreshToken.expiresAt(), userAgent);
+        return new LoginResult(
+            tokenService.createAccessToken(user, now),
+            tokenService.accessTokenExpiresInSeconds(),
+            refreshToken,
+            user);
+    }
+
+    @Transactional
     public LoginResult refresh(String refreshTokenValue, String userAgent) {
         if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
             throw new AuthException("Refresh token is required.");
@@ -72,7 +90,7 @@ public class ClinicLoginService {
             .findActiveForUpdate(tokenService.hashRefreshToken(refreshTokenValue), now)
             .orElseThrow(() -> new AuthException("Refresh token is invalid or expired."));
         AuthUser user = session.user();
-        if (!user.enabled() || user.passwordMigrationRequired()) {
+        if (!user.enabled() || user.passwordMigrationRequired() || !user.emailVerified()) {
             throw new AuthException("This session is no longer valid.");
         }
 
