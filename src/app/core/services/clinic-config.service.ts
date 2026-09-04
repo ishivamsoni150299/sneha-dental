@@ -1,6 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { getIdTokenResult } from 'firebase/auth';
-import { collection, getDoc, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
 import {
   CLINIC_THEMES,
   clinicConfig,
@@ -9,7 +7,6 @@ import {
   type ClinicTheme,
 } from '../config/clinic.config';
 export type { ClinicConfig };
-import { auth, db } from '../firebase';
 
 // ── Premium theme palettes ────────────────────────────────────────────────────
 // Each palette maps CSS variable names → hex/rgba values.
@@ -144,6 +141,7 @@ function clinicConfigData(raw: Record<string, unknown>): Record<string, unknown>
 export class ClinicConfigService {
   private readonly _config   = signal<ClinicConfig>(clinicConfig);
   private readonly _isLoaded = signal<boolean>(false);
+  private adminToken: string | null = null;
 
   constructor() {
     applyTheme(this._config().theme);
@@ -204,31 +202,11 @@ export class ClinicConfigService {
       return;
     }
     try {
-      // 1st attempt — match on primary custom domain
-      const customDomainSnap = await getDocs(query(
-        collection(db, 'clinics'),
-        where('domain', '==', host),
-        where('active', '==', true),
-        limit(1)
-      ));
-      let matchedClinic = customDomainSnap.docs.find(candidate =>
-        clinicHasPlatformFeature(candidate.data() as Partial<ClinicConfig>, 'customDomain')
-      );
-
-      // 2nd attempt — fall back to vercelDomain (e.g. sneha-dental.vercel.app)
-      if (!matchedClinic) {
-        const hostedDomainSnap = await getDocs(query(
-          collection(db, 'clinics'),
-          where('vercelDomain', '==', host),
-          where('active', '==', true),
-          limit(1)
-        ));
-        matchedClinic = hostedDomainSnap.docs[0];
-      }
-
-      if (matchedClinic) {
-        const docId = matchedClinic.id;
-        const rest = clinicConfigData(matchedClinic.data() as Record<string, unknown>);
+      const response = await fetch(`/api/public/clinics/resolve?host=${encodeURIComponent(host)}`);
+      if (response.ok) {
+        const raw = await response.json() as Record<string, unknown>;
+        const docId = String(raw['clinicId'] ?? raw['id'] ?? '');
+        const rest = clinicConfigData(raw);
         const loadedConfig: ClinicConfig = {
           ...(rest as unknown as ClinicConfig),
           clinicId: docId,
@@ -259,7 +237,7 @@ export class ClinicConfigService {
         this._isLoaded.set(true);
       }
     } catch (e) {
-      console.error('[ClinicConfig] Firestore load failed — using static config:', e);
+      console.error('[ClinicConfig] API load failed — using static config:', e);
     }
   }
 
@@ -276,53 +254,28 @@ export class ClinicConfigService {
    * Used when the platform admin area loads at mydentalplatform.com (no hostname to match).
    * Returns true if a clinic was found and loaded.
    */
-  async loadByUid(uid: string): Promise<boolean> {
+  async loadByUid(_uid: string, accessToken?: string): Promise<boolean> {
     try {
-      const user = auth.currentUser;
-      if (user?.uid === uid) {
-        const token = await getIdTokenResult(user, true);
-        const claimedClinicId = typeof token.claims['clinicId'] === 'string'
-          ? token.claims['clinicId']
-          : '';
-        if (claimedClinicId) {
-          const claimedClinic = await getDoc(doc(db, 'clinics', claimedClinicId));
-          if (claimedClinic.exists() && claimedClinic.data()['active'] === true) {
-            return this.applyAdminClinic(claimedClinic.id, claimedClinic.data());
-          }
-        }
-      }
-
-      // Legacy fallback for clinics created before owner data moved to the
-      // authenticated private/account subdocument.
-      const snap = await getDocs(query(
-        collection(db, 'clinics'),
-        where('adminUid', '==', uid),
-        where('active',   '==', true),
-        limit(1),
-      ));
-      if (!snap.empty) {
-        const docRef = snap.docs[0];
-        return this.applyAdminClinic(docRef.id, docRef.data());
-      }
+      if (!accessToken) return false;
+      const response = await fetch('/api/clinics/current', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: 'include',
+      });
+      if (!response.ok) return false;
+      this.adminToken = accessToken;
+      const data = await response.json() as Record<string, unknown>;
+      return this.applyAdminClinic(String(data['clinicId'] ?? data['id'] ?? ''), data);
     } catch (e) {
       console.error('[ClinicConfig] loadByUid failed:', e);
     }
     return false;
   }
 
-  private async applyAdminClinic(
+  private applyAdminClinic(
     clinicId: string,
     publicData: Record<string, unknown>,
-  ): Promise<boolean> {
-    let privateData: Record<string, unknown> = {};
-    try {
-      const privateSnap = await getDoc(doc(db, 'clinics', clinicId, 'private', 'account'));
-      if (privateSnap.exists()) privateData = privateSnap.data();
-    } catch {
-      // Legacy clinics may not have a private account document yet.
-    }
-
-    const rest = clinicConfigData({ ...publicData, ...privateData });
+  ): boolean {
+    const rest = clinicConfigData(publicData);
     const loadedConfig: ClinicConfig = {
       ...(rest as unknown as ClinicConfig),
       clinicId,
@@ -348,7 +301,17 @@ export class ClinicConfigService {
     const clinicId = this.config.clinicId;
     if (!clinicId || clinicId === 'default') return;
     try {
-      await updateDoc(doc(db, 'clinics', clinicId), { [field]: true });
+      if (!this.adminToken) return;
+      const response = await fetch('/api/clinics/current/onboarding', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${this.adminToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ field }),
+      });
+      if (!response.ok) throw new Error('Could not save onboarding state.');
       this.updateConfig({ [field]: true });
     } catch (e) {
       console.error('[ClinicConfig] saveOnboardingFlag failed:', e);
@@ -371,6 +334,7 @@ export class ClinicConfigService {
   resetToPlatformTheme(): void {
     this._config.set(clinicConfig);
     this._isLoaded.set(false);
+    this.adminToken = null;
     applyPlatformTheme();
   }
 

@@ -1,13 +1,4 @@
 import { Injectable } from '@angular/core';
-import {
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-  type DocumentSnapshot,
-} from 'firebase/firestore';
 import type {
   ClinicConfig,
   MarketplaceDentalServiceId,
@@ -15,7 +6,6 @@ import type {
 } from '../config/clinic.config';
 import { clinicHasPlatformFeature } from '../config/platform-entitlements';
 import { MARKETPLACE_DENTAL_SERVICES } from '../config/marketplace.config';
-import { db } from '../firebase';
 
 export interface MarketplaceClinic extends ClinicConfig {
   id: string;
@@ -39,17 +29,10 @@ export class MarketplaceService {
   );
 
   async getVerifiedClinics(region: MarketplaceRegionId): Promise<MarketplaceClinic[]> {
-    const snapshot = await getDocs(query(
-      collection(db, 'clinics'),
-      where('marketplaceStatus', '==', 'verified'),
-      limit(100),
-    ));
-
-    return snapshot.docs
-      .map(document => this.toMarketplaceClinic(document))
-      .filter((clinic): clinic is MarketplaceClinic =>
-        clinic !== null && clinic.marketplaceProfile?.region === region,
-      )
+    const response = await fetch(`/api/marketplace/clinics?region=${encodeURIComponent(region)}`);
+    if (!response.ok) throw new Error('Could not load dentists.');
+    return (await response.json() as MarketplaceClinic[])
+      .filter(clinic => clinic.active === true && clinic.marketplaceStatus === 'verified')
       .sort((first, second) =>
         String(second.marketplaceVerifiedAt ?? '').localeCompare(String(first.marketplaceVerifiedAt ?? '')),
       );
@@ -59,42 +42,18 @@ export class MarketplaceService {
     const normalizedSlug = slug.trim().toLowerCase();
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedSlug)) return null;
 
-    const snapshot = await getDocs(query(
-      collection(db, 'clinics'),
-      where('marketplaceSlug', '==', normalizedSlug),
-      limit(2),
-    ));
-    const clinic = snapshot.docs
-      .map(document => this.toMarketplaceClinic(document))
-      .find(candidate => candidate?.marketplaceSlug === normalizedSlug);
-    return clinic ?? null;
+    const response = await fetch(`/api/marketplace/clinics/${encodeURIComponent(normalizedSlug)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error('Could not load this dentist.');
+    return await response.json() as MarketplaceClinic;
   }
 
   async getPublishedReviews(clinicId: string): Promise<MarketplaceReview[]> {
     const normalizedClinicId = clinicId.trim();
     if (!normalizedClinicId || normalizedClinicId.includes('/')) return [];
-    const snapshot = await getDocs(query(
-      collection(db, 'appointmentReviews'),
-      where('clinicId', '==', normalizedClinicId),
-      where('moderationStatus', '==', 'published'),
-      orderBy('publishedAt', 'desc'),
-      limit(50),
-    ));
-    return snapshot.docs.flatMap(document => {
-      const data = document.data();
-      const rating = Number(data['rating']);
-      if (!Number.isInteger(rating) || rating < 1 || rating > 5) return [];
-      return [{
-        id: document.id,
-        clinicId: normalizedClinicId,
-        rating,
-        text: this.cleanText(data['text'], 1200),
-        patientAlias: this.cleanText(data['patientAlias'], 48) || 'Verified patient',
-        publishedAt: this.timestampIso(data['publishedAt']),
-        clinicResponse: this.cleanText(data['clinicResponse'], 600),
-        clinicRespondedAt: this.timestampIso(data['clinicRespondedAt']),
-      }];
-    });
+    const response = await fetch(`/api/marketplace/clinics/${encodeURIComponent(normalizedClinicId)}/reviews`);
+    if (!response.ok) throw new Error('Could not load reviews.');
+    return await response.json() as MarketplaceReview[];
   }
 
   serviceLabel(serviceId: MarketplaceDentalServiceId): string {
@@ -125,29 +84,4 @@ export class MarketplaceService {
     );
   }
 
-  private toMarketplaceClinic(document: DocumentSnapshot): MarketplaceClinic | null {
-    if (!document.exists()) return null;
-    const clinic = { id: document.id, ...document.data() } as MarketplaceClinic;
-    if (
-      clinic.active !== true ||
-      clinic.marketplaceStatus !== 'verified' ||
-      !clinic.marketplaceSlug ||
-      !clinic.marketplaceProfile
-    ) {
-      return null;
-    }
-    return clinic;
-  }
-
-  private cleanText(value: unknown, max: number): string {
-    return typeof value === 'string' ? value.trim().slice(0, max) : '';
-  }
-
-  private timestampIso(value: unknown): string | null {
-    if (!value || typeof value !== 'object' || !('toDate' in value)) return null;
-    const toDate = value.toDate;
-    if (typeof toDate !== 'function') return null;
-    const date = toDate.call(value) as unknown;
-    return date instanceof Date && Number.isFinite(date.getTime()) ? date.toISOString() : null;
-  }
 }

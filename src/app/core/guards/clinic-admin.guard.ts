@@ -45,7 +45,7 @@ export const clinicAdminGuard: CanActivateFn = async (_route, state) => {
 
   if (!clinicCfg.isLoaded) {
     const uid = auth.currentUser()!.uid;
-    const ok  = await clinicCfg.loadByUid(uid);
+    const ok  = await clinicCfg.loadByUid(uid, await auth.getFreshIdToken());
     if (!ok) {
       return router.createUrlTree(['/business/signup'], {
         queryParams: { resume: 'true' },
