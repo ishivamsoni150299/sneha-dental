@@ -87,6 +87,13 @@ public class ClinicLoginService {
             user);
     }
 
+    @Transactional
+    public void logout(String refreshTokenValue) {
+        if (refreshTokenValue == null || refreshTokenValue.isBlank()) return;
+        refreshTokenRepository.revokeByHash(
+            tokenService.hashRefreshToken(refreshTokenValue), clock.instant());
+    }
+
     public record LoginResult(
         String accessToken,
         long expiresIn,

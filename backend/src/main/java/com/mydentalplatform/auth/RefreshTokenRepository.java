@@ -58,6 +58,14 @@ public class RefreshTokenRepository {
         if (updated != 1) throw new AuthException("Refresh token has already been used.");
     }
 
+    public void revokeByHash(String tokenHash, Instant revokedAt) {
+        jdbcTemplate.update("""
+            update refresh_tokens
+            set revoked_at = ?
+            where token_hash = ? and revoked_at is null
+            """, revokedAt, tokenHash);
+    }
+
     public record RefreshSession(UUID tokenId, AuthUser user) {
     }
 }

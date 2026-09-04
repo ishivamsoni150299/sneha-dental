@@ -12,8 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,12 +56,28 @@ public class AuthController {
         return loginResponse(result);
     }
 
+    @PostMapping("/logout")
+    ResponseEntity<Void> logout(
+        @CookieValue(name = "refresh_token", required = false) String refreshToken
+    ) {
+        loginService.logout(refreshToken);
+        return ResponseEntity.noContent()
+            .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie().toString())
+            .build();
+    }
+
+    @GetMapping("/me")
+    UserResponse me(@AuthenticationPrincipal Jwt jwt) {
+        String clinicId = jwt.getClaimAsString("clinic_id");
+        return new UserResponse(
+            UUID.fromString(jwt.getSubject()),
+            clinicId == null ? null : UUID.fromString(clinicId),
+            jwt.getClaimAsString("role"),
+            jwt.getClaimAsString("email"));
+    }
+
     private ResponseEntity<LoginResponse> loginResponse(ClinicLoginService.LoginResult result) {
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", result.refreshToken().value())
-            .httpOnly(true)
-            .secure(secureCookies)
-            .sameSite("Strict")
-            .path("/api/auth")
+        ResponseCookie cookie = refreshCookie(result.refreshToken().value())
             .maxAge(Duration.between(java.time.Instant.now(), result.refreshToken().expiresAt()))
             .build();
         AuthUser user = result.user();
@@ -67,6 +86,18 @@ public class AuthController {
             .body(new LoginResponse(
                 result.accessToken(), result.expiresIn(),
                 new UserResponse(user.id(), user.clinicId(), user.role().claimValue(), user.email())));
+    }
+
+    private ResponseCookie.ResponseCookieBuilder refreshCookie(String value) {
+        return ResponseCookie.from("refresh_token", value)
+            .httpOnly(true)
+            .secure(secureCookies)
+            .sameSite("Strict")
+            .path("/api/auth");
+    }
+
+    private ResponseCookie expiredRefreshCookie() {
+        return refreshCookie("").maxAge(Duration.ZERO).build();
     }
 
     @ExceptionHandler(AuthException.class)

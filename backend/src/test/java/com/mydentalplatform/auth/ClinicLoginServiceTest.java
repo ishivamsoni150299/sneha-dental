@@ -99,6 +99,15 @@ class ClinicLoginServiceTest {
         verify(refreshTokenRepository).revokeAndReplace(oldTokenId, newTokenId, NOW);
     }
 
+    @Test
+    void logoutRevokesThePresentedRefreshTokenHash() {
+        when(tokenService.hashRefreshToken("plain-refresh-token")).thenReturn("refresh-token-hash");
+
+        loginService.logout("plain-refresh-token");
+
+        verify(refreshTokenRepository).revokeByHash("refresh-token-hash", NOW);
+    }
+
     private AuthUser clinicAdmin(boolean passwordMigrationRequired) {
         return new AuthUser(
             UUID.fromString("f982a5a0-c77d-4fb9-a45b-e35fe73556b1"),
