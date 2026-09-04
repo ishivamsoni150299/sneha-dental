@@ -1,12 +1,10 @@
-<div id="patient-phone-recaptcha" aria-hidden="true"></div>
-
 <section class="border-b border-gray-200 bg-white">
   <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
     <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Patient appointments</p>
     <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 class="max-w-2xl text-3xl font-bold text-gray-950 sm:text-4xl">Your visits, across clinics</h1>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">Verify the mobile number used for booking to track requests and manage upcoming appointments.</p>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">Book appointments directly from a dentist profile. Patient account access is being upgraded.</p>
       </div>
       @if (step() === 'appointments') {
         <button type="button" (click)="logout()" class="self-start text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-950">
@@ -25,6 +23,13 @@
         <h2 class="mt-3 text-2xl font-bold text-gray-950">Use a separate patient session</h2>
         <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">Sign out of the clinic or platform account, then verify the mobile number used for your appointment.</p>
         <button type="button" (click)="logout()" class="mt-6 rounded-lg bg-gray-950 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800">Sign out business account</button>
+      </div>
+    } @else if (!patientAccessEnabled()) {
+      <div class="mx-auto max-w-2xl border-y border-gray-200 bg-white px-6 py-12 text-center sm:px-10">
+        <p class="text-xs font-bold uppercase tracking-widest text-cyan-700">Account upgrade in progress</p>
+        <h2 class="mt-3 text-2xl font-bold text-gray-950">Patient sign-in is temporarily unavailable</h2>
+        <p class="mx-auto mt-3 max-w-lg text-sm leading-6 text-gray-600">We removed the previous SMS verification system while moving patient records to the new secure platform. You can still find a dentist and request an appointment.</p>
+        <a routerLink="/dentists" class="mt-7 inline-flex rounded-lg bg-gray-950 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800">Find a dentist</a>
       </div>
     } @else if (step() === 'phone') {
       <div class="mx-auto grid max-w-4xl gap-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm md:grid-cols-[minmax(0,1fr)_280px]">

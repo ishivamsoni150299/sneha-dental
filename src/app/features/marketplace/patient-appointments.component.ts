@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
@@ -23,6 +23,7 @@ export class PatientAppointmentsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly patientAuth = inject(PatientAuthService);
   private readonly patientApi = inject(PatientAppointmentApiService);
+  readonly patientAccessEnabled = computed(() => this.patientAuth.isSignedIn());
 
   readonly step = signal<VerificationStep>('phone');
   readonly phoneMasked = signal('');

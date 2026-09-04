@@ -63,11 +63,12 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
 }
 
 describe('PatientAppointmentsComponent', () => {
-  it('starts with phone verification for a guest', async () => {
+  it('does not offer OTP verification to a guest', async () => {
     const { fixture, api } = await createFixture();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Verify your mobile');
-    expect(text).toContain('Private by design');
+    expect(text).toContain('Patient sign-in is temporarily unavailable');
+    expect(text).toContain('Find a dentist');
+    expect(text).not.toContain('Send verification code');
     expect(api.session).not.toHaveBeenCalled();
   });
 
