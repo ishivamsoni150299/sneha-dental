@@ -28,10 +28,10 @@ services:
           property: password
       - key: JWT_ISSUER
         value: https://mydentalplatform.com
-      - key: JWT_PRIVATE_KEY
-        sync: false
-      - key: JWT_PUBLIC_KEY
-        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SECURE_COOKIES
+        value: "true"
       - key: SMS_PROVIDER
         value: msg91
       - key: SMS_AUTH_KEY

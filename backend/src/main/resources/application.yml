@@ -18,11 +18,14 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${JWT_ISSUER:http://localhost:8080}
+
+platform:
+  auth:
+    issuer: ${JWT_ISSUER:http://localhost:8080}
+    secret: ${JWT_SECRET:bXlkZW50YWxwbGF0Zm9ybS1sb2NhbC1kZXZlbG9wbWVudC1vbmx5LXNlY3JldA==}
+    access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT15M}
+    refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P7D}
+    secure-cookies: ${SECURE_COOKIES:false}
 
 server:
   port: ${PORT:8080}
