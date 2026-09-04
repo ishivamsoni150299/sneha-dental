@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   collection, getDocs, getDoc, setDoc, updateDoc,
   deleteDoc, deleteField, doc, query, orderBy, where, serverTimestamp, writeBatch,
@@ -16,6 +16,7 @@ import type {
   ProviderVerification,
 } from '../config/marketplace.config';
 import { db } from '../firebase';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 // ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
 // Billing, subscription, domain, active, admin ownership, and AI provider config
@@ -149,6 +150,7 @@ function partitionClinicData(data: Record<string, unknown>): {
 @Injectable({ providedIn: 'root' })
 export class ClinicFirestoreService {
   private readonly COL = 'clinics';
+  private readonly api = inject(AuthenticatedApiService);
 
   private async mergePrivate(id: string, publicData: Record<string, unknown>): Promise<StoredClinic> {
     try {
@@ -398,9 +400,11 @@ export class ClinicFirestoreService {
       throw new Error('No clinic settings fields to update');
     }
 
-    await updateDoc(
-      doc(db, this.COL, id),
-      toFirestoreData(safeData),
-    );
+    const response = await this.api.fetch('/api/clinics/current/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(safeData),
+    });
+    if (!response.ok) throw new Error('Could not update clinic settings.');
   }
 }

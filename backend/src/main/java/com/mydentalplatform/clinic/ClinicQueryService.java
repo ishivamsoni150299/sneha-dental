@@ -15,6 +15,11 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class ClinicQueryService {
+    private static final List<String> SETTINGS_FIELDS = List.of(
+        "name", "doctorName", "doctorQualification", "patientCount", "doctorBio",
+        "phone", "phoneE164", "whatsappNumber", "addressLine1", "addressLine2", "city",
+        "mapEmbedUrl", "mapDirectionsUrl", "hours", "services", "testimonials", "social",
+        "theme", "logoDataUrl", "marketplaceProfile", "onboardingDismissed", "onboardingSharedWebsite");
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
@@ -89,6 +94,22 @@ public class ClinicQueryService {
             """, field, clinicId);
     }
 
+    public void updateSettings(UUID clinicId, Map<String, Object> request) {
+        Map<String, Object> safe = new LinkedHashMap<>();
+        request.forEach((key, value) -> {
+            if (SETTINGS_FIELDS.contains(key)) safe.put(key, value);
+        });
+        if (safe.isEmpty()) throw new IllegalArgumentException("No clinic settings fields to update.");
+        int updated = jdbcTemplate.update("""
+            update clinics
+            set name = coalesce(nullif(?, ''), name),
+                public_config = public_config || cast(? as jsonb),
+                updated_at = now()
+            where id = ?
+            """, safe.getOrDefault("name", ""), jsonString(safe), clinicId);
+        if (updated != 1) throw new IllegalArgumentException("Clinic not found.");
+    }
+
     private List<Map<String, Object>> clinicQuery(String suffix, Object... arguments) {
         String sql = """
             select id, active, marketplace_status, marketplace_slug,
@@ -114,6 +135,14 @@ public class ClinicQueryService {
             return new LinkedHashMap<>(objectMapper.readValue(value, new TypeReference<>() {}));
         } catch (JacksonException error) {
             throw new IllegalStateException("Clinic configuration contains invalid JSON.", error);
+        }
+    }
+
+    private String jsonString(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JacksonException error) {
+            throw new IllegalArgumentException("Clinic settings are invalid.", error);
         }
     }
 

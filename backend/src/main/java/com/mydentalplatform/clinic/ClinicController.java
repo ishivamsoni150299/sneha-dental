@@ -60,6 +60,15 @@ public class ClinicController {
             .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/clinics/current/settings")
+    ResponseEntity<Void> settings(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody Map<String, Object> request
+    ) {
+        clinicQueryService.updateSettings(clinicId(jwt), request);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/clinics/current/onboarding")
     ResponseEntity<Void> onboarding(
         @AuthenticationPrincipal Jwt jwt,
