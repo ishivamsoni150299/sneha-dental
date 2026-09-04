@@ -1,0 +1,11 @@
+.git
+.github
+.vercel
+.angular
+.agents
+dist
+node_modules
+backend/target
+mydentalplatform-demo-video
+*.log
+.env*

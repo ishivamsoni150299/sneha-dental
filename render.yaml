@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: mydentalplatform
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: mydentalplatform-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: mydentalplatform-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: mydentalplatform-db
+          property: database
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: mydentalplatform-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: mydentalplatform-db
+          property: password
+      - key: JWT_ISSUER
+        value: https://mydentalplatform.com
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: SMS_PROVIDER
+        value: msg91
+      - key: SMS_AUTH_KEY
+        sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+
+databases:
+  - name: mydentalplatform-db
+    plan: free
+    databaseName: mydentalplatform
+    user: mydentalplatform
+    postgresMajorVersion: "18"
