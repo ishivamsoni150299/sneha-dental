@@ -1,28 +1,11 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
 import type { ClinicHours } from '../config/clinic.config';
 import type { Doctor } from './doctor.service';
 import { isBookableDateTime, normalizeTimeValue } from './doctor.service';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  getDoc,
-  orderBy,
-  doc,
-  updateDoc,
-  onSnapshot,
-  runTransaction,
-  serverTimestamp,
-  Timestamp,
-  type Unsubscribe,
-} from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import {
-  buildAppointmentLookupKey,
-  buildLegacyAppointmentLookupKey,
-} from '../utils/appointment-lookup';
+import { AuthenticatedApiService } from './authenticated-api.service';
+
+type Unsubscribe = () => void;
 
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
 export type PaymentMethod = 'cash' | 'upi' | 'card' | 'insurance' | 'other';
@@ -169,16 +152,16 @@ export interface Appointment {
   source?: AppointmentSource;
   phoneE164?: string;
   patientUid?: string | null;
-  confirmationDeadline?: Timestamp;
-  confirmationRespondedAt?: Timestamp;
+  confirmationDeadline?: string;
+  confirmationRespondedAt?: string;
   confirmationResponseMinutes?: number;
   confirmationSlaMissed?: boolean;
-  confirmedAt?: Timestamp;
-  declinedAt?: Timestamp;
-  expiredAt?: Timestamp;
+  confirmedAt?: string;
+  declinedAt?: string;
+  expiredAt?: string;
   attribution?: AppointmentAttribution;
   consentVersion?: string;
-  consentAt?: Timestamp;
+  consentAt?: string;
   status: AppointmentStatus;
   // Clinical record (filled by clinic after the visit)
   clinicNotes?:    string;
@@ -186,21 +169,14 @@ export interface Appointment {
   amountCharged?:  number;
   paymentStatus?:  PaymentStatus;
   paymentMethod?:  PaymentMethod;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
   private readonly clinic = inject(ClinicConfigService);
-  private readonly zone   = inject(NgZone);
-  private readonly COLLECTION = 'appointments';
-
-  private stripUndefined<T extends Record<string, unknown>>(data: T): Partial<T> {
-    return Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value !== undefined),
-    ) as Partial<T>;
-  }
+  private readonly api = inject(AuthenticatedApiService);
 
   private get clinicId(): string {
     return this.clinic.config.clinicId ?? this.clinic.config.bookingRefPrefix;
@@ -218,29 +194,9 @@ export class AppointmentService {
     return bookingRef.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
   }
 
-  private buildSlotKey(clinicId: string, date: string, time: string, doctorId?: string | null): string {
-    const normalizedDoctor = (doctorId ?? 'any').replace(/[^a-zA-Z0-9_-]/g, '');
-    const normalizedTime = normalizeTimeValue(time).replace(/[^0-9A-Za-z]/g, '');
-    return `${clinicId}_${normalizedDoctor}_${date}_${normalizedTime}`;
-  }
-
-  private mapAppointment(id: string, data: Appointment): Appointment {
-    return {
-      ...data,
-      id,
-      time: normalizeTimeValue(data.time),
-    };
-  }
-
-  private slotRefFor(data: Pick<Appointment, 'clinicId' | 'date' | 'time' | 'doctorId'>) {
-    return doc(db, 'slots', this.buildSlotKey(data.clinicId, data.date, data.time, data.doctorId));
-  }
-
-  private generateBookingRef(prefix = this.prefix): string {
-    const chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const random = crypto.getRandomValues(new Uint8Array(8));
-    const suffix = Array.from(random, b => chars[b % chars.length]).join('');
-    return `${prefix}-${suffix}`;
+  private async error(response: Response, fallback: string): Promise<Error> {
+    const body = await response.json().catch(() => null) as { detail?: string; message?: string } | null;
+    return new Error(body?.detail ?? body?.message ?? fallback);
   }
 
   /** True if appointment date is more than 24 hours from now. */
@@ -276,96 +232,35 @@ export class AppointmentService {
     }
 
     const clinicId = context?.clinicId ?? this.clinicId;
-    const bookingRef = this.generateBookingRef(context?.bookingRefPrefix ?? this.prefix);
-    const lookupKey = await buildAppointmentLookupKey(clinicId, bookingRef, data.phone);
     const normalizedTime = normalizeTimeValue(data.time);
-    const phoneE164 = `+91${this.normalizePhone(data.phone)}`;
-    const appointmentPayload = this.stripUndefined({
-      ...data,
-      clinicId,
-      lookupKey,
-      bookingRef,
-      time: normalizedTime,
-      doctorId: data.doctorId ?? null,
-      doctorName: data.doctorName ?? null,
-      status: 'pending' as const,
-      source: context?.source ?? 'clinic_website',
-      phoneE164,
-      patientUid: data.patientUid ?? null,
-      confirmationDeadline: calculateConfirmationDeadline(
-        context?.hours ?? this.clinic.config.hours,
-      ),
-      attribution: context?.attribution,
-      consentVersion: '2026-08-29',
-      consentAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-
-    const slotRef = this.slotRefFor({
-      clinicId,
-      doctorId: data.doctorId,
-      date: data.date,
-      time: normalizedTime,
-    });
-    const apptRef = doc(db, this.COLLECTION, lookupKey);
-
-    await runTransaction(db, async (tx) => {
-      const apptSnap = await tx.get(apptRef);
-      if (apptSnap.exists()) {
-        throw new Error('A booking with these details already exists. Please contact the clinic if you need help.');
-      }
-
-      const slotSnap = await tx.get(slotRef);
-      if (slotSnap.exists()) {
-        throw new Error('This time slot has just been taken. Please choose another time.');
-      }
-
-      // Reserve the slot
-      tx.set(slotRef, {
-        clinicId,
-        doctorId:    data.doctorId ?? null,
-        date:        data.date,
-        time:        normalizedTime,
-        appointmentId: apptRef.id,
-        createdAt:   serverTimestamp(),
-        updatedAt:   serverTimestamp(),
-      });
-
-      // Create the appointment
-      tx.set(apptRef, appointmentPayload);
-    });
-
-    // Delivery is best-effort: a saved booking must not be submitted twice
-    // just because the email provider is temporarily unavailable.
-    void fetch('/api/voice-booking-action?action=notify-web-booking', {
+    const response = await fetch('/api/public/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clinicId, bookingRef, phone: data.phone }),
-      keepalive: true,
-    }).catch(() => undefined);
-
-    return bookingRef;
+      body: JSON.stringify({
+      ...data,
+      clinicId,
+      bookingRefPrefix: context?.bookingRefPrefix ?? this.prefix,
+      time: normalizedTime,
+      doctorId: data.doctorId ?? null,
+      source: context?.source ?? 'clinic_website',
+      confirmationDeadline: calculateConfirmationDeadline(
+        context?.hours ?? this.clinic.config.hours,
+      ).toISOString(),
+      attribution: context?.attribution,
+      consentVersion: '2026-08-29',
+      }),
+    });
+    if (!response.ok) throw await this.error(response, 'Could not book this appointment.');
+    return (await response.json() as { bookingRef: string }).bookingRef;
   }
 
   /** Fetch appointment by bookingRef + phone — scoped to this clinic. */
   async getAppointmentByRef(bookingRef: string, phone: string): Promise<Appointment | null> {
-    const lookupKey = await buildAppointmentLookupKey(this.clinicId, bookingRef, phone);
-    let snap = await getDoc(doc(db, this.COLLECTION, lookupKey));
-    if (!snap.exists()) {
-      const legacyLookupKey = buildLegacyAppointmentLookupKey(this.clinicId, bookingRef, phone);
-      snap = await getDoc(doc(db, this.COLLECTION, legacyLookupKey));
-    }
-    if (!snap.exists()) return null;
-    const data = snap.data() as Appointment;
-    if (
-      data.clinicId !== this.clinicId ||
-      this.normalizeBookingRef(data.bookingRef) !== this.normalizeBookingRef(bookingRef) ||
-      this.normalizePhone(data.phone) !== this.normalizePhone(phone)
-    ) {
-      return null;
-    }
-    return this.mapAppointment(snap.id, data);
+    const params = new URLSearchParams({ clinicId: this.clinicId, bookingRef, phone });
+    const response = await fetch(`/api/public/appointments/lookup?${params}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw await this.error(response, 'Could not find this appointment.');
+    return await response.json() as Appointment;
   }
 
   /** Update editable fields: service, date, time, message. */
@@ -385,65 +280,11 @@ export class AppointmentService {
     if (!this.isBookable(nextDate, nextTime)) {
       throw new Error('Please choose a current or future appointment slot.');
     }
-    const nextSlotRef = this.slotRefFor({
-      clinicId: appointment.clinicId,
-      doctorId: appointment.doctorId,
-      date: nextDate,
-      time: nextTime,
+    const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointment.id)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, phone: appointment.phone, date: nextDate, time: nextTime }),
     });
-    const currentSlotRef = this.slotRefFor({
-      clinicId: appointment.clinicId,
-      doctorId: appointment.doctorId,
-      date: appointment.date,
-      time: appointment.time,
-    });
-    const appointmentRef = doc(db, this.COLLECTION, appointment.id);
-    const slotChanged = nextDate !== appointment.date || nextTime !== appointment.time;
-
-    await runTransaction(db, async (tx) => {
-      if (slotChanged) {
-        const nextSlotSnap = await tx.get(nextSlotRef);
-        if (nextSlotSnap.exists()) {
-          throw new Error('That new time slot is no longer available. Please choose another slot.');
-        }
-        tx.delete(currentSlotRef);
-        tx.set(nextSlotRef, {
-          clinicId: appointment.clinicId,
-          doctorId: appointment.doctorId ?? null,
-          date: nextDate,
-          time: nextTime,
-          appointmentId: appointment.id,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      }
-
-      tx.update(appointmentRef, this.stripUndefined({
-        ...data,
-        time: nextTime,
-        status: 'pending',
-        updatedAt: serverTimestamp(),
-      }));
-    });
-
-  }
-
-  private async notifyMarketplaceStatus(id: string, status: 'confirmed' | 'declined'): Promise<void> {
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-      await fetch('/api/voice-booking-action?action=notify-appointment-status', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ appointmentId: id, status }),
-        keepalive: true,
-      });
-    } catch {
-      return;
-    }
+    if (!response.ok) throw await this.error(response, 'Could not update this appointment.');
   }
 
   /**
@@ -460,26 +301,18 @@ export class AppointmentService {
     onNext: (appointments: Appointment[]) => void,
     onError?: (err: Error) => void,
   ): Unsubscribe {
-    const q = query(
-      collection(db, this.COLLECTION),
-      where('clinicId', '==', this.clinicId),
-      orderBy('createdAt', 'desc'),
-    );
-
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const appointments = snapshot.docs.map(
-          d => this.mapAppointment(d.id, d.data() as Appointment),
-        );
-        // Re-enter Angular zone so OnPush components update
-        this.zone.run(() => onNext(appointments));
-      },
-      (err) => {
-        console.error('[AppointmentService] onSnapshot error:', err);
-        this.zone.run(() => onError?.(err));
-      },
-    );
+    let active = true;
+    const load = async () => {
+      try {
+        const appointments = await this.getAllAppointments();
+        if (active) onNext(appointments);
+      } catch (error) {
+        if (active) onError?.(error instanceof Error ? error : new Error('Could not load appointments.'));
+      }
+    };
+    void load();
+    const timer = setInterval(() => void load(), 15_000);
+    return () => { active = false; clearInterval(timer); };
   }
 
   /**
@@ -487,13 +320,9 @@ export class AppointmentService {
    * (e.g. super-admin cross-clinic views, CSV export).
    */
   async getAllAppointments(): Promise<Appointment[]> {
-    const q        = query(
-      collection(db, this.COLLECTION),
-      where('clinicId', '==', this.clinicId),
-      orderBy('createdAt', 'desc'),
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => this.mapAppointment(d.id, d.data() as Appointment));
+    const response = await this.api.fetch('/api/clinics/current/appointments');
+    if (!response.ok) throw await this.error(response, 'Could not load appointments.');
+    return await response.json() as Appointment[];
   }
 
   /** Set status directly (admin use). */
@@ -502,52 +331,11 @@ export class AppointmentService {
     status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled' | 'declined',
     cancellationReason?: string,
   ): Promise<void> {
-    const appointmentRef = doc(db, this.COLLECTION, id);
-    const shouldNotify = await runTransaction(db, async (tx) => {
-      const snap = await tx.get(appointmentRef);
-      if (!snap.exists()) {
-        throw new Error('Appointment not found.');
-      }
-      const appointment = { id: snap.id, ...snap.data() } as Appointment;
-      if (['confirmed', 'declined'].includes(status) && appointment.status !== 'pending') {
-        throw new Error('This appointment request has already been handled.');
-      }
-      if (status === 'declined' && appointment.source !== 'marketplace') {
-        throw new Error('Only marketplace requests can be declined.');
-      }
-      if (['cancelled', 'declined'].includes(status) && appointment.status !== status) {
-        tx.delete(this.slotRefFor({
-          clinicId: appointment.clinicId,
-          doctorId: appointment.doctorId,
-          date: appointment.date,
-          time: appointment.time,
-        }));
-      }
-      const respondedAt = serverTimestamp();
-      const isMarketplaceResponse = appointment.source === 'marketplace' &&
-        (status === 'confirmed' || status === 'declined');
-      tx.update(appointmentRef, this.stripUndefined({
-        status,
-        updatedAt: serverTimestamp(),
-        ...(isMarketplaceResponse ? {
-          confirmationRespondedAt: respondedAt,
-        } : {}),
-        ...(status === 'confirmed' ? { confirmedAt: respondedAt } : {}),
-        ...(status === 'declined' ? {
-          declinedAt: respondedAt,
-          cancellationActor: 'clinic' as const,
-          cancellationReason,
-        } : {}),
-        ...(status === 'cancelled' ? {
-          cancellationActor: 'clinic' as const,
-          cancellationReason,
-        } : {}),
-      }));
-      return appointment.source === 'marketplace';
+    const response = await this.api.fetch(`/api/clinics/current/appointments/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, cancellationReason }),
     });
-    if (shouldNotify && (status === 'confirmed' || status === 'declined')) {
-      void this.notifyMarketplaceStatus(id, status);
-    }
+    if (!response.ok) throw await this.error(response, 'Could not update appointment status.');
   }
 
   /** Save clinical record fields (notes, treatment, payment). Strips undefined. */
@@ -559,7 +347,10 @@ export class AppointmentService {
       Object.entries(data).filter(([, v]) => v !== undefined && v !== '' && v !== null),
     );
     if (Object.keys(payload).length) {
-      await updateDoc(doc(db, this.COLLECTION, id), payload);
+      const response = await this.api.fetch(`/api/clinics/current/appointments/${encodeURIComponent(id)}/clinical`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw await this.error(response, 'Could not save clinical details.');
     }
   }
 
@@ -574,25 +365,10 @@ export class AppointmentService {
       throw new Error('Appointment reference is missing.');
     }
 
-    const appointmentRef = doc(db, this.COLLECTION, appointment.id);
-    const slotRef = this.slotRefFor({
-      clinicId: appointment.clinicId,
-      doctorId: appointment.doctorId,
-      date: appointment.date,
-      time: appointment.time,
+    const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointment.id)}/cancel`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: appointment.phone }),
     });
-
-    await runTransaction(db, async (tx) => {
-      const snap = await tx.get(appointmentRef);
-      if (!snap.exists()) {
-        throw new Error('Appointment not found.');
-      }
-      tx.delete(slotRef);
-      tx.update(appointmentRef, {
-        status: 'cancelled',
-        cancellationActor: 'patient',
-        updatedAt: serverTimestamp(),
-      });
-    });
+    if (!response.ok) throw await this.error(response, 'Could not cancel this appointment.');
   }
 }

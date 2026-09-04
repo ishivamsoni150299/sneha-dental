@@ -670,8 +670,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   confirmationWindowLabel(appointment: Appointment): string | null {
     if (!this.isMarketplaceRequest(appointment) || appointment.status !== 'pending') return null;
-    const deadline = appointment.confirmationDeadline?.toDate?.();
-    if (!deadline) return 'Respond within 2 working hours';
+    const deadline = appointment.confirmationDeadline
+      ? new Date(appointment.confirmationDeadline)
+      : null;
+    if (!deadline || Number.isNaN(deadline.getTime())) return 'Respond within 2 working hours';
     if (deadline.getTime() < Date.now()) return 'Response overdue';
     return `Respond by ${deadline.toLocaleString('en-IN', {
       day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
