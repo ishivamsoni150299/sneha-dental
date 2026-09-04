@@ -42,7 +42,7 @@ public class ContactController {
     record ContactRequest(
         @NotNull UUID clinicId,
         @NotBlank @Size(min = 2, max = 120) String name,
-        @Pattern(regexp = "^[6-9][0-9]{9}$") String phone,
+        @NotBlank @Pattern(regexp = "^[6-9][0-9]{9}$") String phone,
         @Email @Size(max = 254) String email,
         @NotBlank @Size(min = 10, max = 2000) String message,
         @NotBlank @Size(max = 20) String consentVersion
