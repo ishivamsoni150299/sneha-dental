@@ -6,9 +6,6 @@ import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
-import {
-  collection, query, where, limit, getDocs,
-} from 'firebase/firestore';
 import type { PlatformUser } from '../../../core/services/auth-facade.service';
 import { environment } from '../../../../environments/environment';
 import {
@@ -19,16 +16,13 @@ import {
   type PlatformPlanId,
 } from '../../../core/config/clinic.config';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
-import { db, getFirebaseAppCheckToken } from '../../../core/firebase';
+import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 
 async function isSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false;
-  const snap = await getDocs(query(
-    collection(db, 'clinics'),
-    where('vercelDomain', '==', `${slug}.mydentalplatform.com`),
-    limit(1),
-  ));
-  return snap.empty;
+  const response = await fetch(`/api/public/clinics/slug-available?slug=${encodeURIComponent(slug)}`);
+  if (!response.ok) return false;
+  return (await response.json() as { available: boolean }).available;
 }
 
 function toSlug(name: string): string {
@@ -114,6 +108,7 @@ export class SignupComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone       = inject(NgZone);
   private readonly auth       = inject(AuthFacade);
+  private readonly api        = inject(AuthenticatedApiService);
 
   // ── Step: 0=auth, 1=clinic, 2=services, 4=plan, 5=success ───────────────
   readonly step       = signal<0 | 1 | 2 | 4 | 5>(0);
@@ -525,16 +520,10 @@ export class SignupComponent implements OnInit {
     }));
 
     try {
-      const idToken = await this.auth.getFreshIdToken();
-      const appCheckToken = await getFirebaseAppCheckToken();
-      const resp = await fetch('/api/self-signup', {
+      const resp = await this.api.fetch('/api/clinics/onboarding', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idToken,
           name:                s1.name.trim(),
           doctorName:          '',
           doctorQualification: '',

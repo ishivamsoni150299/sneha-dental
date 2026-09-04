@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ClinicController {
     private final ClinicQueryService clinicQueryService;
+    private final ClinicOnboardingService onboardingService;
 
-    public ClinicController(ClinicQueryService clinicQueryService) {
+    public ClinicController(ClinicQueryService clinicQueryService, ClinicOnboardingService onboardingService) {
         this.clinicQueryService = clinicQueryService;
+        this.onboardingService = onboardingService;
     }
 
     @GetMapping("/public/clinics/resolve")
@@ -33,6 +36,21 @@ public class ClinicController {
         if (!normalizedHost.matches("^[a-z0-9.-]{1,253}$")) return ResponseEntity.badRequest().build();
         return clinicQueryService.resolveByHost(normalizedHost)
             .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/public/clinics/slug-available")
+    Map<String, Boolean> slugAvailable(@RequestParam String slug) {
+        String normalized = slug.toLowerCase().replaceAll("[^a-z0-9]", "");
+        return Map.of("available", !normalized.isBlank() && onboardingService.slugAvailable(normalized));
+    }
+
+    @PostMapping("/clinics/onboarding")
+    Map<String, Object> onboard(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody Map<String, Object> request
+    ) {
+        return onboardingService.create(
+            UUID.fromString(jwt.getSubject()), jwt.getClaimAsString("email"), request);
     }
 
     @GetMapping("/clinics/current")
