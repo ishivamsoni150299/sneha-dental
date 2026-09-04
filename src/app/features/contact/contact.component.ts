@@ -4,12 +4,6 @@ import { RouterLink } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import type { SafeResourceUrl } from '@angular/platform-browser';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { environment } from '../../../environments/environment';
-
-const app = getApps().length ? getApps()[0] : initializeApp(environment.firebase);
-const db  = getFirestore(app);
 const requiredValidator = Validators.required.bind(Validators);
 const emailValidator = Validators.email.bind(Validators);
 
@@ -56,16 +50,19 @@ export class ContactComponent {
     this.submitting.set(true);
     this.sendError.set(false);
     try {
-      await addDoc(collection(db, 'contacts'), {
-        clinicId:  this.config.clinicId ?? 'default',
+      const response = await fetch('/api/public/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+        clinicId:  this.config.clinicId,
         name:      this.form.value.name,
         phone:     this.form.value.phone,
         email:     this.form.value.email ?? null,
         message:   this.form.value.message,
         consentVersion: '2026-08-29',
-        consentAt: serverTimestamp(),
-        createdAt: serverTimestamp(),
+        }),
       });
+      if (!response.ok) throw new Error('Could not send message.');
       this.submitted.set(true);
       queueMicrotask(() => document.getElementById('contact-form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     } catch {

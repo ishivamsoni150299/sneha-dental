@@ -1,11 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query, where, serverTimestamp, type Timestamp,
-  type UpdateData, type DocumentData,
-} from 'firebase/firestore';
-import { db } from '../firebase';
 import { ClinicConfigService } from './clinic-config.service';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,7 +19,7 @@ export interface Doctor {
   speciality:    string;
   available:     boolean;           // overall on/off toggle
   schedule:      Record<WeekDay, DaySchedule>;
-  createdAt?:    Timestamp;
+  createdAt?:    string;
 }
 
 export const WEEK_DAYS: { key: WeekDay; label: string }[] = [
@@ -142,38 +137,41 @@ export function formatSlotDisplay(t: string): string {
 @Injectable({ providedIn: 'root' })
 export class DoctorService {
   private readonly clinic = inject(ClinicConfigService);
-
-  private doctorsCol(clinicId: string) {
-    return collection(db, 'clinics', clinicId, 'doctors');
-  }
+  private readonly api = inject(AuthenticatedApiService);
 
   /** Load all doctors for a clinic, sorted by name client-side. */
   async getDoctors(clinicId: string): Promise<Doctor[]> {
-    const snap = await getDocs(this.doctorsCol(clinicId));
-    const docs = snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Doctor, 'id'>) }));
-    return docs.sort((a, b) => a.name.localeCompare(b.name));
+    const response = await fetch(`/api/public/clinics/${encodeURIComponent(clinicId)}/doctors`);
+    if (!response.ok) throw new Error('Could not load doctors.');
+    return await response.json() as Doctor[];
   }
 
   /** Add a new doctor, returns the new doc ID. */
   async addDoctor(clinicId: string, data: Omit<Doctor, 'id' | 'createdAt'>): Promise<string> {
-    const ref = await addDoc(this.doctorsCol(clinicId), {
-      ...data,
-      createdAt: serverTimestamp(),
+    const response = await this.api.fetch('/api/clinics/current/doctors', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
-    return ref.id;
+    if (!response.ok) throw new Error('Could not add doctor.');
+    return (await response.json() as { id: string }).id;
   }
 
   /** Update doctor fields (partial). */
   async updateDoctor(clinicId: string, doctorId: string, data: Partial<Doctor>): Promise<void> {
-    await updateDoc(
-      doc(db, 'clinics', clinicId, 'doctors', doctorId),
-      data as UpdateData<DocumentData>,
-    );
+    const current = (await this.getDoctors(clinicId)).find(doctor => doctor.id === doctorId);
+    if (!current) throw new Error('Doctor not found.');
+    const response = await this.api.fetch(`/api/clinics/current/doctors/${encodeURIComponent(doctorId)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...current, ...data }),
+    });
+    if (!response.ok) throw new Error('Could not update doctor.');
   }
 
   /** Delete a doctor document. */
   async deleteDoctor(clinicId: string, doctorId: string): Promise<void> {
-    await deleteDoc(doc(db, 'clinics', clinicId, 'doctors', doctorId));
+    const response = await this.api.fetch(`/api/clinics/current/doctors/${encodeURIComponent(doctorId)}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Could not delete doctor.');
   }
 
   /**
@@ -194,19 +192,12 @@ export class DoctorService {
     const allSlots = generateSlots(daySchedule.start, daySchedule.end);
     if (allSlots.length === 0) return [];
 
-    // Query reserved slots for this doctor + date.
-    const snap = await getDocs(query(
-      collection(db, 'slots'),
-      where('clinicId',  '==', clinicId),
-      where('doctorId',  '==', doctor.id),
-      where('date',      '==', date),
-    ));
-
-    const bookedTimes = new Set(
-      snap.docs
-        .map(d => normalizeTimeValue((d.data() as { time?: string }).time ?? ''))
-        .filter(Boolean),
+    if (!doctor.id) return [];
+    const response = await fetch(
+      `/api/public/clinics/${encodeURIComponent(clinicId)}/doctors/${encodeURIComponent(doctor.id)}/slots?date=${encodeURIComponent(date)}`,
     );
-    return filterBookableSlots(date, allSlots.filter(s => !bookedTimes.has(s)));
+    if (!response.ok) throw new Error('Could not load appointment times.');
+    const available = await response.json() as string[];
+    return filterBookableSlots(date, allSlots.filter(slot => available.includes(slot)));
   }
 }
