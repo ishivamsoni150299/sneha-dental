@@ -62,6 +62,31 @@ public class ClinicLoginService {
             user);
     }
 
+    @Transactional
+    public LoginResult refresh(String refreshTokenValue, String userAgent) {
+        if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
+            throw new AuthException("Refresh token is required.");
+        }
+        Instant now = clock.instant();
+        RefreshTokenRepository.RefreshSession session = refreshTokenRepository
+            .findActiveForUpdate(tokenService.hashRefreshToken(refreshTokenValue), now)
+            .orElseThrow(() -> new AuthException("Refresh token is invalid or expired."));
+        AuthUser user = session.user();
+        if (!user.enabled() || user.passwordMigrationRequired()) {
+            throw new AuthException("This session is no longer valid.");
+        }
+
+        TokenService.RefreshToken replacement = tokenService.createRefreshToken(now);
+        java.util.UUID replacementId = refreshTokenRepository.create(
+            user.id(), replacement.hash(), replacement.expiresAt(), userAgent);
+        refreshTokenRepository.revokeAndReplace(session.tokenId(), replacementId, now);
+        return new LoginResult(
+            tokenService.createAccessToken(user, now),
+            tokenService.accessTokenExpiresInSeconds(),
+            replacement,
+            user);
+    }
+
     public record LoginResult(
         String accessToken,
         long expiresIn,

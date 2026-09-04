@@ -75,6 +75,30 @@ class ClinicLoginServiceTest {
         verify(tokenService, never()).createAccessToken(eq(user), any());
     }
 
+    @Test
+    void rotatesRefreshTokenAndRevokesTheUsedToken() {
+        AuthUser user = clinicAdmin(false);
+        UUID oldTokenId = UUID.fromString("dd28433c-f1e8-4b0c-9950-09c777156c3d");
+        UUID newTokenId = UUID.fromString("cb916957-ed8b-440b-a05a-e8f42dfa1335");
+        TokenService.RefreshToken replacement = new TokenService.RefreshToken(
+            "new-plain-token", "new-token-hash", NOW.plusSeconds(604_800));
+        when(tokenService.hashRefreshToken("old-plain-token")).thenReturn("old-token-hash");
+        when(refreshTokenRepository.findActiveForUpdate("old-token-hash", NOW))
+            .thenReturn(Optional.of(new RefreshTokenRepository.RefreshSession(oldTokenId, user)));
+        when(tokenService.createRefreshToken(NOW)).thenReturn(replacement);
+        when(refreshTokenRepository.create(
+            user.id(), replacement.hash(), replacement.expiresAt(), "test-browser"))
+            .thenReturn(newTokenId);
+        when(tokenService.createAccessToken(user, NOW)).thenReturn("new-access-token");
+        when(tokenService.accessTokenExpiresInSeconds()).thenReturn(900L);
+
+        ClinicLoginService.LoginResult result = loginService.refresh("old-plain-token", "test-browser");
+
+        assertEquals("new-access-token", result.accessToken());
+        assertEquals("new-plain-token", result.refreshToken().value());
+        verify(refreshTokenRepository).revokeAndReplace(oldTokenId, newTokenId, NOW);
+    }
+
     private AuthUser clinicAdmin(boolean passwordMigrationRequired) {
         return new AuthUser(
             UUID.fromString("f982a5a0-c77d-4fb9-a45b-e35fe73556b1"),

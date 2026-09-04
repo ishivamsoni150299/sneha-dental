@@ -65,6 +65,10 @@ public class TokenService {
         return accessTokenTtl.toSeconds();
     }
 
+    public String hashRefreshToken(String value) {
+        return sha256(value);
+    }
+
     private String sha256(String value) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")

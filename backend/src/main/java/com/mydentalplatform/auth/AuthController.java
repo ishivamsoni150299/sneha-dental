@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,20 @@ public class AuthController {
     ) {
         ClinicLoginService.LoginResult result = loginService.login(
             request.email().trim(), request.password(), servletRequest.getHeader(HttpHeaders.USER_AGENT));
+        return loginResponse(result);
+    }
+
+    @PostMapping("/refresh")
+    ResponseEntity<LoginResponse> refresh(
+        @CookieValue(name = "refresh_token", required = false) String refreshToken,
+        HttpServletRequest servletRequest
+    ) {
+        ClinicLoginService.LoginResult result = loginService.refresh(
+            refreshToken, servletRequest.getHeader(HttpHeaders.USER_AGENT));
+        return loginResponse(result);
+    }
+
+    private ResponseEntity<LoginResponse> loginResponse(ClinicLoginService.LoginResult result) {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", result.refreshToken().value())
             .httpOnly(true)
             .secure(secureCookies)
