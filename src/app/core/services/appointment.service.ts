@@ -212,16 +212,13 @@ export class AppointmentService {
   /**
    * Save a new appointment with atomic slot reservation.
    *
-   * Uses a Firestore transaction to atomically:
-   *   1. Check the slot document doesn't already exist (prevents double-booking)
-   *   2. Create the slot reservation document
-   *   3. Create the appointment document
+   * Sends the booking to the Java API, which atomically reserves the slot and
+   * creates the appointment to prevent double-booking.
    *
    * If two patients submit simultaneously for the same clinic/doctor/date/time,
    * only one transaction succeeds — the other gets a "slot taken" error.
    *
-   * Slot documents live in the `slots` collection with ID:
-   *   `{clinicId}_{doctorId|any}_{date}_{time}` (normalised, no spaces)
+   * The API owns slot reservation and conflict handling.
    */
   async bookAppointment(
     data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>,
@@ -290,8 +287,8 @@ export class AppointmentService {
   /**
    * Subscribe to real-time appointment updates for this clinic.
    *
-   * Calls `onNext` whenever Firestore pushes a change (new booking,
-   * status update, etc.). Returns an `Unsubscribe` function — call it
+   * Calls `onNext` after the API loads appointments and on each polling refresh.
+   * Returns an `Unsubscribe` function — call it
    * in `ngOnDestroy` to stop listening and prevent memory leaks.
    *
    * Runs the callback inside `NgZone.run()` so Angular's OnPush

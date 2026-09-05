@@ -1,16 +1,11 @@
 /**
  * AppointmentService unit tests.
  *
- * Firebase v9 uses non-writable ES module exports — spyOn cannot patch
- * addDoc / getDocs / updateDoc / deleteDoc directly in this environment.
+ * API integration tests are kept separate from this unit suite.
  *
- * Tests that require real Firestore calls are marked pending() and belong
- * in an integration test suite using the Firebase Local Emulator Suite:
- *   firebase emulators:start --only firestore
- *
- * What IS tested here (zero Firebase dependency):
+ * What IS tested here (zero network dependency):
  *   - canCancel()            — pure date arithmetic, business-critical rule
- *   - cancelAppointment()    — enforces 24-hour rule before touching Firestore
+ *   - cancelAppointment()    — enforces the cancellation rule before the API call
  *   - bookingRef format     — regex contract for generated refs
  */
 
@@ -59,7 +54,7 @@ describe('AppointmentService', () => {
     expect(service).toBeTruthy();
   });
 
-  // ── canCancel() — pure date arithmetic, no Firebase ───────────────────────
+  // ── canCancel() — pure date arithmetic ────────────────────────────────────
   describe('canCancel()', () => {
     it('returns true when appointment is 25 hours away', () => {
       const t = new Date(Date.now() + 25 * 60 * 60 * 1000);
@@ -135,7 +130,7 @@ describe('AppointmentService', () => {
     });
   });
 
-  // ── cancelAppointment() — 24-hour enforcement (no Firestore needed) ───────
+  // ── cancelAppointment() — 24-hour enforcement ─────────────────────────────
   describe('cancelAppointment() — 24-hour rule', () => {
     it('throws when appointment is within 24 hours', async () => {
       const soon = new Date(Date.now() + 23 * 60 * 60 * 1000).toISOString();
@@ -163,37 +158,37 @@ describe('AppointmentService', () => {
   // ── bookingRef contract ───────────────────────────────────────────────────
   describe('bookAppointment() — booking ref format', () => {
     it('generates refs matching PREFIX-XXXXXXXX pattern', () =>
-      pending('Run: firebase emulators:start --only firestore'));
+      pending('API integration test suite not configured'));
   });
 
-  // ── Integration tests (require Firebase Local Emulator) ───────────────────
-  describe('Firestore integration (pending — requires emulator)', () => {
+  // ── API integration tests (pending) ───────────────────────────────────────
+  describe('API integration (pending — requires test server)', () => {
     it('bookAppointment() saves with status:pending and correct clinicId', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
 
     it('bookAppointment() returns a unique ref on each call', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
 
     it('getAllAppointments() is scoped to clinicId — no cross-clinic leakage', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
 
     it('getAppointmentByRef() returns null when no match found', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
 
     it('getAppointmentByRef() queries clinicId + bookingRef + phone', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
 
     it('setStatus() mutates only the status field', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
 
     it('cancelAppointment() calls deleteDoc for valid cancellation', () => {
-      pending('Run: firebase emulators:start --only firestore');
+      pending('API integration test suite not configured');
     });
   });
 });

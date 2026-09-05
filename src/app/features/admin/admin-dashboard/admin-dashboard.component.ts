@@ -403,15 +403,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   /**
    * Alias for startRealtimeSync — used by the "Refresh" button in the template.
-   * With onSnapshot the data is already live; calling this re-subscribes and
-   * resets the loading spinner which gives a visible "refresh" feel.
+   * The API polling subscription is already live; calling this re-subscribes
+   * and resets the loading spinner which gives a visible "refresh" feel.
    */
   loadAppointments() { this.startRealtimeSync(); }
 
   /**
-   * Opens a Firestore onSnapshot listener so the dashboard updates in real
-   * time whenever a patient books or an admin changes a status — no refresh
-   * required. The listener is torn down in ngOnDestroy.
+   * Starts the API polling subscription so the dashboard updates when a
+   * patient books or an admin changes a status. It is torn down on destroy.
    */
   startRealtimeSync() {
     this.loading.set(true);

@@ -351,7 +351,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     this._subs.add(this.form.controls.billingCycle.valueChanges.subscribe(updateEndDate));
   }
 
-  // ── Patch from Firestore ──────────────────────────────────────────────────
+  // ── Patch from the Java API ───────────────────────────────────────────────
   private patchForm(c: StoredClinic, verification: ProviderVerification | null) {
     this.originalHostedDomain = normalizeHostedDomain(c.hostedDomain ?? '');
     this.originalMarketplaceStatus = c.marketplaceStatus ?? 'unlisted';
@@ -577,7 +577,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
         throw new Error('Temporary password must be at least 8 characters.');
       }
 
-      // Firestore rejects `undefined` — use null for optional fields so
+      // The API accepts explicit nulls for optional fields, so
       // existing values are cleared when the admin empties them.
       const clinicPayload = buildClinicApiPayload({
         values: v as unknown as ClinicFormRawValue,

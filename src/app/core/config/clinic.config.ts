@@ -69,7 +69,7 @@ export interface ClinicConfig {
   name: string;
   doctorName: string;
   doctorQualification?: string;   // e.g. "BDS" — optional
-  /** @deprecated Removed from UI. Kept optional for backwards-compat with existing Firestore docs. */
+  /** @deprecated Removed from UI. Kept optional for backwards compatibility with imported records. */
   doctorUniversity?: string;
   doctorBio: string[];            // paragraphs shown on About page
   patientCount: string;           // e.g. "1000+"  — used in trust bar & hero
@@ -153,7 +153,7 @@ export interface ClinicConfig {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DEFAULT FALLBACK — empty shell used on localhost.
-// On production, Firestore overwrites this before any component renders.
+// On production, the Java API overwrites this before any component renders.
 // Never shows real clinic data to end users via this file.
 // ─────────────────────────────────────────────────────────────────────────────
 export const clinicConfig: ClinicConfig = {

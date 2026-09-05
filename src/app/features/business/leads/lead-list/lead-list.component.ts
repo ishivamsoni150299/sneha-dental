@@ -10,7 +10,7 @@ interface ImportStats {
   imported:    number;
   skipped:     number;   // duplicates
   invalid:     number;   // missing required fields
-  writeErrors: number;   // Firestore write failures
+  writeErrors: number;   // API write failures
   ok:          boolean;
   msg:         string;
 }
@@ -150,7 +150,7 @@ export class LeadListComponent implements OnInit, OnDestroy {
     if (this.sortBy() === 'score') {
       return list.sort((a, b) => this.leadScore(b) - this.leadScore(a));
     }
-    return list; // newest — already ordered by Firestore
+    return list; // newest — already ordered by the API
   });
 
   summaryStats = computed(() => {

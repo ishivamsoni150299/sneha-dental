@@ -200,7 +200,7 @@ function buildPayload(
 }
 
 describe('buildClinicApiPayload', () => {
-  it('keeps clinic save fields Firestore-safe without losing useful form data', () => {
+  it('keeps clinic save fields API-safe without losing useful form data', () => {
     const payload = buildPayload();
 
     expect(payload.name).toBe('Aarogyam Smile Dental Clinic');

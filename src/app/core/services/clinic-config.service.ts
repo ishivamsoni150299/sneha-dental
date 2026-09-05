@@ -177,7 +177,7 @@ export class ClinicConfigService {
   }
 
   /**
-   * True once a real clinic config has been loaded from Firestore (or on localhost).
+   * True once a real clinic config has been loaded from the Java API (or on localhost).
    * False when running on a platform/admin-only domain with no matching clinic doc.
    */
   get isLoaded(): boolean { return this._isLoaded(); }
@@ -185,7 +185,7 @@ export class ClinicConfigService {
   /**
    * Called once by APP_INITIALIZER before the app renders.
    * Tries to match by custom domain first, then by the hosted domain as fallback.
-   * On localhost, skips Firestore and uses the static fallback.
+   * On localhost, skips the API and uses the static fallback.
    * Never throws — falls back to static config on any error.
    */
   async loadFromApi(): Promise<void> {
@@ -292,7 +292,7 @@ export class ClinicConfigService {
   }
 
   /**
-   * Persist a single boolean onboarding flag to Firestore and update in-memory config.
+   * Persist a single boolean onboarding flag through the API and update in-memory config.
    * Safe to call even before clinic is fully loaded — silently skips on 'default'.
    */
   async saveOnboardingFlag(field: 'onboardingDismissed' | 'onboardingSharedWebsite'): Promise<void> {
@@ -316,7 +316,7 @@ export class ClinicConfigService {
     }
   }
 
-  /** Merge partial fields into the in-memory config (does NOT write to Firestore). */
+  /** Merge partial fields into the in-memory config (does NOT write to the API). */
   updateConfig(partial: Partial<ClinicConfig>): void {
     const nextPartial = partial.theme
       ? { ...partial, theme: normalizeTheme(partial.theme) }

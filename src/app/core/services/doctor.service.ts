@@ -177,7 +177,7 @@ export class DoctorService {
   /**
    * Returns available (unbooked) time slots for a given doctor on a given date.
    * Slots are derived from the doctor's weekly schedule, minus reserved slot docs.
-   * @param clinicId  Firestore clinic ID
+   * @param clinicId  Java API clinic ID
    * @param doctor    The doctor object (schedule already loaded)
    * @param date      "YYYY-MM-DD"
    */
