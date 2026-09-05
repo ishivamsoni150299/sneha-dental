@@ -15,9 +15,9 @@ interface ServiceCount {
   pct:     number;
 }
 
-function timestampMillis(value?: { toMillis(): number }): number | null {
+function timestampMillis(value?: string | { toMillis(): number }): number | null {
   if (!value) return null;
-  const millis = value.toMillis();
+  const millis = typeof value === 'string' ? Date.parse(value) : value.toMillis();
   return Number.isFinite(millis) ? millis : null;
 }
 

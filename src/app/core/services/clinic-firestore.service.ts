@@ -1,9 +1,4 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  collection, getDocs, getDoc, setDoc, updateDoc,
-  deleteDoc, deleteField, doc, query, orderBy, where, serverTimestamp, writeBatch,
-  runTransaction, type Timestamp, type UpdateData, type DocumentData, limit,
-} from 'firebase/firestore';
 import type {
   ClinicConfig,
   ClinicHours,
@@ -15,396 +10,183 @@ import type {
   MarketplaceListingAdminUpdate,
   ProviderVerification,
 } from '../config/marketplace.config';
-import { db } from '../firebase';
 import { AuthenticatedApiService } from './authenticated-api.service';
 
-// ── Whitelist of fields a clinic owner can self-edit ─────────────────────────
-// Billing, subscription, domain, active, admin ownership, and AI provider config
-// are intentionally excluded. Keep this in sync with firestore.rules.
 export interface ClinicSettingsPayload {
-  name?:                string;
-  doctorName?:          string;
+  name?: string;
+  doctorName?: string;
   doctorQualification?: string;
-  patientCount?:        string;
-  doctorBio?:           string[];
-  phone?:               string;
-  phoneE164?:           string;
-  whatsappNumber?:      string;
-  addressLine1?:        string;
-  addressLine2?:        string;
-  city?:                string;
-  mapEmbedUrl?:         string;
-  mapDirectionsUrl?:    string;
-  hours?:               ClinicHours[];
-  services?:            ClinicService[];
-  testimonials?:        Testimonial[];
-  social?:              { facebook?: string; instagram?: string; linkedin?: string };
-  theme?:               'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
-  logoDataUrl?:         string | null;   // null = remove logo
+  patientCount?: string;
+  doctorBio?: string[];
+  phone?: string;
+  phoneE164?: string;
+  whatsappNumber?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  mapEmbedUrl?: string;
+  mapDirectionsUrl?: string;
+  hours?: ClinicHours[];
+  services?: ClinicService[];
+  testimonials?: Testimonial[];
+  social?: { facebook?: string; instagram?: string; linkedin?: string };
+  theme?: 'blue' | 'teal' | 'caramel' | 'emerald' | 'purple' | 'rose';
+  logoDataUrl?: string | null;
   marketplaceProfile?: MarketplaceProfile;
   onboardingDismissed?: boolean;
   onboardingSharedWebsite?: boolean;
 }
 
 const CLINIC_SETTINGS_ALLOWED_KEYS = new Set<keyof ClinicSettingsPayload>([
-  'name',
-  'doctorName',
-  'doctorQualification',
-  'patientCount',
-  'doctorBio',
-  'phone',
-  'phoneE164',
-  'whatsappNumber',
-  'addressLine1',
-  'addressLine2',
-  'city',
-  'mapEmbedUrl',
-  'mapDirectionsUrl',
-  'hours',
-  'services',
-  'testimonials',
-  'social',
-  'theme',
-  'logoDataUrl',
-  'marketplaceProfile',
-  'onboardingDismissed',
-  'onboardingSharedWebsite',
+  'name', 'doctorName', 'doctorQualification', 'patientCount', 'doctorBio',
+  'phone', 'phoneE164', 'whatsappNumber', 'addressLine1', 'addressLine2', 'city',
+  'mapEmbedUrl', 'mapDirectionsUrl', 'hours', 'services', 'testimonials', 'social',
+  'theme', 'logoDataUrl', 'marketplaceProfile', 'onboardingDismissed', 'onboardingSharedWebsite',
 ]);
 
 export interface PlatformCosts {
-  vercel:   number;
+  vercel: number;
   firebase: number;
-  domain:   number;
-  other:    number;
+  domain: number;
+  other: number;
 }
 
 export interface AppointmentDoc {
-  id:         string;
-  clinicId:   string;
+  id: string;
+  clinicId: string;
   bookingRef: string;
-  name:       string;
-  phone:      string;
-  service:    string;
-  date:       string;
-  time:       string;
-  status:     'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled' | 'declined' | 'expired';
-  source?:    'clinic_website' | 'marketplace' | 'voice' | 'voice_webhook' | 'chat';
-  confirmationDeadline?: Timestamp;
-  confirmationRespondedAt?: Timestamp;
+  name: string;
+  phone: string;
+  service: string;
+  date: string;
+  time: string;
+  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled' | 'declined' | 'expired';
+  source?: 'clinic_website' | 'marketplace' | 'voice' | 'voice_webhook' | 'chat';
+  confirmationDeadline?: string;
+  confirmationRespondedAt?: string;
   confirmationResponseMinutes?: number;
   confirmationSlaMissed?: boolean;
-  confirmedAt?: Timestamp;
-  createdAt?: Timestamp;
+  confirmedAt?: string;
+  createdAt?: string;
 }
 
 export interface StoredClinic extends ClinicConfig {
-  id:         string;
-  domain:     string;
-  active:     boolean;
-  adminUid?:  string;
+  id: string;
+  domain: string;
+  active: boolean;
+  adminUid?: string;
   adminEmail?: string;
-  createdAt?: Timestamp;
-}
-
-/** Firestore updateDoc requires a plain-object map — strip undefined values. */
-function toFirestoreData(data: Record<string, unknown>): UpdateData<DocumentData> {
-  return Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== undefined),
-  ) as UpdateData<DocumentData>;
-}
-
-const PRIVATE_CLINIC_FIELDS = new Set([
-  'adminUid',
-  'adminEmail',
-  'billingEmail',
-  'billingNotes',
-  'billingCycle',
-  'lastPaymentDate',
-  'lastPaymentAmount',
-  'lastPaymentRef',
-  'razorpaySubscriptionId',
-  'pendingRazorpaySubscriptionId',
-  'pendingPlan',
-  'pendingBillingCycle',
-  'leadSource',
-  'marketingAttribution',
-  'grandfatheredUntil',
-  'grandfatheredPlan',
-  'voiceBudgetCap',
-  'voiceAutoStop',
-]);
-
-function partitionClinicData(data: Record<string, unknown>): {
-  publicData: Record<string, unknown>;
-  privateData: Record<string, unknown>;
-} {
-  const publicData: Record<string, unknown> = {};
-  const privateData: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(data)) {
-    if (value === undefined) continue;
-    (PRIVATE_CLINIC_FIELDS.has(key) ? privateData : publicData)[key] = value;
-  }
-  return { publicData, privateData };
+  createdAt?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ClinicFirestoreService {
-  private readonly COL = 'clinics';
   private readonly api = inject(AuthenticatedApiService);
 
-  private async mergePrivate(id: string, publicData: Record<string, unknown>): Promise<StoredClinic> {
-    try {
-      const privateSnap = await getDoc(doc(db, this.COL, id, 'private', 'account'));
-      return {
-        id,
-        ...publicData,
-        ...(privateSnap.exists() ? privateSnap.data() : {}),
-      } as StoredClinic;
-    } catch {
-      return { id, ...publicData } as StoredClinic;
-    }
-  }
-
   async getAll(): Promise<StoredClinic[]> {
-    const q    = query(collection(db, this.COL), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
+    return this.get<StoredClinic[]>('/api/admin/clinics');
   }
 
   async getById(id: string): Promise<StoredClinic | null> {
-    const snap = await getDoc(doc(db, this.COL, id));
-    return snap.exists() ? this.mergePrivate(snap.id, snap.data()) : null;
+    return this.getNullable<StoredClinic>(`/api/admin/clinics/${encodeURIComponent(id)}`);
   }
 
   async getActive(): Promise<StoredClinic[]> {
-    const q    = query(collection(db, this.COL), where('active', '==', true), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
+    return (await this.getAll()).filter(clinic => clinic.active);
   }
 
   async getByDomain(domain: string): Promise<StoredClinic | null> {
-    const q    = query(
-      collection(db, this.COL),
-      where('domain', '==', domain),
-      where('active', '==', true),
-      limit(1),
-    );
-    const snap = await getDocs(q);
-    return snap.empty ? null : this.mergePrivate(snap.docs[0].id, snap.docs[0].data());
+    return this.getByHost(domain);
   }
 
   async getByVercelDomain(vercelDomain: string): Promise<StoredClinic | null> {
-    const q = query(
-      collection(db, this.COL),
-      where('vercelDomain', '==', vercelDomain),
-      limit(1),
-    );
-    const snap = await getDocs(q);
-    return snap.empty ? null : this.mergePrivate(snap.docs[0].id, snap.docs[0].data());
+    return this.getByHost(vercelDomain);
   }
 
-  async getByAdminUid(uid: string): Promise<StoredClinic | null> {
-    const q = query(
-      collection(db, this.COL),
-      where('adminUid', '==', uid),
-      limit(1),
-    );
-    const snap = await getDocs(q);
-    if (!snap.empty) return this.mergePrivate(snap.docs[0].id, snap.docs[0].data());
-
-    const clinics = await this.getAll();
-    return clinics.find(clinic => clinic.adminUid === uid) ?? null;
+  async getByAdminUid(_uid: string): Promise<StoredClinic | null> {
+    const response = await this.api.fetch('/api/clinics/current');
+    if (!response.ok) return null;
+    return await response.json() as StoredClinic;
   }
 
   async getProviderVerification(clinicId: string): Promise<ProviderVerification | null> {
-    const snap = await getDoc(doc(db, 'providerVerifications', clinicId));
-    return snap.exists() ? snap.data() as ProviderVerification : null;
+    return this.getNullable<ProviderVerification>(
+      `/api/admin/clinics/${encodeURIComponent(clinicId)}/verification`,
+    );
   }
 
   async saveMarketplaceListing(
     clinicId: string,
     update: MarketplaceListingAdminUpdate,
-    reviewerUid: string,
+    _reviewerUid: string,
   ): Promise<void> {
-    const slug = update.slug ?? '';
-    if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      throw new Error('Marketplace slug may contain lowercase letters, numbers, and hyphens only.');
-    }
-    if (update.status !== 'unlisted' && !slug) {
-      throw new Error('Add a marketplace slug before submitting this listing for review.');
-    }
-    if (update.status === 'verified') {
-      if (!update.profile?.locality || update.profile.serviceIds.length === 0) {
-        throw new Error('Verified listings require a locality and at least one dental service.');
-      }
-      if (!update.verification.registrationNumber || !update.verification.registrationCouncil) {
-        throw new Error('Verify the dentist registration number and council before publishing.');
-      }
-      if (!update.verification.clinicAddressVerified || !update.verification.phoneVerified) {
-        throw new Error('Verify both the clinic address and phone before publishing.');
-      }
-    }
-
-    const clinicRef = doc(db, this.COL, clinicId);
-    const verificationRef = doc(db, 'providerVerifications', clinicId);
-    const eventRef = doc(collection(db, 'providerVerificationEvents'));
-
-    await runTransaction(db, async transaction => {
-      const clinicSnap = await transaction.get(clinicRef);
-      if (!clinicSnap.exists()) throw new Error('Clinic not found.');
-
-      const currentSlug = String(clinicSnap.data()['marketplaceSlug'] ?? '');
-      const currentStatus = String(clinicSnap.data()['marketplaceStatus'] ?? 'unlisted');
-      const verificationSnap = await transaction.get(verificationRef);
-      const nextSlugRef = slug ? doc(db, 'marketplaceSlugs', slug) : null;
-      const currentSlugRef = currentSlug && currentSlug !== slug
-        ? doc(db, 'marketplaceSlugs', currentSlug)
-        : null;
-      const nextSlugSnap = nextSlugRef ? await transaction.get(nextSlugRef) : null;
-      const currentSlugSnap = currentSlugRef ? await transaction.get(currentSlugRef) : null;
-      const ownsCurrentSlug = currentSlugSnap?.exists() === true &&
-        currentSlugSnap.data()['clinicId'] === clinicId;
-
-      if (nextSlugSnap?.exists() && nextSlugSnap.data()['clinicId'] !== clinicId) {
-        throw new Error('That marketplace slug is already assigned to another clinic.');
-      }
-
-      const verifiedAt = update.status === 'verified'
-        ? String(clinicSnap.data()['marketplaceVerifiedAt'] ?? new Date().toISOString())
-        : update.status === 'suspended'
-          ? clinicSnap.data()['marketplaceVerifiedAt'] ?? null
-          : null;
-      transaction.set(clinicRef, {
-        marketplaceStatus: update.status,
-        marketplaceSlug: slug || deleteField(),
-        marketplaceVerifiedAt: verifiedAt ?? deleteField(),
-        marketplaceVerifiedDoctorIds: update.verifiedDoctorIds,
-        marketplaceProfile: update.profile ?? deleteField(),
-      }, { merge: true });
-
-      transaction.set(verificationRef, {
-        clinicId,
-        status: update.status,
-        ...update.verification,
-        reviewedBy: reviewerUid,
-        reviewedAt: new Date().toISOString(),
-        updatedAt: serverTimestamp(),
-        ...(verificationSnap.exists() ? {} : { createdAt: serverTimestamp() }),
-      }, { merge: true });
-
-      transaction.set(eventRef, {
-        clinicId,
-        previousStatus: currentStatus,
-        status: update.status,
-        reviewerUid,
-        createdAt: serverTimestamp(),
-      });
-
-      if (nextSlugRef) {
-        transaction.set(nextSlugRef, { clinicId, updatedAt: serverTimestamp() });
-      }
-      if (currentSlugRef && ownsCurrentSlug) {
-        transaction.delete(currentSlugRef);
-      }
-    });
+    await this.write(`/api/admin/clinics/${encodeURIComponent(clinicId)}/marketplace`, 'PATCH', update);
   }
 
   async getActiveSubscriptions(): Promise<StoredClinic[]> {
-    const q    = query(collection(db, this.COL), where('subscriptionStatus', '==', 'active'));
-    const snap = await getDocs(q);
-    return Promise.all(snap.docs.map(d => this.mergePrivate(d.id, d.data())));
+    return (await this.getAll()).filter(clinic => clinic.subscriptionStatus === 'active');
   }
 
   async create(data: Omit<StoredClinic, 'id' | 'createdAt'>): Promise<string> {
-    const ref = doc(collection(db, this.COL));
-    const { publicData, privateData } = partitionClinicData(data as unknown as Record<string, unknown>);
-    const batch = writeBatch(db);
-    batch.set(ref, {
-      ...toFirestoreData(publicData),
-      clinicId: ref.id,
-      marketplaceStatus: publicData['marketplaceStatus'] ?? 'unlisted',
-      createdAt: serverTimestamp(),
+    const response = await this.api.fetch('/api/admin/clinics', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
-    if (Object.keys(privateData).length > 0) {
-      batch.set(doc(ref, 'private', 'account'), {
-        ...toFirestoreData(privateData),
-        updatedAt: serverTimestamp(),
-      }, { merge: true });
-    }
-    await batch.commit();
-    return ref.id;
+    if (!response.ok) throw new Error('Clinic could not be created.');
+    return (await response.json() as { id: string }).id;
   }
 
   async update(id: string, data: Partial<Omit<StoredClinic, 'id' | 'createdAt'>>): Promise<void> {
-    const clinicRef = doc(db, this.COL, id);
-    const existing = await getDoc(clinicRef);
-    if (!existing.exists()) throw new Error('Clinic not found');
-
-    const incoming = data as unknown as Record<string, unknown>;
-    const { publicData, privateData } = partitionClinicData(incoming);
-    const { privateData: legacyPrivateData } = partitionClinicData(existing.data());
-    const privatePatch = { ...legacyPrivateData, ...privateData };
-    const fieldsToRemove = Object.fromEntries(
-      [...PRIVATE_CLINIC_FIELDS]
-        .filter(key => key in existing.data() || key in incoming)
-        .map(key => [key, deleteField()]),
-    );
-
-    const batch = writeBatch(db);
-    const publicPatch = { ...toFirestoreData(publicData), ...fieldsToRemove };
-    if (Object.keys(publicPatch).length > 0) batch.update(clinicRef, publicPatch);
-    if (Object.keys(privatePatch).length > 0) {
-      batch.set(doc(clinicRef, 'private', 'account'), {
-        ...toFirestoreData(privatePatch),
-        updatedAt: serverTimestamp(),
-      }, { merge: true });
-    }
-    await batch.commit();
+    await this.write(`/api/admin/clinics/${encodeURIComponent(id)}`, 'PATCH', data);
   }
 
   async remove(id: string): Promise<void> {
-    await deleteDoc(doc(db, this.COL, id));
+    await this.write(`/api/admin/clinics/${encodeURIComponent(id)}`, 'DELETE');
   }
 
-  // ── Cross-clinic appointments (super admin only) ──────────────────────────
   async getAllAppointments(): Promise<AppointmentDoc[]> {
-    const q    = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as AppointmentDoc));
+    return this.get<AppointmentDoc[]>('/api/admin/appointments');
   }
 
-  // ── Platform settings (costs, etc.) ───────────────────────────────────────
   async getPlatformSettings(): Promise<PlatformCosts> {
-    const snap = await getDoc(doc(db, 'platform', 'settings'));
-    if (!snap.exists()) return { vercel: 0, firebase: 0, domain: 0, other: 0 };
-    const raw = snap.data() as { monthlyCosts?: Partial<PlatformCosts> };
-    return {
-      vercel:   raw.monthlyCosts?.vercel   ?? 0,
-      firebase: raw.monthlyCosts?.firebase ?? 0,
-      domain:   raw.monthlyCosts?.domain   ?? 0,
-      other:    raw.monthlyCosts?.other    ?? 0,
-    };
+    return this.get<PlatformCosts>('/api/admin/settings/costs');
   }
 
   async savePlatformSettings(costs: PlatformCosts): Promise<void> {
-    await setDoc(doc(db, 'platform', 'settings'), { monthlyCosts: costs });
+    await this.write('/api/admin/settings/costs', 'PATCH', costs);
   }
 
-  // ── Clinic self-service (whitelist-enforced) ───────────────────────────────
   async updateClinicSettings(id: string, data: ClinicSettingsPayload): Promise<void> {
     if (!id || id === 'default') throw new Error('Invalid clinic ID');
     const safeData = Object.fromEntries(
       Object.entries(data).filter(([key]) => CLINIC_SETTINGS_ALLOWED_KEYS.has(key as keyof ClinicSettingsPayload)),
-    ) as Record<string, unknown>;
-    if (Object.keys(safeData).length === 0) {
-      throw new Error('No clinic settings fields to update');
-    }
+    );
+    if (Object.keys(safeData).length === 0) throw new Error('No clinic settings fields to update');
+    await this.write('/api/clinics/current/settings', 'PATCH', safeData);
+  }
 
-    const response = await this.api.fetch('/api/clinics/current/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(safeData),
+  private async getByHost(host: string): Promise<StoredClinic | null> {
+    return this.getNullable<StoredClinic>(`/api/admin/clinics/by-host?host=${encodeURIComponent(host)}`);
+  }
+
+  private async get<T>(url: string): Promise<T> {
+    const response = await this.api.fetch(url);
+    if (!response.ok) throw new Error('Platform data could not be loaded.');
+    return await response.json() as T;
+  }
+
+  private async getNullable<T>(url: string): Promise<T | null> {
+    const response = await this.api.fetch(url);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error('Platform data could not be loaded.');
+    return await response.json() as T;
+  }
+
+  private async write(url: string, method: string, body?: object): Promise<void> {
+    const response = await this.api.fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     });
-    if (!response.ok) throw new Error('Could not update clinic settings.');
+    if (!response.ok) throw new Error('Platform update could not be saved.');
   }
 }
