@@ -37,6 +37,9 @@ platform:
   email:
     resend-api-key: ${RESEND_API_KEY:}
     from: ${EMAIL_FROM:onboarding@resend.dev}
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
 
 server:
   port: ${PORT:8080}

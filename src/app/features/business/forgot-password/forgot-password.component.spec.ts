@@ -38,7 +38,7 @@ describe('ForgotPasswordComponent', () => {
     expect(component.form.controls.email.touched).toBeTrue();
   });
 
-  it('shows the same success state when Firebase does not recognize the account', async () => {
+  it('shows the same success state when the account is not recognized', async () => {
     const component = create();
     component.form.controls.email.setValue('unknown@example.com');
     sendPasswordReset.and.rejectWith({ code: 'auth/user-not-found' });

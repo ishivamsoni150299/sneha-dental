@@ -721,7 +721,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const suffix = attempt === 0 ? '' : String(attempt + 1);
       const candidate = `${baseSlug}${suffix}.mydentalplatform.com`;
-      const existing = await this.clinicStore.getByVercelDomain(candidate);
+      const existing = await this.clinicStore.getByHostedDomain(candidate);
       if (!existing || existing.id === this.clinicId) return candidate;
     }
 
@@ -732,7 +732,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     const normalized = normalizeHostedDomain(value);
     if (!normalized) return this.generateAvailableSubdomain(name);
 
-    const existing = await this.clinicStore.getByVercelDomain(normalized);
+    const existing = await this.clinicStore.getByHostedDomain(normalized);
     if (!existing || existing.id === this.clinicId) return normalized;
 
     if (this.isEdit) {

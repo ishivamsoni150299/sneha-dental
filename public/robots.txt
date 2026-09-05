@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /business/clinic/
+Disallow: /business/clinics
+Disallow: /business/reviews
+Disallow: /business/revenue
+Disallow: /business/analytics
+Disallow: /business/leads
+
+Sitemap: https://mydentalplatform.com/sitemap.xml

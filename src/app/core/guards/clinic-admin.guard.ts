@@ -7,9 +7,9 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  * Guards all clinic-admin routes under /business/clinic/*.
  *
  * Checks (in order):
- *  1. Firebase Auth session is restored (handles page refresh)
+ *  1. The Spring authentication session is restored after a page refresh
  *  2. User is authenticated
- *  3. A clinic doc exists for this user
+ *  3. A clinic exists for this user
  *  4. A paid clinic's subscription is not expired / cancelled
  *
  * Expired/cancelled clinics → /business/clinic/expired (upgrade prompt).

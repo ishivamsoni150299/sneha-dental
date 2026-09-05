@@ -99,7 +99,7 @@ export class ClinicFirestoreService {
     return this.getByHost(domain);
   }
 
-  async getByVercelDomain(vercelDomain: string): Promise<StoredClinic | null> {
+  async getByHostedDomain(vercelDomain: string): Promise<StoredClinic | null> {
     return this.getByHost(vercelDomain);
   }
 

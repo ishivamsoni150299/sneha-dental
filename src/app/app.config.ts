@@ -17,9 +17,9 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'top' }),
       withPreloading(PreloadAllModules),
     ),
-    // Load clinic config from Firestore before the first component renders.
+    // Resolve the tenant before the first component renders.
     // provideAppInitializer is the Angular 19 replacement for APP_INITIALIZER factory.
-    provideAppInitializer(() => inject(ClinicConfigService).loadFromFirestore()),
+    provideAppInitializer(() => inject(ClinicConfigService).loadFromApi()),
     // Replace Angular's default ErrorHandler with our global one.
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],

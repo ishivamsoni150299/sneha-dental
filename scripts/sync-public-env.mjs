@@ -4,8 +4,6 @@ import path from 'node:path';
 const root = process.cwd();
 const explicitTarget = process.argv[2];
 const targetEnv = (explicitTarget
-  ?? process.env['VERCEL_TARGET_ENV']
-  ?? process.env['VERCEL_ENV']
   ?? process.env['NODE_ENV']
   ?? 'development').toLowerCase();
 

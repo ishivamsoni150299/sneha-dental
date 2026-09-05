@@ -6,7 +6,6 @@ import { DOCUMENT } from '@angular/common';
 import { ClinicConfigService } from './clinic-config.service';
 import { PLATFORM_PLANS } from '../config/clinic.config';
 import { PLATFORM_FAQS } from '../content/platform-marketing.content';
-import { environment } from '../../../environments/environment';
 
 interface SeoRouteData {
   title?: string;

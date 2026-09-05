@@ -18,5 +18,15 @@ services:
         generateValue: true
       - key: SECURE_COOKIES
         value: "true"
+      - key: PUBLIC_BASE_URL
+        value: https://mydentalplatform.com
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
       - key: SPRING_PROFILES_ACTIVE
         value: production

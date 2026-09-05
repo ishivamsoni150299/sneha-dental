@@ -190,7 +190,7 @@ export class ClinicConfigService {
    * On localhost, skips Firestore and uses the static fallback.
    * Never throws — falls back to static config on any error.
    */
-  async loadFromFirestore(): Promise<void> {
+  async loadFromApi(): Promise<void> {
     if (typeof window === 'undefined') {
       return;
     }

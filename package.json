@@ -11,15 +11,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:appointments": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/appointments/*.test.mjs",
-    "test:seo": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/seo/seo-routing.test.mjs",
-    "test:voice": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/voice/voice-session-auth.test.mjs tests/voice/voice-behavior.test.mjs",
-    "test:leads": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/leads/lead-ai-call-policy.test.mjs",
-    "test:subscriptions": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/subscriptions/platform-entitlements.test.mjs",
-    "lint": "eslint src api --max-warnings 0",
-    "release:check": "node scripts/release-check.mjs",
-    "migrate:clinic-private-data": "node scripts/migrate-clinic-private-data.mjs",
-    "migrate:marketplace-fields": "node scripts/migrate-marketplace-fields.mjs"
+    "lint": "eslint src --max-warnings 0",
+    "release:check": "node scripts/release-check.mjs"
   },
   "private": true,
   "engines": {
@@ -36,10 +29,6 @@
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.20",
     "@sentry/angular": "^10.50.0",
-    "@types/nodemailer": "^8.0.0",
-    "firebase-admin": "^13.7.0",
-    "nodemailer": "^9.0.6",
-    "razorpay": "^2.9.6",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -58,7 +47,6 @@
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
-    "@vercel/node": "^5.7.2",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.5",
     "jasmine-core": "~5.6.0",

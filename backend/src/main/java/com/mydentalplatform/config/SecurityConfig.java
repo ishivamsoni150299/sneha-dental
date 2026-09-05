@@ -61,6 +61,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat", "/api/voice-session", "/api/voice-booking-action").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**").permitAll()
+                .requestMatchers(HttpMethod.GET,
+                    "/business", "/business/**", "/dentists", "/dentists/**",
+                    "/services", "/about", "/appointment", "/appointment/**",
+                    "/gallery", "/testimonials", "/contact", "/my-appointment",
+                    "/privacy", "/terms", "/robots.txt", "/sitemap.xml").permitAll()
                 .requestMatchers(
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()

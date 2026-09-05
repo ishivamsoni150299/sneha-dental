@@ -66,8 +66,8 @@ describe('PatientAppointmentsComponent', () => {
   it('does not offer OTP verification to a guest', async () => {
     const { fixture, api } = await createFixture();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Patient sign-in is temporarily unavailable');
-    expect(text).toContain('Find a dentist');
+    expect(text).toContain('Enter your mobile number');
+    expect(text).toContain('No OTP is sent');
     expect(text).not.toContain('Send verification code');
     expect(api.session).not.toHaveBeenCalled();
   });
