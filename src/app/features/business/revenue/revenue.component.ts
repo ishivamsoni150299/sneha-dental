@@ -17,6 +17,7 @@ export class RevenueComponent implements OnInit {
   clinics      = signal<StoredClinic[]>([]);
   appointments = signal<AppointmentDoc[]>([]);
   loading      = signal(true);
+  error        = signal<string | null>(null);
 
   costs        = signal({ hosting: 0, database: 0, domain: 0, other: 0 });
   editingCosts = signal(false);
@@ -82,6 +83,16 @@ export class RevenueComponent implements OnInit {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
+    await this.loadData();
+  }
+
+  async retry(): Promise<void> {
+    await this.loadData();
+  }
+
+  private async loadData(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
     try {
       const [clinics, costs, appointments] = await Promise.all([
         this.clinicStore.getAll(),
@@ -91,6 +102,9 @@ export class RevenueComponent implements OnInit {
       this.clinics.set(clinics);
       this.costs.set(costs);
       this.appointments.set(appointments);
+    } catch (error) {
+      console.error('[Revenue] Load failed:', error);
+      this.error.set('Revenue data could not be loaded. Please try again.');
     } finally {
       this.loading.set(false);
     }

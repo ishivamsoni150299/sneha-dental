@@ -49,6 +49,7 @@ export class AnalyticsComponent implements OnInit {
   clinics      = signal<StoredClinic[]>([]);
   appointments = signal<AppointmentDoc[]>([]);
   loading      = signal(true);
+  error        = signal<string | null>(null);
 
   // ── Computed ──────────────────────────────────────────────────────────────
   private thisMonthPrefix = computed(() => {
@@ -149,6 +150,16 @@ export class AnalyticsComponent implements OnInit {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
+    await this.loadData();
+  }
+
+  async retry(): Promise<void> {
+    await this.loadData();
+  }
+
+  private async loadData(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
     try {
       const [clinics, appointments] = await Promise.all([
         this.store.getAll(),
@@ -156,6 +167,9 @@ export class AnalyticsComponent implements OnInit {
       ]);
       this.clinics.set(clinics);
       this.appointments.set(appointments);
+    } catch (error) {
+      console.error('[Analytics] Load failed:', error);
+      this.error.set('Analytics could not be loaded. Please try again.');
     } finally {
       this.loading.set(false);
     }

@@ -33,7 +33,14 @@
     </div>
   }
 
-  @if (!loading()) {
+  @if (!loading() && error()) {
+    <div role="alert" class="border-l-4 border-red-500 bg-white px-5 py-4 text-sm text-red-700 shadow-sm">
+      {{ error() }}
+      <button type="button" (click)="retry()" class="ml-3 font-bold underline hover:text-red-900">Try again</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
 
     <!-- ── Top stats ─────────────────────────────────────────────────────── -->
     <div class="platform-metric-grid">
