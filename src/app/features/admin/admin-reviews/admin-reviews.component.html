@@ -10,7 +10,7 @@
   </header>
 
   <main class="admin-page max-w-5xl">
-    @if (error()) { <div role="alert" class="mb-5 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">{{ error() }}</div> }
+    @if (error()) { <div role="alert" class="mb-5 flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800"><span>{{ error() }}</span><button type="button" (click)="load()" [disabled]="loading()" class="rounded-lg border border-red-300 px-3 py-1.5 font-bold text-red-800 disabled:opacity-60">{{ loading() ? 'Retrying...' : 'Try again' }}</button></div> }
     @if (message()) { <div role="status" class="mb-5 border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ message() }}</div> }
     <div class="space-y-4">
       @for (review of reviews(); track review.id) {
