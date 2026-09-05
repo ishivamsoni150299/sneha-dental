@@ -1,7 +1,7 @@
 {
   "name": "mydentalplatform",
   "short_name": "mydental",
-  "description": "Websites, booking, and AI reception for modern dental clinics.",
+  "description": "Find verified dentists, compare dental clinics, and request appointments online.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

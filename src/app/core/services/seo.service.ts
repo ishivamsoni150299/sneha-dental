@@ -29,9 +29,9 @@ type SeoContext =
 
 const PLATFORM_NAME = 'mydentalplatform';
 const PLATFORM_ORIGIN = 'https://mydentalplatform.com';
-const PLATFORM_DEFAULT_TITLE = 'Dental Clinic Website & Booking Software | mydentalplatform';
+const PLATFORM_DEFAULT_TITLE = 'Find & Book Dentists Near You | mydentalplatform';
 const PLATFORM_DEFAULT_DESCRIPTION =
-  'Launch a free dental clinic website with online appointment booking and WhatsApp. Upgrade to Basic for clinic operations or Pro for an AI receptionist.';
+  'Find verified dentists and dental clinics in Delhi NCR. Compare treatments, consultation fees and locations, then request an appointment online.';
 const INDEXABLE_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 const NOINDEX_ROBOTS = 'noindex,nofollow';
 
@@ -63,7 +63,7 @@ export class SeoService {
     const url = this.absoluteUrl(path, origin);
     const image = this.absoluteUrl(data.image ?? '/og-default.svg', origin);
     const imageAlt = context.kind === 'platform'
-      ? 'mydentalplatform dental website platform preview'
+      ? 'Find verified dentists and book a dental appointment on mydentalplatform'
       : `${context.siteName} dental clinic preview`;
     const robots = data.noIndex ? NOINDEX_ROBOTS : INDEXABLE_ROBOTS;
 
