@@ -110,7 +110,7 @@ public class AppointmentService {
             select a.*, d.name as doctor_name from appointments a
             left join doctors d on d.id = a.doctor_id
             where a.clinic_id = ? order by a.created_at desc
-            """, (resultSet, rowNumber) -> publicValue(map(resultSet)), clinicId);
+            """, (resultSet, rowNumber) -> clinicValue(map(resultSet)), clinicId);
     }
 
     @Transactional
@@ -214,9 +214,14 @@ public class AppointmentService {
         return rows.getFirst();
     }
 
-    private Map<String, Object> publicValue(Map<String, Object> value) {
+    private Map<String, Object> clinicValue(Map<String, Object> value) {
         Map<String, Object> result = new LinkedHashMap<>(value);
         result.keySet().removeIf(key -> key.startsWith("raw"));
+        return result;
+    }
+
+    private Map<String, Object> publicValue(Map<String, Object> value) {
+        Map<String, Object> result = clinicValue(value);
         result.remove("clinicNotes");
         result.remove("treatmentDone");
         result.remove("amountCharged");

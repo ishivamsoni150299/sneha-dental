@@ -6,6 +6,8 @@ COPY angular.json postcss.config.cjs tailwind.config.cjs tsconfig*.json ./
 COPY public ./public
 COPY scripts ./scripts
 COPY src ./src
+ARG GOOGLE_MAPS_API_KEY=""
+ARG SENTRY_DSN=""
 RUN npm run build
 
 FROM maven:3.9.11-eclipse-temurin-25 AS backend
@@ -22,4 +24,4 @@ RUN useradd --system --uid 10001 spring
 COPY --from=backend /workspace/backend/target/platform-api-0.1.0-SNAPSHOT.jar app.jar
 USER spring
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=50", "-XX:+ExitOnOutOfMemoryError", "-Duser.timezone=Asia/Kolkata", "-jar", "/app/app.jar"]

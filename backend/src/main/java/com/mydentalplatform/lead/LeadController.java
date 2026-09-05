@@ -142,7 +142,7 @@ public class LeadController {
     }
 
     private void requirePlatformAdmin(Jwt jwt) {
-        if (!"platform_admin".equals(jwt.getClaimAsString("role"))) {
+        if (!com.mydentalplatform.auth.UserRole.PLATFORM_ADMIN.claimValue().equals(jwt.getClaimAsString("role"))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Platform administrator access is required.");
         }
     }

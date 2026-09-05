@@ -43,20 +43,15 @@ public class PlatformAdminBootstrap implements ApplicationRunner {
         }
         List<UUID> existing = jdbcTemplate.queryForList(
             "select id from users where lower(email) = ? for update", UUID.class, email);
-        String hash = passwordEncoder.encode(password);
-        if (existing.isEmpty()) {
-            jdbcTemplate.update("""
-                insert into users (role, email, password_hash, email_verified)
-                values ('platform_admin', ?, ?, true)
-                """, email, hash);
-            LOG.info("Created bootstrap platform administrator {}", email);
+        if (!existing.isEmpty()) {
+            LOG.info("Bootstrap account already exists; leaving credentials and role unchanged.");
             return;
         }
+        String hash = passwordEncoder.encode(password);
         jdbcTemplate.update("""
-            update users set clinic_id = null, role = 'platform_admin', password_hash = ?,
-                email_verified = true, enabled = true, password_migration_required = false, updated_at = now()
-            where id = ?
-            """, hash, existing.getFirst());
-        LOG.info("Updated bootstrap platform administrator {}", email);
+            insert into users (role, email, password_hash, email_verified)
+            values ('platform_admin', ?, ?, true)
+            """, email, hash);
+        LOG.info("Created bootstrap platform administrator {}", email);
     }
 }

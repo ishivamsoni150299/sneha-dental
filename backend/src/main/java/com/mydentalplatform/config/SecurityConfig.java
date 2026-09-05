@@ -61,11 +61,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat", "/api/voice-session", "/api/voice-booking-action").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**").permitAll()
-                .requestMatchers(HttpMethod.GET,
-                    "/business", "/business/**", "/dentists", "/dentists/**",
-                    "/services", "/about", "/appointment", "/appointment/**",
-                    "/gallery", "/testimonials", "/contact", "/my-appointment",
-                    "/privacy", "/terms", "/robots.txt", "/sitemap.xml").permitAll()
+                .requestMatchers(HttpMethod.GET, SpaRoutingConfig.ROUTES).permitAll()
+                .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/favicon.ico",
+                    "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
                 .requestMatchers(
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()
@@ -76,9 +74,14 @@ public class SecurityConfig {
     }
 
     private SecretKey secretKey(String encodedSecret) {
-        byte[] key = Base64.getDecoder().decode(encodedSecret);
+        byte[] key;
+        try {
+            key = Base64.getDecoder().decode(encodedSecret);
+        } catch (IllegalArgumentException ignored) {
+            key = encodedSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
         if (key.length < 32) {
-            throw new IllegalArgumentException("JWT_SECRET must decode to at least 32 bytes.");
+            throw new IllegalArgumentException("JWT_SECRET must contain at least 32 bytes.");
         }
         return new SecretKeySpec(key, "HmacSHA256");
     }

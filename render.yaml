@@ -4,6 +4,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
+    region: singapore
     healthCheckPath: /api/health
     envVars:
       - key: JDBC_DATABASE_URL
@@ -12,21 +13,15 @@ services:
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
-      - key: JWT_ISSUER
-        value: https://mydentalplatform.com
       - key: JWT_SECRET
-        sync: false
+        generateValue: true
       - key: SECURE_COOKIES
         value: "true"
-      - key: PUBLIC_BASE_URL
-        value: https://mydentalplatform.com
       - key: BOOTSTRAP_ADMIN_EMAIL
         sync: false
       - key: BOOTSTRAP_ADMIN_PASSWORD
         sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: EMAIL_FROM
-        sync: false
+      - key: DATABASE_POOL_SIZE
+        value: "4"
       - key: SPRING_PROFILES_ACTIVE
         value: production

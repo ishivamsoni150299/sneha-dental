@@ -206,7 +206,7 @@ public class BillingController {
     private void authorizeClinic(Jwt jwt, UUID clinicId) {
         String role = jwt.getClaimAsString("role");
         String owned = jwt.getClaimAsString("clinic_id");
-        if (!"platform_admin".equals(role) && (owned == null || !owned.equals(clinicId.toString()))) {
+        if (!com.mydentalplatform.auth.UserRole.PLATFORM_ADMIN.claimValue().equals(role) && (owned == null || !owned.equals(clinicId.toString()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this clinic.");
         }
     }

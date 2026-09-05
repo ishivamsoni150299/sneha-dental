@@ -25,10 +25,10 @@ $env:JAVA_HOME = 'C:\path\to\jdk-25'
 $env:JDBC_DATABASE_URL = 'jdbc:postgresql://localhost:5432/mydentalplatform'
 $env:DATABASE_USERNAME = 'mydentalplatform'
 $env:DATABASE_PASSWORD = 'change-me'
-backend\mvnw.cmd spring-boot:run
+backend\mvnw.cmd -f backend/pom.xml spring-boot:run
 ```
 
-Angular runs at `http://localhost:4200`; Spring runs at `http://localhost:8080`. For the production-shaped application, build and run the Docker image instead.
+Angular runs at `http://localhost:4200`; its `/api` requests are proxied to Spring at `http://localhost:8080`. Spring reads process environment variables, not `.env` files. For the production-shaped application, build and run the Docker image instead.
 
 ## Validation
 
@@ -38,7 +38,7 @@ npm run build
 npx ng test --watch=false --browsers=ChromeHeadless
 
 $env:JAVA_HOME = 'C:\path\to\jdk-25'
-backend\mvnw.cmd -B test
+backend\mvnw.cmd -f backend/pom.xml -B test
 ```
 
 After deployment, set the production variables locally and run `npm run release:check`.
@@ -56,31 +56,33 @@ Free Render services sleep while idle, so the first request after inactivity can
 ### 1. Create Supabase PostgreSQL
 
 1. Create a Supabase project.
-2. Open **Connect**, select the transaction pooler, and copy its host, database, user, and password.
+2. Open **Connect**, select the **Session pooler** (port 5432), and copy its host. Use session mode for the persistent Java service and Flyway migrations.
 3. Build the JDBC URL in this form:
 
 ```text
-jdbc:postgresql://POOLER_HOST:6543/postgres?sslmode=require&prepareThreshold=0
+jdbc:postgresql://POOLER_HOST:5432/postgres?sslmode=require
 ```
 
-Flyway applies every file in `backend/src/main/resources/db/migration` when Spring starts. Do not manually create application tables.
+The production profile uses a private `dental` schema, outside Supabase's default Data API schemas. Provision a database login that owns that schema, and use `dental_app.PROJECT_REF` as its pooler username. Keep this schema out of the Data API exposed schemas. Angular connects only to Spring, never directly to Supabase.
+
+Flyway applies every file in `backend/src/main/resources/db/migration` when Spring starts and stores its history in `dental`. Do not manually create application tables. The `pgcrypto` extension must already be installed by the database administrator (as it is in new Supabase projects). This setup is for a fresh database; do not point an existing deployment at a new schema without migrating its data.
 
 ### 2. Deploy the Render Blueprint
 
 1. Push `main` to GitHub.
 2. In Render, choose **New > Blueprint** and select this repository.
-3. Render reads `render.yaml` and builds the root `Dockerfile`.
+3. Render reads `render.yaml` and builds the root `Dockerfile`. The service uses the Free plan in Singapore.
 4. Set these secret variables:
 
 | Variable | Required | Value |
 |---|---:|---|
-| `JDBC_DATABASE_URL` | Yes | Supabase transaction-pooler JDBC URL |
+| `JDBC_DATABASE_URL` | Yes | Supabase session-pooler JDBC URL |
 | `DATABASE_USERNAME` | Yes | Supabase pooler username |
 | `DATABASE_PASSWORD` | Yes | Supabase database password |
-| `JWT_SECRET` | Yes | Base64-encoded random value of at least 32 bytes |
+| `JWT_SECRET` | Automatic | Render Blueprint generates a base64-encoded 32-byte secret |
 | `BOOTSTRAP_ADMIN_EMAIL` | First deploy | Initial platform administrator email |
 | `BOOTSTRAP_ADMIN_PASSWORD` | First deploy | Random 12-72 character password |
-| `PUBLIC_BASE_URL` | Yes | Public HTTPS origin, without a trailing slash |
+| `PUBLIC_BASE_URL` | Custom domain only | Defaults to Render's HTTPS URL; override with the custom HTTPS origin, without a trailing slash |
 | `RESEND_API_KEY` | For password reset | Resend API key |
 | `EMAIL_FROM` | For password reset | Verified sender, for example `support@example.com` |
 | `SENTRY_DSN` | Optional | Browser error reporting DSN |
@@ -92,6 +94,8 @@ Generate a JWT secret in PowerShell:
 ```
 
 After the first successful login, remove `BOOTSTRAP_ADMIN_PASSWORD` and `BOOTSTRAP_ADMIN_EMAIL` from Render. The administrator remains in PostgreSQL, and later restarts will not reset the password.
+
+Start with the generated `onrender.com` URL and verify `/platform/login`, `/appointments`, and `/api/health` before changing DNS. Optional Resend and Razorpay values can be added later. The JVM reserves half of container memory for its heap and uses the clinic timezone `Asia/Kolkata`; measure memory usage after deployment before increasing load.
 
 ### 3. Configure DNS
 

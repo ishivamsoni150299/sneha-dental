@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: ${JDBC_DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      connection-init-sql: SET search_path TO dental, public, extensions
+  jpa:
+    properties:
+      hibernate:
+        default_schema: dental
+  flyway:
+    default-schema: dental
+    schemas: dental
+
+platform:
+  public-base-url: ${PUBLIC_BASE_URL:${RENDER_EXTERNAL_URL}}
+  auth:
+    issuer: ${JWT_ISSUER:${PUBLIC_BASE_URL:${RENDER_EXTERNAL_URL}}}
+    secret: ${JWT_SECRET}
+    secure-cookies: true
+
+server:
+  tomcat:
+    threads:
+      max: 30
+      min-spare: 2
