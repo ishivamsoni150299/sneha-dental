@@ -136,6 +136,19 @@ $env:JWT_SECRET = 'configured'
 npm run release:check
 ```
 
+To verify full Spring startup against a deliberately selected database, configure the production variables above, use JDK 25 or newer, and run:
+
+```powershell
+$env:DEPLOYMENT_DATABASE_SMOKE = 'true'
+try {
+    .\backend\mvnw.cmd -B -f backend/pom.xml '-Dtest=ProductionStartupTest' test
+} finally {
+    Remove-Item Env:DEPLOYMENT_DATABASE_SMOKE
+}
+```
+
+This opt-in test applies pending Flyway migrations and runs configured startup actions, including administrator bootstrap when enabled. Use a fresh or backed-up database. It starts HTTP on a random local port, verifies database health, and shuts down; normal unit tests skip it.
+
 ## Security and Operations
 
 - Keep Supabase, JWT, Resend, and Razorpay values in Render secrets only.

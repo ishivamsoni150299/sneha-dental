@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +44,7 @@ public class PasswordResetService {
     private final String emailFrom;
     private final String publicBaseUrl;
 
+    @Autowired
     public PasswordResetService(
         JdbcTemplate jdbcTemplate,
         PasswordEncoder passwordEncoder,

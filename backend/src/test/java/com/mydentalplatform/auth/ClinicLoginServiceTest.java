@@ -1,6 +1,7 @@
 package com.mydentalplatform.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -17,7 +18,10 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import tools.jackson.databind.ObjectMapper;
 
 class ClinicLoginServiceTest {
     private static final Instant NOW = Instant.parse("2026-09-04T08:00:00Z");
@@ -40,6 +44,23 @@ class ClinicLoginServiceTest {
             passwordEncoder,
             tokenService,
             Clock.fixed(NOW, ZoneOffset.UTC));
+    }
+
+    @Test
+    void springSelectsTheProductionConstructors() {
+        try (var context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(AuthUserRepository.class, () -> userRepository);
+            context.registerBean(RefreshTokenRepository.class, () -> refreshTokenRepository);
+            context.registerBean(PasswordEncoder.class, () -> passwordEncoder);
+            context.registerBean(TokenService.class, () -> tokenService);
+            context.registerBean(JdbcTemplate.class, () -> mock(JdbcTemplate.class));
+            context.registerBean(ObjectMapper.class, () -> new ObjectMapper());
+            context.register(ClinicLoginService.class, PasswordResetService.class);
+            context.refresh();
+
+            assertNotNull(context.getBean(ClinicLoginService.class));
+            assertNotNull(context.getBean(PasswordResetService.class));
+        }
     }
 
     @Test
