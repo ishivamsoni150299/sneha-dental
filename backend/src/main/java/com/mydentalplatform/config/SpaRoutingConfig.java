@@ -17,9 +17,6 @@ public class SpaRoutingConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/dentists").setViewName("forward:/dentists/index.html");
-        registry.addViewController("/business").setViewName("forward:/business/index.html");
-
         for (String route : ROUTES) {
             if ("/dentists".equals(route) || "/business".equals(route)) {
                 continue;
