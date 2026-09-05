@@ -1,9 +1,5 @@
-import { Injectable } from '@angular/core';
-import {
-  collection, getDocs, getDocsFromServer, getDocFromServer,
-  addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, Timestamp,
-} from 'firebase/firestore';
-import { db } from '../firebase';
+import { Injectable, inject } from '@angular/core';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'demo' | 'converted' | 'lost';
 export type LeadSource = 'google_maps' | 'instagram' | 'referral' | 'ida' | 'walkin' | 'other';
@@ -68,66 +64,68 @@ export interface StoredLead {
   aiCallLastOutcome?: LeadAiCallOutcome;
   aiCallSummary?: string;
   aiCallError?: string;
-  createdAt?:   Timestamp;
+  createdAt?:   string;
 }
 
 export interface LeadActivity {
   id:        string;
   type:      ActivityType;
   note:      string;
-  createdAt: Timestamp;
+  createdAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class LeadFirestoreService {
-  private readonly COL = 'leads';
-
-  private stripUndefined<T extends Record<string, unknown>>(data: T): Partial<T> {
-    return Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value !== undefined),
-    ) as Partial<T>;
-  }
+  private readonly api = inject(AuthenticatedApiService);
 
   async getAll(): Promise<StoredLead[]> {
-    const q    = query(collection(db, this.COL), orderBy('createdAt', 'desc'));
-    const snap = await getDocsFromServer(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as StoredLead));
+    return this.get<StoredLead[]>('/api/admin/leads');
   }
 
   async getById(id: string): Promise<StoredLead | null> {
-    const snap = await getDocFromServer(doc(db, this.COL, id));
-    return snap.exists() ? ({ id: snap.id, ...snap.data() } as StoredLead) : null;
+    const response = await this.api.fetch(`/api/admin/leads/${encodeURIComponent(id)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error('Lead could not be loaded.');
+    return await response.json() as StoredLead;
   }
 
   async create(data: Omit<StoredLead, 'id' | 'createdAt'>): Promise<string> {
-    // Firestore rejects undefined values — strip them before writing
-    const payload = Object.fromEntries(
-      Object.entries({ ...data, createdAt: serverTimestamp() }).filter(([, v]) => v !== undefined)
-    );
-    const ref = await addDoc(collection(db, this.COL), payload);
-    return ref.id;
+    const response = await this.api.fetch('/api/admin/leads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Lead could not be created.');
+    return (await response.json() as { id: string }).id;
   }
 
   async update(id: string, data: Partial<Omit<StoredLead, 'id' | 'createdAt'>>): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await updateDoc(doc(db, this.COL, id), this.stripUndefined(data as Record<string, unknown>) as any);
+    await this.write(`/api/admin/leads/${encodeURIComponent(id)}`, 'PATCH', data);
   }
 
   async remove(id: string): Promise<void> {
-    await deleteDoc(doc(db, this.COL, id));
+    await this.write(`/api/admin/leads/${encodeURIComponent(id)}`, 'DELETE');
   }
 
   // ── Activities subcollection ───────────────────────────────────────────────
   async getActivities(leadId: string): Promise<LeadActivity[]> {
-    const q    = query(collection(db, this.COL, leadId, 'activities'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as LeadActivity));
+    return this.get<LeadActivity[]>(`/api/admin/leads/${encodeURIComponent(leadId)}/activities`);
   }
 
   async addActivity(leadId: string, data: Omit<LeadActivity, 'id' | 'createdAt'>): Promise<void> {
-    await addDoc(collection(db, this.COL, leadId, 'activities'), {
-      ...data,
-      createdAt: serverTimestamp(),
+    await this.write(`/api/admin/leads/${encodeURIComponent(leadId)}/activities`, 'POST', data);
+  }
+
+  private async get<T>(url: string): Promise<T> {
+    const response = await this.api.fetch(url);
+    if (!response.ok) throw new Error('Lead data could not be loaded.');
+    return await response.json() as T;
+  }
+
+  private async write(url: string, method: string, body?: object): Promise<void> {
+    const response = await this.api.fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
     });
+    if (!response.ok) throw new Error('Lead update could not be saved.');
   }
 }
