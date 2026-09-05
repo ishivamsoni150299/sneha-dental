@@ -39,7 +39,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
             </section>
             <section>
               <h2 class="ui-title">Patient phone verification</h2>
-              <p class="mt-2">The patient appointment portal uses Firebase phone authentication and reCAPTCHA. A verified number may be used to link appointments booked with that same number. The portal exposes scheduling details only; clinical notes, treatment records, and clinic billing fields are not part of the shared patient profile.</p>
+              <p class="mt-2">The patient appointment portal uses the booking reference and phone number provided during booking. The portal exposes scheduling details only; clinical notes, treatment records, and clinic billing fields are not part of the shared patient profile.</p>
             </section>
             <section>
               <h2 class="ui-title">Appointment reviews</h2>

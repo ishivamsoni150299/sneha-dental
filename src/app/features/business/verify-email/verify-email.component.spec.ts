@@ -1,15 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import type { User } from 'firebase/auth';
 import { of } from 'rxjs';
-import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
+import { AuthFacade, type AuthRole, type PlatformUser } from '../../../core/services/auth-facade.service';
 import { VerifyEmailComponent } from './verify-email.component';
 
 describe('VerifyEmailComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let auth: {
     authReady: Promise<void>;
-    currentUser: () => User | null;
+    currentUser: () => PlatformUser | null;
     role: () => AuthRole | null;
     refreshVerificationStatus: jasmine.Spy;
     resendVerificationEmail: jasmine.Spy;
@@ -17,7 +16,7 @@ describe('VerifyEmailComponent', () => {
   };
 
   function create(options: {
-    user?: User | null;
+    user?: PlatformUser | null;
     role?: AuthRole | null;
     returnUrl?: string | null;
   } = {}): VerifyEmailComponent {
@@ -32,7 +31,7 @@ describe('VerifyEmailComponent', () => {
     router.serializeUrl.and.returnValue('/');
 
     const user = options.user === undefined
-      ? ({ uid: 'owner-1', email: 'owner@example.com' } as User)
+      ? ({ uid: 'owner-1', email: 'owner@example.com' } as PlatformUser)
       : options.user;
     auth = {
       authReady: Promise.resolve(),

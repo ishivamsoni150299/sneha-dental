@@ -37,7 +37,6 @@
     "@angular/ssr": "^19.2.20",
     "@sentry/angular": "^10.50.0",
     "@types/nodemailer": "^8.0.0",
-    "firebase": "^12.18.0",
     "firebase-admin": "^13.7.0",
     "nodemailer": "^9.0.6",
     "razorpay": "^2.9.6",

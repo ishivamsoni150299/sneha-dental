@@ -470,7 +470,6 @@ export class SeoService {
 
   private getPlatformHostnames(): Set<string> {
     const values = [
-      environment.firebase.authDomain,
       'mydentalplatform.com',
       'www.mydentalplatform.com',
     ];

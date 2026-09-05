@@ -1,8 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import type { User } from 'firebase/auth';
 import { of } from 'rxjs';
-import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
+import { AuthFacade, type AuthRole, type PlatformUser } from '../../../core/services/auth-facade.service';
 import { SignupComponent } from './signup.component';
 
 describe('SignupComponent', () => {
@@ -19,7 +18,7 @@ describe('SignupComponent', () => {
     router.createUrlTree.and.returnValue({} as never);
     router.serializeUrl.and.returnValue('/');
     createAccountWithGoogle = jasmine.createSpy('createAccountWithGoogle').and.resolveTo({
-      user: { uid: 'user-1', email: 'owner@example.com' } as User,
+      user: { uid: 'user-1', email: 'owner@example.com' } as PlatformUser,
       role,
     });
 
