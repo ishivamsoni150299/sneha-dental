@@ -56,6 +56,7 @@
   } @else if (error()) {
     <div role="alert" class="border-l-4 border-red-500 bg-white px-5 py-4 text-sm text-red-700 shadow-sm">
       {{ error() }}
+      <button type="button" (click)="retry()" class="ml-3 font-bold underline hover:text-red-900">Try again</button>
     </div>
   } @else {
     <div class="mb-5 flex flex-wrap items-center justify-between gap-3">

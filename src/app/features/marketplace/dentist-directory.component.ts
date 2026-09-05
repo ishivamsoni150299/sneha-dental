@@ -58,6 +58,16 @@ export class DentistDirectoryComponent implements OnInit {
   ));
 
   async ngOnInit(): Promise<void> {
+    await this.loadClinics();
+  }
+
+  async retry(): Promise<void> {
+    await this.loadClinics();
+  }
+
+  private async loadClinics(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
     try {
       this.clinics.set(await this.marketplace.getVerifiedClinics('delhi-ncr'));
     } catch (error) {
