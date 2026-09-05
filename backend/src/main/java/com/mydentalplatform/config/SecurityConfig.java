@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/public/contacts").permitAll()
                 .requestMatchers("/api/public/appointments/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/chat", "/api/voice-session", "/api/voice-booking-action").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**").permitAll()
                 .requestMatchers(
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
