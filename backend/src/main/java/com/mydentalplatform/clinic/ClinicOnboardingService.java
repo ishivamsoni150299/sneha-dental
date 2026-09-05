@@ -24,7 +24,7 @@ public class ClinicOnboardingService {
 
     public boolean slugAvailable(String slug) {
         return Boolean.FALSE.equals(jdbcTemplate.queryForObject("""
-            select exists(select 1 from clinics where lower(public_config ->> 'vercelDomain') = lower(?))
+            select exists(select 1 from clinics where lower(public_config ->> 'hostedDomain') = lower(?))
             """, Boolean.class, slug + ".mydentalplatform.com"));
     }
 
@@ -72,7 +72,7 @@ public class ClinicOnboardingService {
         config.put("services", list(request.get("services")));
         config.put("plans", List.of());
         config.put("testimonials", List.of());
-        config.put("vercelDomain", domain);
+        config.put("hostedDomain", domain);
         config.put("marketingAttribution", request.getOrDefault("marketing", Map.of()));
         config.put("billingCycle", billingCycle);
 

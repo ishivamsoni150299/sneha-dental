@@ -85,8 +85,8 @@
 
       <div class="divide-y divide-gray-50">
         @for (item of [
-          {key: 'vercel',   label: 'Application hosting',   hint: 'Render free tier or paid instance'},
-          {key: 'firebase', label: 'PostgreSQL database',   hint: 'Supabase free tier or paid usage'},
+          {key: 'hosting',  label: 'Application hosting',   hint: 'Render free tier or paid instance'},
+          {key: 'database', label: 'PostgreSQL database',   hint: 'Supabase free tier or paid usage'},
           {key: 'domain',   label: 'Domain / DNS',          hint: 'Annual fee ÷ 12'},
           {key: 'other',    label: 'Other',                 hint: 'SIM, tools, subscriptions'}
         ]; track item.key) {
@@ -183,7 +183,7 @@
                   {{ statusLabel(clinic) }}
                 </span>
               </div>
-              <p class="text-xs text-gray-400 mt-0.5">{{ clinic.city }} · {{ clinic.vercelDomain || clinic.domain || '—' }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ clinic.city }} · {{ clinic.hostedDomain || clinic.domain || '—' }}</p>
             </div>
 
             <!-- Plan -->

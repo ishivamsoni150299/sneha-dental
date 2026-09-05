@@ -132,7 +132,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   get websiteUrl(): string {
-    const domain = this.clinicConfig.domain?.trim() || this.clinicConfig.vercelDomain?.trim();
+    const domain = this.clinicConfig.domain?.trim() || this.clinicConfig.hostedDomain?.trim();
     return domain ? `https://${domain}` : '';
   }
 

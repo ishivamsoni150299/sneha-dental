@@ -32,7 +32,7 @@ function clinic(overrides: Partial<MarketplaceClinic> = {}): MarketplaceClinic {
     subscriptionPlan: 'trial',
     subscriptionStatus: 'trial',
     domain: 'smilecare.example',
-    vercelDomain: 'smilecare.mydentalplatform.com',
+    hostedDomain: 'smilecare.mydentalplatform.com',
     theme: 'blue',
     bookingRefPrefix: 'SC',
     social: {},

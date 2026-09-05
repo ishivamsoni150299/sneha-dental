@@ -69,7 +69,7 @@ public class PlatformAdminController {
         requireAdmin(jwt);
         return ResponseEntity.ofNullable(clinicQuery("""
             where lower(c.public_config ->> 'domain') = lower(?)
-               or lower(c.public_config ->> 'vercelDomain') = lower(?) limit 1
+               or lower(c.public_config ->> 'hostedDomain') = lower(?) limit 1
             """, host, host).stream().findFirst().orElse(null));
     }
 
@@ -359,7 +359,7 @@ public class PlatformAdminController {
     }
 
     private Map<String, Object> defaultCosts() {
-        return new LinkedHashMap<>(Map.of("vercel", 0, "firebase", 0, "domain", 0, "other", 0));
+        return new LinkedHashMap<>(Map.of("hosting", 0, "database", 0, "domain", 0, "other", 0));
     }
 
     private String text(Object value) { return value == null ? "" : String.valueOf(value).trim(); }

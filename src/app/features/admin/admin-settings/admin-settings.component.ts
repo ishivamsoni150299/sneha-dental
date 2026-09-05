@@ -233,7 +233,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     return (this.infoForm.get('name')?.value || this.cfg.name || 'C').trim().charAt(0).toUpperCase() || 'C';
   }
   get websiteHost(): string {
-    return this.cfg.domain || this.cfg.vercelDomain || 'yourclinic.mydentalplatform.com';
+    return this.cfg.domain || this.cfg.hostedDomain || 'yourclinic.mydentalplatform.com';
   }
   get selectedThemeMeta(): ThemeOption {
     return this.themeOptions.find(opt => opt.value === this.selectedTheme()) ?? this.themeOptions[0];

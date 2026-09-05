@@ -11,7 +11,7 @@ Browser -> Render Docker service -> Spring Boot -> Supabase PostgreSQL
                               |-> Resend (optional password email)
 ```
 
-Core features do not use Firebase, Vercel, or patient OTP. Patients manage appointments with the booking reference and matching phone number. Optional AI and outbound-call routes return HTTP 503 until a provider integration is enabled.
+Core features use the Spring API and Supabase PostgreSQL. Patients manage appointments with the booking reference and matching phone number. Optional AI and outbound-call routes return HTTP 503 until a provider integration is enabled.
 
 ## Local Development
 

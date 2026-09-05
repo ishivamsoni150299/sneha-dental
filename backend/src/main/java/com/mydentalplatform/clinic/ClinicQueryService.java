@@ -32,7 +32,7 @@ public class ClinicQueryService {
         return clinicQuery("""
             where active = true and (
                 lower(public_config ->> 'domain') = lower(?) or
-                lower(public_config ->> 'vercelDomain') = lower(?)
+                lower(public_config ->> 'hostedDomain') = lower(?)
             )
             order by case when lower(public_config ->> 'domain') = lower(?) then 0 else 1 end
             limit 1

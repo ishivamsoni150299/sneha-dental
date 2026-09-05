@@ -63,7 +63,7 @@ export class ClinicListComponent implements OnInit {
           clinic.doctorName,
           clinic.city,
           clinic.domain,
-          clinic.vercelDomain,
+          clinic.hostedDomain,
           clinic.marketplaceSlug,
           clinic.marketplaceProfile?.locality,
         ].some(value => value?.toLowerCase().includes(q));
@@ -95,7 +95,7 @@ export class ClinicListComponent implements OnInit {
       { label: 'doctor profile', complete: Boolean(clinic.doctorName?.trim()) },
       { label: 'phone number', complete: Boolean(clinic.phone?.trim()) },
       { label: 'clinic address', complete: Boolean(clinic.addressLine1?.trim() && clinic.city?.trim()) },
-      { label: 'website domain', complete: Boolean(clinic.domain?.trim() || clinic.vercelDomain?.trim()) },
+      { label: 'website domain', complete: Boolean(clinic.domain?.trim() || clinic.hostedDomain?.trim()) },
       { label: 'services', complete: Boolean(clinic.services?.length) },
       { label: 'business hours', complete: Boolean(clinic.hours?.length) },
       { label: 'booking reference', complete: Boolean(clinic.bookingRefPrefix?.trim()) },

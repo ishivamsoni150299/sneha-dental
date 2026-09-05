@@ -190,14 +190,14 @@
                   <div class="min-w-0">
                     <p class="ui-title truncate text-sm">{{ clinic.name }}</p>
                     <p class="ui-caption mt-0.5 truncate">{{ clinic.doctorName || 'Doctor not assigned' }}</p>
-                    @if (clinic.domain || clinic.vercelDomain) {
+                    @if (clinic.domain || clinic.hostedDomain) {
                       <a
                         class="ui-link mt-1 block truncate text-xs"
-                        [href]="'https://' + (clinic.domain || clinic.vercelDomain)"
+                        [href]="'https://' + (clinic.domain || clinic.hostedDomain)"
                         target="_blank"
                         rel="noopener noreferrer"
-                        [title]="clinic.domain || clinic.vercelDomain">
-                        {{ clinic.domain || clinic.vercelDomain }}
+                        [title]="clinic.domain || clinic.hostedDomain">
+                        {{ clinic.domain || clinic.hostedDomain }}
                       </a>
                     } @else {
                       <p class="ui-caption mt-1">Domain not connected</p>

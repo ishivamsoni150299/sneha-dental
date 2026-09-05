@@ -60,7 +60,7 @@ interface ClinicPayload {
   billingEmail: string | null;
   billingNotes: string | null;
   domain: string | null;
-  vercelDomain: string | null;
+  hostedDomain: string | null;
   social: {
     facebook: string | null;
     instagram: string | null;
@@ -220,7 +220,7 @@ describe('buildClinicFirestorePayload', () => {
     expect(payload.billingEmail).toBe('owner@clinic.test');
     expect(payload.billingNotes).toBeNull();
     expect(payload.domain).toBeNull();
-    expect(payload.vercelDomain).toBe('aarogyamdental.mydentalplatform.com');
+    expect(payload.hostedDomain).toBe('aarogyamdental.mydentalplatform.com');
     expect(payload.social).toEqual({
       facebook: null,
       instagram: 'https://instagram.com/aarogyam',

@@ -86,9 +86,9 @@ export interface ClinicConfig {
   mapDirectionsUrl: string;
 
   // ── Platform (set by business panel, not the clinic) ─────────────────────
-  clinicId?: string;               // Firestore doc ID — used to scope appointments
+  clinicId?: string;               // Database ID — used to scope appointments
   domain?: string;                 // custom domain  e.g. "snehadental.com"
-  vercelDomain?: string;           // vercel preview  e.g. "sneha-dental.vercel.app"
+  hostedDomain?: string;           // platform-hosted domain e.g. "sneha-dental.mydentalplatform.com"
   active?: boolean;                // false = paused deployment
   googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
 
@@ -188,6 +188,6 @@ export const clinicConfig: ClinicConfig = {
 };
 
 // Re-exported here to preserve existing imports while keeping plan access rules
-// framework-neutral for Angular, Vercel APIs, and tests.
+// framework-neutral for Angular and tests.
 export * from './platform-entitlements';
 export * from './marketplace.config';

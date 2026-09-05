@@ -152,7 +152,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     // Platform
     googlePlaceId: [''],
     domain:        [''],
-    vercelDomain:  [''],
+    hostedDomain:  [''],
     active:        [true],
 
     // Marketplace listing and provider verification
@@ -317,7 +317,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
         const slug = toSubdomainSlug(name);
         if (slug && !this.previewDomainManuallyEdited) {
-          this.form.controls.vercelDomain.setValue(`${slug}.mydentalplatform.com`, { emitEvent: false });
+          this.form.controls.hostedDomain.setValue(`${slug}.mydentalplatform.com`, { emitEvent: false });
         }
         if (slug && !this.form.controls.marketplaceSlug.dirty) {
           this.form.controls.marketplaceSlug.setValue(slug, { emitEvent: false });
@@ -353,7 +353,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   // ── Patch from Firestore ──────────────────────────────────────────────────
   private patchForm(c: StoredClinic, verification: ProviderVerification | null) {
-    this.originalHostedDomain = normalizeHostedDomain(c.vercelDomain ?? '');
+    this.originalHostedDomain = normalizeHostedDomain(c.hostedDomain ?? '');
     this.originalMarketplaceStatus = c.marketplaceStatus ?? 'unlisted';
     this.existingCustomization = c.customization;
     const home = c.customization?.content?.home ?? {};
@@ -370,7 +370,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       city: c.city, mapEmbedUrl: c.mapEmbedUrl ?? '',
       mapDirectionsUrl: c.mapDirectionsUrl ?? '',
       googlePlaceId: c.googlePlaceId ?? '',
-      domain: c.domain ?? '', vercelDomain: c.vercelDomain ?? '', active: c.active ?? true,
+      domain: c.domain ?? '', hostedDomain: c.hostedDomain ?? '', active: c.active ?? true,
       marketplaceStatus: c.marketplaceStatus ?? 'unlisted',
       marketplaceSlug: c.marketplaceSlug ?? '',
       marketplaceRegion: c.marketplaceProfile?.region ?? 'delhi-ncr',
@@ -562,7 +562,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
     try {
       const v = this.form.getRawValue();
-      const hostedDomain = await this.resolveHostedDomain(v.name, v.vercelDomain);
+      const hostedDomain = await this.resolveHostedDomain(v.name, v.hostedDomain);
       const shouldRegisterHostedDomain = !this.isEdit || hostedDomain !== this.originalHostedDomain;
       const ownerEmail = v.ownerLoginEmail.trim().toLowerCase();
       const ownerPassword = v.ownerLoginPassword.trim();
@@ -708,9 +708,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   }
 
   normalizePreviewDomain() {
-    const normalized = normalizeHostedDomain(this.form.controls.vercelDomain.value);
+    const normalized = normalizeHostedDomain(this.form.controls.hostedDomain.value);
     if (normalized) {
-      this.form.controls.vercelDomain.setValue(normalized, { emitEvent: false });
+      this.form.controls.hostedDomain.setValue(normalized, { emitEvent: false });
     }
   }
 

@@ -217,7 +217,7 @@ export function buildClinicFirestorePayload({
     billingEmail:        v.billingEmail || ownerEmail || null,
     billingNotes:        v.billingNotes         || null,
     domain:              v.domain               || null,
-    vercelDomain:        hostedDomain           || null,
+    hostedDomain:        hostedDomain           || null,
     active:              v.active,
     theme:               v.theme,
     bookingRefPrefix:    v.bookingRefPrefix,

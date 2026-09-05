@@ -18,7 +18,7 @@ export class RevenueComponent implements OnInit {
   appointments = signal<AppointmentDoc[]>([]);
   loading      = signal(true);
 
-  costs        = signal({ vercel: 0, firebase: 0, domain: 0, other: 0 });
+  costs        = signal({ hosting: 0, database: 0, domain: 0, other: 0 });
   editingCosts = signal(false);
   savingCosts  = signal(false);
 

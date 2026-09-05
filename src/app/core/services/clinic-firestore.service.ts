@@ -45,8 +45,8 @@ const CLINIC_SETTINGS_ALLOWED_KEYS = new Set<keyof ClinicSettingsPayload>([
 ]);
 
 export interface PlatformCosts {
-  vercel: number;
-  firebase: number;
+  hosting: number;
+  database: number;
   domain: number;
   other: number;
 }
@@ -99,8 +99,8 @@ export class ClinicFirestoreService {
     return this.getByHost(domain);
   }
 
-  async getByHostedDomain(vercelDomain: string): Promise<StoredClinic | null> {
-    return this.getByHost(vercelDomain);
+  async getByHostedDomain(hostedDomain: string): Promise<StoredClinic | null> {
+    return this.getByHost(hostedDomain);
   }
 
   async getByAdminUid(_uid: string): Promise<StoredClinic | null> {

@@ -42,7 +42,7 @@ function verifiedClinic(acceptingNewPatients = true): MarketplaceClinic {
     },
     subscriptionPlan: 'trial',
     subscriptionStatus: 'trial',
-    vercelDomain: 'smilecare.mydentalplatform.com',
+    hostedDomain: 'smilecare.mydentalplatform.com',
     theme: 'blue',
     bookingRefPrefix: 'SC',
     social: {},

@@ -75,7 +75,7 @@ type RawClinicData = Record<string, unknown> & {
   createdAt?: unknown;
   domain?: unknown;
   id?: unknown;
-  vercelDomain?: unknown;
+  hostedDomain?: unknown;
 };
 
 function buildSemanticTokens(palette: Record<string, string>): Record<string, string> {
@@ -131,7 +131,7 @@ function clinicConfigData(raw: Record<string, unknown>): Record<string, unknown>
   const rest: RawClinicData = { ...raw };
   delete rest.id;
   delete rest.domain;
-  delete rest.vercelDomain;
+  delete rest.hostedDomain;
   delete rest.active;
   delete rest.createdAt;
   return rest;
@@ -186,7 +186,7 @@ export class ClinicConfigService {
 
   /**
    * Called once by APP_INITIALIZER before the app renders.
-   * Tries to match by custom domain first, then by vercelDomain as fallback.
+   * Tries to match by custom domain first, then by the hosted domain as fallback.
    * On localhost, skips Firestore and uses the static fallback.
    * Never throws — falls back to static config on any error.
    */
@@ -250,7 +250,7 @@ export class ClinicConfigService {
   }
 
   /**
-   * Load clinic config by the Firebase Auth UID of the clinic owner.
+   * Load clinic config by the account ID of the clinic owner.
    * Used when the platform admin area loads at mydentalplatform.com (no hostname to match).
    * Returns true if a clinic was found and loaded.
    */

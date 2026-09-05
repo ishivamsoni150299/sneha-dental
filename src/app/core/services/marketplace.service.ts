@@ -64,7 +64,7 @@ export class MarketplaceService {
     const customDomain = clinicHasPlatformFeature(clinic, 'customDomain')
       ? clinic.domain
       : null;
-    const host = String(customDomain || clinic.vercelDomain || '').trim()
+    const host = String(customDomain || clinic.hostedDomain || '').trim()
       .replace(/^https?:\/\//, '')
       .replace(/\/.*$/, '');
     return host ? `https://${host}` : null;
