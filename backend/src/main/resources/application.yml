@@ -26,6 +26,13 @@ platform:
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT15M}
     refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P7D}
     secure-cookies: ${SECURE_COOKIES:false}
+  billing:
+    razorpay-key-id: ${RAZORPAY_KEY_ID:}
+    razorpay-key-secret: ${RAZORPAY_KEY_SECRET:}
+    razorpay-webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+    starter-plan-id: ${RAZORPAY_PLAN_STARTER_MONTHLY:plan_ShGxRJzXZynEts}
+    pro-plan-id: ${RAZORPAY_PLAN_PRO_MONTHLY:plan_ShGumDVvGT5kJz}
+    manual-payment-url: ${PUBLIC_RAZORPAY_ME_URL:}
 
 server:
   port: ${PORT:8080}

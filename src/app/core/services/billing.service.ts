@@ -27,7 +27,7 @@ export class BillingService {
     _clinicName: string,
     _phone?: string,
   ): Promise<SubscriptionResult> {
-    const res = await this.api.fetch('/api/create-subscription', {
+    const res = await this.api.fetch('/api/billing/subscriptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clinicId, plan, billingCycle }),
