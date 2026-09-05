@@ -78,6 +78,33 @@ public class AppointmentService {
         return appointment == null ? null : publicValue(appointment);
     }
 
+    public Map<String, Object> lookupAny(String bookingRef, String phone) {
+        List<Map<String, Object>> appointments = jdbcTemplate.query("""
+            select a.*, d.name as doctor_name, c.name as clinic_name,
+                   c.marketplace_slug, c.public_config ->> 'phone' as clinic_phone,
+                   concat_ws(', ', nullif(c.public_config ->> 'addressLine1', ''),
+                       nullif(c.public_config ->> 'addressLine2', ''),
+                       nullif(c.public_config ->> 'city', '')) as clinic_address,
+                   r.id as review_id, r.rating as review_rating, r.review_text,
+                   r.patient_alias, r.moderation_status::text as review_status,
+                   r.clinic_response, r.clinic_responded_at, r.created_at as review_created_at,
+                   r.published_at as review_published_at
+            from appointments a
+            join clinics c on c.id = a.clinic_id
+            left join doctors d on d.id = a.doctor_id
+            left join appointment_reviews r on r.appointment_id = a.id
+            where upper(a.booking_ref) = upper(?)
+              and right(regexp_replace(a.phone_e164, '[^0-9]', '', 'g'), 10) = ?
+            limit 2
+            """, (resultSet, rowNumber) -> patientSummary(resultSet),
+            bookingRef.trim(), normalizePhone(phone));
+        if (appointments.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "No appointment matched that booking reference and phone number.");
+        if (appointments.size() > 1) throw new ResponseStatusException(HttpStatus.CONFLICT,
+            "More than one appointment matched. Please contact support.");
+        return appointments.getFirst();
+    }
+
     public List<Map<String, Object>> list(UUID clinicId) {
         return jdbcTemplate.query("""
             select a.*, d.name as doctor_name from appointments a
@@ -190,6 +217,37 @@ public class AppointmentService {
     private Map<String, Object> publicValue(Map<String, Object> value) {
         Map<String, Object> result = new LinkedHashMap<>(value);
         result.keySet().removeIf(key -> key.startsWith("raw"));
+        result.remove("clinicNotes");
+        result.remove("treatmentDone");
+        result.remove("amountCharged");
+        result.remove("paymentStatus");
+        result.remove("paymentMethod");
+        return result;
+    }
+
+    private Map<String, Object> patientSummary(ResultSet resultSet) throws SQLException {
+        Map<String, Object> result = publicValue(map(resultSet));
+        result.put("patientName", result.remove("name"));
+        result.put("clinicName", resultSet.getString("clinic_name"));
+        result.put("clinicPhone", resultSet.getString("clinic_phone"));
+        result.put("clinicAddress", resultSet.getString("clinic_address"));
+        result.put("marketplaceSlug", resultSet.getString("marketplace_slug"));
+        UUID reviewId = resultSet.getObject("review_id", UUID.class);
+        if (reviewId == null) {
+            result.put("review", null);
+        } else {
+            Map<String, Object> review = new LinkedHashMap<>();
+            review.put("id", reviewId.toString());
+            review.put("rating", resultSet.getInt("review_rating"));
+            review.put("text", resultSet.getString("review_text"));
+            review.put("patientAlias", resultSet.getString("patient_alias"));
+            review.put("moderationStatus", resultSet.getString("review_status"));
+            review.put("clinicResponse", resultSet.getString("clinic_response"));
+            review.put("clinicRespondedAt", instant(resultSet, "clinic_responded_at"));
+            review.put("createdAt", instant(resultSet, "review_created_at"));
+            review.put("publishedAt", instant(resultSet, "review_published_at"));
+            result.put("review", review);
+        }
         return result;
     }
 
@@ -223,6 +281,10 @@ public class AppointmentService {
         value.put("paymentStatus", resultSet.getString("payment_status"));
         value.put("paymentMethod", resultSet.getString("payment_method"));
         value.put("confirmationDeadline", instant(resultSet, "confirmation_deadline"));
+        value.put("confirmationRespondedAt", instant(resultSet, "confirmation_responded_at"));
+        value.put("confirmedAt", instant(resultSet, "confirmed_at"));
+        value.put("declinedAt", instant(resultSet, "declined_at"));
+        value.put("expiredAt", instant(resultSet, "expired_at"));
         value.put("createdAt", instant(resultSet, "created_at"));
         value.put("updatedAt", instant(resultSet, "updated_at"));
         value.put("rawClinicId", clinicId);

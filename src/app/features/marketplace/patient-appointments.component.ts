@@ -23,7 +23,7 @@ export class PatientAppointmentsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly patientAuth = inject(PatientAuthService);
   private readonly patientApi = inject(PatientAppointmentApiService);
-  readonly patientAccessEnabled = computed(() => this.patientAuth.isSignedIn());
+  readonly patientAccessEnabled = computed(() => !this.patientAuth.role() || this.patientAuth.isSignedIn());
 
   readonly step = signal<VerificationStep>('phone');
   readonly phoneMasked = signal('');
@@ -80,7 +80,7 @@ export class PatientAppointmentsComponent implements OnInit {
         this.phoneForm.controls.phone.value,
         'patient-phone-recaptcha',
       ));
-      this.step.set('code');
+      await this.loadSession();
     } catch (error) {
       this.error.set(this.authError(error));
     } finally {

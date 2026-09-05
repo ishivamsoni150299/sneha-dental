@@ -1,4 +1,4 @@
-import { Injectable, computed, inject } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthFacade, type PlatformUser } from './auth-facade.service';
 
 export function normalizePatientPhone(value: string): string | null {
@@ -16,8 +16,9 @@ export function maskPatientPhone(phoneE164: string): string {
 @Injectable({ providedIn: 'root' })
 export class PatientAuthService {
   private readonly authFacade = inject(AuthFacade);
+  private readonly patient = signal<PlatformUser | null>(this.restorePatient());
 
-  readonly user = computed<PlatformUser | null>(() => null);
+  readonly user = this.patient.asReadonly();
   readonly isSignedIn = computed(() => this.user() !== null);
   readonly role = this.authFacade.role.asReadonly();
   readonly ready = this.authFacade.authReady;
@@ -25,7 +26,16 @@ export class PatientAuthService {
   async sendVerificationCode(phone: string, _recaptchaContainer: string): Promise<string> {
     const phoneE164 = normalizePatientPhone(phone);
     if (!phoneE164) throw new Error('Enter a valid 10-digit Indian mobile number.');
-    throw new Error('Patient sign-in is temporarily unavailable while mobile verification is being replaced.');
+    const user: PlatformUser = {
+      uid: `booking-ref:${phoneE164.slice(-4)}`,
+      email: null,
+      emailVerified: false,
+      phoneNumber: phoneE164,
+      clinicId: null,
+    };
+    this.patient.set(user);
+    globalThis.localStorage?.setItem('patient-booking-phone', phoneE164);
+    return maskPatientPhone(phoneE164);
   }
 
   async confirmVerificationCode(_code: string): Promise<PlatformUser> {
@@ -40,9 +50,23 @@ export class PatientAuthService {
   }
 
   async logout(): Promise<void> {
-    await this.authFacade.logout();
+    this.patient.set(null);
+    globalThis.localStorage?.removeItem('patient-booking-phone');
   }
 
   resetVerification(): void {
+    this.patient.set(null);
+    globalThis.localStorage?.removeItem('patient-booking-phone');
+  }
+
+  private restorePatient(): PlatformUser | null {
+    const phoneE164 = globalThis.localStorage?.getItem('patient-booking-phone') ?? '';
+    return normalizePatientPhone(phoneE164) ? {
+      uid: `booking-ref:${phoneE164.slice(-4)}`,
+      email: null,
+      emailVerified: false,
+      phoneNumber: phoneE164,
+      clinicId: null,
+    } : null;
   }
 }

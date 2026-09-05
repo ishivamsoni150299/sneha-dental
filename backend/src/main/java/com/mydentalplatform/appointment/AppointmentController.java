@@ -50,6 +50,11 @@ public class AppointmentController {
         return ResponseEntity.ofNullable(appointmentService.lookup(clinicId, bookingRef, phone));
     }
 
+    @PostMapping("/public/appointments/lookup-any")
+    Map<String, Object> lookupAny(@Valid @RequestBody LookupRequest request) {
+        return appointmentService.lookupAny(request.bookingRef(), request.phone());
+    }
+
     @PatchMapping("/public/appointments/{appointmentId}")
     ResponseEntity<Void> update(
         @PathVariable UUID appointmentId,
@@ -125,6 +130,11 @@ public class AppointmentController {
     ) {}
 
     public record PhoneRequest(@NotBlank String phone) {}
+
+    public record LookupRequest(
+        @NotBlank @Size(max = 32) String bookingRef,
+        @NotBlank @Pattern(regexp = ".*[0-9]{10}.*") String phone
+    ) {}
 
     public record StatusRequest(
         @Pattern(regexp = "confirmed|checked_in|completed|no_show|cancelled|declined") String status,
