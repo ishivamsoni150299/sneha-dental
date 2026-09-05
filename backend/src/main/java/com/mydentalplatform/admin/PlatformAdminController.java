@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,10 +40,16 @@ public class PlatformAdminController {
         "marketingAttribution", "grandfatheredUntil", "grandfatheredPlan", "voiceBudgetCap", "voiceAutoStop");
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public PlatformAdminController(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public PlatformAdminController(
+        JdbcTemplate jdbcTemplate,
+        ObjectMapper objectMapper,
+        PasswordEncoder passwordEncoder
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/clinics")
@@ -133,6 +140,66 @@ public class PlatformAdminController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "Clinic cannot be deleted while it has users, appointments, or billing records.", error);
         }
+    }
+
+    @PostMapping("/clinics/{clinicId}/owner")
+    @Transactional
+    Map<String, Object> owner(
+        @AuthenticationPrincipal Jwt jwt,
+        @PathVariable UUID clinicId,
+        @RequestBody Map<String, Object> request
+    ) {
+        requireAdmin(jwt);
+        String email = text(request.get("email")).toLowerCase(java.util.Locale.ROOT);
+        String password = text(request.get("password"));
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valid owner login email is required.");
+        }
+        if (!password.isBlank() && password.length() < 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Temporary password must be at least 8 characters.");
+        }
+        Boolean clinicExists = jdbcTemplate.queryForObject(
+            "select exists(select 1 from clinics where id = ?)", Boolean.class, clinicId);
+        if (!Boolean.TRUE.equals(clinicExists)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Clinic not found.");
+
+        List<Map<String, Object>> existing = jdbcTemplate.queryForList(
+            "select id, clinic_id, role::text as role from users where lower(email) = lower(?) for update", email);
+        UUID ownerId;
+        if (existing.isEmpty()) {
+            if (password.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Password is required when creating a clinic owner login.");
+            ownerId = UUID.randomUUID();
+            jdbcTemplate.update("""
+                insert into users (id, clinic_id, role, email, password_hash, email_verified)
+                values (?, ?, 'clinic_admin', ?, ?, true)
+                """, ownerId, clinicId, email, passwordEncoder.encode(password));
+        } else {
+            Map<String, Object> user = existing.getFirst();
+            if ("platform_admin".equals(user.get("role"))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Platform administrator accounts cannot be assigned to a clinic.");
+            }
+            UUID existingClinic = (UUID) user.get("clinic_id");
+            if (existingClinic != null && !existingClinic.equals(clinicId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "This owner email is already linked to another clinic.");
+            }
+            ownerId = (UUID) user.get("id");
+            jdbcTemplate.update("""
+                update users set clinic_id = ?, role = 'clinic_admin', email_verified = true,
+                    password_hash = case when ? = '' then password_hash else ? end,
+                    password_migration_required = false, updated_at = now() where id = ?
+                """, clinicId, password, password.isBlank() ? "" : passwordEncoder.encode(password), ownerId);
+        }
+        jdbcTemplate.update("""
+            insert into clinic_private_accounts (clinic_id, billing_email, billing_config)
+            values (?, ?, jsonb_build_object('adminUid', ?, 'adminEmail', ?))
+            on conflict (clinic_id) do update set
+                billing_email = coalesce(clinic_private_accounts.billing_email, excluded.billing_email),
+                billing_config = clinic_private_accounts.billing_config || excluded.billing_config,
+                updated_at = now()
+            """, clinicId, email, ownerId.toString(), email);
+        return Map.of("ok", true, "uid", ownerId.toString(), "email", email, "passwordChanged", !password.isBlank());
     }
 
     @GetMapping("/clinics/{clinicId}/verification")

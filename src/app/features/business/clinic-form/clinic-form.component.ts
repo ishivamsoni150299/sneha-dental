@@ -16,6 +16,7 @@ import {
   type ProviderVerification,
 } from '../../../core/config/clinic.config';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
+import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import {
   buildClinicFirestorePayload,
   buildMarketplaceListingUpdate,
@@ -90,6 +91,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
   private fb          = inject(FormBuilder);
   private clinicStore = inject(ClinicFirestoreService);
   private superAuth   = inject(AuthFacade);
+  private api         = inject(AuthenticatedApiService);
   private route       = inject(ActivatedRoute);
   private router      = inject(Router);
 
@@ -674,12 +676,10 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
     const user = this.superAuth.currentUser();
     if (!user) throw new Error('You must be signed in to create the clinic owner login.');
 
-    const response = await fetch('/api/clinic-owner', {
+    const response = await this.api.fetch(`/api/admin/clinics/${encodeURIComponent(clinicId)}/owner`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        idToken: await this.superAuth.getFreshIdToken(),
-        clinicId,
         email,
         password: password || undefined,
         clinicName,
@@ -745,24 +745,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
   private async registerHostedDomain(domain: string): Promise<void> {
     if (!domain.endsWith('.mydentalplatform.com')) return;
-
-    await this.superAuth.authReady;
-    const user = this.superAuth.currentUser();
-    if (!user) throw new Error('You must be signed in to register the clinic subdomain.');
-
-    const response = await fetch('/api/domain', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        domain,
-        idToken: await this.superAuth.getFreshIdToken(),
-      }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({})) as { error?: string };
-      throw new Error(`Clinic saved, but ${domain} was not registered on Vercel: ${data.error ?? 'Unknown error'}`);
-    }
+    // A single wildcard DNS record routes all clinic subdomains to the Render service.
   }
 
   /** Quick-fill: populate standard dental services in one click */
