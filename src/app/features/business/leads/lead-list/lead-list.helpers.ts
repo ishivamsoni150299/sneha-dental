@@ -1,4 +1,4 @@
-import type { LeadStatus, StoredLead } from '../../../../core/services/lead-firestore.service';
+import type { LeadStatus, StoredLead } from '../../../../core/services/lead-api.service';
 
 const MANUAL_STATUS_FOLLOW_UP_DAYS: Partial<Record<LeadStatus, number>> = {
   contacted:  2,

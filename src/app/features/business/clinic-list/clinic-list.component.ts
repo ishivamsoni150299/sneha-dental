@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ClinicFirestoreService, StoredClinic } from '../../../core/services/clinic-firestore.service';
+import { ClinicApiService, StoredClinic } from '../../../core/services/clinic-api.service';
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 import { clinicHasPlatformFeature, PLATFORM_PLANS } from '../../../core/config/clinic.config';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
@@ -20,7 +20,7 @@ type ClinicSort = 'attention' | 'name' | 'subscription';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ClinicListComponent implements OnInit {
-  private clinicStore = inject(ClinicFirestoreService);
+  private clinicStore = inject(ClinicApiService);
   private billing     = inject(BillingService);
   private api         = inject(AuthenticatedApiService);
   private router      = inject(Router);

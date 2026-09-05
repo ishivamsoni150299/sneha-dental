@@ -1,5 +1,5 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
-import { ClinicFirestoreService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-firestore.service';
+import { ClinicApiService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-api.service';
 
 interface ClinicStats {
   clinic:    StoredClinic;
@@ -44,7 +44,7 @@ function missedMarketplaceSla(appointment: AppointmentDoc): boolean | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnalyticsComponent implements OnInit {
-  private store = inject(ClinicFirestoreService);
+  private store = inject(ClinicApiService);
 
   clinics      = signal<StoredClinic[]>([]);
   appointments = signal<AppointmentDoc[]>([]);

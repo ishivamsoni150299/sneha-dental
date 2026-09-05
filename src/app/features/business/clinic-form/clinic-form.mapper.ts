@@ -104,7 +104,7 @@ export interface BuildClinicPayloadInput {
   existingCustomization?: ClinicCustomization;
 }
 
-export type ClinicFirestorePayload = Record<string, unknown>;
+export type ClinicApiPayload = Record<string, unknown>;
 
 function optionalText(value: string): string | null {
   return value.trim() || null;
@@ -176,12 +176,12 @@ export function buildMarketplaceListingUpdate(
   };
 }
 
-export function buildClinicFirestorePayload({
+export function buildClinicApiPayload({
   values: v,
   hostedDomain,
   ownerEmail,
   existingCustomization,
-}: BuildClinicPayloadInput): ClinicFirestorePayload {
+}: BuildClinicPayloadInput): ClinicApiPayload {
   const customization = existingCustomization ?? {};
   const existingHome = customization.content?.home ?? {};
   const clinicImages = v.clinicImages

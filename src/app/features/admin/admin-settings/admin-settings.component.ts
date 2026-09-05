@@ -8,7 +8,7 @@ import {
 } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
+import { ClinicApiService } from '../../../core/services/clinic-api.service';
 import {
   Testimonial,
   ClinicHours,
@@ -103,7 +103,7 @@ const DEFAULT_SERVICE_LIBRARY: ClinicService[] = [
 })
 export class AdminSettingsComponent implements OnInit, OnDestroy {
   private clinicCfg  = inject(ClinicConfigService);
-  private store      = inject(ClinicFirestoreService);
+  private store      = inject(ClinicApiService);
   private billing    = inject(BillingService);
   private api        = inject(AuthenticatedApiService);
   private fb         = inject(FormBuilder);

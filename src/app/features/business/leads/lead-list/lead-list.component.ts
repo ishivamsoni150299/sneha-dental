@@ -2,8 +2,8 @@ import { Component, signal, computed, effect, ChangeDetectionStrategy, inject, O
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
-  LeadFirestoreService, StoredLead, LeadStatus, LeadSource,
-} from '../../../../core/services/lead-firestore.service';
+  LeadApiService, StoredLead, LeadStatus, LeadSource,
+} from '../../../../core/services/lead-api.service';
 import { LeadAiCallService } from '../../../../core/services/lead-ai-call.service';
 
 interface ImportStats {
@@ -65,7 +65,7 @@ const AI_CALL_COOLDOWN_MS = 24 * 60 * 60 * 1000;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LeadListComponent implements OnInit, OnDestroy {
-  private leadStore = inject(LeadFirestoreService);
+  private leadStore = inject(LeadApiService);
   private aiCalls = inject(LeadAiCallService);
 
   leads           = signal<StoredLead[]>([]);

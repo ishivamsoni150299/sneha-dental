@@ -75,7 +75,7 @@ export interface LeadActivity {
 }
 
 @Injectable({ providedIn: 'root' })
-export class LeadFirestoreService {
+export class LeadApiService {
   private readonly api = inject(AuthenticatedApiService);
 
   async getAll(): Promise<StoredLead[]> {

@@ -1,7 +1,7 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ClinicFirestoreService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-firestore.service';
+import { ClinicApiService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-api.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 
 @Component({
@@ -12,7 +12,7 @@ import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RevenueComponent implements OnInit {
-  private clinicStore = inject(ClinicFirestoreService);
+  private clinicStore = inject(ClinicApiService);
 
   clinics      = signal<StoredClinic[]>([]);
   appointments = signal<AppointmentDoc[]>([]);

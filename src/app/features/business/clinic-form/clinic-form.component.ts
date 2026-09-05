@@ -7,8 +7,8 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
-  ClinicFirestoreService, StoredClinic,
-} from '../../../core/services/clinic-firestore.service';
+  ClinicApiService, StoredClinic,
+} from '../../../core/services/clinic-api.service';
 import {
   MARKETPLACE_DENTAL_SERVICES,
   MARKETPLACE_REGIONS,
@@ -18,7 +18,7 @@ import {
 import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import {
-  buildClinicFirestorePayload,
+  buildClinicApiPayload,
   buildMarketplaceListingUpdate,
   type ClinicFormRawValue,
   type MarketplaceFormRawValue,
@@ -89,7 +89,7 @@ function normalizeHostedDomain(value: string): string {
 export class ClinicFormComponent implements OnInit, OnDestroy {
   private readonly _subs = new Subscription();
   private fb          = inject(FormBuilder);
-  private clinicStore = inject(ClinicFirestoreService);
+  private clinicStore = inject(ClinicApiService);
   private superAuth   = inject(AuthFacade);
   private api         = inject(AuthenticatedApiService);
   private route       = inject(ActivatedRoute);
@@ -579,7 +579,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
 
       // Firestore rejects `undefined` — use null for optional fields so
       // existing values are cleared when the admin empties them.
-      const firestorePayload = buildClinicFirestorePayload({
+      const clinicPayload = buildClinicApiPayload({
         values: v as unknown as ClinicFormRawValue,
         hostedDomain,
         ownerEmail,
@@ -608,7 +608,7 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
       if (this.isEdit) {
         await this.clinicStore.update(
           this.clinicId!,
-          firestorePayload as Partial<Omit<StoredClinic, 'id' | 'createdAt'>>,
+          clinicPayload as Partial<Omit<StoredClinic, 'id' | 'createdAt'>>,
         );
         savedClinicId = this.clinicId!;
         if (shouldRegisterHostedDomain) {
@@ -622,9 +622,9 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           throw new Error('You must be signed in to create a clinic.');
         }
 
-        firestorePayload['rating'] = '4.9';
+        clinicPayload['rating'] = '4.9';
         savedClinicId = await this.clinicStore.create(
-          firestorePayload as Omit<StoredClinic, 'id' | 'createdAt'>,
+          clinicPayload as Omit<StoredClinic, 'id' | 'createdAt'>,
         );
         await this.registerHostedDomain(hostedDomain);
         this.originalHostedDomain = hostedDomain;

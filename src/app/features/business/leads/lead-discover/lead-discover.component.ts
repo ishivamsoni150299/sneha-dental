@@ -2,7 +2,7 @@ import { Component, signal, computed, ChangeDetectionStrategy, OnInit, inject } 
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { hasGoogleMapsKey, loadGoogleMapsScript } from '../../../../core/utils/google-maps-loader';
-import { LeadSource } from '../../../../core/services/lead-firestore.service';
+import { LeadSource } from '../../../../core/services/lead-api.service';
 
 interface DiscoveredClinic {
   placeId:      string;

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, HostListener, type OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
-import { ClinicFirestoreService } from '../../../core/services/clinic-firestore.service';
+import { ClinicApiService } from '../../../core/services/clinic-api.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 export class BusinessShellComponent implements OnInit {
   readonly auth        = inject(AuthFacade);
   private readonly router      = inject(Router);
-  private readonly clinicStore = inject(ClinicFirestoreService);
+  private readonly clinicStore = inject(ClinicApiService);
 
   clinicCount  = signal<number | null>(null);
   menuOpen     = signal(false);

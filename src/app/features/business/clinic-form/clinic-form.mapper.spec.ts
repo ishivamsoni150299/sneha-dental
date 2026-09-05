@@ -1,5 +1,5 @@
 import {
-  buildClinicFirestorePayload,
+  buildClinicApiPayload,
   buildMarketplaceListingUpdate,
   type ClinicFormRawValue,
   type MarketplaceFormRawValue,
@@ -182,7 +182,7 @@ function buildPayload(
   overrides: Partial<ClinicFormRawValue> = {},
   ownerEmail = 'owner@clinic.test',
 ): ClinicPayload {
-  return buildClinicFirestorePayload({
+  return buildClinicApiPayload({
     values: buildRawValue(overrides),
     hostedDomain: 'aarogyamdental.mydentalplatform.com',
     ownerEmail,
@@ -199,7 +199,7 @@ function buildPayload(
   }) as unknown as ClinicPayload;
 }
 
-describe('buildClinicFirestorePayload', () => {
+describe('buildClinicApiPayload', () => {
   it('keeps clinic save fields Firestore-safe without losing useful form data', () => {
     const payload = buildPayload();
 

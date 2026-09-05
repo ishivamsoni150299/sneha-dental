@@ -2,8 +2,8 @@ import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@ang
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import {
-  LeadFirestoreService, LeadStatus, LeadSource,
-} from '../../../../core/services/lead-firestore.service';
+  LeadApiService, LeadStatus, LeadSource,
+} from '../../../../core/services/lead-api.service';
 
 @Component({
   selector: 'app-lead-form',
@@ -13,7 +13,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LeadFormComponent implements OnInit {
-  private leadStore = inject(LeadFirestoreService);
+  private leadStore = inject(LeadApiService);
   private router    = inject(Router);
   private route     = inject(ActivatedRoute);
   private fb        = inject(FormBuilder);

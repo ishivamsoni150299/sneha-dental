@@ -80,7 +80,7 @@ export interface StoredClinic extends ClinicConfig {
 }
 
 @Injectable({ providedIn: 'root' })
-export class ClinicFirestoreService {
+export class ClinicApiService {
   private readonly api = inject(AuthenticatedApiService);
 
   async getAll(): Promise<StoredClinic[]> {
