@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MARKETPLACE_DENTAL_SERVICES } from '../../core/config/marketplace.config';
 import type { MarketplaceDentalServiceId } from '../../core/config/marketplace.config';
@@ -16,6 +17,7 @@ import {
 })
 export class DentistDirectoryComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly services = MARKETPLACE_DENTAL_SERVICES;
   readonly clinics = signal<MarketplaceClinic[]>([]);
@@ -24,6 +26,27 @@ export class DentistDirectoryComponent implements OnInit {
   readonly searchTerm = signal('');
   readonly locality = signal('');
   readonly serviceId = signal('');
+  readonly popularServices = MARKETPLACE_DENTAL_SERVICES.filter(service =>
+    ['root-canal', 'dental-implants', 'braces-orthodontics', 'teeth-whitening', 'emergency-dental-care'].includes(service.id),
+  );
+  readonly faqs = [
+    {
+      question: 'How are dentists verified on mydentalplatform?',
+      answer: 'A clinic appears in search only after its identity, address, phone number and dentist registration details have been reviewed.',
+    },
+    {
+      question: 'Can I compare consultation fees before booking?',
+      answer: 'Yes. Clinics can publish their consultation fee, services, locality and whether they are accepting new patients.',
+    },
+    {
+      question: 'How do I request a dental appointment?',
+      answer: 'Open a clinic profile, choose Request appointment, and submit your preferred date and time. The clinic confirms the request directly.',
+    },
+    {
+      question: 'Which Delhi NCR areas are covered?',
+      answer: 'The directory is expanding across Delhi, Noida, Gurugram, Ghaziabad and Faridabad as clinics complete verification.',
+    },
+  ];
 
   readonly localities = computed(() => [...new Set(
     this.clinics()
@@ -58,6 +81,10 @@ export class DentistDirectoryComponent implements OnInit {
   ));
 
   async ngOnInit(): Promise<void> {
+    if (!this.isBrowser) {
+      this.loading.set(false);
+      return;
+    }
     await this.loadClinics();
   }
 
@@ -94,6 +121,13 @@ export class DentistDirectoryComponent implements OnInit {
     this.searchTerm.set('');
     this.locality.set('');
     this.serviceId.set('');
+  }
+
+  chooseService(serviceId: string): void {
+    this.serviceId.set(serviceId);
+    if (this.isBrowser) {
+      document.getElementById('marketplace-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   serviceLabels(clinic: MarketplaceClinic): string[] {

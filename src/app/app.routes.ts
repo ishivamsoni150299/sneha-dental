@@ -19,7 +19,7 @@ export const routes: Routes = [
           import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
         data: {
           title: 'Verified Dentists in Delhi NCR',
-          description: 'Find verified dentists and dental clinics across Delhi NCR. Compare services, consultation fees, and clinics accepting new patients.',
+          description: 'Find verified dentists in Delhi, Noida, Gurugram, Ghaziabad and Faridabad. Compare treatments and fees, then request an appointment online.',
         },
       },
       {

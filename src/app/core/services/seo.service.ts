@@ -180,6 +180,38 @@ export class SeoService {
           })),
         })
       : undefined;
+    const dentistDirectory = path === '/dentists'
+      ? this.compact({
+          '@type': 'CollectionPage',
+          '@id': `${url}#directory`,
+          name: title,
+          url,
+          description,
+          inLanguage: 'en-IN',
+          isPartOf: { '@id': `${origin}/#website` },
+          about: {
+            '@type': 'MedicalBusiness',
+            name: 'Verified dentists and dental clinics in Delhi NCR',
+            areaServed: ['Delhi', 'Noida', 'Gurugram', 'Ghaziabad', 'Faridabad'],
+          },
+        })
+      : undefined;
+    const dentistFaq = path === '/dentists'
+      ? this.compact({
+          '@type': 'FAQPage',
+          '@id': `${url}#faq`,
+          mainEntity: [
+            ['How are dentists verified on mydentalplatform?', 'A clinic appears in search only after its identity, address, phone number and dentist registration details have been reviewed.'],
+            ['Can I compare consultation fees before booking?', 'Yes. Clinics can publish their consultation fee, services, locality and whether they are accepting new patients.'],
+            ['How do I request a dental appointment?', 'Open a clinic profile, choose Request appointment, and submit your preferred date and time. The clinic confirms the request directly.'],
+            ['Which Delhi NCR areas are covered?', 'The directory is expanding across Delhi, Noida, Gurugram, Ghaziabad and Faridabad as clinics complete verification.'],
+          ].map(([name, text]) => ({
+            '@type': 'Question',
+            name,
+            acceptedAnswer: { '@type': 'Answer', text },
+          })),
+        })
+      : undefined;
     const graph = [
       this.compact({
         '@type': 'Organization',
@@ -207,12 +239,18 @@ export class SeoService {
         description,
         isPartOf: { '@id': `${origin}/#website` },
         about: { '@id': `${origin}/#organization` },
-        mainEntity: software ? { '@id': `${url}#software` } : undefined,
+        mainEntity: software
+          ? { '@id': `${url}#software` }
+          : dentistDirectory
+            ? { '@id': `${url}#directory` }
+            : undefined,
         primaryImageOfPage: image,
         breadcrumb: breadcrumb ? { '@id': `${url}#breadcrumb` } : undefined,
       }),
       software,
       faq,
+      dentistDirectory,
+      dentistFaq,
       breadcrumb,
     ].filter(Boolean);
 
