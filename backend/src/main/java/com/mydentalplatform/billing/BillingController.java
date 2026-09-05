@@ -19,6 +19,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -116,10 +117,12 @@ public class BillingController {
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Razorpay returned an incomplete checkout.");
             }
             jdbcTemplate.update("""
-                update clinic_private_accounts set billing_config = billing_config || jsonb_build_object(
-                    'pendingRazorpaySubscriptionId', ?, 'pendingPlan', ?, 'pendingBillingCycle', ?),
-                    updated_at = now() where clinic_id = ?
-                """, subscriptionId, request.plan(), request.billingCycle(), request.clinicId());
+                insert into clinic_private_accounts (clinic_id, billing_config)
+                values (?, jsonb_build_object('pendingRazorpaySubscriptionId', ?, 'pendingPlan', ?, 'pendingBillingCycle', ?))
+                on conflict (clinic_id) do update set
+                    billing_config = clinic_private_accounts.billing_config || excluded.billing_config,
+                    updated_at = now()
+                """, request.clinicId(), subscriptionId, request.plan(), request.billingCycle());
             return checkout(subscriptionId, paymentUrl, "subscription", request);
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
@@ -142,6 +145,12 @@ public class BillingController {
             "Invalid Razorpay signature.");
         Map<String, Object> body = parse(rawBody);
         String event = String.valueOf(body.getOrDefault("event", ""));
+        if (!List.of(
+            "subscription.authenticated", "subscription.activated", "subscription.charged",
+            "subscription.resumed", "subscription.pending", "subscription.halted", "subscription.cancelled"
+        ).contains(event)) {
+            return ResponseEntity.ok(Map.of("ok", true, "ignored", true));
+        }
         Map<String, Object> subscription = nested(body, "payload", "subscription", "entity");
         String subscriptionId = String.valueOf(subscription.getOrDefault("id", ""));
         Map<String, Object> notes = subscription.get("notes") instanceof Map<?, ?> raw
@@ -150,6 +159,9 @@ public class BillingController {
         try { clinicId = UUID.fromString(String.valueOf(notes.get("clinicId"))); }
         catch (RuntimeException error) { return ResponseEntity.ok(Map.of("ok", true, "ignored", true)); }
         String plan = String.valueOf(notes.getOrDefault("plan", "trial"));
+        if (!List.of("starter", "pro").contains(plan)) {
+            return ResponseEntity.ok(Map.of("ok", true, "ignored", true));
+        }
         String eventKey = sha256(providerEventId == null || providerEventId.isBlank() ? rawBody : providerEventId);
         int inserted = jdbcTemplate.update("""
             insert into webhook_events (provider, event_key, event_type, clinic_id, payload_hash)
@@ -163,16 +175,19 @@ public class BillingController {
             case "subscription.cancelled" -> "cancelled";
             default -> "pending";
         };
-        boolean active = "active".equals(status) || "pending".equals(status);
         jdbcTemplate.update("""
-            update clinics set subscription_plan = ?, subscription_status = ?, active = ?, updated_at = now()
+            update clinics set subscription_plan = ?, subscription_status = ?, updated_at = now()
             where id = ?
-            """, plan, status, active, clinicId);
+            """, plan, status, clinicId);
         jdbcTemplate.update("""
-            update clinic_private_accounts set razorpay_subscription_id = case when ? = 'active' then ? else razorpay_subscription_id end,
-                billing_config = billing_config || jsonb_build_object('billingCycle', ?), updated_at = now()
-            where clinic_id = ?
-            """, status, subscriptionId, String.valueOf(notes.getOrDefault("billingCycle", "monthly")), clinicId);
+            insert into clinic_private_accounts (clinic_id, razorpay_subscription_id, billing_config)
+            values (?, case when ? = 'active' then ? else null end, jsonb_build_object('billingCycle', ?))
+            on conflict (clinic_id) do update set
+                razorpay_subscription_id = case when ? = 'active' then ? else clinic_private_accounts.razorpay_subscription_id end,
+                billing_config = clinic_private_accounts.billing_config || excluded.billing_config,
+                updated_at = now()
+            """, clinicId, status, subscriptionId, String.valueOf(notes.getOrDefault("billingCycle", "monthly")),
+            status, subscriptionId);
         return ResponseEntity.ok(Map.of("ok", true));
     }
 
@@ -237,8 +252,8 @@ public class BillingController {
     }
 
     record CheckoutRequest(
-        UUID clinicId,
-        @Pattern(regexp = "starter|pro") String plan,
-        @Pattern(regexp = "monthly|yearly") String billingCycle
+        @NotNull UUID clinicId,
+        @NotNull @Pattern(regexp = "starter|pro") String plan,
+        @NotNull @Pattern(regexp = "monthly|yearly") String billingCycle
     ) {}
 }
