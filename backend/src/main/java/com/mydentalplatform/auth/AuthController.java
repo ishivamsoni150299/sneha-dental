@@ -26,13 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final ClinicLoginService loginService;
+    private final PasswordResetService passwordResetService;
     private final boolean secureCookies;
 
     public AuthController(
         ClinicLoginService loginService,
+        PasswordResetService passwordResetService,
         @Value("${platform.auth.secure-cookies}") boolean secureCookies
     ) {
         this.loginService = loginService;
+        this.passwordResetService = passwordResetService;
         this.secureCookies = secureCookies;
     }
 
@@ -74,6 +77,18 @@ public class AuthController {
         return ResponseEntity.noContent()
             .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie().toString())
             .build();
+    }
+
+    @PostMapping("/password-reset/request")
+    ResponseEntity<Void> requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
+        passwordResetService.request(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/password-reset/complete")
+    ResponseEntity<Void> completePasswordReset(@Valid @RequestBody PasswordResetCompletion request) {
+        passwordResetService.complete(request.email(), request.token(), request.password());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")
@@ -124,6 +139,16 @@ public class AuthController {
 
     record SignupRequest(
         @Email @NotBlank String email,
+        @NotBlank @jakarta.validation.constraints.Size(min = 8, max = 72) String password
+    ) {
+    }
+
+    record PasswordResetRequest(@Email @NotBlank String email) {
+    }
+
+    record PasswordResetCompletion(
+        @Email @NotBlank String email,
+        @NotBlank String token,
         @NotBlank @jakarta.validation.constraints.Size(min = 8, max = 72) String password
     ) {
     }

@@ -36,6 +36,8 @@ export class ForgotPasswordComponent {
         this.error.set('Too many reset requests. Wait a few minutes, then try again.');
       } else if (code === 'auth/network-request-failed') {
         this.error.set('Check your internet connection and try again.');
+      } else if (code === 'auth/provider-disabled') {
+        this.error.set('Password email delivery is not configured. Contact support.');
       } else {
         this.submitted.set(true);
       }

@@ -53,6 +53,17 @@ export const businessRoutes: Routes = [
   },
 
   {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+    data: {
+      title: 'Choose a New Password',
+      description: 'Choose a new password for your mydentalplatform clinic account.',
+      noIndex: true,
+    },
+  },
+
+  {
     path: 'verify-email',
     loadComponent: () =>
       import('./verify-email/verify-email.component').then(m => m.VerifyEmailComponent),

@@ -69,8 +69,12 @@ export class AuthFacade {
     return (await this.resolveCurrentUser()) ?? 'incomplete-signup';
   }
 
-  async sendPasswordReset(_email: string): Promise<void> {
-    throw this.authError('auth/provider-disabled', 'Password reset is being migrated. Contact support.');
+  async sendPasswordReset(email: string): Promise<void> {
+    await this.passwordResetRequest('/api/auth/password-reset/request', { email });
+  }
+
+  async confirmPasswordReset(email: string, token: string, password: string): Promise<void> {
+    await this.passwordResetRequest('/api/auth/password-reset/complete', { email, token, password });
   }
 
   async getFreshIdToken(): Promise<string> {
@@ -135,6 +139,24 @@ export class AuthFacade {
       throw this.authError(code, data.message ?? 'Authentication failed.');
     }
     return data;
+  }
+
+  private async passwordResetRequest(path: string, body: object): Promise<void> {
+    let response: Response;
+    try {
+      response = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      throw this.authError('auth/network-request-failed', 'Check your internet connection and try again.');
+    }
+    if (response.ok) return;
+    const data = await response.json().catch(() => ({})) as { detail?: string; message?: string };
+    const code = response.status === 429 ? 'auth/too-many-requests' :
+      response.status === 503 ? 'auth/provider-disabled' : 'auth/invalid-action-code';
+    throw this.authError(code, data.detail ?? data.message ?? 'Password reset failed.');
   }
 
   private applySession(response: AuthResponse): AuthRole {

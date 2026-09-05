@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**").permitAll()
                 .requestMatchers(
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
-                    "/api/auth/refresh", "/api/auth/logout").permitAll()
+                    "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()
                 .requestMatchers("/webhooks/**").permitAll()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))

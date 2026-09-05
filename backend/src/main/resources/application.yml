@@ -20,6 +20,7 @@ spring:
     enabled: true
 
 platform:
+  public-base-url: ${PUBLIC_BASE_URL:http://localhost:4200}
   auth:
     issuer: ${JWT_ISSUER:http://localhost:8080}
     secret: ${JWT_SECRET:bXlkZW50YWxwbGF0Zm9ybS1sb2NhbC1kZXZlbG9wbWVudC1vbmx5LXNlY3JldA==}
@@ -33,6 +34,9 @@ platform:
     starter-plan-id: ${RAZORPAY_PLAN_STARTER_MONTHLY:plan_ShGxRJzXZynEts}
     pro-plan-id: ${RAZORPAY_PLAN_PRO_MONTHLY:plan_ShGumDVvGT5kJz}
     manual-payment-url: ${PUBLIC_RAZORPAY_ME_URL:}
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${EMAIL_FROM:onboarding@resend.dev}
 
 server:
   port: ${PORT:8080}
