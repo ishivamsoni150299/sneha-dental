@@ -149,6 +149,8 @@ try {
 
 This opt-in test applies pending Flyway migrations and runs configured startup actions, including administrator bootstrap when enabled. Use a fresh or backed-up database. It starts HTTP on a random local port, verifies database health, and shuts down; normal unit tests skip it.
 
+For built-frontend checks, run `npm run build`, copy `dist/mydentalplatform/browser/index.csr.html` to `index.html` in the same directory (as Docker does), and set `SPRING_WEB_RESOURCES_STATIC_LOCATIONS` to that directory's absolute `file:` URL with a trailing slash. To verify an existing administrator's login, refresh rotation, and logout, securely supply `DEPLOYMENT_ADMIN_EMAIL` and `DEPLOYMENT_ADMIN_PASSWORD`; the check creates and revokes test sessions. Remove these temporary variables after testing, and never commit or print their values.
+
 ## Security and Operations
 
 - Keep Supabase, JWT, Resend, and Razorpay values in Render secrets only.

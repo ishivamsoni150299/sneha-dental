@@ -1,5 +1,6 @@
 package com.mydentalplatform.auth;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,7 +21,7 @@ public class RefreshTokenRepository {
         jdbcTemplate.update("""
             insert into refresh_tokens (id, user_id, token_hash, expires_at, user_agent)
             values (?, ?, ?, ?, ?)
-            """, id, userId, tokenHash, expiresAt, userAgent);
+            """, id, userId, tokenHash, Timestamp.from(expiresAt), userAgent);
         return id;
     }
 
@@ -46,7 +47,7 @@ public class RefreshTokenRepository {
                     resultSet.getBoolean("phone_verified"),
                     resultSet.getBoolean("enabled"),
                     resultSet.getBoolean("password_migration_required"))),
-            tokenHash, now).stream().findFirst();
+            tokenHash, Timestamp.from(now)).stream().findFirst();
     }
 
     public void revokeAndReplace(UUID tokenId, UUID replacementId, Instant revokedAt) {
@@ -54,7 +55,7 @@ public class RefreshTokenRepository {
             update refresh_tokens
             set revoked_at = ?, replaced_by = ?
             where id = ? and revoked_at is null
-            """, revokedAt, replacementId, tokenId);
+            """, Timestamp.from(revokedAt), replacementId, tokenId);
         if (updated != 1) throw new AuthException("Refresh token has already been used.");
     }
 
@@ -63,7 +64,7 @@ public class RefreshTokenRepository {
             update refresh_tokens
             set revoked_at = ?
             where token_hash = ? and revoked_at is null
-            """, revokedAt, tokenHash);
+            """, Timestamp.from(revokedAt), tokenHash);
     }
 
     public record RefreshSession(UUID tokenId, AuthUser user) {
