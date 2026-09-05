@@ -130,8 +130,6 @@ function applyPlatformTheme(): void {
 function clinicConfigData(raw: Record<string, unknown>): Record<string, unknown> {
   const rest: RawClinicData = { ...raw };
   delete rest.id;
-  delete rest.domain;
-  delete rest.hostedDomain;
   delete rest.active;
   delete rest.createdAt;
   return rest;
