@@ -57,9 +57,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/api/health", "/actuator/health").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/public/**", "/api/marketplace/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/**", "/api/marketplace/**", "/api/v1/**", "/openapi.yaml").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/contacts").permitAll()
                 .requestMatchers("/api/public/appointments/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/appointments").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat", "/api/voice-session", "/api/voice-booking-action").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**").permitAll()

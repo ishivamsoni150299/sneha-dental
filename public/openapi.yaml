@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: MyDentalPlatform Patient API
+  version: 1.0.0
+  description: Find verified dentists, compare clinics, check live availability, and request appointments.
+servers:
+  - url: https://mydentalplatform.com/api/v1
+paths:
+  /dentists:
+    get:
+      operationId: searchDentists
+      summary: Find suitable verified dentists and clinics
+      description: Use query for a symptom, treatment, dentist, or clinic name.
+      parameters:
+        - name: region
+          in: query
+          schema: { type: string, default: delhi-ncr }
+        - name: query
+          in: query
+          description: Symptom, treatment, dentist, clinic, or locality.
+          schema: { type: string, maxLength: 120 }
+        - name: locality
+          in: query
+          schema: { type: string, maxLength: 120 }
+        - name: serviceId
+          in: query
+          description: Treatment ID such as root-canal or dental-implants.
+          schema: { type: string, maxLength: 80 }
+        - name: acceptingNewPatients
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Matching verified dentists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count: { type: integer }
+                  dentists:
+                    type: array
+                    items: { $ref: '#/components/schemas/DentistSummary' }
+  /dentists/{slug}:
+    get:
+      operationId: getDentist
+      summary: Get details needed to compare one dentist or clinic
+      parameters:
+        - $ref: '#/components/parameters/DentistSlug'
+      responses:
+        '200':
+          description: Verified dentist details.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DentistDetail' }
+        '404': { description: Dentist not found }
+  /dentists/{slug}/availability:
+    get:
+      operationId: getDentistAvailability
+      summary: Check live appointment times
+      description: Call immediately before booking so the patient chooses a currently available time.
+      parameters:
+        - $ref: '#/components/parameters/DentistSlug'
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: days
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 14, default: 7 }
+      responses:
+        '200':
+          description: Available 30-minute times in Asia/Kolkata.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Availability' }
+  /appointments:
+    post:
+      operationId: requestDentalAppointment
+      summary: Request the appointment chosen by the patient
+      description: Ask the patient to confirm the dentist, treatment, date, time, name, and phone before calling.
+      x-openai-isConsequential: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BookingRequest' }
+      responses:
+        '200':
+          description: Appointment request accepted and pending clinic confirmation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bookingReference: { type: string }
+                  status: { type: string, enum: [pending] }
+                  message: { type: string }
+                  managePath: { type: string }
+        '409': { description: Time unavailable or clinic not accepting requests }
+components:
+  parameters:
+    DentistSlug:
+      name: slug
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+  schemas:
+    DentistSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        clinicName: { type: string }
+        dentistName: { type: string }
+        locality: { type: string }
+        city: { type: string }
+        serviceIds: { type: array, items: { type: string } }
+        languages: { type: array, items: { type: string } }
+        consultationFee: { type: [integer, 'null'], description: Fee in INR }
+        acceptingNewPatients: { type: boolean }
+        profilePath: { type: string }
+        bookingPath: { type: string }
+    Doctor:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        qualification: { type: string }
+        speciality: { type: string }
+    DentistDetail:
+      type: object
+      properties:
+        dentist: { $ref: '#/components/schemas/DentistSummary' }
+        qualification: { type: string }
+        biography: { type: string }
+        phone: { type: string }
+        whatsapp: { type: string }
+        address: { type: string }
+        paymentMethods: { type: array, items: { type: string } }
+        doctors: { type: array, items: { $ref: '#/components/schemas/Doctor' } }
+    Availability:
+      type: object
+      properties:
+        dentistSlug: { type: string }
+        timezone: { type: string, enum: [Asia/Kolkata] }
+        days:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date }
+              slots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    doctorId: { type: string, format: uuid }
+                    doctorName: { type: string }
+                    time: { type: string, format: time }
+                    startsAt: { type: string, format: date-time }
+    BookingRequest:
+      type: object
+      additionalProperties: false
+      required: [dentistSlug, serviceId, doctorId, date, time, patientName, phone, consentToShare]
+      properties:
+        dentistSlug: { type: string }
+        serviceId: { type: string }
+        doctorId: { type: string, format: uuid }
+        date: { type: string, format: date }
+        time: { type: string, format: time }
+        patientName: { type: string, minLength: 2, maxLength: 120 }
+        phone: { type: string, description: Indian mobile number with at least 10 digits }
+        email: { type: string, format: email }
+        message: { type: string, maxLength: 1000 }
+        consentToShare:
+          type: boolean
+          const: true
+          description: True only after the patient agrees to share these details with the clinic.

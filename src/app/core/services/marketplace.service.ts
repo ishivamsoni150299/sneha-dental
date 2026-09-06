@@ -22,6 +22,24 @@ export interface MarketplaceReview {
   clinicRespondedAt: string | null;
 }
 
+export interface MarketplaceAvailabilitySlot {
+  doctorId: string;
+  doctorName: string;
+  time: string;
+  startsAt: string;
+}
+
+export interface MarketplaceAvailabilityDay {
+  date: string;
+  slots: MarketplaceAvailabilitySlot[];
+}
+
+export interface MarketplaceAvailability {
+  dentistSlug: string;
+  timezone: string;
+  days: MarketplaceAvailabilityDay[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class MarketplaceService {
   private readonly serviceLabels = new Map<MarketplaceDentalServiceId, string>(
@@ -54,6 +72,14 @@ export class MarketplaceService {
     const response = await fetch(`/api/marketplace/clinics/${encodeURIComponent(normalizedClinicId)}/reviews`);
     if (!response.ok) throw new Error('Could not load reviews.');
     return await response.json() as MarketplaceReview[];
+  }
+
+  async getAvailability(slug: string, days = 7): Promise<MarketplaceAvailability> {
+    const response = await fetch(
+      `/api/v1/dentists/${encodeURIComponent(slug)}/availability?days=${days}`,
+    );
+    if (!response.ok) throw new Error('Could not load appointment times.');
+    return await response.json() as MarketplaceAvailability;
   }
 
   serviceLabel(serviceId: MarketplaceDentalServiceId): string {

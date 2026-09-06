@@ -5,6 +5,7 @@ import { MARKETPLACE_DENTAL_SERVICES } from '../../core/config/marketplace.confi
 import type { MarketplaceDentalServiceId } from '../../core/config/marketplace.config';
 import {
   MarketplaceService,
+  type MarketplaceAvailabilitySlot,
   type MarketplaceClinic,
 } from '../../core/services/marketplace.service';
 
@@ -26,9 +27,20 @@ export class DentistDirectoryComponent implements OnInit {
   readonly searchTerm = signal('');
   readonly locality = signal('');
   readonly serviceId = signal('');
+  readonly compareIds = signal<string[]>([]);
+  readonly availability = signal<Record<string, MarketplaceAvailabilitySlot | null>>({});
+  readonly availabilityLoading = signal<string | null>(null);
   readonly popularServices = MARKETPLACE_DENTAL_SERVICES.filter(service =>
     ['root-canal', 'dental-implants', 'braces-orthodontics', 'teeth-whitening', 'emergency-dental-care'].includes(service.id),
   );
+  readonly patientProblems = [
+    { label: 'Tooth pain', serviceId: 'emergency-dental-care' },
+    { label: 'Root canal', serviceId: 'root-canal' },
+    { label: 'Missing tooth', serviceId: 'dental-implants' },
+    { label: 'Braces or aligners', serviceId: 'braces-orthodontics' },
+    { label: 'Child dental care', serviceId: 'pediatric-dentistry' },
+    { label: 'Cleaning', serviceId: 'cleaning-scaling' },
+  ];
   readonly faqs = [
     {
       question: 'How are dentists verified on mydentalplatform?',
@@ -79,6 +91,11 @@ export class DentistDirectoryComponent implements OnInit {
   readonly hasFilters = computed(() => Boolean(
     this.searchTerm().trim() || this.locality() || this.serviceId(),
   ));
+
+  readonly comparedClinics = computed(() => {
+    const selected = new Set(this.compareIds());
+    return this.clinics().filter(clinic => selected.has(clinic.id));
+  });
 
   async ngOnInit(): Promise<void> {
     if (!this.isBrowser) {
@@ -142,6 +159,41 @@ export class DentistDirectoryComponent implements OnInit {
 
   hasListingPhoto(clinic: MarketplaceClinic): boolean {
     return this.marketplace.hasListingPhoto(clinic);
+  }
+
+  toggleCompare(clinicId: string): void {
+    this.compareIds.update(current => {
+      if (current.includes(clinicId)) return current.filter(id => id !== clinicId);
+      return current.length < 3 ? [...current, clinicId] : current;
+    });
+  }
+
+  isCompared(clinicId: string): boolean {
+    return this.compareIds().includes(clinicId);
+  }
+
+  async checkAvailability(clinic: MarketplaceClinic): Promise<void> {
+    if (!clinic.marketplaceSlug || this.availabilityLoading()) return;
+    this.availabilityLoading.set(clinic.id);
+    try {
+      const response = await this.marketplace.getAvailability(clinic.marketplaceSlug);
+      const first = response.days.flatMap(day => day.slots)[0] ?? null;
+      this.availability.update(current => ({ ...current, [clinic.id]: first }));
+    } catch {
+      this.availability.update(current => ({ ...current, [clinic.id]: null }));
+    } finally {
+      this.availabilityLoading.set(null);
+    }
+  }
+
+  availabilityFor(clinicId: string): MarketplaceAvailabilitySlot | null | undefined {
+    return this.availability()[clinicId];
+  }
+
+  availabilityLabel(slot: MarketplaceAvailabilitySlot): string {
+    return new Date(slot.startsAt).toLocaleString('en-IN', {
+      weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
+    });
   }
 
   private listingScore(clinic: MarketplaceClinic): number {

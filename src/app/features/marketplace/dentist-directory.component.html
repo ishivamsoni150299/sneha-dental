@@ -13,6 +13,24 @@
       </div>
     </div>
 
+    <div class="mt-8">
+      <p class="text-sm font-bold text-gray-900">What do you need help with?</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        @for (problem of patientProblems; track problem.label) {
+          <button type="button" (click)="chooseService(problem.serviceId)"
+                  class="rounded-full border px-3 py-2 text-sm font-semibold transition"
+                  [class.border-blue-600]="serviceId() === problem.serviceId"
+                  [class.bg-blue-600]="serviceId() === problem.serviceId"
+                  [class.text-white]="serviceId() === problem.serviceId"
+                  [class.border-gray-300]="serviceId() !== problem.serviceId"
+                  [class.bg-white]="serviceId() !== problem.serviceId"
+                  [class.text-gray-700]="serviceId() !== problem.serviceId">
+            {{ problem.label }}
+          </button>
+        }
+      </div>
+    </div>
+
     <div role="search" aria-label="Find a dentist" class="mt-8 grid gap-3 border-y border-gray-200 py-5 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <div>
         <label for="dentist-search" class="mb-1.5 block text-xs font-bold text-gray-700">Clinic, dentist, or treatment</label>
@@ -87,7 +105,7 @@
     @if (filteredClinics().length > 0) {
       <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         @for (clinic of filteredClinics(); track clinic.id) {
-          <article class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+          <article class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-blue-300 hover:shadow-md">
             <a [routerLink]="['/dentists', clinic.marketplaceSlug]" class="block">
               <div class="relative aspect-[16/9] overflow-hidden bg-gray-100">
                 <img [src]="listingImage(clinic)" [alt]="hasListingPhoto(clinic) ? clinic.name : ''"
@@ -101,10 +119,15 @@
                 </span>
               </div>
 
-              <div class="p-5">
+            </a>
+
+            <div class="p-5">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <h2 class="truncate text-lg font-bold text-gray-950 group-hover:text-blue-800">{{ clinic.name }}</h2>
+                    <a [routerLink]="['/dentists', clinic.marketplaceSlug]"
+                       class="block truncate text-lg font-bold text-gray-950 group-hover:text-blue-800">
+                      {{ clinic.name }}
+                    </a>
                     <p class="mt-1 truncate text-sm font-medium text-gray-600">{{ clinic.doctorName }}</p>
                   </div>
                   @if (clinic.marketplaceProfile!.acceptingNewPatients) {
@@ -134,10 +157,33 @@
                       }
                     </p>
                   </div>
-                  <span class="text-sm font-bold text-blue-700">View profile →</span>
+                  <button type="button" (click)="toggleCompare(clinic.id)"
+                          class="text-sm font-bold text-blue-700 hover:text-blue-900"
+                          [attr.aria-pressed]="isCompared(clinic.id)">
+                    {{ isCompared(clinic.id) ? 'Added to compare' : 'Compare' }}
+                  </button>
+                </div>
+
+                @if (availabilityFor(clinic.id); as slot) {
+                  <p class="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+                    Next available: {{ availabilityLabel(slot) }}
+                  </p>
+                } @else if (availabilityFor(clinic.id) === null) {
+                  <p class="mt-4 rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-600">No online times in the next 7 days.</p>
+                }
+
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                  <button type="button" (click)="checkAvailability(clinic)"
+                          [disabled]="availabilityLoading() !== null"
+                          class="min-h-11 rounded-lg border border-blue-200 px-3 text-sm font-bold text-blue-800 hover:bg-blue-50 disabled:opacity-60">
+                    {{ availabilityLoading() === clinic.id ? 'Checking…' : 'Check times' }}
+                  </button>
+                  <a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']"
+                     class="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-3 text-sm font-bold text-white hover:bg-blue-700">
+                    Book appointment
+                  </a>
                 </div>
               </div>
-            </a>
           </article>
         }
       </div>
@@ -163,6 +209,44 @@
     }
   }
 </section>
+
+@if (comparedClinics().length > 0) {
+  <section class="border-y border-blue-200 bg-blue-50" aria-label="Compare selected clinics">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-sm font-bold text-blue-950">Compare clinics ({{ comparedClinics().length }}/3)</p>
+          <p class="mt-1 text-xs text-blue-800">Choose up to three. Fees are consultation fees published by each clinic.</p>
+        </div>
+        <button type="button" (click)="compareIds.set([])" class="text-sm font-bold text-blue-800 hover:text-blue-950">Clear</button>
+      </div>
+      <div class="mt-5 overflow-x-auto">
+        <table class="min-w-[42rem] w-full border-collapse bg-white text-left text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-gray-500">
+              <th class="p-3 font-semibold">Clinic</th>
+              <th class="p-3 font-semibold">Location</th>
+              <th class="p-3 font-semibold">Consultation</th>
+              <th class="p-3 font-semibold">Treatments</th>
+              <th class="p-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (clinic of comparedClinics(); track clinic.id) {
+              <tr class="border-b border-gray-100 last:border-0">
+                <td class="p-3"><strong class="block text-gray-950">{{ clinic.name }}</strong><span class="text-gray-500">{{ clinic.doctorName }}</span></td>
+                <td class="p-3 text-gray-700">{{ clinic.marketplaceProfile!.locality }}</td>
+                <td class="p-3 font-bold text-gray-950">{{ clinic.marketplaceProfile!.consultationFee != null ? '₹' + clinic.marketplaceProfile!.consultationFee : 'Ask clinic' }}</td>
+                <td class="p-3 text-gray-700">{{ clinic.marketplaceProfile!.serviceIds.length }} listed</td>
+                <td class="p-3"><a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']" class="font-bold text-blue-700">Book →</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+}
 
 <section class="border-y border-gray-200 bg-white">
   <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
