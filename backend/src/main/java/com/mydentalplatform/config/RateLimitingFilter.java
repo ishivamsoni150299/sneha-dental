@@ -61,6 +61,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        LimitRule appliedRule = rule;
 
         String clientIp = resolveClientIp(request);
         String bucketKey = ruleKey + ":" + clientIp;
@@ -90,15 +91,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
 
         Bucket bucket = buckets.compute(bucketKey, (k, existing) -> {
-            if (existing == null || now - existing.windowStart > rule.windowSeconds * 1000L) {
+            if (existing == null || now - existing.windowStart > appliedRule.windowSeconds * 1000L) {
                 return new Bucket(now, 1);
             }
             existing.count++;
             return existing;
         });
 
-        if (bucket.count > rule.maxRequests) {
-            long retryAfterSeconds = Math.max(1, rule.windowSeconds - ((now - bucket.windowStart) / 1000L));
+        if (bucket.count > appliedRule.maxRequests) {
+            long retryAfterSeconds = Math.max(1, appliedRule.windowSeconds - ((now - bucket.windowStart) / 1000L));
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
