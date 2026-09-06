@@ -35,6 +35,7 @@ export class DentistDirectoryComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly route = inject(ActivatedRoute);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly isDiscoveryHome = !this.route.snapshot.data['initialLocation'] && !this.route.snapshot.data['initialServiceId'];
   readonly routeHeading = this.route.snapshot.data['initialLocation']
     ? String(this.route.snapshot.data['title']).replace(/^Best /, '')
     : 'Good dental care. Close to you.';

@@ -1,5 +1,6 @@
 <section class="discovery-hero">
   <div class="directory-wrap">
+    @if (!isDiscoveryHome) {
     <nav aria-label="Breadcrumb" class="breadcrumbs-trail">
       <ol itemscope itemtype="https://schema.org/BreadcrumbList">
         <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
@@ -28,8 +29,9 @@
       </ol>
     </nav>
     <span class="hero-kicker">{{ pageKicker() }}</span>
-    <h1>{{ pageHeading() }}</h1>
-    <p class="hero-description">{{ pageLead() }}</p>
+    }
+    <h1>{{ isDiscoveryHome ? 'Good dental care. Close to you.' : pageHeading() }}</h1>
+    <p class="hero-description">{{ isDiscoveryHome ? 'Tell us what you need. Find a dentist you feel good about.' : pageLead() }}</p>
     <form class="search-bar" role="search" (submit)="$event.preventDefault(); findDentists()">
       <div class="search-field">
         <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
