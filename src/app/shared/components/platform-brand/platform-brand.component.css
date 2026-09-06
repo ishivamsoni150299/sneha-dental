@@ -1,0 +1,63 @@
+:host {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.platform-brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--ui-ink);
+  white-space: nowrap;
+}
+
+.platform-brand img {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+}
+
+.platform-brand-wordmark {
+  overflow: hidden;
+  font-family: var(--ui-font-sans);
+  font-size: 0.9375rem;
+  font-weight: var(--ui-weight-bold);
+  letter-spacing: -0.025em;
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+
+.platform-brand-accent {
+  color: var(--ui-primary);
+}
+
+.platform-brand-sm {
+  gap: 0.5rem;
+}
+
+.platform-brand-sm img {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.platform-brand-sm .platform-brand-wordmark {
+  font-size: 0.8125rem;
+}
+
+.platform-brand-lg img {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.platform-brand-lg .platform-brand-wordmark {
+  font-size: 1.0625rem;
+}
+
+.platform-brand-inverse {
+  color: var(--ui-surface);
+}
+
+.platform-brand-inverse .platform-brand-accent {
+  color: var(--ui-primary-subtle);
+}

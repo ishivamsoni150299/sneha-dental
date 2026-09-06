@@ -2,10 +2,7 @@
   <header class="platform-auth-topbar">
     <div class="ui-container flex h-16 items-center justify-between gap-4">
       <a routerLink="/business" class="flex min-w-0 items-center gap-2.5" aria-label="mydentalplatform home">
-        <img src="/assets/brand/mydentalplatform-logo.svg" class="h-9 w-9 shrink-0" alt="">
-        <span class="truncate text-sm font-bold text-ui-ink">
-          mydental<span class="text-ui-primary">platform</span>
-        </span>
+        <app-platform-brand />
       </a>
       @if (!isPlatform()) {
         <a routerLink="/business/signup" class="ui-btn ui-btn-secondary ui-btn-sm">Start free</a>

@@ -78,7 +78,9 @@
         <a routerLink="/terms" class="clinic-footer-link">Terms</a>
         @if (contactEmail) { <a [href]="'mailto:' + contactEmail" class="clinic-footer-link">{{ contactEmail }}</a> }
         @if (showPoweredByBadge) {
-          <a [href]="platformUrl" target="_blank" rel="noopener noreferrer" class="clinic-footer-link">Powered by mydentalplatform</a>
+          <a [href]="platformUrl" target="_blank" rel="noopener noreferrer" class="clinic-footer-link inline-flex items-center gap-2" aria-label="Powered by mydentalplatform">
+            <span>Powered by</span><app-platform-brand size="sm" tone="inverse" />
+          </a>
         }
       </div>
     </div>

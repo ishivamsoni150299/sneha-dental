@@ -1,0 +1,12 @@
+<span
+  class="platform-brand"
+  [class.platform-brand-sm]="size() === 'sm'"
+  [class.platform-brand-lg]="size() === 'lg'"
+  [class.platform-brand-inverse]="tone() === 'inverse'">
+  <img src="/assets/brand/mydentalplatform-logo.svg" alt="" aria-hidden="true">
+  @if (showName()) {
+    <span class="platform-brand-wordmark">
+      <span>mydental</span><span class="platform-brand-accent">platform</span>
+    </span>
+  }
+</span>

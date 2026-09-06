@@ -1,18 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
 
 @Component({
   selector: 'app-platform-legal',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PlatformBrandComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="platform-auth-shell">
       <header class="platform-auth-topbar">
         <div class="ui-container flex h-16 items-center justify-between gap-4">
           <a routerLink="/business" class="flex items-center gap-2.5" aria-label="mydentalplatform home">
-            <img src="/assets/brand/mydentalplatform-logo.svg" class="h-9 w-9" alt="">
-            <span class="text-sm font-bold">mydental<span class="text-ui-primary">platform</span></span>
+            <app-platform-brand />
           </a>
           <a routerLink="/business/signup" class="ui-btn ui-btn-secondary ui-btn-sm">Start free</a>
         </div>

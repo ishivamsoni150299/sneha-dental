@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
+import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
 
 type LoginPortal = 'clinic' | 'platform';
 type LoginMethod = 'email' | 'google';
@@ -9,7 +10,7 @@ type LoginMethod = 'email' | 'google';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

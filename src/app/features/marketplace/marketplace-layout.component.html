@@ -1,7 +1,9 @@
 <div class="marketplace-shell">
   <a href="#marketplace-content" class="sr-only focus:not-sr-only">Skip to content</a>
   <header class="marketplace-header">
-    <a class="wordmark" routerLink="/dentists">MyDentalPlatform</a>
+    <a class="wordmark" routerLink="/dentists" aria-label="mydentalplatform patient home">
+      <app-platform-brand size="lg" />
+    </a>
     <nav aria-label="Patient navigation">
       <a routerLink="/dentists" routerLinkActive="active">Find a dentist</a>
       <a routerLink="/appointments" routerLinkActive="active">My appointments</a>
@@ -9,5 +11,5 @@
     </nav>
   </header>
   <main id="marketplace-content"><router-outlet /></main>
-  <footer><span>MyDentalPlatform · Dental care in Delhi NCR</span><nav aria-label="Footer"><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a><a routerLink="/business">For clinics</a></nav></footer>
+  <footer><a routerLink="/dentists" aria-label="mydentalplatform patient home"><app-platform-brand size="sm" /></a><span>Dental care in Delhi NCR</span><nav aria-label="Footer"><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a><a routerLink="/business">For clinics</a></nav></footer>
 </div>

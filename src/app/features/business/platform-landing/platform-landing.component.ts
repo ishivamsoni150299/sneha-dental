@@ -8,12 +8,13 @@ import {
   type PlatformPlanId,
 } from '../../../core/config/clinic.config';
 import { PLATFORM_FAQS } from '../../../core/content/platform-marketing.content';
+import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
 type PlanId = PlatformPlanId;
 
 @Component({
   selector: 'app-platform-landing',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PlatformBrandComponent],
   templateUrl: './platform-landing.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

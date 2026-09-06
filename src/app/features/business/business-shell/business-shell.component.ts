@@ -3,11 +3,12 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { ClinicApiService } from '../../../core/services/clinic-api.service';
 import { Router } from '@angular/router';
+import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
 
 @Component({
   selector: 'app-business-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, PlatformBrandComponent],
   templateUrl: './business-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

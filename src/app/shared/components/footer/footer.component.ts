@@ -3,11 +3,12 @@ import { RouterLink } from '@angular/router';
 import { clinicHasPlatformFeature } from '../../../core/config/clinic.config';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { buildClinicMonogram } from '../../../core/utils/clinic-branding';
+import { PlatformBrandComponent } from '../platform-brand/platform-brand.component';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PlatformBrandComponent],
   templateUrl: './footer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
