@@ -11,8 +11,8 @@ export const businessRoutes: Routes = [
     loadComponent: () =>
       import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
     data: {
-      title: 'Dental Clinic Website & Booking Software | mydentalplatform',
-      description: 'Launch a free dental clinic website with online booking and WhatsApp. Upgrade to Basic for clinic operations or Pro for an AI receptionist.',
+      title: 'Dental Appointment Booking & Patient Discovery for Clinics',
+      description: 'Join the mydentalplatform dentist network. Help nearby patients discover your clinic, compare care, view availability, and request appointments online.',
     },
   },
 
@@ -22,8 +22,8 @@ export const businessRoutes: Routes = [
     loadComponent: () =>
       import('./signup/signup.component').then(m => m.SignupComponent),
     data: {
-      title: 'Create Your Dental Clinic Website',
-      description: 'Create your account and launch a dental clinic website with online booking and patient management.',
+      title: 'List Your Dental Clinic',
+      description: 'Create your clinic profile, publish dentist availability, and start receiving appointment requests from nearby patients.',
       noIndex: true,
     },
   },

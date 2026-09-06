@@ -29,9 +29,9 @@ type SeoContext =
 
 const PLATFORM_NAME = 'mydentalplatform';
 const PLATFORM_ORIGIN = 'https://mydentalplatform.com';
-const PLATFORM_DEFAULT_TITLE = 'Find & Book Dentists Near You | mydentalplatform';
+const PLATFORM_DEFAULT_TITLE = 'Find & Book Dentist Appointments Near You | mydentalplatform';
 const PLATFORM_DEFAULT_DESCRIPTION =
-  'Find verified dentists and dental clinics in Delhi NCR. Compare treatments, consultation fees and locations, then request an appointment online.';
+  'Search by dental problem and location, compare verified dentists, view consultation fees and availability, and request an appointment online.';
 const INDEXABLE_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 const NOINDEX_ROBOTS = 'noindex,nofollow';
 
@@ -141,9 +141,9 @@ export class SeoService {
           '@type': 'SoftwareApplication',
           '@id': `${url}#software`,
           name: PLATFORM_NAME,
-          alternateName: 'mydentalplatform Dental Clinic Website & Booking Software',
+          alternateName: 'mydentalplatform Dental Appointment and Patient Discovery Platform',
           applicationCategory: 'BusinessApplication',
-          applicationSubCategory: 'Dental clinic website and appointment booking software',
+          applicationSubCategory: 'Dental appointment booking and patient discovery software',
           operatingSystem: 'Web',
           url,
           image,
@@ -155,11 +155,11 @@ export class SeoService {
             audienceType: 'Dental clinics',
           },
           featureList: [
-            'Responsive dental clinic website',
-            'Online appointment booking',
-            'WhatsApp integration',
+            'Verified dentist and clinic profiles',
+            'Patient discovery by treatment and location',
+            'Appointment availability and online booking requests',
             'Clinic administration dashboard',
-            '24/7 AI voice receptionist on the Pro plan',
+            'Patient and doctor management',
           ],
           offers: Object.entries(PLATFORM_PLANS).map(([planId, plan]) => ({
             '@type': 'Offer',

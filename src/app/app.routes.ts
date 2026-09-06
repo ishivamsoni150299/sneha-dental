@@ -18,8 +18,8 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
         data: {
-          title: 'Find the Right Dentist Near You',
-          description: 'Tell us your dental problem, compare verified dentists, check live availability and book an appointment across Delhi NCR.',
+          title: 'Find & Book Dentists Near You in Delhi NCR',
+          description: 'Search by dental problem and location, compare verified dentists, view consultation fees and availability, and request an appointment online.',
         },
       },
       {

@@ -111,36 +111,35 @@ export class PlatformLandingComponent {
   readonly painPoints = [
     {
       emoji: '😞',
-      title: 'Patients can\'t find you online',
-      desc: 'When someone searches "dental clinic near me", your competitors show up — not you. Those patients book elsewhere.',
+      title: 'Patients cannot match you to their need',
+      desc: 'A patient searches for tooth pain, braces, implants, or urgent care. A complete treatment profile helps the right patient find you.',
     },
     {
       emoji: '📵',
-      title: 'Your phone rings after hours',
-      desc: 'Patients call to ask basic questions — hours, services, pricing. A website answers all of this automatically, 24/7.',
+      title: 'Availability is hidden behind a phone call',
+      desc: 'Patients want to know when they can be seen before they commit. Publish available times and collect requests around the clock.',
     },
     {
       emoji: '📋',
-      title: 'No way to manage bookings',
-      desc: 'Appointments come in via calls, WhatsApp, walk-ins — all scattered. One missed message = one lost patient.',
+      title: 'Appointment requests are scattered',
+      desc: 'Calls, WhatsApp, and walk-ins are easy to miss. Keep patient requests, confirmations, and schedules in one clinic workspace.',
     },
   ];
 
   readonly features = [
-    { emoji: '📱', title: 'Mobile-first design',         desc: 'Looks perfect on every screen — phones, tablets and desktops.' },
-    { emoji: '📅', title: 'Online appointment booking',  desc: 'Patients book directly from the website. Instant dashboard and email alerts.' },
+    { emoji: '📱', title: 'Treatment-based discovery',    desc: 'Patients find your clinic by dental problem, treatment, and location.' },
+    { emoji: '📅', title: 'Online appointment booking',   desc: 'Publish availability and receive patient requests with instant dashboard and email alerts.' },
+    { emoji: '🌐', title: 'Verified clinic profile',       desc: 'Show qualifications, clinic contact, address, treatments, fees, and trust signals clearly.' },
     { emoji: '🎙️', title: 'AI Voice Receptionist',       desc: 'Answers patient calls in Hindi & English 24/7. Books appointments automatically — even at midnight.' },
     { emoji: '🔒', title: 'Secure admin dashboard',      desc: 'Clinic owner logs in to view and manage all patient bookings.' },
-    { emoji: '🌐', title: 'Custom domain',               desc: 'Your clinic on your own domain — e.g. snehadental.com.' },
-    { emoji: '⚡', title: 'Live in 24 hours',            desc: 'From zero to a live website in one business day. No waiting.' },
     { emoji: '💬', title: 'WhatsApp support',            desc: 'We handle all updates and technical issues via WhatsApp.' },
   ];
 
   readonly guarantees = [
-    { emoji: '🔐', text: 'Free SSL certificate on every site' },
-    { emoji: '🌍', text: 'Custom domain or free subdomain' },
-    { emoji: '⚡', text: 'Lightning-fast, always-online hosting' },
-    { emoji: '📱', text: '100% mobile responsive design' },
+    { emoji: '✓', text: 'Verified clinic and dentist information' },
+    { emoji: '📍', text: 'Treatment and location-based discovery' },
+    { emoji: '📅', text: 'Published appointment availability' },
+    { emoji: '📱', text: 'Patient-friendly mobile booking' },
     { emoji: '🔔', text: 'Instant dashboard and email booking alerts' },
     { emoji: '🛡️', text: 'Secure, encrypted patient data' },
     { emoji: '♾️', text: 'Unlimited patient bookings' },
@@ -183,19 +182,19 @@ export class PlatformLandingComponent {
     },
     {
       title: 'We configure everything',
-      description: 'Website copy, booking flow, WhatsApp routing, domain connection and launch polish.',
+      description: 'Verification, treatments, fees, dentist profiles, availability, booking flow, and WhatsApp routing.',
       timeline: 'Same day',
     },
     {
       title: 'Start collecting patients',
-      description: 'Your site goes live with appointment capture and an admin dashboard ready to use.',
+      description: 'Your listing goes live with appointment capture and an admin dashboard ready to use.',
       timeline: 'Day 1',
     },
   ];
 
   readonly testimonials = [
     {
-      text: `We were getting patients calling just to ask if we were open. Now they check our website and book directly. The booking alerts are instant. Best ${this.starterMonthlyPrice} we spend for patient growth.`,
+      text: `Patients can now see our clinic details and request a time without calling first. The booking alerts are instant. Best ${this.starterMonthlyPrice} we spend for patient growth.`,
       name: 'Dr. Ramesh Kumar',
       clinic: 'Indram Dental, Jhansi',
       location: 'Uttar Pradesh',
@@ -209,7 +208,7 @@ export class PlatformLandingComponent {
       initials: 'PS',
     },
     {
-      text: 'My receptionist used to spend hours answering the same questions. Now patients get everything from the website. The AI voice agent even books when we\'re closed.',
+      text: 'My receptionist used to spend hours answering the same questions. Now patients see our information and availability first. The AI voice agent even books when we\'re closed.',
       name: 'Dr. Anil Mehta',
       clinic: 'Mehta Dental Clinic',
       location: 'Mumbai',
@@ -220,7 +219,7 @@ export class PlatformLandingComponent {
   readonly results = [
     { value: '5×',     label: 'More online inquiries',   desc: 'Average increase in monthly appointment requests after going live' },
     { value: '3 hrs',  label: 'Saved daily',             desc: 'Time saved on phone calls answering hours, pricing & location questions' },
-    { value: '< 24h',  label: 'To go live',              desc: 'From signing up to a fully working website with online bookings enabled' },
+    { value: '< 24h',  label: 'To go live',              desc: 'From signup to a verified clinic listing with online booking enabled' },
     { value: '₹0',     label: 'Setup cost',              desc: 'No agency fees, no developer, no hidden charges. Ever.' },
   ];
 

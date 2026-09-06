@@ -2,8 +2,8 @@
 
   <!-- ── Announcement bar ─────────────────────────────────────────────────── -->
   <div class="platform-announcement bg-gray-900 text-white text-center py-1.5 sm:py-2 px-4 text-[11px] sm:text-xs font-medium leading-snug">
-    Free clinic website — no credit card needed
-    <span class="hidden sm:inline"> · Live in under 24 hours</span>
+    Join the patient booking network — no credit card needed
+    <span class="hidden sm:inline"> · Publish your clinic profile today</span>
     <a routerLink="/business/signup" class="underline font-bold ml-2 hover:text-gray-300">Start free →</a>
   </div>
 
@@ -86,13 +86,13 @@
           </div>
 
           <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
-            Dental clinic websites built to
-            <span class="block text-blue-600">turn searches into appointments.</span>
+            Turn nearby dental searches into
+            <span class="block text-blue-600">booked appointments.</span>
           </h1>
           <p class="mt-5 text-lg text-gray-500 leading-relaxed">
-            Launch a professional dental clinic website with online appointment booking,
-            WhatsApp integration and a 24/7 AI receptionist. Configured for your clinic and
-            live in <strong class="text-gray-700">under 24 hours</strong>.
+            List your clinic, publish verified dentist profiles and availability, and let patients
+            find you by treatment and location. Manage every appointment request from one
+            <strong class="text-gray-700">focused clinic workspace</strong>.
           </p>
 
           <div class="platform-hero-actions mt-8 flex flex-col sm:flex-row gap-3">
@@ -101,13 +101,13 @@
                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
                       text-white font-bold px-7 py-4 sm:py-3.5 rounded-xl transition-all
                       hover:shadow-xl hover:-translate-y-0.5 text-sm shadow-lg shadow-blue-200">
-              Create your free website →
+              List your clinic free →
             </a>
             <button (click)="scrollTo('portfolio')"
                     class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 border border-gray-200
                            hover:border-gray-300 bg-white text-gray-700 hover:text-gray-900 font-medium
                            px-6 py-4 sm:py-3.5 rounded-xl transition-all hover:shadow-md text-sm">
-              See our work ↓
+              See how it works ↓
             </button>
           </div>
 
@@ -147,22 +147,23 @@
                 <svg class="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                yourclinic.com
+                mydentalplatform.com/dentists
               </div>
             </div>
             <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-7 text-white">
               <div class="flex items-center gap-2 mb-4">
                 <div class="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center text-xs font-bold">S</div>
-                <span class="text-sm font-semibold">Sunrise Dental Care</span>
+                <span class="text-sm font-semibold">Sunrise Dental Care · Verified</span>
               </div>
-              <div class="text-2xl font-extrabold leading-snug mb-2">Advanced Dental &amp;<br>Smile Studio</div>
-              <p class="text-blue-200 text-xs mb-5">Implants · Aligners · Root Canal · Cosmetic</p>
+              <div class="text-2xl font-extrabold leading-snug mb-2">Dr. Kavitha Reddy</div>
+              <p class="text-blue-200 text-xs mb-2">BDS, MDS · Endodontist · 9 years experience</p>
+              <p class="text-blue-100 text-xs mb-5">Root Canal · Crowns · Dental Pain · Consultation ₹500</p>
               <div class="flex gap-2 mb-6">
-                <div class="bg-white text-blue-700 text-xs font-bold px-4 py-2 rounded-xl shadow">Book Appointment</div>
-                <div class="border border-white/30 text-white text-xs px-4 py-2 rounded-xl">Call Now</div>
+                <div class="bg-white text-blue-700 text-xs font-bold px-4 py-2 rounded-xl shadow">Request Appointment</div>
+                <div class="border border-white/30 text-white text-xs px-4 py-2 rounded-xl">View Profile</div>
               </div>
               <div class="grid grid-cols-3 gap-2">
-                @for (s of ['2000+\nPatients', 'Modern\nEquipment', 'Sterilized\nTools']; track s) {
+                @for (s of ['Verified\ncredentials', '4.9 · 128\npatient reviews', 'Available\ntoday']; track s) {
                   <div class="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
                     <div class="text-[10px] font-semibold leading-tight whitespace-pre-line">{{ s }}</div>
                   </div>
@@ -170,15 +171,15 @@
               </div>
             </div>
             <div class="bg-white px-5 py-4">
-              <div class="text-xs font-bold text-gray-900 mb-3">Our Services</div>
-              <div class="grid grid-cols-2 gap-2">
-                @for (s of ['Dental Implants', 'Clear Aligners', 'Root Canal', 'Smile Makeover']; track s) {
-                  <div class="bg-blue-50 text-blue-700 rounded-lg px-3 py-2 text-[11px] font-semibold">{{ s }}</div>
+              <div class="text-xs font-bold text-gray-900 mb-3">Available today</div>
+              <div class="grid grid-cols-3 gap-2">
+                @for (s of ['10:30 AM', '12:00 PM', '5:30 PM']; track s) {
+                  <div class="bg-blue-50 text-center text-blue-700 rounded-lg px-3 py-2 text-[11px] font-semibold">{{ s }}</div>
                 }
               </div>
               <div class="mt-3 flex items-center gap-1.5 text-[10px] text-green-600 font-medium">
                 <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                Live now · accepting bookings
+                Accepting new patients
               </div>
             </div>
           </div>
@@ -219,7 +220,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
         @for (stat of [
-          {value: '< 24h',    label: 'To go live',            sub: 'From signup to live website'},
+          {value: '< 24h',    label: 'To go live',            sub: 'From signup to live clinic listing'},
           {value: starterMonthlyPrice, label: 'Starting price', sub: 'Cancel anytime, no lock-in'},
           {value: '5×',       label: 'More patient inquiries', sub: 'Average after going online'},
           {value: 'Zero',     label: 'Tech skills needed',     sub: 'We handle everything for you'}
@@ -248,7 +249,7 @@
           See your clinic online in 2 minutes
         </h2>
         <p class="text-gray-500 text-sm mt-2 max-w-lg mx-auto">
-          Watch how to set up your free dental clinic website — no tech skills needed.
+          See how to publish your clinic profile and start accepting appointment requests.
         </p>
       </div>
 
@@ -273,7 +274,7 @@
           <iframe
             class="absolute inset-0 w-full h-full"
             src="https://www.youtube.com/embed/R7d1KqfdH6U?si=eKZdWXjIuP50WjP9"
-            title="How to set up your free dental clinic website on mydentalplatform"
+            title="How to list your dental clinic and accept appointments on mydentalplatform"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin"
@@ -346,10 +347,10 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <span class="inline-block text-xs font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
-          The real cost of no website
+          The real cost of being hard to book
         </span>
         <h2 class="text-2xl sm:text-3xl font-bold text-gray-900">
-          Without a website, your clinic<br class="hidden sm:block"> is losing patients every day
+          When patients cannot find a clear time,<br class="hidden sm:block"> they book somewhere else
         </h2>
         <p class="text-gray-500 text-sm mt-3 max-w-xl mx-auto">
           Most dental clinics still rely on word of mouth. That's exactly why you should move first.
@@ -380,7 +381,7 @@
   <section id="features" class="platform-features bg-gray-50 py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl font-bold text-gray-900">Dental clinic website and booking software in one place</h2>
+        <h2 class="text-2xl font-bold text-gray-900">Patient discovery and appointment booking in one place</h2>
         <p class="text-gray-500 text-sm mt-2">Built specifically for dental clinics — not a generic template.</p>
       </div>
       <div class="platform-mobile-rail platform-feature-rail grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -680,7 +681,7 @@
         <span class="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
           What you get
         </span>
-        <h2 class="text-2xl font-bold text-gray-900">A clinic website your patients will trust</h2>
+        <h2 class="text-2xl font-bold text-gray-900">A clinic profile patients can trust</h2>
         <p class="text-gray-500 text-sm mt-2 max-w-lg mx-auto">Professional, fast, mobile-first — built specifically for dental clinics. Every feature your patients need to find you, trust you, and book with you.</p>
       </div>
 
@@ -775,7 +776,7 @@
   <section class="platform-comparison py-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl font-bold text-gray-900">Why not just use a generic website builder?</h2>
+        <h2 class="text-2xl font-bold text-gray-900">Why not rely on calls and WhatsApp alone?</h2>
         <p class="text-gray-500 text-sm mt-2">We built this specifically for dental clinics. Here's the difference.</p>
       </div>
       <div class="platform-comparison-table bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
@@ -1012,12 +1013,12 @@
   <!-- ── How it works ──────────────────────────────────────────────────────── -->
   <section class="platform-how-it-works py-16">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-2xl font-bold text-gray-900 mb-12">From WhatsApp message to live website in 3 steps</h2>
+      <h2 class="text-2xl font-bold text-gray-900 mb-12">From clinic signup to online bookings in 3 steps</h2>
       <div class="platform-mobile-rail platform-steps-rail grid grid-cols-1 sm:grid-cols-3 gap-8">
         @for (step of [
           {emoji:'💬', title:'Share your details',    desc:'Send clinic name, phone, address, doctor info and services. A WhatsApp message is enough.'},
-          {emoji:'⚙️', title:'We build & configure', desc:'We set up your website, connect your domain and configure booking — in under 24 hours.'},
-          {emoji:'🚀', title:'Go live',               desc:'Your website is live. Patients find you on Google and book appointments instantly.'}
+          {emoji:'⚙️', title:'Complete verification', desc:'Add dentists, treatments, fees, location and availability so patients can compare with confidence.'},
+          {emoji:'🚀', title:'Accept bookings',        desc:'Your listing goes live and appointment requests arrive in your clinic dashboard.'}
         ]; track step.title) {
           <div class="flex flex-col items-center">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-2xl
@@ -1120,10 +1121,10 @@
             Available now · Taking new clients
           </div>
           <h2 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
-            Every day without a website<br class="hidden sm:block"> is patients booked by someone else.
+            Be the clinic patients can find,<br class="hidden sm:block"> trust, and book online.
           </h2>
           <p class="text-gray-400 text-base mt-4 mb-8 max-w-lg mx-auto">
-            Sign up in 2 minutes. Start free forever. Your website goes live instantly.
+            Create your clinic profile, verify your details, and publish appointment availability.
           </p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a routerLink="/business/signup"
@@ -1131,7 +1132,7 @@
                class="inline-flex items-center gap-2 bg-white text-gray-900
                       hover:bg-blue-50 font-bold px-8 py-4 rounded-xl transition-all
                       hover:shadow-xl hover:-translate-y-0.5 text-sm">
-              Create your free website →
+              List your clinic free →
             </a>
             <button (click)="whatsappEnquiry('General')"
                     class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors bg-transparent border-0 cursor-pointer">
@@ -1158,7 +1159,7 @@
       <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
           <a routerLink="/business" class="mb-2 inline-flex" aria-label="mydentalplatform home"><app-platform-brand size="sm" /></a>
-          <p class="text-xs text-gray-400">Professional websites for dental clinics · India &amp; worldwide 🌏</p>
+          <p class="text-xs text-gray-400">Dental discovery and appointment booking · India</p>
           <a [href]="'mailto:' + devEmail"
              class="mt-2 inline-flex items-center gap-2 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline underline-offset-4">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1178,7 +1179,7 @@
         </div>
       </div>
       <div class="mt-6 pt-6 border-t border-gray-100 text-center text-[11px] text-gray-300">
-        © 2026 mydentalplatform · Professional dental clinic websites worldwide
+        © 2026 mydentalplatform · Find dentists, compare care, and book appointments
       </div>
     </div>
   </footer>

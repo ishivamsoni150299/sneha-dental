@@ -2,20 +2,20 @@ import type { ClinicFaq } from '../config/clinic.config';
 
 export const PLATFORM_FAQS: readonly ClinicFaq[] = [
   {
-    q: 'Do I need to own a domain name?',
-    a: 'No. The Free plan includes a subdomain like yourclinic.mydentalplatform.com with no expiry. Basic and Pro let you connect your own domain, such as snehadental.com, with SSL included.',
+    q: 'Do I need a website to join?',
+    a: 'No. You can create a verified clinic listing and accept appointment requests through mydentalplatform. A hosted clinic page and custom domain are optional tools for clinics that need them.',
   },
   {
     q: 'How do patients book appointments?',
-    a: 'Patients fill a simple booking form on your website. The booking is saved and you get notified. You can also share a direct WhatsApp booking link with patients.',
+    a: 'Patients search by dental problem and location, compare verified clinics, check published availability, and request a suitable time. The request appears in your clinic dashboard for confirmation.',
   },
   {
-    q: 'Can I update my services and clinic info later?',
-    a: 'Yes. Every plan includes clinic profile, contact, hours, services, testimonials, and social-link controls. Basic and Pro also unlock your clinic logo, theme, platform-brand removal, patient records, and doctor management.',
+    q: 'Can I update dentists, treatments, fees, and availability?',
+    a: 'Yes. Your clinic workspace lets you keep profile details, doctors, treatments, consultation fees, hours, and appointment availability current.',
   },
   {
     q: 'What if I already have a website?',
-    a: 'We can migrate your content and replace your old site, or run both side-by-side during transition. No disruption to existing patients.',
+    a: 'Keep it. Your mydentalplatform listing and booking link can work alongside your existing website and WhatsApp without disrupting current patients.',
   },
   {
     q: 'Is there a contract or lock-in?',
@@ -23,7 +23,7 @@ export const PLATFORM_FAQS: readonly ClinicFaq[] = [
   },
   {
     q: 'Do you support multiple doctors or clinic branches?',
-    a: 'Basic and Pro support multiple doctor profiles and schedules. Each clinic workspace represents one location; multi-location chains with separate websites per branch can contact us for a custom quote.',
+    a: 'Basic and Pro support multiple verified doctor profiles and schedules. Each clinic workspace represents one location; multi-location groups can manage separate listings for each branch.',
   },
   {
     q: 'What is the early adopter pricing guarantee?',
