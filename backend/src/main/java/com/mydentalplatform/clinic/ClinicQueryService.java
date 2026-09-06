@@ -44,12 +44,92 @@ public class ClinicQueryService {
     }
 
     public List<Map<String, Object>> findMarketplace(String region) {
-        return clinicQuery("""
-            where active = true and marketplace_status = 'verified'
-              and lower(public_config -> 'marketplaceProfile' ->> 'region') = lower(?)
-            order by public_config ->> 'marketplaceVerifiedAt' desc nulls last
-            limit 100
-            """, region);
+        return findMarketplace(region, null, null, null, null, 50, 0);
+    }
+
+    public List<Map<String, Object>> findMarketplace(
+        String region, String locality, String serviceId,
+        Boolean acceptingNewPatients, String query, int limit, int offset
+    ) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT id, active, marketplace_status, marketplace_slug,
+                   subscription_plan, subscription_status, rating_count, average_rating,
+                   public_config::text AS public_config
+            FROM clinics
+            WHERE active = true AND marketplace_status = 'verified'
+              AND lower(public_config -> 'marketplaceProfile' ->> 'region') = lower(?)
+            """);
+        List<Object> params = new java.util.ArrayList<>();
+        params.add(region);
+
+        if (locality != null && !locality.isBlank()) {
+            sql.append(" AND lower(public_config -> 'marketplaceProfile' ->> 'locality') = lower(?)");
+            params.add(locality.trim());
+        }
+        if (serviceId != null && !serviceId.isBlank()) {
+            sql.append(" AND public_config -> 'marketplaceProfile' -> 'serviceIds' @> cast(? AS jsonb)");
+            params.add("[\"" + serviceId.trim().replace("\"", "") + "\"]");
+        }
+        if (acceptingNewPatients != null) {
+            sql.append(" AND (public_config -> 'marketplaceProfile' ->> 'acceptingNewPatients')::boolean = ?");
+            params.add(acceptingNewPatients);
+        }
+        if (query != null && !query.isBlank()) {
+            String pattern = "%" + query.trim().toLowerCase() + "%";
+            sql.append(" AND (lower(name) LIKE ? OR lower(public_config ->> 'doctorName') LIKE ?)");
+            params.add(pattern);
+            params.add(pattern);
+        }
+
+        sql.append(" ORDER BY average_rating DESC NULLS LAST, name ASC");
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(Math.min(limit, 50));
+        params.add(Math.max(offset, 0));
+
+        return new java.util.ArrayList<>(jdbcTemplate.query(sql.toString(), (resultSet, rowNumber) -> {
+            Map<String, Object> clinic = json(resultSet.getString("public_config"));
+            String id = resultSet.getObject("id", java.util.UUID.class).toString();
+            clinic.put("id", id);
+            clinic.put("clinicId", id);
+            clinic.put("active", resultSet.getBoolean("active"));
+            clinic.put("marketplaceStatus", resultSet.getString("marketplace_status"));
+            clinic.put("marketplaceSlug", resultSet.getString("marketplace_slug"));
+            clinic.put("subscriptionPlan", resultSet.getString("subscription_plan"));
+            clinic.put("subscriptionStatus", resultSet.getString("subscription_status"));
+            clinic.put("ratingCount", resultSet.getInt("rating_count"));
+            clinic.put("averageRating", resultSet.getBigDecimal("average_rating"));
+            return clinic;
+        }, params.toArray()));
+    }
+
+    public int countMarketplace(String region, String locality, String serviceId,
+                                Boolean acceptingNewPatients, String query) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT count(*) FROM clinics
+            WHERE active = true AND marketplace_status = 'verified'
+              AND lower(public_config -> 'marketplaceProfile' ->> 'region') = lower(?)
+            """);
+        List<Object> params = new java.util.ArrayList<>();
+        params.add(region);
+        if (locality != null && !locality.isBlank()) {
+            sql.append(" AND lower(public_config -> 'marketplaceProfile' ->> 'locality') = lower(?)");
+            params.add(locality.trim());
+        }
+        if (serviceId != null && !serviceId.isBlank()) {
+            sql.append(" AND public_config -> 'marketplaceProfile' -> 'serviceIds' @> cast(? AS jsonb)");
+            params.add("[\"" + serviceId.trim().replace("\"", "") + "\"]");
+        }
+        if (acceptingNewPatients != null) {
+            sql.append(" AND (public_config -> 'marketplaceProfile' ->> 'acceptingNewPatients')::boolean = ?");
+            params.add(acceptingNewPatients);
+        }
+        if (query != null && !query.isBlank()) {
+            String pattern = "%" + query.trim().toLowerCase() + "%";
+            sql.append(" AND (lower(name) LIKE ? OR lower(public_config ->> 'doctorName') LIKE ?)");
+            params.add(pattern);
+            params.add(pattern);
+        }
+        return jdbcTemplate.queryForObject(sql.toString(), Integer.class, params.toArray());
     }
 
     public Optional<Map<String, Object>> findMarketplaceBySlug(String slug) {
@@ -100,6 +180,7 @@ public class ClinicQueryService {
             if (SETTINGS_FIELDS.contains(key)) safe.put(key, value);
         });
         if (safe.isEmpty()) throw new IllegalArgumentException("No clinic settings fields to update.");
+        validateSettings(safe);
         int updated = jdbcTemplate.update("""
             update clinics
             set name = coalesce(nullif(?, ''), name),
@@ -113,7 +194,7 @@ public class ClinicQueryService {
     private List<Map<String, Object>> clinicQuery(String suffix, Object... arguments) {
         String sql = """
             select id, active, marketplace_status, marketplace_slug,
-                   subscription_plan, subscription_status, public_config::text as public_config
+                   subscription_plan, subscription_status, rating_count, average_rating, public_config::text as public_config
             from clinics
             """ + suffix;
         return new ArrayList<>(jdbcTemplate.query(sql, (resultSet, rowNumber) -> {
@@ -126,6 +207,8 @@ public class ClinicQueryService {
             clinic.put("marketplaceSlug", resultSet.getString("marketplace_slug"));
             clinic.put("subscriptionPlan", resultSet.getString("subscription_plan"));
             clinic.put("subscriptionStatus", resultSet.getString("subscription_status"));
+            clinic.put("ratingCount", resultSet.getInt("rating_count"));
+            clinic.put("averageRating", resultSet.getBigDecimal("average_rating"));
             return clinic;
         }, arguments));
     }
@@ -143,6 +226,52 @@ public class ClinicQueryService {
             return objectMapper.writeValueAsString(value);
         } catch (JacksonException error) {
             throw new IllegalArgumentException("Clinic settings are invalid.", error);
+        }
+    }
+
+    private void validateSettings(Map<String, Object> settings) {
+        Object name = settings.get("name");
+        if (name != null && (!(name instanceof String) || ((String) name).isBlank() || ((String) name).length() > 160)) {
+            throw new IllegalArgumentException("Clinic name must be between 1 and 160 characters.");
+        }
+        Object phone = settings.get("phone");
+        if (phone instanceof String p && !p.isBlank() && !p.matches("^\\+?[0-9\\s\\-()]{7,20}$")) {
+            throw new IllegalArgumentException("Phone number format is invalid.");
+        }
+        Object services = settings.get("services");
+        if (services != null && !(services instanceof java.util.List)) {
+            throw new IllegalArgumentException("Services must be a list.");
+        }
+        if (services instanceof java.util.List<?> list) {
+            for (Object entry : list) {
+                if (!(entry instanceof Map)) {
+                    throw new IllegalArgumentException("Each service must be an object with a name.");
+                }
+                Object serviceName = ((Map<?, ?>) entry).get("name");
+                if (serviceName == null || !(serviceName instanceof String) || ((String) serviceName).isBlank()) {
+                    throw new IllegalArgumentException("Each service must have a non-blank name.");
+                }
+            }
+        }
+        Object hours = settings.get("hours");
+        if (hours != null && !(hours instanceof java.util.List)) {
+            throw new IllegalArgumentException("Hours must be a list.");
+        }
+        Object profile = settings.get("marketplaceProfile");
+        if (profile instanceof Map<?, ?> mp) {
+            Object serviceIds = mp.get("serviceIds");
+            if (serviceIds instanceof java.util.List<?> ids) {
+                java.util.Set<String> valid = java.util.Set.of(
+                    "dental-consultation", "cleaning-scaling", "tooth-fillings", "root-canal",
+                    "tooth-extraction", "wisdom-tooth", "dental-implants", "crowns-bridges",
+                    "dentures", "braces-orthodontics", "clear-aligners", "pediatric-dentistry",
+                    "gum-treatment", "teeth-whitening", "veneers-smile-design", "emergency-dental-care");
+                for (Object id : ids) {
+                    if (!(id instanceof String) || !valid.contains(id)) {
+                        throw new IllegalArgumentException("Invalid dental service ID: " + id);
+                    }
+                }
+            }
         }
     }
 

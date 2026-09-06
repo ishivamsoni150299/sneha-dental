@@ -108,6 +108,14 @@ describe('MarketplaceBookingComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
+    fixture.componentInstance.onSlotSelected({
+      doctorId: 'doctor-1',
+      doctorName: 'Dr. Verified',
+      date: '2026-09-07',
+      time: '10:00',
+    });
+    fixture.detectChanges();
+
     const form = fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance as AppointmentComponent;
     expect(form.bookingContext?.clinicId).toBe('clinic-1');
     expect(form.bookingContext?.source).toBe('marketplace');

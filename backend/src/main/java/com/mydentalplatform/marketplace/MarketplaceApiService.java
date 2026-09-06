@@ -41,24 +41,25 @@ public class MarketplaceApiService {
     }
 
     public SearchResponse search(String region, String query, String locality, String serviceId,
-                                 Boolean acceptingNewPatients) {
+                                 Boolean acceptingNewPatients, int limit, int offset) {
         String normalizedRegion = text(region).isBlank() ? DEFAULT_REGION : text(region).toLowerCase(Locale.ROOT);
-        String normalizedQuery = text(query).toLowerCase(Locale.ROOT);
-        String normalizedLocality = text(locality).toLowerCase(Locale.ROOT);
-        String normalizedService = text(serviceId).toLowerCase(Locale.ROOT);
+        String normalizedQuery = text(query);
+        String normalizedLocality = text(locality);
+        String normalizedService = text(serviceId);
 
-        List<DentistSummary> dentists = clinics.findMarketplace(normalizedRegion).stream()
+        List<DentistSummary> dentists = clinics.findMarketplace(
+                normalizedRegion, normalizedLocality, normalizedService,
+                acceptingNewPatients, normalizedQuery, limit, offset
+            ).stream()
             .map(this::summary)
-            .filter(item -> normalizedQuery.isBlank() || item.searchText().contains(normalizedQuery))
-            .filter(item -> normalizedLocality.isBlank()
-                || item.locality().toLowerCase(Locale.ROOT).equals(normalizedLocality))
-            .filter(item -> normalizedService.isBlank() || item.serviceIds().contains(normalizedService))
-            .filter(item -> acceptingNewPatients == null || item.acceptingNewPatients() == acceptingNewPatients)
-            .sorted(Comparator.comparing(DentistSummary::acceptingNewPatients).reversed()
-                .thenComparing(DentistSummary::clinicName))
             .toList();
 
-        return new SearchResponse(dentists, dentists.size(), new SearchFilters(
+        int totalCount = clinics.countMarketplace(
+                normalizedRegion, normalizedLocality, normalizedService,
+                acceptingNewPatients, normalizedQuery
+        );
+
+        return new SearchResponse(dentists, totalCount, limit, offset, new SearchFilters(
             normalizedRegion, normalizedQuery, normalizedLocality, normalizedService, acceptingNewPatients));
     }
 
@@ -178,10 +179,13 @@ public class MarketplaceApiService {
         String dentistName = text(clinic.get("doctorName"));
         String locality = text(profile.get("locality"));
         String city = text(clinic.get("city"));
+        Integer ratingCount = clinic.get("ratingCount") != null ? ((Number) clinic.get("ratingCount")).intValue() : 0;
+        java.math.BigDecimal averageRating = clinic.get("averageRating") instanceof java.math.BigDecimal bd ? bd : null;
         return new DentistSummary(UUID.fromString(text(clinic.get("id"))), slug, clinicName,
             dentistName, locality, city, serviceIds, strings(profile.get("languages")),
             integer(profile.get("consultationFee")), Boolean.TRUE.equals(profile.get("acceptingNewPatients")),
-            listingImage(clinic, profile), "/dentists/" + slug, "/dentists/" + slug + "/book");
+            listingImage(clinic, profile), "/dentists/" + slug, "/dentists/" + slug + "/book",
+            ratingCount, averageRating);
     }
 
     private List<DoctorSummary> verifiedDoctors(Map<String, Object> clinic) {
@@ -262,11 +266,11 @@ public class MarketplaceApiService {
     private record DoctorSchedule(UUID id, String name, Map<String, Object> schedule) {}
     public record SearchFilters(String region, String query, String locality, String serviceId,
                                 Boolean acceptingNewPatients) {}
-    public record SearchResponse(List<DentistSummary> dentists, int count, SearchFilters filters) {}
+    public record SearchResponse(List<DentistSummary> dentists, int totalCount, int limit, int offset, SearchFilters filters) {}
     public record DentistSummary(UUID id, String slug, String clinicName, String dentistName,
         String locality, String city, List<String> serviceIds, List<String> languages,
         Integer consultationFee, boolean acceptingNewPatients, String imageUrl,
-        String profilePath, String bookingPath) {
+        String profilePath, String bookingPath, Integer ratingCount, java.math.BigDecimal averageRating) {
         String searchText() {
             return String.join(" ", clinicName, dentistName, locality, city,
                 String.join(" ", serviceIds).replace('-', ' ')).toLowerCase(Locale.ROOT);

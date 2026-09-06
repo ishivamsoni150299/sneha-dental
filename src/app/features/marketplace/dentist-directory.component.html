@@ -113,6 +113,12 @@
               @if (clinic.marketplaceProfile?.experienceYears != null) {<p class="muted">{{ clinic.marketplaceProfile?.experienceYears }} years experience</p>}
               <a [routerLink]="['/clinic', clinic.marketplaceSlug]" class="clinic-name"><i class="ph ph-map-pin" aria-hidden="true"></i>{{ clinic.name }}</a>
               <p class="muted">{{ clinic.marketplaceProfile?.locality }}@if (distanceFor(clinic) !== null) { · {{ distanceFor(clinic) }} km}</p>
+              @if (clinic.averageRating) {
+                <p class="mt-1 text-sm font-bold text-amber-600">
+                  <span [attr.aria-label]="clinic.averageRating + ' out of 5 stars'">★ {{ clinic.averageRating.toFixed(1) }}</span>
+                  <span class="text-xs font-normal text-gray-500"> · {{ clinic.ratingCount }} {{ clinic.ratingCount === 1 ? 'review' : 'reviews' }}</span>
+                </p>
+              }
               <p class="treatments">{{ serviceLabels(clinic).join(' · ') }}</p>
               @if (clinic.marketplaceProfile?.languages?.length) {<p class="treatments">{{ clinic.marketplaceProfile?.languages?.join(', ') }}</p>}
             </div>

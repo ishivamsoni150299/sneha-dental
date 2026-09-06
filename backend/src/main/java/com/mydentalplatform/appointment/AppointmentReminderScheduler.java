@@ -75,4 +75,48 @@ public class AppointmentReminderScheduler {
             LOG.error("Failed to process upcoming appointment reminders", error);
         }
     }
+
+    @Scheduled(cron = "0 0 10 * * *", zone = "Asia/Kolkata")
+    public void sendReviewInvitations() {
+        LOG.info("Running daily review invitation job");
+        try {
+            LocalDate windowStart = LocalDate.now().minusDays(7);
+            LocalDate windowEnd = LocalDate.now().minusDays(2);
+            List<Map<String, Object>> completed = jdbcTemplate.queryForList("""
+                SELECT a.id, a.clinic_id, a.booking_ref, a.patient_name, a.email,
+                       a.appointment_date, c.name AS clinic_name
+                FROM appointments a
+                JOIN clinics c ON c.id = a.clinic_id
+                WHERE a.status = 'completed'
+                  AND a.appointment_date BETWEEN ? AND ?
+                  AND a.email IS NOT NULL AND a.email != ''
+                  AND NOT EXISTS (
+                      SELECT 1 FROM notifications n
+                      WHERE n.appointment_id = a.id AND n.notification_type = 'review_invitation'
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1 FROM appointment_reviews r WHERE r.appointment_id = a.id
+                  )
+                ORDER BY a.appointment_date DESC
+                LIMIT 50
+                """, windowStart, windowEnd);
+
+            for (Map<String, Object> apt : completed) {
+                UUID appointmentId = (UUID) apt.get("id");
+                UUID clinicId = (UUID) apt.get("clinic_id");
+                String bookingRef = (String) apt.get("booking_ref");
+                String patientName = (String) apt.get("patient_name");
+                String patientEmail = (String) apt.get("email");
+                String clinicName = (String) apt.get("clinic_name");
+                Object dateObj = apt.get("appointment_date");
+                LocalDate date = dateObj instanceof LocalDate ld ? ld : ((java.sql.Date) dateObj).toLocalDate();
+
+                notificationService.sendReviewInvitation(
+                    clinicId, appointmentId, bookingRef, patientName, patientEmail, clinicName, date);
+            }
+            LOG.info("Sent {} review invitation emails", completed.size());
+        } catch (Exception error) {
+            LOG.error("Failed to process review invitations", error);
+        }
+    }
 }

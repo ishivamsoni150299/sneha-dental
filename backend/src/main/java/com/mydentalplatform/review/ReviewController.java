@@ -53,6 +53,8 @@ public class ReviewController {
         @Valid @RequestBody ModerationRequest request
     ) {
         requirePlatformAdmin(jwt);
+        UUID clinicId = jdbcTemplate.queryForObject(
+            "select clinic_id from appointment_reviews where id = ?", UUID.class, reviewId);
         int updated = jdbcTemplate.update("""
             update appointment_reviews
             set moderation_status = cast(? as review_status),
@@ -62,6 +64,7 @@ public class ReviewController {
             """, request.status(), request.status(), UUID.fromString(jwt.getSubject()), reviewId);
         if (updated != 1) throw new ResponseStatusException(HttpStatus.CONFLICT,
             "Review moderation record is unavailable.");
+        refreshClinicRating(clinicId);
         return ResponseEntity.noContent().build();
     }
 
@@ -97,6 +100,9 @@ public class ReviewController {
                 update appointment_reviews set moderation_status = 'rejected', published_at = null,
                     reviewed_by = ?, reviewed_at = now(), updated_at = now() where id = ?
                 """, reviewerId, reviews.getFirst());
+            UUID clinicId = jdbcTemplate.queryForObject(
+                "select clinic_id from appointment_reviews where id = ?", UUID.class, reviews.getFirst());
+            refreshClinicRating(clinicId);
         }
         jdbcTemplate.update("""
             update appointment_review_reports set status = ?, reviewed_by = ?, reviewed_at = now(),
@@ -261,6 +267,21 @@ public class ReviewController {
     private String instant(ResultSet resultSet, String column) throws SQLException {
         OffsetDateTime value = resultSet.getObject(column, OffsetDateTime.class);
         return value == null ? null : value.toInstant().toString();
+    }
+
+    private void refreshClinicRating(UUID clinicId) {
+        jdbcTemplate.update("""
+            UPDATE clinics SET
+                rating_count = coalesce(sub.cnt, 0),
+                average_rating = sub.avg,
+                updated_at = now()
+            FROM (
+                SELECT count(*)::smallint AS cnt, round(avg(rating)::numeric, 2) AS avg
+                FROM appointment_reviews
+                WHERE clinic_id = ? AND moderation_status = 'published'
+            ) sub
+            WHERE clinics.id = ?
+            """, clinicId, clinicId);
     }
 
     record ModerationRequest(@Pattern(regexp = "published|rejected") String status) {}

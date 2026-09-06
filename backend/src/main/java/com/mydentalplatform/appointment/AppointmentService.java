@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.dao.DuplicateKeyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class AppointmentService {
+    private static final Logger LOG = LoggerFactory.getLogger(AppointmentService.class);
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
     private static final String BOOKING_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final JdbcTemplate jdbcTemplate;
@@ -76,6 +79,32 @@ public class AppointmentService {
                     request.clinicId(), bookingRef, request.name().trim(), "+91" + phone,
                     request.service().trim(), request.date(), request.time(), request.source());
             }
+            try {
+                String phoneE164 = "+91" + phone;
+                String patientEmail = blankToNull(request.email());
+                List<UUID> existing = jdbcTemplate.queryForList(
+                    "SELECT id FROM users WHERE phone_e164 = ? AND role = 'patient' LIMIT 1",
+                    UUID.class, phoneE164);
+                UUID patientId;
+                if (!existing.isEmpty()) {
+                    patientId = existing.getFirst();
+                } else {
+                    UUID candidateId = UUID.randomUUID();
+                    jdbcTemplate.update("""
+                        INSERT INTO users (id, role, phone_e164, email, enabled)
+                        VALUES (?, 'patient'::user_role, ?, ?, true)
+                        ON CONFLICT DO NOTHING
+                        """, candidateId, phoneE164, patientEmail);
+                    patientId = jdbcTemplate.queryForObject(
+                        "SELECT id FROM users WHERE phone_e164 = ? AND role = 'patient' LIMIT 1",
+                        UUID.class, phoneE164);
+                }
+                jdbcTemplate.update("UPDATE appointments SET patient_id = ? WHERE id = ?",
+                    patientId, appointmentId);
+            } catch (Exception patientError) {
+                // Best-effort — never block a booking
+                LOG.warn("Patient linking skipped for appointment {}", appointmentId, patientError);
+            }
             return bookingRef;
         } catch (DuplicateKeyException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -123,11 +152,69 @@ public class AppointmentService {
     }
 
     public List<Map<String, Object>> list(UUID clinicId) {
-        return jdbcTemplate.query("""
+        return list(clinicId, null, null, null, null, null, null, null, null);
+    }
+
+    public List<Map<String, Object>> list(
+        UUID clinicId,
+        String status,
+        LocalDate date,
+        LocalDate from,
+        LocalDate to,
+        UUID doctorId,
+        String search,
+        Integer limit,
+        Integer offset
+    ) {
+        StringBuilder sql = new StringBuilder("""
             select a.*, d.name as doctor_name from appointments a
             left join doctors d on d.id = a.doctor_id
-            where a.clinic_id = ? order by a.created_at desc
-            """, (resultSet, rowNumber) -> clinicValue(map(resultSet)), clinicId);
+            where a.clinic_id = ?
+            """);
+        List<Object> params = new java.util.ArrayList<>();
+        params.add(clinicId);
+
+        if (status != null && !status.isBlank()) {
+            sql.append(" and a.status = cast(? as appointment_status)");
+            params.add(status.trim().toLowerCase());
+        }
+        if (date != null) {
+            sql.append(" and a.appointment_date = ?");
+            params.add(date);
+        } else {
+            if (from != null) {
+                sql.append(" and a.appointment_date >= ?");
+                params.add(from);
+            }
+            if (to != null) {
+                sql.append(" and a.appointment_date <= ?");
+                params.add(to);
+            }
+        }
+        if (doctorId != null) {
+            sql.append(" and a.doctor_id = ?");
+            params.add(doctorId);
+        }
+        if (search != null && !search.isBlank()) {
+            String pattern = "%" + search.trim().toLowerCase() + "%";
+            sql.append(" and (lower(a.patient_name) like ? or a.phone_e164 like ? or upper(a.booking_ref) like ?)");
+            params.add(pattern);
+            params.add(pattern);
+            params.add("%" + search.trim().toUpperCase() + "%");
+        }
+
+        sql.append(" order by a.appointment_date desc, a.appointment_time desc, a.created_at desc");
+
+        if (limit != null && limit > 0) {
+            sql.append(" limit ?");
+            params.add(Math.min(limit, 500));
+            if (offset != null && offset > 0) {
+                sql.append(" offset ?");
+                params.add(offset);
+            }
+        }
+
+        return jdbcTemplate.query(sql.toString(), (resultSet, rowNumber) -> clinicValue(map(resultSet)), params.toArray());
     }
 
     @Transactional

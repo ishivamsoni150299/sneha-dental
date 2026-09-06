@@ -13,22 +13,24 @@ import {
   MarketplaceService,
   type MarketplaceClinic,
 } from '../../core/services/marketplace.service';
+import { SlotPickerComponent, type SelectedSlot } from '../../shared/components/slot-picker/slot-picker.component';
 
 @Component({
   selector: 'app-marketplace-booking',
   standalone: true,
-  imports: [AppointmentComponent, RouterLink],
+  imports: [AppointmentComponent, RouterLink, SlotPickerComponent],
   templateUrl: './marketplace-booking.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
-  private readonly route = inject(ActivatedRoute);
+  readonly route = inject(ActivatedRoute);
   private readonly marketplace = inject(MarketplaceService);
   private readonly doctors = inject(DoctorService);
 
   readonly clinic = signal<MarketplaceClinic | null>(null);
   readonly context = signal<BookingClinicContext | null>(null);
   readonly submission = signal<BookingSubmission | null>(null);
+  readonly selectedSlot = signal<SelectedSlot | null>(null);
   readonly loading = signal(true);
   readonly notFound = signal(false);
   readonly unavailable = signal(false);
@@ -101,6 +103,10 @@ export class MarketplaceBookingComponent implements OnInit {
   onBooked(submission: BookingSubmission): void {
     this.submission.set(submission);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onSlotSelected(slot: SelectedSlot): void {
+    this.selectedSlot.set(slot);
   }
 
   formattedDate(value: string): string {

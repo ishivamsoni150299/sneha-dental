@@ -308,6 +308,87 @@ public class PlatformAdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/clinics/pending")
+    List<Map<String, Object>> pendingVerifications(@AuthenticationPrincipal Jwt jwt) {
+        requireAdmin(jwt);
+        return jdbcTemplate.queryForList("""
+            SELECT c.id, c.name, c.marketplace_slug, c.created_at,
+                   c.public_config ->> 'doctorName' AS doctor_name,
+                   c.public_config ->> 'phone' AS phone,
+                   c.public_config -> 'marketplaceProfile' ->> 'locality' AS locality,
+                   c.public_config -> 'marketplaceProfile' ->> 'region' AS region,
+                   pv.evidence::text AS verification_evidence,
+                   pv.status AS verification_status
+            FROM clinics c
+            LEFT JOIN provider_verifications pv ON pv.clinic_id = c.id
+            WHERE c.marketplace_status = 'pending'
+            ORDER BY c.created_at ASC
+            """);
+    }
+
+    @PostMapping("/clinics/{clinicId}/verify")
+    @Transactional
+    ResponseEntity<Map<String, Object>> verifyClinic(
+        @AuthenticationPrincipal Jwt jwt,
+        @PathVariable UUID clinicId
+    ) {
+        requireAdmin(jwt);
+        UUID reviewerId = UUID.fromString(jwt.getSubject());
+        int updated = jdbcTemplate.update("""
+            UPDATE clinics SET marketplace_status = 'verified',
+                public_config = jsonb_set(public_config, '{marketplaceVerifiedAt}', to_jsonb(now()::text), true),
+                updated_at = now()
+            WHERE id = ? AND marketplace_status = 'pending'
+            """, clinicId);
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "This clinic is not in pending status.");
+        }
+        jdbcTemplate.update("""
+            INSERT INTO provider_verifications (clinic_id, status, reviewed_by, reviewed_at)
+            VALUES (?, 'verified', ?, now())
+            ON CONFLICT (clinic_id) DO UPDATE SET
+                status = 'verified', reviewed_by = ?, reviewed_at = now(), updated_at = now()
+            """, clinicId, reviewerId, reviewerId);
+        jdbcTemplate.update("""
+            INSERT INTO provider_verification_events (clinic_id, reviewer_id, status)
+            VALUES (?, ?, 'verified')
+            """, clinicId, reviewerId);
+        return ResponseEntity.ok(Map.of("status", "verified", "clinicId", clinicId.toString()));
+    }
+
+    @PostMapping("/clinics/{clinicId}/reject")
+    @Transactional
+    ResponseEntity<Map<String, Object>> rejectClinic(
+        @AuthenticationPrincipal Jwt jwt,
+        @PathVariable UUID clinicId,
+        @RequestBody Map<String, String> body
+    ) {
+        requireAdmin(jwt);
+        UUID reviewerId = UUID.fromString(jwt.getSubject());
+        String reason = body.getOrDefault("reason", "");
+        int updated = jdbcTemplate.update("""
+            UPDATE clinics SET marketplace_status = 'suspended', updated_at = now()
+            WHERE id = ? AND marketplace_status IN ('pending', 'verified')
+            """, clinicId);
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "This clinic cannot be suspended from its current state.");
+        }
+        jdbcTemplate.update("""
+            INSERT INTO provider_verifications (clinic_id, status, evidence, reviewed_by, reviewed_at)
+            VALUES (?, 'suspended', jsonb_build_object('rejectionReason', ?), ?, now())
+            ON CONFLICT (clinic_id) DO UPDATE SET
+                status = 'suspended', evidence = provider_verifications.evidence || jsonb_build_object('rejectionReason', ?),
+                reviewed_by = ?, reviewed_at = now(), updated_at = now()
+            """, clinicId, reason, reviewerId, reason, reviewerId);
+        jdbcTemplate.update("""
+            INSERT INTO provider_verification_events (clinic_id, reviewer_id, status, data)
+            VALUES (?, ?, 'suspended', jsonb_build_object('reason', ?))
+            """, clinicId, reviewerId, reason);
+        return ResponseEntity.ok(Map.of("status", "suspended", "clinicId", clinicId.toString()));
+    }
+
     private List<Map<String, Object>> clinicQuery(String suffix, Object... arguments) {
         return jdbcTemplate.query("""
             select c.*, c.public_config::text as public_json, p.billing_email,

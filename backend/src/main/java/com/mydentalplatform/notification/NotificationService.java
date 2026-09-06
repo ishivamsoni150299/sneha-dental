@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -213,6 +214,42 @@ public class NotificationService {
         });
     }
 
+    public void sendReviewInvitation(UUID clinicId, UUID appointmentId, String bookingRef,
+                                      String patientName, String patientEmail,
+                                      String clinicName, LocalDate appointmentDate) {
+        if (patientEmail == null || patientEmail.isBlank()) return;
+        executor.submit(() -> {
+            try {
+                String firstName = patientName.split("\\s+")[0];
+                String dateFormatted = appointmentDate.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy"));
+                String reviewLink = "https://mydentalplatform.com/appointments?claim=" + bookingRef + "&review=true";
+                String subject = "How was your visit to " + clinicName + "?";
+                String html = """
+                    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                      <h2 style="color:#1e3a5f;margin:0 0 16px">Hi %s,</h2>
+                      <p style="color:#374151;line-height:1.6;margin:0 0 12px">
+                        Thank you for visiting <strong>%s</strong> on %s.
+                      </p>
+                      <p style="color:#374151;line-height:1.6;margin:0 0 24px">
+                        Your feedback helps other patients find the right dentist. It only takes 30 seconds.
+                      </p>
+                      <a href="%s" style="display:inline-block;background:#2563eb;color:#fff;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none">
+                        Rate your visit
+                      </a>
+                      <p style="color:#6b7280;font-size:13px;margin:24px 0 0;line-height:1.5">
+                        Booking ref: %s<br>
+                        This email was sent by mydentalplatform.com
+                      </p>
+                    </div>
+                    """.formatted(firstName, clinicName, dateFormatted, reviewLink, bookingRef);
+                String idempotencyKey = "review_invite_" + appointmentId;
+                dispatchEmail(clinicId, appointmentId, "review_invitation", patientEmail, subject, html, idempotencyKey);
+            } catch (Exception error) {
+                LOG.warn("Review invitation failed for appointment {}", appointmentId, error);
+            }
+        });
+    }
+
     private void dispatchEmail(
         UUID clinicId,
         UUID appointmentId,
@@ -222,11 +259,16 @@ public class NotificationService {
         String html,
         String idempotencyKey
     ) {
+        String payloadJson = "{}";
+        try {
+            payloadJson = objectMapper.writeValueAsString(Map.of("subject", subject, "html", html));
+        } catch (Exception ignored) {}
+
         int inserted = jdbcTemplate.update("""
-            insert into notifications (idempotency_key, clinic_id, appointment_id, notification_type, destination, status)
-            values (?, ?, ?, ?, ?, 'pending')
+            insert into notifications (idempotency_key, clinic_id, appointment_id, notification_type, destination, status, data, attempts)
+            values (?, ?, ?, ?, ?, 'pending', cast(? as jsonb), 1)
             on conflict (idempotency_key) do nothing
-            """, idempotencyKey, clinicId, appointmentId, notificationType, destination);
+            """, idempotencyKey, clinicId, appointmentId, notificationType, destination, payloadJson);
 
         if (inserted == 0) {
             LOG.info("Notification with idempotency key {} already processed or queued. Skipping duplicate.", idempotencyKey);
@@ -238,6 +280,17 @@ public class NotificationService {
             return;
         }
 
+        boolean success = sendResendEmail(destination, subject, html);
+        if (success) {
+            jdbcTemplate.update("update notifications set status = 'sent', updated_at = now() where idempotency_key = ?", idempotencyKey);
+            LOG.info("Successfully sent notification {} to {}", notificationType, destination);
+        } else {
+            jdbcTemplate.update("update notifications set status = 'failed', updated_at = now() where idempotency_key = ?", idempotencyKey);
+            LOG.warn("Delivery failed for notification {}", idempotencyKey);
+        }
+    }
+
+    private boolean sendResendEmail(String destination, String subject, String html) {
         try {
             String body = objectMapper.writeValueAsString(Map.of(
                 "from", emailFrom,
@@ -254,19 +307,55 @@ public class NotificationService {
                 .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                jdbcTemplate.update("update notifications set status = 'sent', updated_at = now() where idempotency_key = ?", idempotencyKey);
-                LOG.info("Successfully sent notification {} to {}", notificationType, destination);
-            } else {
-                jdbcTemplate.update("update notifications set status = 'failed', updated_at = now() where idempotency_key = ?", idempotencyKey);
-                LOG.warn("Resend email delivery returned status {} for notification {}", response.statusCode(), idempotencyKey);
-            }
+            return response.statusCode() >= 200 && response.statusCode() < 300;
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
-            LOG.error("Notification delivery interrupted for {}", idempotencyKey, error);
+            LOG.error("Resend email delivery interrupted for destination {}", destination, error);
+            return false;
         } catch (Exception error) {
-            jdbcTemplate.update("update notifications set status = 'failed', updated_at = now() where idempotency_key = ?", idempotencyKey);
-            LOG.error("Notification delivery failed for {}", idempotencyKey, error);
+            LOG.error("Resend email delivery error for destination {}", destination, error);
+            return false;
+        }
+    }
+
+    @Scheduled(fixedDelay = 900000, initialDelay = 60000)
+    public void retryFailedNotifications() {
+        if (resendApiKey == null || resendApiKey.isBlank()) return;
+
+        List<Map<String, Object>> failed = jdbcTemplate.queryForList("""
+            select id, idempotency_key, notification_type, destination, attempts, data::text as data_json
+            from notifications
+            where status = 'failed' and attempts < 3
+            order by created_at asc
+            limit 20
+            """);
+
+        if (failed.isEmpty()) return;
+        LOG.info("Found {} failed notifications to retry.", failed.size());
+
+        for (Map<String, Object> row : failed) {
+            String destination = (String) row.get("destination");
+            String key = (String) row.get("idempotency_key");
+            String dataJson = (String) row.get("data_json");
+            int attempts = ((Number) row.get("attempts")).intValue();
+
+            try {
+                Map<String, Object> payload = objectMapper.readValue(dataJson, new tools.jackson.core.type.TypeReference<>() {});
+                String subject = (String) payload.get("subject");
+                String html = (String) payload.get("html");
+
+                boolean success = sendResendEmail(destination, subject, html);
+                if (success) {
+                    jdbcTemplate.update("update notifications set status = 'sent', attempts = attempts + 1, updated_at = now() where idempotency_key = ?", key);
+                    LOG.info("Retry succeeded for notification {}", key);
+                } else {
+                    jdbcTemplate.update("update notifications set attempts = attempts + 1, updated_at = now() where idempotency_key = ?", key);
+                    LOG.warn("Retry failed for notification {} (attempt {})", key, attempts + 1);
+                }
+            } catch (Exception error) {
+                jdbcTemplate.update("update notifications set attempts = attempts + 1, updated_at = now() where idempotency_key = ?", key);
+                LOG.error("Failed executing retry for notification {}", key, error);
+            }
         }
     }
 

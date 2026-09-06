@@ -45,9 +45,11 @@ public class MarketplaceApiController {
         @RequestParam(defaultValue = "") String query,
         @RequestParam(defaultValue = "") String locality,
         @RequestParam(defaultValue = "") String serviceId,
-        @RequestParam(required = false) Boolean acceptingNewPatients
+        @RequestParam(required = false) Boolean acceptingNewPatients,
+        @RequestParam(defaultValue = "50") @Min(1) @Max(50) int limit,
+        @RequestParam(defaultValue = "0") @Min(0) int offset
     ) {
-        return marketplace.search(region, query, locality, serviceId, acceptingNewPatients);
+        return marketplace.search(region, query, locality, serviceId, acceptingNewPatients, limit, offset);
     }
 
     @GetMapping("/dentists/{slug}")

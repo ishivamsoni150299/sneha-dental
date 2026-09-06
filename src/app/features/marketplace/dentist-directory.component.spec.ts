@@ -93,7 +93,12 @@ describe('DentistDirectoryComponent', () => {
       'clinicWebsiteUrl',
     ]);
 
-    marketplaceSpy.getVerifiedClinics.and.resolveTo([createMockClinic(), createDelhiClinic()]);
+    marketplaceSpy.getVerifiedClinics.and.resolveTo({
+      dentists: [createMockClinic(), createDelhiClinic()],
+      totalCount: 2,
+      limit: 50,
+      offset: 0,
+    });
     marketplaceSpy.getPublishedReviews.and.resolveTo([
       {
         id: 'rev-1',
@@ -301,7 +306,7 @@ describe('DentistDirectoryComponent', () => {
   });
 
   it('renders breadcrumbs matching Schema.org BreadcrumbList specification', async () => {
-    const { fixture, component } = await setupComponent();
+    const { fixture, component } = await setupComponent({ initialLocation: 'Noida' });
 
     const breadcrumbsNav = fixture.nativeElement.querySelector('.breadcrumbs-trail');
     expect(breadcrumbsNav).toBeTruthy();

@@ -192,6 +192,7 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   readonly services = MARKETPLACE_DENTAL_SERVICES;
+  readonly totalCount = signal(0);
   readonly clinics = signal<MarketplaceClinic[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -422,9 +423,10 @@ export class DentistDirectoryComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const clinics = await this.marketplace.getVerifiedClinics('delhi-ncr');
-      this.clinics.set(clinics);
-      await Promise.all(clinics.map(async clinic => {
+      const response = await this.marketplace.getVerifiedClinics('delhi-ncr');
+      this.clinics.set(response.dentists);
+      this.totalCount.set(response.totalCount);
+      await Promise.all(response.dentists.map(async clinic => {
         await this.checkAvailability(clinic);
         try {
           const reviews = await this.marketplace.getPublishedReviews(clinic.id);

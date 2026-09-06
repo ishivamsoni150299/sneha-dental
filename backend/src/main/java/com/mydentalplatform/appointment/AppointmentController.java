@@ -74,8 +74,18 @@ public class AppointmentController {
     }
 
     @GetMapping("/clinics/current/appointments")
-    List<Map<String, Object>> list(@AuthenticationPrincipal Jwt jwt) {
-        return appointmentService.list(clinicId(jwt));
+    List<Map<String, Object>> list(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) LocalDate date,
+        @RequestParam(required = false) LocalDate from,
+        @RequestParam(required = false) LocalDate to,
+        @RequestParam(required = false) UUID doctorId,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) Integer limit,
+        @RequestParam(required = false) Integer offset
+    ) {
+        return appointmentService.list(clinicId(jwt), status, date, from, to, doctorId, search, limit, offset);
     }
 
     @PatchMapping("/clinics/current/appointments/{appointmentId}/status")

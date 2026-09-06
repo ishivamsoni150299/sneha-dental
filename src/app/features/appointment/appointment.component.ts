@@ -1,5 +1,5 @@
 import { DecimalPipe, DOCUMENT, NgClass } from '@angular/common';
-import type { OnDestroy, OnInit } from '@angular/core';
+import type { OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -43,8 +43,9 @@ export interface BookingSubmission {
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppointmentComponent implements OnInit, OnDestroy {
+export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   @Input() bookingContext: BookingClinicContext | null = null;
+  @Input() preselectedSlot: { doctorId: string; doctorName: string; date: string; time: string } | null = null;
   @Output() readonly bookingCompleted = new EventEmitter<BookingSubmission>();
 
   private readonly fb                 = inject(FormBuilder);
@@ -190,6 +191,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   });
 
   private readonly subs = new Subscription();
+  private initialized = false;
 
   ngOnInit() {
     // Pre-fill service from ?service= query param
@@ -229,7 +231,29 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.form.get('time')!.valueChanges.subscribe(() => { this.validateScheduleFields(); })
     );
-    if (this.bookingContext) void this.prefillRequestedSlot();
+    this.initialized = true;
+    if (this.bookingContext) {
+      if (this.preselectedSlot) void this.applyPreselectedSlot();
+      else void this.prefillRequestedSlot();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.initialized && changes['preselectedSlot'] && this.preselectedSlot) {
+      void this.applyPreselectedSlot();
+    }
+  }
+
+  private async applyPreselectedSlot(): Promise<void> {
+    const slot = this.preselectedSlot;
+    if (!slot || isPastDate(slot.date) || !this.doctors().some(doctor => doctor.id === slot.doctorId)) return;
+    this.selectedDoctorId.set(slot.doctorId);
+    this.form.patchValue({ date: slot.date, time: '' }, { emitEvent: false });
+    await this.refreshSlots();
+    if (this.preselectedSlot === slot && this.availableSlots().includes(slot.time)) {
+      this.form.patchValue({ time: slot.time });
+      this.validateScheduleFields();
+    }
   }
 
   private async prefillRequestedSlot(): Promise<void> {

@@ -32,4 +32,15 @@ class HealthControllerTest {
             .andExpect(jsonPath("$.service").value("mydentalplatform-java"))
             .andExpect(jsonPath("$.database").value("postgresql"));
     }
+
+    @Test
+    void reportsServiceUnavailableWhenDatabaseFails() throws Exception {
+        when(jdbcTemplate.queryForObject("select 1", Integer.class))
+            .thenThrow(new RuntimeException("Connection refused"));
+
+        mockMvc.perform(get("/api/health"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.status").value("down"))
+            .andExpect(jsonPath("$.database").value("unreachable"));
+    }
 }

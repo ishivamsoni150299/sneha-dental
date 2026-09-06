@@ -33,7 +33,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         "POST:/api/auth/clinic/signup", new LimitRule(5, 60),
         "POST:/api/auth/password-reset/request", new LimitRule(5, 600),
         "POST:/api/public/appointments", new LimitRule(15, 600),
-        "POST:/api/public/contacts", new LimitRule(10, 600)
+        "POST:/api/public/contacts", new LimitRule(10, 600),
+        "PUT:/api/clinics/current/settings", new LimitRule(30, 60),
+        "PATCH:/api/clinics/current/appointments", new LimitRule(60, 60)
     );
 
     @Override
@@ -46,7 +48,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String ruleKey = method + ":" + path;
 
-        LimitRule rule = RULES.get(ruleKey);
+        LimitRule rule = null;
+        for (Map.Entry<String, LimitRule> entry : RULES.entrySet()) {
+            if (ruleKey.startsWith(entry.getKey())) {
+                rule = entry.getValue();
+                ruleKey = entry.getKey();
+                break;
+            }
+        }
+
         if (rule == null) {
             filterChain.doFilter(request, response);
             return;
@@ -54,6 +64,25 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         String clientIp = resolveClientIp(request);
         String bucketKey = ruleKey + ":" + clientIp;
+
+        if (path.startsWith("/api/clinics/current")) {
+            String auth = request.getHeader("Authorization");
+            if (auth != null && auth.startsWith("Bearer ")) {
+                try {
+                    String token = auth.substring(7);
+                    String[] parts = token.split("\\.");
+                    if (parts.length == 3) {
+                        String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
+                        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"clinic_id\"\\s*:\\s*\"([^\"]+)\"").matcher(payload);
+                        if (m.find()) {
+                            bucketKey = ruleKey + ":" + m.group(1);
+                        }
+                    }
+                } catch (Exception e) {
+                    // fall back to IP
+                }
+            }
+        }
         long now = System.currentTimeMillis();
 
         if (requestCounter.incrementAndGet() % CLEANUP_INTERVAL == 0) {

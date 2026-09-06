@@ -9,6 +9,15 @@ import { MARKETPLACE_DENTAL_SERVICES } from '../config/marketplace.config';
 
 export interface MarketplaceClinic extends ClinicConfig {
   id: string;
+  averageRating?: number;
+  ratingCount?: number;
+}
+
+export interface MarketplaceSearchResponse {
+  dentists: MarketplaceClinic[];
+  totalCount: number;
+  limit: number;
+  offset: number;
 }
 
 export interface MarketplaceReview {
@@ -46,14 +55,22 @@ export class MarketplaceService {
     MARKETPLACE_DENTAL_SERVICES.map(service => [service.id, service.label]),
   );
 
-  async getVerifiedClinics(region: MarketplaceRegionId): Promise<MarketplaceClinic[]> {
-    const response = await fetch(`/api/marketplace/clinics?region=${encodeURIComponent(region)}`);
+  async getVerifiedClinics(
+    region: MarketplaceRegionId,
+    options?: { limit?: number; offset?: number },
+  ): Promise<MarketplaceSearchResponse> {
+    const params = new URLSearchParams({ region });
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.offset) params.set('offset', String(options.offset));
+    const response = await fetch(`/api/marketplace/clinics?${params}`);
     if (!response.ok) throw new Error('Could not load dentists.');
-    return (await response.json() as MarketplaceClinic[])
-      .filter(clinic => clinic.active === true && clinic.marketplaceStatus === 'verified')
-      .sort((first, second) =>
-        String(second.marketplaceVerifiedAt ?? '').localeCompare(String(first.marketplaceVerifiedAt ?? '')),
-      );
+    const data = await response.json();
+    return {
+      dentists: data.dentists ?? data,
+      totalCount: data.totalCount ?? (data.dentists ?? data).length,
+      limit: data.limit ?? 50,
+      offset: data.offset ?? 0,
+    };
   }
 
   async getVerifiedClinicBySlug(slug: string): Promise<MarketplaceClinic | null> {
