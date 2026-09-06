@@ -1,954 +1,224 @@
-<!-- Hero Section with Reassurance, Symptom Triage, and Unified Search -->
-<section class="relative overflow-hidden border-b border-slate-200/80 bg-gradient-to-b from-blue-50/50 via-white to-slate-50/50">
-  <!-- Subtle decorative dental care pattern background -->
-  <div class="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-100/40 blur-3xl" aria-hidden="true"></div>
-  <div class="pointer-events-none absolute -left-20 top-40 h-80 w-80 rounded-full bg-indigo-50/60 blur-2xl" aria-hidden="true"></div>
-
-  <div class="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-    <div class="max-w-3xl">
-      <div class="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50 px-3.5 py-1 text-xs font-bold text-blue-700 shadow-sm">
-        <span class="inline-flex h-2 w-2 rounded-full bg-blue-600"></span>
-        Delhi NCR Dental Healthcare Directory
-      </div>
-      <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
-        Find the Right Dentist Near You
-      </h1>
-      <p class="mt-3.5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
-        Compare verified dental specialists, review transparent consultation fees, and book same-day appointments in 60 seconds with zero booking charges.
-      </p>
-
-      <!-- Trust Pillars -->
-      <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2.5 text-xs font-semibold text-slate-700" aria-label="Marketplace benefits">
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-          </svg>
-          DCI Registration Checked
-        </span>
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-          </svg>
-          Transparent Clinic Fees
-        </span>
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-          </svg>
-          No Booking Fee
-        </span>
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-          </svg>
-          Verified Patient Reviews
-        </span>
-      </div>
-    </div>
-
-    <!-- Interactive Problem Triage -->
-    <div class="mt-8">
-      <div class="flex items-center justify-between gap-2">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">What dental care do you need?</p>
-        @if (serviceId()) {
-          <button type="button" (click)="serviceId.set('')" class="text-xs font-bold text-blue-700 hover:text-blue-900">
-            Show all treatments
-          </button>
+<section class="discovery-hero">
+  <div class="directory-wrap">
+    <nav aria-label="Breadcrumb" class="breadcrumbs-trail">
+      <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a itemprop="item" routerLink="/"><span itemprop="name">Home</span></a>
+          <meta itemprop="position" content="1" />
+        </li>
+        <li class="breadcrumb-sep" aria-hidden="true">›</li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a itemprop="item" routerLink="/dentists"><span itemprop="name">Dentists</span></a>
+          <meta itemprop="position" content="2" />
+        </li>
+        @if (currentBreadcrumbCity()) {
+          <li class="breadcrumb-sep" aria-hidden="true">›</li>
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a itemprop="item" [routerLink]="['/dentists', currentBreadcrumbCitySlug()]"><span itemprop="name">{{ currentBreadcrumbCity() }}</span></a>
+            <meta itemprop="position" content="3" />
+          </li>
         }
-      </div>
-      <div class="mt-3 flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin">
-        @for (problem of patientProblems; track problem.label) {
-          <button type="button" (click)="chooseService(problem.serviceId)"
-                  class="group flex shrink-0 items-center gap-2.5 rounded-2xl border px-3.5 py-2.5 text-left text-xs transition-all hover:border-blue-300 hover:bg-blue-50/40"
-                  [class.border-blue-600]="serviceId() === problem.serviceId"
-                  [class.bg-blue-600]="serviceId() === problem.serviceId"
-                  [class.text-white]="serviceId() === problem.serviceId"
-                  [class.shadow-md]="serviceId() === problem.serviceId"
-                  [class.border-slate-200]="serviceId() !== problem.serviceId"
-                  [class.bg-white]="serviceId() !== problem.serviceId"
-                  [class.text-slate-800]="serviceId() !== problem.serviceId">
-            <span class="text-lg" aria-hidden="true">{{ problem.icon }}</span>
-            <div>
-              <p class="font-bold leading-tight" [class.text-white]="serviceId() === problem.serviceId" [class.text-slate-900]="serviceId() !== problem.serviceId">
-                {{ problem.label }}
-              </p>
-              <p class="text-[10px] leading-tight" [class.text-blue-100]="serviceId() === problem.serviceId" [class.text-slate-500]="serviceId() !== problem.serviceId">
-                {{ problem.subtitle }}
-              </p>
-            </div>
-          </button>
+        @if (currentBreadcrumbTreatment()) {
+          <li class="breadcrumb-sep" aria-hidden="true">›</li>
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+            <span itemprop="name">{{ currentBreadcrumbTreatment() }}</span>
+            <meta itemprop="position" [content]="currentBreadcrumbCity() ? 4 : 3" />
+          </li>
         }
+      </ol>
+    </nav>
+    <span class="hero-kicker">{{ pageKicker() }}</span>
+    <h1>{{ pageHeading() }}</h1>
+    <p class="hero-description">{{ pageLead() }}</p>
+    <form class="search-bar" role="search" (submit)="$event.preventDefault(); findDentists()">
+      <div class="search-field">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <div><label for="dentist-search">Problem or treatment</label>
+          <input id="dentist-search" type="search" placeholder="Toothache, root canal, braces…" [value]="searchTerm()" (input)="updateSearch($event)">
+        </div>
       </div>
-    </div>
-
-    <!-- Unified Search Hub -->
-    <div role="search" aria-label="Find a dentist" class="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-      <div class="grid gap-3 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_auto] md:items-end">
-        <!-- Keyword Search -->
-        <div>
-          <label for="dentist-search" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
-            Dentist, clinic, or treatment
-          </label>
-          <div class="relative">
-            <input id="dentist-search" type="search" [value]="searchTerm()" (input)="updateSearch($event)"
-                   placeholder="e.g. Root canal, Dr. Sharma, Sector 18"
-                   class="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-4 text-sm text-slate-950 placeholder:text-slate-400 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100">
-            <svg class="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-          </div>
+      <div class="search-field location-field">
+        <i class="ph ph-map-pin" aria-hidden="true"></i>
+        <div><label for="dentist-locality">Where are you?</label>
+          <select id="dentist-locality" [value]="locality()" (change)="updateLocality($event)">
+            <option value="">Delhi NCR</option>
+            @for (place of locationChoices.slice(1); track place) { <option [value]="place">{{ place }}</option> }
+            @for (place of localities(); track place) { <option [value]="place">{{ place }}</option> }
+          </select>
         </div>
-
-        <!-- Locality / City Search -->
-        <div>
-          <div class="mb-1.5 flex items-center justify-between">
-            <label for="dentist-locality" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-              Where in Delhi NCR?
-            </label>
-            <button type="button" (click)="useMyLocation()"
-                    [disabled]="locating()"
-                    class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 disabled:opacity-50">
-              <span class="inline-block" [class.animate-spin]="locating()">◎</span>
-              {{ locating() ? 'Locating...' : 'Use my GPS' }}
-            </button>
-          </div>
-          <div class="relative">
-            <select id="dentist-locality" [value]="locality()" (change)="updateLocality($event)"
-                    class="h-12 w-full appearance-none rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-9 text-sm font-medium text-slate-950 outline-none transition focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100">
-              <option value="">All Delhi NCR</option>
-              @for (option of locationChoices; track option) {
-                @if (option !== 'All Delhi NCR') {
-                  <option [value]="option">{{ option }}</option>
-                }
-              }
-              @for (option of localities(); track option) {
-                <option [value]="option">{{ option }}</option>
-              }
-            </select>
-            <svg class="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <svg class="pointer-events-none absolute right-3.5 top-4 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Search Action Button -->
-        <button type="button" (click)="findDentists()"
-                class="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-md transition hover:bg-blue-700 active:scale-[0.98]">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-          <span>Find Dentists</span>
+        <button type="button" class="location-button" (click)="useMyLocation()" [disabled]="locating()" aria-label="Find dentists near my location"><i class="ph ph-crosshair" aria-hidden="true"></i></button>
+      </div>
+      <button type="submit" class="primary search-submit">Find Dentists</button>
+    </form>
+    @if (locationError()) { <p role="status" class="text-sm text-gray-500 mt-3">{{ locationError() }}</p> }
+    @if (userCoordinates()) { <p role="status" class="text-sm text-blue-700 mt-3">Showing dentists within 25 km of you.</p> }
+    <div class="problems" aria-label="Choose your dental concern">
+      @for (problem of cleanProblems; track problem.label) {
+        <button type="button" [class.selected]="serviceId() === problem.serviceId" [attr.aria-pressed]="serviceId() === problem.serviceId" (click)="chooseService(problem.serviceId)">
+          <i [class]="'ph ' + problem.icon" aria-hidden="true"></i>{{ problem.label }}
         </button>
-      </div>
-
-      @if (locationError()) {
-        <p class="mt-2 text-xs font-semibold text-red-600">{{ locationError() }}</p>
       }
-
-      <!-- Quick City Chips -->
-      <div class="mt-3 flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs">
-        <span class="text-[11px] font-semibold text-slate-500">Popular Cities:</span>
-        @for (city of locationChoices; track city) {
-          <button type="button" (click)="chooseLocation(city)"
-                  class="rounded-lg px-2.5 py-1 text-[11px] font-semibold transition hover:bg-slate-200"
-                  [class.bg-blue-100]="(city === 'All Delhi NCR' && !locality()) || locality() === city"
-                  [class.text-blue-800]="(city === 'All Delhi NCR' && !locality()) || locality() === city"
-                  [class.bg-slate-100]="(city === 'All Delhi NCR' && locality()) || (locality() !== city && city !== 'All Delhi NCR')"
-                  [class.text-slate-700]="(city === 'All Delhi NCR' && locality()) || (locality() !== city && city !== 'All Delhi NCR')">
-            {{ city }}
-          </button>
-        }
-      </div>
     </div>
   </div>
 </section>
-
-<!-- Mobile Sticky Booking Bar -->
-<div class="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-2 border-t border-slate-200 bg-white/95 px-4 py-2.5 shadow-xl backdrop-blur-md md:hidden">
-  <button type="button" (click)="toggleMobileFilter()"
-          class="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 shadow-sm active:bg-slate-50">
-    <svg class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-    </svg>
-    <span>Filters</span>
-    @if (activeFilterCount() > 0) {
-      <span class="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ activeFilterCount() }}</span>
-    }
-  </button>
-
-  <button type="button" (click)="findDentists()"
-          class="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-600 text-xs font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98]">
-    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-    </svg>
-    <span>View Clinics ({{ filteredClinics().length }})</span>
-  </button>
-</div>
-
-<!-- Main Results & Directory Section -->
-<section id="marketplace-results" class="mx-auto min-h-[36rem] max-w-7xl scroll-mt-20 px-4 py-8 pb-24 sm:px-6 lg:px-8">
-
-  <!-- Segmented View Tabs & Live Count -->
-  <div class="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
-    <div class="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1">
-      <button type="button" (click)="discoveryType.set('dentists')"
-              class="rounded-lg px-4 py-2 text-xs font-bold transition"
-              [class.bg-white]="discoveryType() === 'dentists'"
-              [class.text-blue-700]="discoveryType() === 'dentists'"
-              [class.shadow-sm]="discoveryType() === 'dentists'"
-              [class.text-slate-600]="discoveryType() !== 'dentists'">
-        👨‍⚕️ Dentists
-      </button>
-      <button type="button" (click)="discoveryType.set('clinics')"
-              class="rounded-lg px-4 py-2 text-xs font-bold transition"
-              [class.bg-white]="discoveryType() === 'clinics'"
-              [class.text-blue-700]="discoveryType() === 'clinics'"
-              [class.shadow-sm]="discoveryType() === 'clinics'"
-              [class.text-slate-600]="discoveryType() !== 'clinics'">
-        🏥 Dental Clinics
-      </button>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <p class="text-sm font-semibold text-slate-700">
-        Showing <strong class="text-slate-950">{{ filteredClinics().length }}</strong> verified
-        {{ discoveryType() === 'dentists' ? (filteredClinics().length === 1 ? 'dentist' : 'dentists') : (filteredClinics().length === 1 ? 'dental clinic' : 'dental clinics') }}
-        @if (locality()) {
-          in <span class="text-blue-700">{{ locality() }}</span>
-        }
-      </p>
-    </div>
-  </div>
-
-  <!-- Desktop Filter Bar -->
-  <div class="my-5 hidden flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm lg:flex">
-    <!-- Treatment Filter -->
-    <select aria-label="Filter by Treatment" [value]="serviceId()" (change)="updateService($event)"
-            class="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none hover:border-blue-600 focus:border-blue-600">
-      <option value="">All Treatments</option>
-      @for (service of services; track service.id) {
-        <option [value]="service.id">{{ service.label }}</option>
-      }
-    </select>
-
-    <!-- Available Today Toggle -->
-    <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())"
-            class="flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition hover:border-slate-400"
-            [class.border-emerald-500]="availableTodayOnly()"
-            [class.bg-emerald-50]="availableTodayOnly()"
-            [class.text-emerald-800]="availableTodayOnly()"
-            [class.border-slate-300]="!availableTodayOnly()"
-            [class.text-slate-700]="!availableTodayOnly()">
-      <span class="h-2 w-2 rounded-full" [class.bg-emerald-500]="availableTodayOnly()" [class.bg-slate-300]="!availableTodayOnly()"></span>
-      Available Today
-    </button>
-
-    <!-- Fee Filter -->
-    <select aria-label="Filter by Maximum Fee" (change)="updateFee($event)"
-            class="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none hover:border-blue-600 focus:border-blue-600">
-      <option value="0">Max Fee: Any</option>
-      <option value="500">Up to ₹500</option>
-      <option value="800">Up to ₹800</option>
-      <option value="1000">Up to ₹1,000</option>
-    </select>
-
-    <!-- Experience Filter -->
-    <select aria-label="Filter by Experience" (change)="updateExperience($event)"
-            class="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none hover:border-blue-600 focus:border-blue-600">
-      <option value="0">Experience: Any</option>
-      <option value="5">5+ Years</option>
-      <option value="10">10+ Years</option>
-      <option value="15">15+ Years</option>
-    </select>
-
-    <!-- Rating Filter -->
-    <select aria-label="Filter by Rating" (change)="updateRating($event)"
-            class="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none hover:border-blue-600 focus:border-blue-600">
-      <option value="0">Rating: Any</option>
-      <option value="4">4.0+ Stars</option>
-      <option value="4.5">4.5+ Stars</option>
-    </select>
-
-    <!-- Gender Filter -->
-    <select aria-label="Filter by Gender" (change)="updateGender($event)"
-            class="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none hover:border-blue-600 focus:border-blue-600">
-      <option value="">Gender: Any</option>
-      <option value="female">Female Dentist</option>
-      <option value="male">Male Dentist</option>
-    </select>
-
-    <!-- Language Filter -->
-    @if (languages().length > 0) {
-      <select aria-label="Filter by Language" (change)="updateLanguage($event)"
-              class="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none hover:border-blue-600 focus:border-blue-600">
-        <option value="">Language: Any</option>
-        @for (option of languages(); track option) {
-          <option [value]="option">{{ option }}</option>
-        }
-      </select>
-    }
-
-    <!-- Sort Dropdown -->
-    <div class="ml-auto flex items-center gap-2">
-      <span class="text-xs font-bold text-slate-500">Sort by:</span>
-      <select aria-label="Sort listings" (change)="updateSort($event)" [value]="sortBy()"
-              class="h-10 rounded-xl border border-blue-200 bg-blue-50/50 px-3 text-xs font-bold text-blue-900 outline-none hover:border-blue-600 focus:border-blue-600">
-        <option value="recommended">Recommended</option>
-        @if (userCoordinates()) {
-          <option value="distance">Nearest to Me</option>
-        }
-        <option value="earliest">Earliest Available</option>
-        <option value="rating">Highest Rated</option>
-        <option value="experience">Years Experience</option>
-        <option value="fee">Fee: Low to High</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Mobile Filter & Sort Bar (< 1024px) -->
-  <div class="my-4 flex items-center justify-between gap-2 lg:hidden">
-    <button type="button" (click)="toggleMobileFilter()"
-            class="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 text-xs font-bold text-slate-800 shadow-sm active:bg-slate-50">
-      <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-      </svg>
-      <span>Filters</span>
-      @if (activeFilterCount() > 0) {
-        <span class="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ activeFilterCount() }}</span>
-      }
-    </button>
-
-    <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())"
-            class="inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition"
-            [class.border-emerald-500]="availableTodayOnly()"
-            [class.bg-emerald-50]="availableTodayOnly()"
-            [class.text-emerald-800]="availableTodayOnly()"
-            [class.border-slate-300]="!availableTodayOnly()"
-            [class.bg-white]="!availableTodayOnly()"
-            [class.text-slate-700]="!availableTodayOnly()">
-      <span class="h-2 w-2 rounded-full" [class.bg-emerald-500]="availableTodayOnly()" [class.bg-slate-300]="!availableTodayOnly()"></span>
-      Today Only
-    </button>
-
-    <select aria-label="Sort listings" (change)="updateSort($event)" [value]="sortBy()"
-            class="h-10 rounded-xl border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-800 outline-none">
-      <option value="recommended">Recommended</option>
-      @if (userCoordinates()) {
-        <option value="distance">Nearest</option>
-      }
-      <option value="earliest">Earliest</option>
-      <option value="rating">Top Rated</option>
-      <option value="fee">Lowest Fee</option>
-    </select>
-  </div>
-
-  <!-- Active Filter Chips Row -->
-  @if (activeFilterChips().length > 0) {
-    <div class="mb-5 flex flex-wrap items-center gap-2">
-      <span class="text-xs font-semibold text-slate-500">Active filters:</span>
-      @for (chip of activeFilterChips(); track chip.id) {
-        <button type="button" (click)="removeFilter(chip.id)"
-                class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800 transition hover:border-blue-300 hover:bg-blue-100">
-          <span>{{ chip.label }}</span>
-          <span class="text-blue-500 hover:text-blue-900" aria-hidden="true">✕</span>
-        </button>
-      }
-      <button type="button" (click)="clearFilters()" class="text-xs font-bold text-slate-500 underline hover:text-slate-900">
-        Clear all
-      </button>
-    </div>
-  }
-
-  <!-- Loading Skeletons -->
-  @if (loading()) {
-    <div aria-live="polite" aria-label="Loading dentists" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div class="flex items-start gap-4">
-            <div class="h-16 w-16 shrink-0 animate-pulse rounded-2xl bg-slate-200"></div>
-            <div class="flex-1 space-y-2">
-              <div class="h-4 w-3/4 animate-pulse rounded bg-slate-200"></div>
-              <div class="h-3 w-1/2 animate-pulse rounded bg-slate-100"></div>
-              <div class="h-3 w-2/3 animate-pulse rounded bg-slate-100"></div>
-            </div>
-          </div>
-          <div class="mt-4 space-y-2 border-t border-slate-100 pt-4">
-            <div class="h-3 w-4/5 animate-pulse rounded bg-slate-100"></div>
-            <div class="h-3 w-2/3 animate-pulse rounded bg-slate-100"></div>
-          </div>
-          <div class="mt-5 flex gap-2">
-            <div class="h-10 flex-1 animate-pulse rounded-xl bg-slate-200"></div>
-            <div class="h-10 w-24 animate-pulse rounded-xl bg-slate-100"></div>
-          </div>
-        </div>
-      }
-    </div>
-  } @else if (error()) {
-    <!-- Error State with Retry -->
-    <div role="alert" class="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-800">
-      <p class="font-bold text-base">{{ error() }}</p>
-      <p class="mt-1 text-xs text-red-600">Please check your internet connection or try again.</p>
-      <button type="button" (click)="retry()"
-              class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-red-700">
-        <span>Try again</span>
-      </button>
-    </div>
-  } @else {
-    <!-- Verified Listings Grid -->
-    @if (filteredClinics().length > 0) {
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        @for (clinic of filteredClinics(); track clinic.id) {
-          <article class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-blue-300 hover:shadow-md">
-
-            <!-- Card Header Section -->
-            <div>
-              <div class="flex items-start gap-4">
-                <!-- Avatar or Clinic Photo -->
-                <a [routerLink]="[discoveryType() === 'dentists' ? '/dentist' : '/clinic', clinic.marketplaceSlug]"
-                   class="relative block shrink-0" [attr.aria-label]="clinic.name">
-                  @if (hasListingPhoto(clinic)) {
-                    <img [src]="listingImage(clinic)" [alt]="clinic.name"
-                         class="h-16 w-16 rounded-2xl object-cover ring-1 ring-slate-200 group-hover:ring-blue-400">
-                  } @else {
-                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-lg font-bold text-white shadow-sm">
-                      {{ getInitials(clinic) }}
-                    </div>
-                  }
-                  <span class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white shadow-sm ring-2 ring-white" title="Verified Credential">
-                    ✓
-                  </span>
-                </a>
-
-                <!-- Identity & Badges -->
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-start justify-between gap-1">
-                    <a [routerLink]="[discoveryType() === 'dentists' ? '/dentist' : '/clinic', clinic.marketplaceSlug]"
-                       class="truncate text-base font-bold text-slate-950 transition hover:text-blue-700">
-                      {{ discoveryType() === 'dentists' ? (clinic.doctorName || clinic.name) : clinic.name }}
-                    </a>
-                    <button type="button" (click)="toggleCompare(clinic.id)"
-                            class="shrink-0 rounded-lg p-1 text-xs transition"
-                            [class.text-blue-700]="isCompared(clinic.id)"
-                            [class.bg-blue-50]="isCompared(clinic.id)"
-                            [class.text-slate-400]="!isCompared(clinic.id)"
-                            [class.hover:text-blue-600]="!isCompared(clinic.id)"
-                            [title]="isCompared(clinic.id) ? 'Remove from compare' : 'Add to compare'">
-                      <span class="font-bold text-[11px]">{{ isCompared(clinic.id) ? '✓ Compare' : '+ Compare' }}</span>
-                    </button>
-                  </div>
-
-                  <p class="mt-0.5 truncate text-xs font-semibold text-blue-700">
-                    {{ clinic.doctorQualification || clinic.marketplaceProfile!.speciality || 'Dental Specialist' }}
-                  </p>
-
-                  <p class="mt-0.5 truncate text-xs text-slate-600">
-                    <span class="font-medium text-slate-900">{{ clinic.name }}</span> · {{ clinic.marketplaceProfile!.locality }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Quick Badges Strip -->
-              <div class="mt-3.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-                <!-- Rating Badge -->
-                @if (reviewCountFor(clinic.id) > 0) {
-                  <span class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 font-bold text-amber-900 border border-amber-200/60">
-                    <span class="text-amber-500">★</span>
-                    <span>{{ ratingFor(clinic.id).toFixed(1) }}</span>
-                    <span class="font-normal text-amber-700">({{ reviewCountFor(clinic.id) }})</span>
-                  </span>
-                } @else {
-                  <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">
-                    New Listing
-                  </span>
-                }
-
-                <!-- Experience -->
-                @if (clinic.marketplaceProfile!.experienceYears) {
-                  <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
-                    {{ clinic.marketplaceProfile!.experienceYears }} yrs exp
-                  </span>
-                }
-
-                <!-- Distance if GPS available -->
-                @if (distanceFor(clinic); as distance) {
-                  <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 font-bold text-blue-800 border border-blue-100">
-                    📍 {{ distance }} km away
-                  </span>
-                }
-
-                <!-- Accepting Status -->
-                @if (clinic.marketplaceProfile!.acceptingNewPatients) {
-                  <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 font-bold text-emerald-800 border border-emerald-200/60">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    Accepting Patients
-                  </span>
-                }
-              </div>
-
-              <!-- Treatments Pills -->
-              <div class="mt-3 flex flex-wrap gap-1">
-                @for (service of serviceLabels(clinic); track service) {
-                  <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-                    {{ service }}
-                  </span>
-                }
-                @if (clinic.marketplaceProfile!.serviceIds.length > 3) {
-                  <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
-                    +{{ clinic.marketplaceProfile!.serviceIds.length - 3 }} more
-                  </span>
-                }
-              </div>
-
-              <!-- Consultation Fee Strip -->
-              <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-                <div>
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Consultation Fee</span>
-                  <p class="font-extrabold text-slate-950 text-sm">
-                    @if (clinic.marketplaceProfile!.consultationFee != null) {
-                      ₹{{ clinic.marketplaceProfile!.consultationFee }}
-                    } @else {
-                      Ask Clinic
-                    }
-                    <span class="text-[10px] font-normal text-slate-500">· Pay at clinic</span>
-                  </p>
-                </div>
-                <div class="text-right text-[11px] text-slate-500">
-                  @if (clinic.marketplaceProfile!.languages.length > 0) {
-                    <span>🗣️ {{ clinic.marketplaceProfile!.languages.slice(0, 2).join(', ') }}</span>
-                  }
-                </div>
-              </div>
-
-              <!-- Available Timeslots Strip -->
-              <div class="mt-3 rounded-xl bg-blue-50/70 p-2.5 border border-blue-100/80">
-                @if (slotsFor(clinic.id).length > 0) {
-                  <div class="flex items-center justify-between text-[11px] font-bold text-blue-900">
-                    <span class="flex items-center gap-1 text-emerald-700">
-                      <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      Available Today
-                    </span>
-                    <span class="text-slate-500 font-normal">Next: {{ slotLabel(slotsFor(clinic.id)[0]) }}</span>
-                  </div>
-                  <div class="mt-2 flex flex-wrap gap-1.5">
-                    @for (slot of slotsFor(clinic.id); track slot.startsAt) {
-                      <a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']"
-                         [queryParams]="{ startsAt: slot.startsAt }"
-                         class="rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-800 shadow-2xs transition hover:border-blue-600 hover:bg-blue-600 hover:text-white">
-                        {{ slotLabel(slot) }}
-                      </a>
-                    }
-                  </div>
-                } @else {
-                  <p class="text-xs text-slate-600 flex items-center justify-between">
-                    <span>Next available tomorrow</span>
-                    <span class="text-blue-700 font-semibold">Choose time →</span>
-                  </p>
-                }
-              </div>
-            </div>
-
-            <!-- Card Bottom Actions -->
-            <div class="mt-4 grid grid-cols-[1fr_auto] gap-2 pt-2">
-              <a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']"
-                 class="flex h-11 items-center justify-center rounded-xl bg-blue-600 px-3 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]">
-                Book Appointment
-              </a>
-              <a [routerLink]="[discoveryType() === 'dentists' ? '/dentist' : '/clinic', clinic.marketplaceSlug]"
-                 class="flex h-11 items-center justify-center rounded-xl border border-slate-300 px-3 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:text-blue-700">
-                View Profile
-              </a>
-            </div>
-
-          </article>
-        }
+<section id="marketplace-results" class="results-section">
+  <div class="directory-wrap">
+    <div class="toolbar">
+      <div class="discovery-tabs" aria-label="Discovery type">
+        <button type="button" (click)="discoveryType.set('dentists')" [class.active]="discoveryType() === 'dentists'" [attr.aria-pressed]="discoveryType() === 'dentists'">Dentists</button>
+        <button type="button" (click)="discoveryType.set('clinics')" [class.active]="discoveryType() === 'clinics'" [attr.aria-pressed]="discoveryType() === 'clinics'">Dental clinics</button>
       </div>
+      <div class="quick-filters">
+        <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()"><i class="ph ph-calendar-blank" aria-hidden="true"></i>Available Today</button>
+        <select aria-label="Maximum consultation fee" [value]="maxFee() ?? 0" (change)="updateFee($event)"><option value="0">Fee: any</option><option value="500">Up to ₹500</option><option value="1000">Up to ₹1,000</option></select>
+        <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-controls="advanced-filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i>More filters</button>
+      </div>
+    </div>
+    @if (isMobileFilterOpen()) {
+      <div id="advanced-filters" class="advanced-filters">
+        <label>Treatment<select [value]="serviceId()" (change)="updateService($event)"><option value="">Any treatment</option>@for (service of services; track service.id) {<option [value]="service.id">{{ service.label }}</option>}</select></label>
+        <label>Experience<select [value]="minExperience()" (change)="updateExperience($event)"><option value="0">Any experience</option><option value="5">5+ years</option><option value="10">10+ years</option></select></label>
+        <label>Gender<select [value]="gender()" (change)="updateGender($event)"><option value="">Any gender</option><option value="female">Female dentist</option><option value="male">Male dentist</option></select></label>
+        <label>Language<select [value]="language()" (change)="updateLanguage($event)"><option value="">Any language</option>@for (item of languages(); track item) {<option [value]="item">{{ item }}</option>}</select></label>
+        <label>Patient rating<select [value]="minRating()" (change)="updateRating($event)"><option value="0">Any rating</option><option value="4">4+ stars</option><option value="4.5">4.5+ stars</option></select></label>
+      </div>
+    }
+    <div class="result-summary">
+      <p aria-live="polite">{{ loading() ? 'Finding your next dentist…' : filteredClinics().length + ' verified ' + (discoveryType() === 'dentists' ? 'dentists' : 'clinics') }}{{ locality() ? ' in ' + locality() : ' across Delhi NCR' }}</p>
+      <select aria-label="Sort results" [value]="sortBy()" (change)="updateSort($event)"><option value="recommended">Recommended</option><option value="earliest">Earliest available</option><option value="rating">Highest rated</option><option value="experience">Most experienced</option><option value="fee">Fee: low to high</option>@if (userCoordinates()) {<option value="distance">Nearest</option>}</select>
+    </div>
+    @if (hasFilters()) {
+      <div class="active-filters">
+        @for (chip of activeFilterChips(); track chip.id) {<button type="button" (click)="removeFilter(chip.id)" [attr.aria-label]="'Remove ' + chip.label">{{ chip.label }}<i class="ph ph-x" aria-hidden="true"></i></button>}
+        <button type="button" (click)="clearFilters()">Clear all</button>
+      </div>
+    }
+    @if (loading()) {
+      <div class="empty-state" role="status"><i class="ph ph-tooth" aria-hidden="true"></i><h2>A little closer to the right care.</h2><p>Loading verified clinic details and appointment times.</p></div>
+    } @else if (error()) {
+      <div class="empty-state" role="alert"><h2>We couldn’t load the directory.</h2><p>{{ error() }}</p><button type="button" class="primary" (click)="retry()">Try again</button></div>
     } @else {
-      <!-- Empty State -->
-      <div class="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm sm:p-14">
-        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-2xl">
-          🔍
-        </div>
-        <h3 class="mt-4 text-xl font-bold text-slate-950">
-          {{ clinics().length ? 'No dentists match your active filters' : 'Delhi NCR listings are being verified' }}
-        </h3>
-        <p class="mx-auto mt-2 max-w-md text-sm text-slate-600">
-          {{ clinics().length ? 'Try clearing some filters, expanding your locality, or searching for a different dental treatment.' : 'We are carefully verifying dental licenses and clinic addresses. Check back shortly!' }}
-        </p>
-        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-          @if (hasFilters()) {
-            <button type="button" (click)="clearFilters()"
-                    class="rounded-xl bg-slate-950 px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-slate-800">
-              Reset all filters
-            </button>
-          } @else {
-            <a routerLink="/business/signup"
-               class="rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-blue-700">
-              List your dental clinic free
-            </a>
-          }
-        </div>
-      </div>
-    }
-  }
-
-</section>
-
-<!-- Mobile Filter Drawer / Bottom Sheet Modal -->
-@if (isMobileFilterOpen()) {
-  <div class="fixed inset-0 z-50 flex flex-col justify-end bg-slate-950/60 backdrop-blur-xs lg:hidden"
-       role="dialog" aria-modal="true" aria-label="Filter dentists">
-    <div class="max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div class="flex items-center gap-2">
-          <h3 class="text-base font-bold text-slate-950">Filter Dentists</h3>
-          @if (activeFilterCount() > 0) {
-            <span class="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">{{ activeFilterCount() }} active</span>
-          }
-        </div>
-        <button type="button" (click)="toggleMobileFilter()" class="rounded-full p-2 text-slate-400 hover:text-slate-800" aria-label="Close filters">
-          ✕
-        </button>
-      </div>
-
-      <div class="space-y-4 py-4 text-xs">
-        <!-- Locality -->
-        <div>
-          <label class="block font-bold text-slate-900 mb-1">Locality</label>
-          <select [value]="locality()" (change)="updateLocality($event)"
-                  class="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-medium text-slate-900">
-            <option value="">All Delhi NCR</option>
-            @for (city of locationChoices; track city) {
-              @if (city !== 'All Delhi NCR') {
-                <option [value]="city">{{ city }}</option>
-              }
-            }
-          </select>
-        </div>
-
-        <!-- Treatment -->
-        <div>
-          <label class="block font-bold text-slate-900 mb-1">Treatment Required</label>
-          <select [value]="serviceId()" (change)="updateService($event)"
-                  class="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-medium text-slate-900">
-            <option value="">All Treatments</option>
-            @for (service of services; track service.id) {
-              <option [value]="service.id">{{ service.label }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Maximum Consultation Fee -->
-        <div>
-          <label class="block font-bold text-slate-900 mb-1">Maximum Consultation Fee</label>
-          <select (change)="updateFee($event)"
-                  class="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-medium text-slate-900">
-            <option value="0">Any Fee</option>
-            <option value="500">Up to ₹500</option>
-            <option value="800">Up to ₹800</option>
-            <option value="1000">Up to ₹1,000</option>
-          </select>
-        </div>
-
-        <!-- Minimum Experience -->
-        <div>
-          <label class="block font-bold text-slate-900 mb-1">Dentist Experience</label>
-          <select (change)="updateExperience($event)"
-                  class="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-medium text-slate-900">
-            <option value="0">Any Experience</option>
-            <option value="5">5+ Years</option>
-            <option value="10">10+ Years</option>
-            <option value="15">15+ Years</option>
-          </select>
-        </div>
-
-        <!-- Minimum Rating -->
-        <div>
-          <label class="block font-bold text-slate-900 mb-1">Patient Rating</label>
-          <select (change)="updateRating($event)"
-                  class="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-medium text-slate-900">
-            <option value="0">Any Rating</option>
-            <option value="4">4.0+ Stars</option>
-            <option value="4.5">4.5+ Stars</option>
-          </select>
-        </div>
-
-        <!-- Gender -->
-        <div>
-          <label class="block font-bold text-slate-900 mb-1">Doctor Gender</label>
-          <select (change)="updateGender($event)"
-                  class="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-medium text-slate-900">
-            <option value="">Any</option>
-            <option value="female">Female Dentist</option>
-            <option value="male">Male Dentist</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="sticky bottom-0 border-t border-slate-200 bg-white pt-3 flex gap-2">
-        <button type="button" (click)="clearFilters(); toggleMobileFilter()"
-                class="flex-1 h-11 rounded-xl border border-slate-300 font-bold text-slate-700">
-          Clear All
-        </button>
-        <button type="button" (click)="toggleMobileFilter(); findDentists()"
-                class="flex-1 h-11 rounded-xl bg-blue-600 font-bold text-white shadow-md">
-          Show {{ filteredClinics().length }} Clinics
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Floating Compare Dock (When clinics selected) -->
-@if (comparedClinics().length > 0) {
-  <aside aria-label="Compare clinics"
-         class="fixed bottom-16 inset-x-4 z-40 mx-auto max-w-2xl rounded-2xl border border-blue-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md md:bottom-6">
-    <div class="flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2 overflow-hidden">
-        <span class="rounded-full bg-blue-600 px-2.5 py-1 text-xs font-bold text-white">
-          {{ comparedClinics().length }}/3
-        </span>
-        <div class="truncate text-xs font-bold text-slate-900">
-          Comparing:
-          <span class="font-normal text-slate-600">
-            {{ comparedClinics()[0].name }}
-            @if (comparedClinics().length > 1) {
-              , {{ comparedClinics()[1].name }}
-            }
-            @if (comparedClinics().length > 2) {
-              , {{ comparedClinics()[2].name }}
-            }
-          </span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button type="button" (click)="compareIds.set([])"
-                class="text-xs font-bold text-slate-500 hover:text-slate-800">
-          Clear
-        </button>
-        <button type="button" (click)="openCompareModal()"
-                class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-blue-700">
-          Compare Now →
-        </button>
-      </div>
-    </div>
-  </aside>
-}
-
-<!-- Side-by-Side Comparison Modal -->
-@if (isCompareModalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs"
-       role="dialog" aria-modal="true" aria-label="Side-by-side clinic comparison">
-    <div class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-        <div>
-          <h3 class="text-lg font-bold text-slate-950">Compare Dental Clinics ({{ comparedClinics().length }}/3)</h3>
-          <p class="text-xs text-slate-500">Side-by-side review of consultation fees, ratings, and treatments.</p>
-        </div>
-        <button type="button" (click)="closeCompareModal()" class="rounded-full p-2 text-slate-400 hover:text-slate-800" aria-label="Close modal">
-          ✕
-        </button>
-      </div>
-
-      <div class="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        @for (clinic of comparedClinics(); track clinic.id) {
-          <div class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
-            <div>
-              <h4 class="font-bold text-slate-950">{{ clinic.name }}</h4>
-              <p class="text-xs font-semibold text-blue-700">{{ clinic.doctorName }}</p>
-              <p class="text-[11px] text-slate-500">{{ clinic.doctorQualification }}</p>
-
-              <div class="mt-3 space-y-2 border-t border-slate-200 pt-3 text-xs">
-                <div>
-                  <span class="text-[10px] font-bold uppercase text-slate-400">Consultation Fee</span>
-                  <p class="font-extrabold text-slate-900">
-                    {{ clinic.marketplaceProfile!.consultationFee != null ? '₹' + clinic.marketplaceProfile!.consultationFee : 'Ask clinic' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-[10px] font-bold uppercase text-slate-400">Locality</span>
-                  <p class="font-semibold text-slate-800">{{ clinic.marketplaceProfile!.locality }}</p>
-                </div>
-                <div>
-                  <span class="text-[10px] font-bold uppercase text-slate-400">Patient Rating</span>
-                  <p class="font-semibold text-amber-700">
-                    @if (reviewCountFor(clinic.id) > 0) {
-                      ★ {{ ratingFor(clinic.id).toFixed(1) }} ({{ reviewCountFor(clinic.id) }} reviews)
-                    } @else {
-                      New Listing
-                    }
-                  </p>
-                </div>
-                <div>
-                  <span class="text-[10px] font-bold uppercase text-slate-400">Experience</span>
-                  <p class="font-semibold text-slate-800">{{ clinic.marketplaceProfile!.experienceYears || 'Experienced' }} years</p>
-                </div>
+      <div class="dentist-list">
+        @for (clinic of filteredClinics(); track clinic.id) {
+          <article class="dentist-row">
+            <a [routerLink]="profilePath(clinic)" class="portrait-link"><img [src]="listingImage(clinic)" [alt]="hasListingPhoto(clinic) ? clinic.name : 'Clinic logo'" [class.logo-image]="!hasListingPhoto(clinic)" loading="lazy" width="160" height="160"></a>
+            <div class="doctor-info">
+              <div class="doctor-title"><a [routerLink]="profilePath(clinic)"><h2>{{ discoveryType() === 'dentists' ? clinic.doctorName || clinic.name : clinic.name }}</h2></a>
+                <details class="verification"><summary aria-label="View verification checks"><i class="ph ph-seal-check" aria-hidden="true"></i> DCI Registration Checked</summary><div><strong>What we checked</strong><p>DCI Registration Checked: State dental council registration, clinic identity, contact number and operating address verified.</p><p>Qualifications are supplied by the clinic.</p></div></details>
               </div>
+              <p>{{ clinic.doctorQualification || 'Qualifications not listed' }}</p>
+              @if (clinic.marketplaceProfile?.speciality) {<p class="muted">{{ clinic.marketplaceProfile?.speciality }}</p>}
+              @if (clinic.marketplaceProfile?.experienceYears != null) {<p class="muted">{{ clinic.marketplaceProfile?.experienceYears }} years experience</p>}
+              <a [routerLink]="['/clinic', clinic.marketplaceSlug]" class="clinic-name"><i class="ph ph-map-pin" aria-hidden="true"></i>{{ clinic.name }}</a>
+              <p class="muted">{{ clinic.marketplaceProfile?.locality }}@if (distanceFor(clinic) !== null) { · {{ distanceFor(clinic) }} km}</p>
+              <p class="treatments">{{ serviceLabels(clinic).join(' · ') }}</p>
+              @if (clinic.marketplaceProfile?.languages?.length) {<p class="treatments">{{ clinic.marketplaceProfile?.languages?.join(', ') }}</p>}
             </div>
-
-            <div class="mt-5 space-y-2">
-              <a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']"
-                 (click)="closeCompareModal()"
-                 class="block w-full rounded-xl bg-blue-600 py-2.5 text-center text-xs font-bold text-white hover:bg-blue-700">
-                Book with Clinic
-              </a>
-              <button type="button" (click)="toggleCompare(clinic.id)"
-                      class="w-full text-center text-xs font-semibold text-slate-500 hover:text-red-600">
-                Remove from compare
-              </button>
+            <div class="stat"><span class="stat-label">Consultation fee</span><strong>{{ clinic.marketplaceProfile?.consultationFee != null ? '₹' + clinic.marketplaceProfile?.consultationFee : 'Ask clinic' }}</strong><span class="muted">at clinic</span></div>
+            <div class="stat"><span class="stat-label">Patient rating</span>@if (reviewCountFor(clinic.id)) {<strong><i class="ph ph-star" aria-hidden="true"></i> {{ ratingFor(clinic.id).toFixed(1) }}</strong><span class="muted">{{ reviewCountFor(clinic.id) }} verified reviews</span>} @else {<strong>New listing</strong><span class="muted">No reviews yet</span>}</div>
+            <div class="times">
+              @if (availabilityErrors()[clinic.id]) {<p class="muted">Times unavailable</p><button type="button" class="text-blue-700 text-sm" (click)="checkAvailability(clinic)">Retry times</button>}
+              @else if (slotsFor(clinic.id).length && clinic.marketplaceProfile?.acceptingNewPatients) {
+                <span class="availability-title">Available Today</span><p>Next at {{ slotLabel(slotsFor(clinic.id)[0]) }}</p>
+                <div class="slot-options">@for (slot of slotsFor(clinic.id).slice(0, 3); track slot.doctorId + slot.startsAt) {<a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']" [queryParams]="{ startsAt: slot.startsAt, doctorId: slot.doctorId }">{{ slotLabel(slot) }}</a>}</div>
+              } @else {<p class="muted">{{ clinic.marketplaceProfile?.acceptingNewPatients ? 'No online times today' : 'Not accepting new patients' }}</p>}
             </div>
-          </div>
+            <div class="booking">
+              @if (clinic.marketplaceProfile?.acceptingNewPatients) {<a [routerLink]="['/dentists', clinic.marketplaceSlug, 'book']" class="primary">Request Appointment</a><p class="muted">Clinic confirmation required</p>} @else {<a [routerLink]="profilePath(clinic)" class="secondary">View profile</a>}
+              <button type="button" class="compare-button" [attr.aria-pressed]="isCompared(clinic.id)" (click)="toggleCompare(clinic.id)">{{ isCompared(clinic.id) ? 'Remove from comparison' : 'Compare dentist' }}</button>
+            </div>
+          </article>
+        } @empty {
+          <div class="empty-state"><i class="ph ph-tooth" aria-hidden="true"></i><h2>{{ clinics().length ? 'Let’s widen your search.' : 'Good care starts with verified people.' }}</h2><p>{{ clinics().length ? 'Try a nearby city or remove a filter to see more options.' : 'We’re checking our first clinic listings. Dentist profiles and appointment times will appear here once verified.' }}</p>@if (hasFilters()) {<button type="button" (click)="clearFilters()" class="primary">See all dentists</button>} @else {<a routerLink="/business/signup" class="secondary">Are you a dentist? Join the directory</a>}</div>
         }
       </div>
-    </div>
-  </div>
-}
+    }
+    @if (comparedClinics().length) {
+      <section class="comparison" aria-label="Compare dentists"><h2>Your shortlist</h2><div class="compare-grid">@for (clinic of comparedClinics(); track clinic.id) {<div><h3>{{ clinic.doctorName || clinic.name }}</h3><p>{{ clinic.marketplaceProfile?.locality }}</p><p>Consultation: {{ clinic.marketplaceProfile?.consultationFee != null ? '₹' + clinic.marketplaceProfile?.consultationFee : 'Ask clinic' }}</p><p>{{ clinic.marketplaceProfile?.experienceYears ?? 'Not listed' }} years experience</p><a [routerLink]="profilePath(clinic)">View profile</a><button type="button" (click)="toggleCompare(clinic.id)">Remove</button></div>}</div></section>
+    }
+    <p class="fee-note">Consultation fees are published by clinics. Treatment costs depend on your consultation.</p>
 
-<!-- Patient How It Works Guide -->
-<section class="border-y border-slate-200 bg-white py-12 sm:py-16">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="max-w-2xl">
-      <span class="text-xs font-bold uppercase tracking-widest text-blue-700">Simple & Transparent</span>
-      <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-        How to find and book your dentist in 3 steps
-      </h2>
-      <p class="mt-3 text-sm leading-relaxed text-slate-600">
-        Skip endless clinic calls. Compare verified practitioners, check real-time availability, and get direct booking confirmation.
-      </p>
-    </div>
-
-    <div class="mt-8 grid gap-6 md:grid-cols-3">
-      <div class="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-800">
-          1
-        </span>
-        <h3 class="mt-4 text-base font-bold text-slate-950">Select Locality & Symptom</h3>
-        <p class="mt-2 text-xs leading-relaxed text-slate-600">
-          Filter by Delhi NCR city, neighborhood, or specific dental concern such as root canal, dental implant, or tooth pain.
-        </p>
+    <!-- Procedure Cost & Treatment Guide Section -->
+    <section class="cost-guide-section" aria-labelledby="cost-guide-heading">
+      <div class="cost-guide-header">
+        <span class="cost-guide-badge">2026 Price Benchmark</span>
+        <h2 id="cost-guide-heading">Delhi NCR Dental Treatment & Procedure Cost Guide</h2>
+        <p class="cost-guide-sub">Standard treatment fee estimates verified across dental clinics in Delhi, Noida, Gurugram, Ghaziabad, and Faridabad. Exact cost is confirmed during your in-clinic consultation.</p>
       </div>
-
-      <div class="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-800">
-          2
-        </span>
-        <h3 class="mt-4 text-base font-bold text-slate-950">Review Verified Qualifications</h3>
-        <p class="mt-2 text-xs leading-relaxed text-slate-600">
-          Inspect Dental Council registration details, experience years, genuine patient reviews, and upfront consultation fees.
-        </p>
+      <div class="cost-table-wrapper">
+        <table class="cost-table">
+          <thead>
+            <tr>
+              <th scope="col">Dental Treatment</th>
+              <th scope="col">Estimated Price Range</th>
+              <th scope="col">Average Sittings</th>
+              <th scope="col">Procedure Overview</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of treatmentCostGuide; track item.treatment) {
+              <tr>
+                <td class="cost-treatment-name">
+                  <strong>{{ item.treatment }}</strong>
+                  <span class="cost-specialty">{{ item.specialty }}</span>
+                </td>
+                <td class="cost-price">{{ item.priceRange }}</td>
+                <td class="cost-sittings">{{ item.sittings }}</td>
+                <td class="cost-desc">{{ item.overview }}</td>
+                <td class="cost-action">
+                  <button type="button" class="cost-filter-btn" (click)="chooseService(item.serviceId)">Find Dentists</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
+      <p class="cost-table-disclaimer">Note: Fees vary based on tooth location, materials (e.g., ceramic vs. zirconia, metal vs. invisible aligners), and clinical complexity. Consultation fees are paid directly at the clinic.</p>
+    </section>
 
-      <div class="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-800">
-          3
-        </span>
-        <h3 class="mt-4 text-base font-bold text-slate-950">Instant Appointment Request</h3>
-        <p class="mt-2 text-xs leading-relaxed text-slate-600">
-          Choose a preferred time slot. The clinic staff directly verifies and confirms your booking via SMS and WhatsApp.
-        </p>
+    <!-- Comprehensive Internal Linking Matrix -->
+    <section class="browse-matrix-section" aria-label="Browse Dental Care by Locality and Treatment">
+      <div class="matrix-column">
+        <h3>Dentists by Delhi NCR Locality</h3>
+        <nav class="matrix-links" aria-label="Cities">
+          <a routerLink="/dentists/noida">Dentists in Noida</a>
+          <a routerLink="/dentists/delhi">Dentists in Delhi</a>
+          <a routerLink="/dentists/gurugram">Dentists in Gurugram</a>
+          <a routerLink="/dentists/ghaziabad">Dentists in Ghaziabad</a>
+          <a routerLink="/dentists/faridabad">Dentists in Faridabad</a>
+          <a routerLink="/dentists/noida/sector-75">Dentists in Sector 75, Noida</a>
+          <a routerLink="/dentists/delhi/south-delhi">Dentists in South Delhi</a>
+          <a routerLink="/dentists/gurugram/cyber-city">Dentists in Cyber City, Gurugram</a>
+        </nav>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- Local Directory Hub & Crawlable SEO Internal Links -->
-<section class="border-b border-slate-200 bg-slate-50/50 py-12">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <h2 class="text-lg font-bold text-slate-950">Explore Dentists Across Delhi NCR</h2>
-    <p class="mt-1 text-xs text-slate-600">Find top-rated dental doctors and clinics by region and speciality.</p>
-
-    <div class="mt-6 grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">By City</h3>
-        <ul class="space-y-1.5 text-xs text-slate-600">
-          <li><a routerLink="/dentists/noida" class="hover:text-blue-700">Dentists in Noida</a></li>
-          <li><a routerLink="/dentists/delhi" class="hover:text-blue-700">Dentists in Delhi</a></li>
-          <li><a routerLink="/dentists/gurugram" class="hover:text-blue-700">Dentists in Gurugram</a></li>
-          <li><a routerLink="/dentists/ghaziabad" class="hover:text-blue-700">Dentists in Ghaziabad</a></li>
-          <li><a routerLink="/dentists/faridabad" class="hover:text-blue-700">Dentists in Faridabad</a></li>
-        </ul>
+      <div class="matrix-column">
+        <h3>Popular Dental Treatments in Delhi NCR</h3>
+        <nav class="matrix-links" aria-label="Treatments">
+          <a routerLink="/dentists/root-canal/noida">Root Canal in Noida</a>
+          <a routerLink="/dentists/root-canal/delhi">Root Canal in Delhi</a>
+          <a routerLink="/dentists/dental-implants/delhi">Dental Implants in Delhi</a>
+          <a routerLink="/dentists/dental-implants/noida">Dental Implants in Noida</a>
+          <a routerLink="/dentists/braces/delhi">Braces & Aligners in Delhi</a>
+          <a routerLink="/dentists/braces/noida">Braces & Aligners in Noida</a>
+          <a routerLink="/dentists/teeth-whitening/delhi">Teeth Whitening in Delhi</a>
+          <a routerLink="/dentists/cleaning-scaling/delhi">Teeth Cleaning & Scaling in Delhi</a>
+          <a routerLink="/dentists/emergency/delhi">Emergency Dentist in Delhi</a>
+          <a routerLink="/dentists/emergency/noida">Emergency Dentist in Noida</a>
+        </nav>
       </div>
+    </section>
 
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">Popular Treatments</h3>
-        <ul class="space-y-1.5 text-xs text-slate-600">
-          <li><a routerLink="/dentists/root-canal/noida" class="hover:text-blue-700">Root Canal in Noida</a></li>
-          <li><a routerLink="/dentists/dental-implants/delhi" class="hover:text-blue-700">Dental Implants in Delhi</a></li>
-          <li><a routerLink="/dentists/braces/delhi" class="hover:text-blue-700">Orthodontic Braces in Delhi</a></li>
-          <li><a (click)="chooseService('teeth-whitening')" class="cursor-pointer hover:text-blue-700">Teeth Whitening</a></li>
-          <li><a (click)="chooseService('cleaning-scaling')" class="cursor-pointer hover:text-blue-700">Teeth Cleaning & Scaling</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">Top Sectors & Areas</h3>
-        <ul class="space-y-1.5 text-xs text-slate-600">
-          <li><a routerLink="/dentists/noida/sector-75" class="hover:text-blue-700">Dentists in Sector 75, Noida</a></li>
-          <li><a (click)="chooseLocation('Sector 18')" class="cursor-pointer hover:text-blue-700">Sector 18, Noida</a></li>
-          <li><a (click)="chooseLocation('South Delhi')" class="cursor-pointer hover:text-blue-700">South Delhi</a></li>
-          <li><a (click)="chooseLocation('Cyber City')" class="cursor-pointer hover:text-blue-700">DLF Cyber City, Gurugram</a></li>
-          <li><a (click)="chooseLocation('Indirapuram')" class="cursor-pointer hover:text-blue-700">Indirapuram, Ghaziabad</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">Specialised Care</h3>
-        <ul class="space-y-1.5 text-xs text-slate-600">
-          <li><a (click)="chooseService('emergency-dental-care')" class="cursor-pointer hover:text-blue-700">Emergency Dental Care</a></li>
-          <li><a (click)="chooseService('pediatric-dentistry')" class="cursor-pointer hover:text-blue-700">Pediatric (Kids) Dentistry</a></li>
-          <li><a (click)="chooseService('wisdom-tooth')" class="cursor-pointer hover:text-blue-700">Wisdom Tooth Extraction</a></li>
-          <li><a (click)="chooseService('clear-aligners')" class="cursor-pointer hover:text-blue-700">Invisible Clear Aligners</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Common Patient Questions & Clinic Partner Aside -->
-<section class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:px-8">
-  <div>
-    <span class="text-xs font-bold uppercase tracking-widest text-blue-700">Patient FAQ</span>
-    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">
-      Frequently asked questions about dental visits
-    </h2>
-    <div class="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-      @for (faq of faqs; track faq.question) {
-        <details class="group py-4">
-          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-slate-900 hover:text-blue-700">
-            <span>{{ faq.question }}</span>
-            <span aria-hidden="true" class="text-lg font-normal text-slate-400 transition group-open:rotate-45">+</span>
-          </summary>
-          <p class="mt-2.5 max-w-2xl text-xs leading-relaxed text-slate-600">{{ faq.answer }}</p>
+    <!-- Dynamic FAQs -->
+    <section class="patient-faq">
+      <h2>A little clarity before your visit.</h2>
+      @for (faq of dynamicFaqs(); track faq.question) {
+        <details>
+          <summary>{{ faq.question }}</summary>
+          <p>{{ faq.answer }}</p>
         </details>
       }
-    </div>
+    </section>
   </div>
-
-  <aside class="self-start rounded-3xl bg-slate-950 p-6 text-white shadow-xl sm:p-8">
-    <span class="inline-block rounded-full bg-blue-900/60 px-3 py-1 text-[11px] font-bold text-blue-300 border border-blue-700/50">
-      For Dental Clinics
-    </span>
-    <h3 class="mt-4 text-xl font-bold leading-snug">Bring your clinic where patients are searching</h3>
-    <p class="mt-3 text-xs leading-relaxed text-slate-300">
-      Join Delhi NCR's fastest-growing dental network. Showcase verified credentials, publish consultation slots, and receive direct patient bookings.
-    </p>
-    <ul class="mt-5 space-y-2 text-xs text-slate-200">
-      <li class="flex items-center gap-2">✓ Free modern clinic website to start</li>
-      <li class="flex items-center gap-2">✓ Verified clinic badge on Delhi NCR directory</li>
-      <li class="flex items-center gap-2">✓ Direct appointment notifications via WhatsApp</li>
-      <li class="flex items-center gap-2">✓ Zero booking commission</li>
-    </ul>
-    <a routerLink="/business/signup"
-       class="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-md transition hover:bg-blue-700">
-      List Your Clinic Free
-    </a>
-    <a routerLink="/business"
-       class="mt-2 inline-flex w-full items-center justify-center px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">
-      Learn how it works →
-    </a>
-  </aside>
 </section>
+

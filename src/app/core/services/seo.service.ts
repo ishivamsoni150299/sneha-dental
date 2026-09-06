@@ -88,6 +88,14 @@ export class SeoService {
     this.setMeta('twitter:image:alt', imageAlt);
 
     this.setCanonical(url);
+
+    // Regional Geo-Targeting (Delhi NCR / India)
+    const geo = this.getGeoCoordinates(path, context);
+    this.setMeta('geo.region', geo.region);
+    this.setMeta('geo.placename', geo.placename);
+    this.setMeta('geo.position', geo.position);
+    this.setMeta('ICBM', geo.icbm);
+
     this.updateSchema(context, path, title, description, url, image);
   }
 
@@ -182,7 +190,7 @@ export class SeoService {
       : undefined;
     const dentistDirectory = path === '/dentists' || path.startsWith('/dentists/')
       ? this.compact({
-          '@type': 'CollectionPage',
+          '@type': ['CollectionPage', 'MedicalWebPage'],
           '@id': `${url}#directory`,
           name: title,
           url,
@@ -193,73 +201,24 @@ export class SeoService {
             '@type': 'MedicalBusiness',
             name: 'Verified dentists and dental clinics in Delhi NCR',
             areaServed: ['Delhi', 'Noida', 'Gurugram', 'Ghaziabad', 'Faridabad'],
-            medicalSpecialty: ['Dentistry', 'Endodontics', 'Orthodontics', 'Periodontics', 'Prosthodontics', 'Pediatric Dentistry'],
+            medicalSpecialty: [
+              'Dentistry',
+              'Endodontics',
+              'Orthodontics',
+              'Periodontics',
+              'Prosthodontics',
+              'Pediatric Dentistry',
+              'Oral and Maxillofacial Surgery',
+              'Cosmetic Dentistry',
+            ],
           },
         })
       : undefined;
     const dentistItemList = path === '/dentists' || path.startsWith('/dentists/')
-      ? this.compact({
-          '@type': 'ItemList',
-          '@id': `${url}#itemlist`,
-          name: title,
-          description,
-          numberOfItems: 5,
-          itemListElement: [
-            {
-              '@type': 'ListItem',
-              position: 1,
-              name: 'Root Canal Treatment & Endodontics in Delhi NCR',
-              description: 'Pain-free single-sitting root canal treatment with rotary endodontics and dental crowns.',
-              url: `${origin}/dentists/root-canal/noida`,
-            },
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: 'Dental Implants & Tooth Replacement in Delhi NCR',
-              description: 'Titanium and zirconia permanent dental implants with modern 3D imaging guidance.',
-              url: `${origin}/dentists/dental-implants/delhi`,
-            },
-            {
-              '@type': 'ListItem',
-              position: 3,
-              name: 'Braces & Clear Aligners in Delhi NCR',
-              description: 'Orthodontic teeth alignment, ceramic braces, and invisible aligners with certified orthodontists.',
-              url: `${origin}/dentists/braces/delhi`,
-            },
-            {
-              '@type': 'ListItem',
-              position: 4,
-              name: 'Best Dentists in Noida & Sector 75',
-              description: 'Verified dental clinics and specialists in Noida with live appointment availability.',
-              url: `${origin}/dentists/noida`,
-            },
-            {
-              '@type': 'ListItem',
-              position: 5,
-              name: 'Best Dentists in Delhi & Gurugram',
-              description: 'Top-rated dental clinics and dentists across South Delhi, Central Delhi, and Gurugram.',
-              url: `${origin}/dentists/delhi`,
-            },
-          ],
-        })
+      ? this.buildDentistItemList(path, title, description, origin, url)
       : undefined;
     const dentistFaq = path === '/dentists' || path.startsWith('/dentists/')
-      ? this.compact({
-          '@type': 'FAQPage',
-          '@id': `${url}#faq`,
-          mainEntity: [
-            ['How are dentists verified on mydentalplatform?', 'A clinic appears in search only after its identity, address, phone number and dentist registration details with Dental Council of India (DCI) / State Dental Council have been reviewed.'],
-            ['Can I compare consultation fees before booking?', 'Yes. Clinics publish their standard consultation fee, treatment services, locality, and whether they are currently accepting new patients.'],
-            ['How do I request a dental appointment?', 'Select a dentist or clinic, choose your preferred available time slot, and submit your request. The clinic confirms your booking directly with no prepayment required.'],
-            ['Which Delhi NCR areas are covered?', 'The directory covers Delhi (South, Central, West, East), Noida (Sector 18, 62, 75, 76, 137), Gurugram (Cyber City, Sector 56, Golf Course Rd), Ghaziabad, and Faridabad.'],
-            ['Are there any booking or convenience fees?', 'No. Booking on mydentalplatform is 100% free for patients. All consultation and treatment fees are paid directly at the dental clinic.'],
-            ['Can I find same-day or emergency dental appointments?', 'Yes. Filter by "Available Today" to view clinics offering immediate appointment slots today for toothaches, chipped teeth, and urgent dental care.'],
-          ].map(([name, text]) => ({
-            '@type': 'Question',
-            name,
-            acceptedAnswer: { '@type': 'Answer', text },
-          })),
-        })
+      ? this.buildDentistFaq(path, url)
       : undefined;
     const graph = [
       this.compact({
@@ -279,6 +238,14 @@ export class SeoService {
         description: PLATFORM_DEFAULT_DESCRIPTION,
         inLanguage: 'en-IN',
         publisher: { '@id': `${origin}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${origin}/dentists?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
       }),
       this.compact({
         '@type': 'WebPage',
@@ -645,5 +612,272 @@ export class SeoService {
       return Object.keys(obj).length ? obj : undefined;
     }
     return value;
+  }
+
+  private getGeoCoordinates(path: string, context: SeoContext): {
+    region: string;
+    placename: string;
+    position: string;
+    icbm: string;
+  } {
+    const lower = path.toLowerCase();
+    if (lower.includes('noida')) {
+      return {
+        region: 'IN-UP',
+        placename: 'Noida, Uttar Pradesh, India',
+        position: '28.5355;77.3910',
+        icbm: '28.5355, 77.3910',
+      };
+    }
+    if (lower.includes('gurugram') || lower.includes('gurgaon')) {
+      return {
+        region: 'IN-HR',
+        placename: 'Gurugram, Haryana, India',
+        position: '28.4595;77.0266',
+        icbm: '28.4595, 77.0266',
+      };
+    }
+    if (lower.includes('ghaziabad')) {
+      return {
+        region: 'IN-UP',
+        placename: 'Ghaziabad, Uttar Pradesh, India',
+        position: '28.6692;77.4538',
+        icbm: '28.6692, 77.4538',
+      };
+    }
+    if (lower.includes('faridabad')) {
+      return {
+        region: 'IN-HR',
+        placename: 'Faridabad, Haryana, India',
+        position: '28.4089;77.3178',
+        icbm: '28.4089, 77.3178',
+      };
+    }
+    if (context.kind === 'clinic' && context.city) {
+      return {
+        region: 'IN-DL',
+        placename: `${context.city}, Delhi NCR, India`,
+        position: '28.6139;77.2090',
+        icbm: '28.6139, 77.2090',
+      };
+    }
+    return {
+      region: 'IN-DL',
+      placename: 'Delhi NCR, India',
+      position: '28.6139;77.2090',
+      icbm: '28.6139, 77.2090',
+    };
+  }
+
+  private buildDentistItemList(
+    path: string,
+    title: string,
+    description: string,
+    origin: string,
+    url: string
+  ): Record<string, unknown> | undefined {
+    const lower = path.toLowerCase();
+    let items: Array<{ name: string; description: string; url: string }> = [];
+
+    if (lower.includes('root-canal')) {
+      items = [
+        {
+          name: 'Single-Sitting Root Canal Treatment (RCT)',
+          description: 'Painless rotary endodontic therapy with electronic apex locator and biocompatible seal.',
+          url: `${origin}/dentists/root-canal/noida`,
+        },
+        {
+          name: 'Dental Crowns & Tooth Reinforcement',
+          description: 'Zirconia and ceramic crowns post-root canal for structural strength and natural smile aesthetics.',
+          url: `${origin}/dentists/root-canal/delhi`,
+        },
+        {
+          name: 'Verified Endodontists in Noida & Sector 75',
+          description: 'Consult certified MDS root canal specialists with transparent fees and modern clinic setups.',
+          url: `${origin}/dentists/noida`,
+        },
+        {
+          name: 'Emergency Toothache & Pulp Relief',
+          description: 'Immediate pain management and same-day dental appointments across Delhi NCR.',
+          url: `${origin}/dentists/emergency/delhi`,
+        },
+      ];
+    } else if (lower.includes('dental-implants')) {
+      items = [
+        {
+          name: 'Permanent Single-Tooth Titanium Implants',
+          description: 'High-grade biocompatible titanium root replacement with customized porcelain crown.',
+          url: `${origin}/dentists/dental-implants/delhi`,
+        },
+        {
+          name: 'Full Mouth Implants (All-on-4 / All-on-6)',
+          description: 'Fixed full-arch rehabilitation for missing teeth with 3D CBCT imaging guidance.',
+          url: `${origin}/dentists/dental-implants/noida`,
+        },
+        {
+          name: 'Certified Implantologists in Delhi NCR',
+          description: 'Verified specialists with international implantology certifications and sterile operating suites.',
+          url: `${origin}/dentists/dental-implants/gurugram`,
+        },
+        {
+          name: 'Tooth Replacement Consultation & Bone Grafting',
+          description: 'Thorough clinical bone evaluation, digital scans, and transparent upfront treatment costing.',
+          url: `${origin}/dentists/delhi`,
+        },
+      ];
+    } else if (lower.includes('braces') || lower.includes('aligners')) {
+      items = [
+        {
+          name: 'Invisible Clear Aligners in Delhi NCR',
+          description: 'Discreet, custom removable aligners for comfortable teeth straightening without metal wires.',
+          url: `${origin}/dentists/braces/delhi`,
+        },
+        {
+          name: 'Ceramic & Self-Ligating Metal Braces',
+          description: 'Tooth-colored aesthetic braces and low-friction brackets for malocclusion and spacing.',
+          url: `${origin}/dentists/braces/noida`,
+        },
+        {
+          name: 'Certified Orthodontists (MDS Ortho)',
+          description: 'Specialist orthodontists offering digital smile simulation and monthly installment options.',
+          url: `${origin}/dentists/delhi`,
+        },
+      ];
+    } else if (lower.includes('noida')) {
+      items = [
+        {
+          name: 'Verified Dentists in Sector 18 & Sector 62 Noida',
+          description: 'Top-rated dental clinics in commercial hubs with verified DCI registrations and modern equipment.',
+          url: `${origin}/dentists/noida`,
+        },
+        {
+          name: 'Dental Clinics in Sector 75, 76 & 137 Noida',
+          description: 'Neighborhood family dentists offering preventive checkups, root canals, and pediatric care.',
+          url: `${origin}/dentists/noida/sector-75`,
+        },
+        {
+          name: 'Root Canal Specialists in Noida',
+          description: 'Pain-free single-sitting rotary RCTs performed by experienced endodontists in Noida.',
+          url: `${origin}/dentists/root-canal/noida`,
+        },
+        {
+          name: 'Emergency Dental Care in Noida',
+          description: 'Same-day appointments and urgent dental trauma care across Noida.',
+          url: `${origin}/dentists/emergency/noida`,
+        },
+      ];
+    } else if (lower.includes('delhi')) {
+      items = [
+        {
+          name: 'Top Dentists in South Delhi',
+          description: 'Premier dental clinics in South Extension, GK, and Saket with advanced dental technology.',
+          url: `${origin}/dentists/delhi/south-delhi`,
+        },
+        {
+          name: 'Dental Implants in Delhi',
+          description: 'Permanent titanium and zirconia implants with certified implantologists across Delhi.',
+          url: `${origin}/dentists/dental-implants/delhi`,
+        },
+        {
+          name: 'Orthodontic Braces & Aligners in Delhi',
+          description: 'Clear aligners and aesthetic braces with experienced orthodontic specialists in Delhi.',
+          url: `${origin}/dentists/braces/delhi`,
+        },
+        {
+          name: 'Teeth Cleaning & Whitening in Delhi',
+          description: 'Ultrasonic scaling, stain removal, and in-office teeth whitening clinics across Delhi.',
+          url: `${origin}/dentists/teeth-whitening/delhi`,
+        },
+      ];
+    } else {
+      items = [
+        {
+          name: 'Root Canal Treatment & Endodontics in Delhi NCR',
+          description: 'Pain-free single-sitting root canal treatment with rotary endodontics and dental crowns.',
+          url: `${origin}/dentists/root-canal/noida`,
+        },
+        {
+          name: 'Dental Implants & Tooth Replacement in Delhi NCR',
+          description: 'Titanium and zirconia permanent dental implants with modern 3D imaging guidance.',
+          url: `${origin}/dentists/dental-implants/delhi`,
+        },
+        {
+          name: 'Braces & Clear Aligners in Delhi NCR',
+          description: 'Orthodontic teeth alignment, ceramic braces, and invisible aligners with certified orthodontists.',
+          url: `${origin}/dentists/braces/delhi`,
+        },
+        {
+          name: 'Best Dentists in Noida & Sector 75',
+          description: 'Verified dental clinics and specialists in Noida with live appointment availability.',
+          url: `${origin}/dentists/noida`,
+        },
+        {
+          name: 'Best Dentists in Delhi & Gurugram',
+          description: 'Top-rated dental clinics and dentists across South Delhi, Central Delhi, and Gurugram.',
+          url: `${origin}/dentists/delhi`,
+        },
+      ];
+    }
+
+    return this.compact({
+      '@type': 'ItemList',
+      '@id': `${url}#itemlist`,
+      name: title,
+      description,
+      numberOfItems: items.length,
+      itemListElement: items.map((item, idx) => ({
+        '@type': 'ListItem',
+        position: idx + 1,
+        name: item.name,
+        description: item.description,
+        url: item.url,
+      })),
+    }) as Record<string, unknown> | undefined;
+  }
+
+  private buildDentistFaq(path: string, url: string): Record<string, unknown> | undefined {
+    const lower = path.toLowerCase();
+    let qaList: Array<[string, string]>;
+
+    if (lower.includes('root-canal')) {
+      qaList = [
+        ['Is a root canal treatment painful?', 'No. Modern rotary root canal treatment is performed under profound local anesthesia, making the entire procedure virtually pain-free. Most patients report feeling no more discomfort than a routine filling.'],
+        ['How much does a root canal cost in Delhi NCR?', 'Root canal therapy typically ranges between ₹2,500 and ₹7,500 depending on tooth location (anterior vs. molar) and whether rotary micro-endodontics is required. Post-RCT dental crowns are priced separately.'],
+        ['Can a root canal be completed in a single sitting?', 'Yes. In cases without acute apical abscess or severe infection, single-sitting rotary RCT is safe, clinically proven, and completed within 45 to 60 minutes.'],
+        ['Is a dental crown always necessary after RCT?', 'For premolars and molars that endure heavy chewing forces, a crown (ceramic or zirconia) is strongly recommended to prevent the brittle tooth from fracturing.'],
+      ];
+    } else if (lower.includes('dental-implants')) {
+      qaList = [
+        ['What is the cost of a dental implant in Delhi NCR?', 'Standard titanium dental implants range from ₹20,000 to ₹45,000 per tooth, including the titanium fixture, abutment, and ceramic crown. Premium Swiss or German implants may cost between ₹35,000 and ₹55,000.'],
+        ['How long do dental implants last?', 'With good oral hygiene and regular dental checkups, dental implants have a clinical success rate of over 95% and can easily last a lifetime.'],
+        ['Am I a candidate for dental implants?', 'Most adults with adequate jawbone density and healthy gums are good candidates. For patients with bone loss, bone grafting or sinus lifts can restore eligibility.'],
+        ['How long does the dental implant procedure take?', 'The implant placement takes about 30 to 45 minutes. Osseointegration (bone fusion) usually takes 2 to 3 months, after which the permanent crown is secured.'],
+      ];
+    } else if (lower.includes('braces')) {
+      qaList = [
+        ['What is the difference between traditional braces and clear aligners?', 'Traditional metal or ceramic braces use brackets and wires bonded to teeth, while clear aligners are custom-molded transparent removable plastic trays that are virtually invisible.'],
+        ['How much do braces and aligners cost in Delhi NCR?', 'Metal braces range from ₹25,000 to ₹45,000; ceramic braces from ₹40,000 to ₹65,000; and clear aligners from ₹55,000 to ₹1,50,000 depending on case severity and number of trays.'],
+        ['What is the ideal age for orthodontic treatment?', 'While orthodontic treatment is often started between ages 10 to 14, adults of any age can safely straighten their teeth with braces or clear aligners.'],
+      ];
+    } else {
+      qaList = [
+        ['How are dentists verified on mydentalplatform?', 'A clinic appears in search only after its identity, physical clinic address, phone number, and dentist registration credentials with the Dental Council of India (DCI) / State Dental Council have been thoroughly reviewed.'],
+        ['Can I compare consultation fees before booking?', 'Yes. Clinics publish their standard consultation fee, treatment services, locality, and whether they are currently accepting new patients.'],
+        ['How do I request a dental appointment?', 'Select a dentist or clinic, choose your preferred available time slot, and submit your request. The clinic confirms your booking directly with no prepayment required.'],
+        ['Which Delhi NCR areas are covered?', 'The directory covers Delhi (South, Central, West, East), Noida (Sector 18, 62, 75, 76, 137), Gurugram (Cyber City, Sector 56, Golf Course Rd), Ghaziabad, and Faridabad.'],
+        ['Are there any booking or convenience fees?', 'No. Booking on mydentalplatform is 100% free for patients. All consultation and treatment fees are paid directly at the dental clinic.'],
+        ['Can I find same-day or emergency dental appointments?', 'Yes. Filter by "Available Today" to view clinics offering immediate appointment slots today for toothaches, chipped teeth, and urgent dental care.'],
+      ];
+    }
+
+    return this.compact({
+      '@type': 'FAQPage',
+      '@id': `${url}#faq`,
+      mainEntity: qaList.map(([name, text]) => ({
+        '@type': 'Question',
+        name,
+        acceptedAnswer: { '@type': 'Answer', text },
+      })),
+    }) as Record<string, unknown> | undefined;
   }
 }

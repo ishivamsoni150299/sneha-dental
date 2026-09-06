@@ -14,17 +14,181 @@ export interface ActiveFilterChip {
   label: string;
 }
 
+export interface TreatmentCostGuideItem {
+  treatment: string;
+  serviceId: string;
+  specialty: string;
+  priceRange: string;
+  sittings: string;
+  overview: string;
+}
+
 @Component({
   selector: 'app-dentist-directory',
   standalone: true,
   imports: [RouterLink],
   templateUrl: './dentist-directory.component.html',
+  styleUrl: './dentist-directory.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DentistDirectoryComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly route = inject(ActivatedRoute);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly routeHeading = this.route.snapshot.data['initialLocation']
+    ? String(this.route.snapshot.data['title']).replace(/^Best /, '')
+    : 'Good dental care. Close to you.';
+
+  readonly pageHeading = computed(() => {
+    const service = this.serviceId();
+    const loc = this.locality();
+    const routeTitle = this.route.snapshot.data['title'] as string | undefined;
+
+    if (!service && !loc && routeTitle) {
+      return routeTitle.replace(/ \| mydentalplatform$/, '');
+    }
+    if (service && loc) {
+      const serviceLabel = this.marketplace.serviceLabel(service as MarketplaceDentalServiceId);
+      return `${serviceLabel} in ${loc}`;
+    }
+    if (service) {
+      const serviceLabel = this.marketplace.serviceLabel(service as MarketplaceDentalServiceId);
+      return `${serviceLabel} Specialists in Delhi NCR`;
+    }
+    if (loc) {
+      return `Best Dentists in ${loc}`;
+    }
+    return routeTitle?.replace(/ \| mydentalplatform$/, '') || 'Find the Right Dentist Near You in Delhi NCR';
+  });
+
+  readonly pageKicker = computed(() => {
+    const service = this.serviceId();
+    const loc = this.locality();
+    if (service && loc) {
+      return `Specialist Care · Verified Clinics in ${loc}`;
+    }
+    if (service) {
+      return 'Specialist Dental Care · Verified Delhi NCR Clinics';
+    }
+    if (loc) {
+      return `Verified Dental Clinics · ${loc}`;
+    }
+    return 'Delhi NCR Dental Discovery · Verified Clinics';
+  });
+
+  readonly pageLead = computed(() => {
+    const service = this.serviceId();
+    const loc = this.locality();
+    if (service && loc) {
+      const label = this.marketplace.serviceLabel(service as MarketplaceDentalServiceId);
+      return `Compare verified ${label.toLowerCase()} specialists in ${loc}. View clinic safety checks, transparent consultation fees, and book available appointment slots online with zero booking fees.`;
+    }
+    if (service) {
+      const label = this.marketplace.serviceLabel(service as MarketplaceDentalServiceId);
+      return `Compare top-rated ${label.toLowerCase()} clinics across Delhi, Noida, Gurugram, Ghaziabad, and Faridabad. DCI-registered specialists, transparent fees, and same-day slots.`;
+    }
+    if (loc) {
+      return `Discover top-rated, DCI-registered dentists and dental clinics across ${loc}. Compare consultation fees, check real-time availability, and request your appointment with zero booking fees.`;
+    }
+    return 'Tell us what you need. Compare verified dentists and dental clinics across Delhi NCR, check real-time appointment availability, and request a booking in 60 seconds with zero convenience fees.';
+  });
+
+  readonly currentBreadcrumbCity = computed(() => {
+    const loc = this.locality();
+    if (loc && loc !== 'All Delhi NCR') return loc;
+    const initialLoc = this.route.snapshot.data['initialLocation'] as string | undefined;
+    return initialLoc && initialLoc !== 'All Delhi NCR' ? initialLoc : '';
+  });
+
+  readonly currentBreadcrumbCitySlug = computed(() => {
+    const city = this.currentBreadcrumbCity();
+    return city ? city.toLowerCase().replace(/\s+/g, '-') : '';
+  });
+
+  readonly currentBreadcrumbTreatment = computed(() => {
+    const sid = this.serviceId() || (this.route.snapshot.data['initialServiceId'] as string | undefined);
+    return sid ? this.marketplace.serviceLabel(sid as MarketplaceDentalServiceId) : '';
+  });
+
+  readonly treatmentCostGuide: TreatmentCostGuideItem[] = [
+    {
+      treatment: 'Root Canal Treatment (RCT)',
+      serviceId: 'root-canal',
+      specialty: 'Endodontics',
+      priceRange: '₹2,500 – ₹7,500',
+      sittings: '1 – 2 Sittings',
+      overview: 'Pain-free rotary nerve cleaning and biocompatible gutta-percha sealing. Crown charges separate.',
+    },
+    {
+      treatment: 'Dental Implants',
+      serviceId: 'dental-implants',
+      specialty: 'Implantology',
+      priceRange: '₹20,000 – ₹45,000',
+      sittings: '2 – 3 Visits',
+      overview: 'Permanent titanium or zirconia fixture with custom abutment and lifelike ceramic crown.',
+    },
+    {
+      treatment: 'Braces & Teeth Alignment',
+      serviceId: 'braces-orthodontics',
+      specialty: 'Orthodontics',
+      priceRange: '₹25,000 – ₹70,000',
+      sittings: '12 – 18 Months',
+      overview: 'Metal, ceramic, or self-ligating brackets to correct crooked teeth, spacing, and bite issues.',
+    },
+    {
+      treatment: 'Clear Aligners',
+      serviceId: 'clear-aligners',
+      specialty: 'Orthodontics',
+      priceRange: '₹55,000 – ₹1,50,000',
+      sittings: '6 – 14 Months',
+      overview: 'Custom transparent removable aligners for discreet, comfortable smile straightening without metal.',
+    },
+    {
+      treatment: 'Teeth Cleaning & Scaling',
+      serviceId: 'cleaning-scaling',
+      specialty: 'Preventive Dentistry',
+      priceRange: '₹800 – ₹2,200',
+      sittings: '1 Sitting (30–45 min)',
+      overview: 'Ultrasonic calculus removal, deep stain elimination, and surface polishing to prevent gum disease.',
+    },
+    {
+      treatment: 'Teeth Whitening',
+      serviceId: 'teeth-whitening',
+      specialty: 'Cosmetic Dentistry',
+      priceRange: '₹5,000 – ₹12,000',
+      sittings: '1 Sitting (45–60 min)',
+      overview: 'In-office professional LED or laser bleaching to lighten teeth up to 8 shades in a single session.',
+    },
+    {
+      treatment: 'Wisdom Tooth Extraction',
+      serviceId: 'wisdom-tooth',
+      specialty: 'Oral Surgery',
+      priceRange: '₹1,800 – ₹6,500',
+      sittings: '1 Sitting',
+      overview: 'Gentle, safe removal of impacted, painful, or misaligned third molars under local anesthesia.',
+    },
+    {
+      treatment: 'Tooth Fillings & Restoration',
+      serviceId: 'dental-fillings',
+      specialty: 'Conservative Dentistry',
+      priceRange: '₹1,000 – ₹2,800',
+      sittings: '1 Sitting',
+      overview: 'Tooth-colored composite resin fillings to repair cavities, restore chewing, and halt decay.',
+    },
+  ];
+
+  readonly availabilityErrors = signal<Record<string, boolean>>({});
+  readonly cleanProblems = [
+    {label:'Toothache', icon:'ph-tooth', serviceId:'emergency-dental-care'},
+    {label:'Root canal', icon:'ph-first-aid', serviceId:'root-canal'},
+    {label:'Braces', icon:'ph-smiley', serviceId:'braces-orthodontics'},
+    {label:'Implants', icon:'ph-tooth', serviceId:'dental-implants'},
+    {label:'Cleaning', icon:'ph-sparkle', serviceId:'cleaning-scaling'},
+    {label:'Kids', icon:'ph-baby', serviceId:'pediatric-dentistry'},
+  ];
+  profilePath(clinic: MarketplaceClinic): string[] {
+    return [this.discoveryType() === 'dentists' ? '/dentist' : '/clinic', clinic.marketplaceSlug ?? ''];
+  }
 
   readonly services = MARKETPLACE_DENTAL_SERVICES;
   readonly clinics = signal<MarketplaceClinic[]>([]);
@@ -82,7 +246,7 @@ export class DentistDirectoryComponent implements OnInit {
     },
     {
       question: 'How do I request an appointment online?',
-      answer: 'Select your preferred verified dentist or clinic, choose an available time slot (or choose "Request preferred time"), and submit your contact details. The clinic confirms your booking directly via WhatsApp/SMS.',
+      answer: 'Select a dentist or clinic, choose an available appointment time, and submit your contact details. Your request needs confirmation from the clinic before the appointment is confirmed.',
     },
     {
       question: 'Can I find same-day dental appointments for emergencies?',
@@ -93,6 +257,49 @@ export class DentistDirectoryComponent implements OnInit {
       answer: 'We cover major hubs across Delhi NCR, including Noida (Sector 18, 62, 75, 76, 137), South & Central Delhi, Gurugram (DLF Cyber City, Sector 56, Golf Course Ext), Ghaziabad (Indirapuram, Vaishali), and Faridabad.',
     },
   ];
+
+  readonly dynamicFaqs = computed(() => {
+    const service = this.serviceId();
+    if (service === 'root-canal') {
+      return [
+        {
+          question: 'Is a root canal treatment painful?',
+          answer: 'No. Modern rotary root canal treatment is performed under profound local anesthesia, making the entire procedure virtually pain-free. Most patients report feeling no more discomfort than a routine filling.',
+        },
+        {
+          question: 'How much does a root canal cost in Delhi NCR?',
+          answer: 'Root canal therapy typically ranges between ₹2,500 and ₹7,500 depending on tooth location (anterior vs. molar) and whether rotary micro-endodontics is required. Post-RCT dental crowns are priced separately.',
+        },
+        {
+          question: 'Can a root canal be completed in a single sitting?',
+          answer: 'Yes. In cases without acute apical abscess or severe infection, single-sitting rotary RCT is safe, clinically proven, and completed within 45 to 60 minutes.',
+        },
+        {
+          question: 'Is a dental crown always necessary after RCT?',
+          answer: 'For premolars and molars that endure heavy chewing forces, a crown (ceramic or zirconia) is strongly recommended to prevent the brittle tooth from fracturing.',
+        },
+        ...this.faqs.slice(0, 2),
+      ];
+    }
+    if (service === 'dental-implants') {
+      return [
+        {
+          question: 'What is the average cost of a dental implant in Delhi NCR?',
+          answer: 'Standard titanium dental implants range from ₹20,000 to ₹45,000 per tooth, including the titanium fixture, abutment, and ceramic crown. Premium Swiss or German implants may cost between ₹35,000 and ₹55,000.',
+        },
+        {
+          question: 'How long do dental implants last?',
+          answer: 'With good oral hygiene and regular dental checkups, dental implants have a clinical success rate of over 95% and can easily last a lifetime.',
+        },
+        {
+          question: 'Am I a candidate for dental implants?',
+          answer: 'Most adults with adequate jawbone density and healthy gums are good candidates. For patients with bone loss, bone grafting or sinus lifts can restore eligibility.',
+        },
+        ...this.faqs.slice(0, 3),
+      ];
+    }
+    return this.faqs;
+  });
 
   readonly localities = computed(() => [...new Set(
     this.clinics()
@@ -178,7 +385,7 @@ export class DentistDirectoryComponent implements OnInit {
           (!this.gender() || profile.gender === this.gender()) &&
           (!this.minRating() || rating >= this.minRating()) &&
           (!this.language() || profile.languages.includes(this.language())) &&
-          (!this.userCoordinates() || this.distanceFor(clinic) == null || this.distanceFor(clinic)! <= 25);
+          (!this.userCoordinates() || (this.distanceFor(clinic) !== null && this.distanceFor(clinic)! <= 25));
       })
       .sort((first, second) => this.compareListings(first, second));
   });
@@ -302,6 +509,7 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   chooseService(serviceId: string): void {
+    this.searchTerm.set('');
     this.serviceId.set(serviceId);
     this.findDentists();
   }
@@ -420,10 +628,12 @@ export class DentistDirectoryComponent implements OnInit {
   async checkAvailability(clinic: MarketplaceClinic): Promise<void> {
     if (!clinic.marketplaceSlug) return;
     try {
+      this.availabilityErrors.update(current => ({...current, [clinic.id]: false}));
       const response = await this.marketplace.getAvailability(clinic.marketplaceSlug, 1);
       const slots = (response.days[0]?.slots ?? []).slice(0, 4);
       this.availability.update(current => ({ ...current, [clinic.id]: slots }));
     } catch {
+      this.availabilityErrors.update(current => ({...current, [clinic.id]: true}));
       this.availability.update(current => ({ ...current, [clinic.id]: [] }));
     }
   }
@@ -444,6 +654,7 @@ export class DentistDirectoryComponent implements OnInit {
     return new Date(slot.startsAt).toLocaleTimeString('en-IN', {
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: 'Asia/Kolkata',
     });
   }
 
@@ -473,7 +684,7 @@ export class DentistDirectoryComponent implements OnInit {
       return (first.marketplaceProfile?.consultationFee ?? 999999) - (second.marketplaceProfile?.consultationFee ?? 999999);
     if (this.sortBy() === 'experience')
       return (second.marketplaceProfile?.experienceYears ?? 0) - (first.marketplaceProfile?.experienceYears ?? 0);
-    if (this.sortBy() === 'earliest') return this.slotsFor(second.id).length - this.slotsFor(first.id).length;
+    if (this.sortBy() === 'earliest') return (Date.parse(this.slotsFor(first.id)[0]?.startsAt) || Infinity) - (Date.parse(this.slotsFor(second.id)[0]?.startsAt) || Infinity);
     return this.listingScore(second) - this.listingScore(first);
   }
 

@@ -68,6 +68,71 @@ export const routes: Routes = [
         data: { title: 'Braces Dentists in Delhi', description: 'Find verified orthodontists in Delhi, compare fees and book an appointment.', initialLocation: 'Delhi', initialServiceId: 'braces-orthodontics' },
       },
       {
+        path: 'root-canal/delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Root Canal Dentists in Delhi', description: 'Find verified root canal specialists in Delhi, compare rotary endodontic fees and book an appointment.', initialLocation: 'Delhi', initialServiceId: 'root-canal' },
+      },
+      {
+        path: 'root-canal/gurugram',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Root Canal Dentists in Gurugram', description: 'Find verified root canal dentists in Gurugram, compare fees and book an appointment.', initialLocation: 'Gurugram', initialServiceId: 'root-canal' },
+      },
+      {
+        path: 'dental-implants/noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Dental Implant Dentists in Noida', description: 'Find certified dental implantologists in Noida, compare tooth implant pricing and book a consultation.', initialLocation: 'Noida', initialServiceId: 'dental-implants' },
+      },
+      {
+        path: 'dental-implants/gurugram',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Dental Implant Dentists in Gurugram', description: 'Find verified dental implant clinics in Gurugram, compare pricing and book an appointment.', initialLocation: 'Gurugram', initialServiceId: 'dental-implants' },
+      },
+      {
+        path: 'braces/noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Braces & Aligners in Noida', description: 'Find verified orthodontists in Noida, compare metal, ceramic braces and clear aligners fees.', initialLocation: 'Noida', initialServiceId: 'braces-orthodontics' },
+      },
+      {
+        path: 'teeth-whitening/delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Teeth Whitening Dentists in Delhi', description: 'Find verified cosmetic dentists in Delhi offering professional laser and in-office teeth whitening.', initialLocation: 'Delhi', initialServiceId: 'teeth-whitening' },
+      },
+      {
+        path: 'teeth-whitening/noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Teeth Whitening Dentists in Noida', description: 'Find verified cosmetic dentists in Noida offering professional teeth whitening and bleaching.', initialLocation: 'Noida', initialServiceId: 'teeth-whitening' },
+      },
+      {
+        path: 'cleaning-scaling/delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Teeth Cleaning & Scaling in Delhi', description: 'Find verified dental clinics in Delhi offering deep teeth scaling and polishing.', initialLocation: 'Delhi', initialServiceId: 'cleaning-scaling' },
+      },
+      {
+        path: 'cleaning-scaling/noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Teeth Cleaning & Scaling in Noida', description: 'Find verified dental clinics in Noida offering ultrasonic scaling, stain removal, and polishing.', initialLocation: 'Noida', initialServiceId: 'cleaning-scaling' },
+      },
+      {
+        path: 'emergency/delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Emergency Dentists in Delhi', description: 'Find verified emergency dental clinics in Delhi with same-day appointments for acute toothache relief.', initialLocation: 'Delhi', initialServiceId: 'emergency-dental-care' },
+      },
+      {
+        path: 'emergency/noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Emergency Dentists in Noida', description: 'Find verified emergency dental clinics in Noida with same-day appointments for urgent dental care.', initialLocation: 'Noida', initialServiceId: 'emergency-dental-care' },
+      },
+      {
+        path: 'delhi/south-delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Dentists in South Delhi', description: 'Find top-rated verified dentists in South Delhi including South Extension, GK, and Saket.', initialLocation: 'South Delhi' },
+      },
+      {
+        path: 'gurugram/cyber-city',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Dentists in Cyber City, Gurugram', description: 'Find verified dental clinics near DLF Cyber City and Golf Course Road, Gurugram.', initialLocation: 'Cyber City' },
+      },
+      {
         path: ':slug/book',
         loadComponent: () =>
           import('./features/marketplace/marketplace-booking.component').then(m => m.MarketplaceBookingComponent),

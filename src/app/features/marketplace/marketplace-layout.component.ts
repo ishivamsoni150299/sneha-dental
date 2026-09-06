@@ -6,6 +6,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   standalone: true,
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './marketplace-layout.component.html',
+  styleUrl: './marketplace-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceLayoutComponent {}

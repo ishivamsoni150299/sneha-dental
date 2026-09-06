@@ -279,4 +279,68 @@ describe('DentistDirectoryComponent', () => {
     fixture.detectChanges();
     expect(component.discoveryType()).toBe('clinics');
   });
+
+  it('computes SEO page heading, kicker and lead paragraph dynamically based on search intent', async () => {
+    const { fixture, component } = await setupComponent();
+
+    expect(component.pageHeading()).toBe('Find the Right Dentist Near You in Delhi NCR');
+    expect(component.pageKicker()).toBe('Delhi NCR Dental Discovery · Verified Clinics');
+
+    marketplaceSpy.serviceLabel.and.returnValue('Root Canal Treatment');
+    component.serviceId.set('root-canal');
+    component.locality.set('Noida');
+    fixture.detectChanges();
+
+    expect(component.pageHeading()).toBe('Root Canal Treatment in Noida');
+    expect(component.pageKicker()).toBe('Specialist Care · Verified Clinics in Noida');
+    expect(component.pageLead()).toContain('Noida');
+
+    component.locality.set('');
+    fixture.detectChanges();
+    expect(component.pageHeading()).toBe('Root Canal Treatment Specialists in Delhi NCR');
+  });
+
+  it('renders breadcrumbs matching Schema.org BreadcrumbList specification', async () => {
+    const { fixture, component } = await setupComponent();
+
+    const breadcrumbsNav = fixture.nativeElement.querySelector('.breadcrumbs-trail');
+    expect(breadcrumbsNav).toBeTruthy();
+    expect(breadcrumbsNav.textContent).toContain('Home');
+    expect(breadcrumbsNav.textContent).toContain('Dentists');
+
+    marketplaceSpy.serviceLabel.and.returnValue('Dental Implants');
+    component.locality.set('Delhi');
+    component.serviceId.set('dental-implants');
+    fixture.detectChanges();
+
+    expect(breadcrumbsNav.textContent).toContain('Delhi');
+    expect(breadcrumbsNav.textContent).toContain('Dental Implants');
+  });
+
+  it('renders the 2026 Delhi NCR Dental Treatment & Procedure Cost Guide table', async () => {
+    const { fixture, component } = await setupComponent();
+
+    const costSection = fixture.nativeElement.querySelector('.cost-guide-section');
+    expect(costSection).toBeTruthy();
+    expect(costSection.textContent).toContain('Delhi NCR Dental Treatment & Procedure Cost Guide');
+    expect(costSection.textContent).toContain('Root Canal Treatment (RCT)');
+    expect(costSection.textContent).toContain('Dental Implants');
+    expect(costSection.textContent).toContain('₹2,500 – ₹7,500');
+
+    expect(component.treatmentCostGuide.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('provides dynamic FAQs tailored to active treatment service', async () => {
+    const { component } = await setupComponent();
+
+    expect(component.dynamicFaqs().length).toBeGreaterThan(0);
+
+    component.serviceId.set('root-canal');
+    const rctFaqs = component.dynamicFaqs();
+    expect(rctFaqs.some(f => f.question.includes('root canal'))).toBeTrue();
+
+    component.serviceId.set('dental-implants');
+    const implantFaqs = component.dynamicFaqs();
+    expect(implantFaqs.some(f => f.question.includes('dental implant'))).toBeTrue();
+  });
 });

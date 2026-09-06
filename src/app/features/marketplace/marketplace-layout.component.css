@@ -1,0 +1,10 @@
+.marketplace-shell { min-height:100vh; background:white; color:#111827; font-family:Arial,sans-serif; }
+.marketplace-header { height:76px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:0 max(40px,calc((100vw - 1440px)/2 + 48px)); border-bottom:1px solid #e5e7eb; background:white; }
+.wordmark { font-family:Georgia,serif; font-size:30px; font-weight:600; letter-spacing:-1px; white-space:nowrap; }
+.marketplace-header nav { display:flex; height:100%; gap:34px; align-items:stretch; font-size:15px; color:#6b7280; }
+.marketplace-header nav a { display:flex; align-items:center; border-bottom:2px solid transparent; }
+.marketplace-header nav .active { color:#2563eb; border-color:#2563eb; }
+footer { padding:30px 48px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; gap:24px; color:#6b7280; font-size:12px; }
+footer nav { display:flex; gap:24px; }
+a:focus-visible { outline:3px solid #2563eb; outline-offset:4px; }
+@media(max-width:767px) { .marketplace-header { padding:0 20px; height:auto; min-height:94px; flex-wrap:wrap; gap:4px; padding-top:16px; } .wordmark { font-size:26px; } .marketplace-header nav { height:40px; width:100%; gap:24px; font-size:13px; } footer { padding:24px 20px; flex-direction:column; } }

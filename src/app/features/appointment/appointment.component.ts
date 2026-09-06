@@ -229,6 +229,28 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.form.get('time')!.valueChanges.subscribe(() => { this.validateScheduleFields(); })
     );
+    if (this.bookingContext) void this.prefillRequestedSlot();
+  }
+
+  private async prefillRequestedSlot(): Promise<void> {
+    const startsAt = this.route.snapshot.queryParamMap.get('startsAt');
+    const doctorId = this.route.snapshot.queryParamMap.get('doctorId');
+    if (!startsAt || !doctorId || !this.doctors().some(doctor => doctor.id === doctorId)) return;
+    const instant = new Date(startsAt);
+    if (!Number.isFinite(instant.getTime()) || instant.getTime() <= Date.now()) return;
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(instant);
+    const part = (type: string) => parts.find(item => item.type === type)?.value ?? '';
+    const date = `${part('year')}-${part('month')}-${part('day')}`;
+    const time = `${part('hour')}:${part('minute')}`;
+    this.selectedDoctorId.set(doctorId);
+    this.form.patchValue({ date }, { emitEvent: false });
+    await this.refreshSlots();
+    if (this.selectedDoctorId() === doctorId && this.form.get('date')?.value === date && this.availableSlots().includes(time)) {
+      this.form.patchValue({ time });
+    }
   }
 
   ngOnDestroy() { this.subs.unsubscribe(); }

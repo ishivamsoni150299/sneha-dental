@@ -1,118 +1,13 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-  <a href="#marketplace-content"
-     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
-    Skip to results
-  </a>
-
-  <!-- Top Trust & Region Notification Strip -->
-  <div class="border-b border-blue-100 bg-gradient-to-r from-blue-50 via-white to-blue-50/60 px-4 py-1.5 text-xs text-slate-700">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-2 font-medium">
-        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>Delhi NCR Verified Network: <strong>Delhi, Noida, Gurugram, Ghaziabad & Faridabad</strong></span>
-      </div>
-      <div class="hidden sm:flex items-center gap-4 text-[11px] text-slate-600">
-        <span class="flex items-center gap-1 font-semibold text-emerald-800">
-          <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-          </svg>
-          Zero Booking Fee
-        </span>
-        <span class="text-slate-300">|</span>
-        <span class="flex items-center gap-1 font-semibold text-slate-700">
-          <svg class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-          </svg>
-          DCI Verified Dentists
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-      <a routerLink="/dentists" class="flex min-w-0 items-center gap-2.5 group" aria-label="mydentalplatform dentist directory">
-        <img src="/assets/brand/mydentalplatform-logo.svg" alt="" class="h-9 w-9 shrink-0 transition group-hover:scale-105">
-        <div class="flex flex-col">
-          <div class="flex items-center gap-1.5">
-            <span class="text-base font-bold tracking-tight text-slate-950 sm:text-lg">mydentalplatform</span>
-            <span class="hidden sm:inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60 uppercase">Dentists</span>
-          </div>
-          <span class="hidden sm:block text-[11px] font-medium text-slate-500">Find & Book Verified Dental Care</span>
-        </div>
-      </a>
-
-      <nav aria-label="Patient navigation" class="flex items-center gap-1.5 sm:gap-2">
-        <a routerLink="/dentists" routerLinkActive="bg-blue-50 text-blue-700 font-bold"
-           [routerLinkActiveOptions]="{ exact: true }"
-           class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
-          Find Dentist
-        </a>
-        <a routerLink="/appointments" routerLinkActive="bg-blue-50 text-blue-700 font-bold"
-           class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
-          My Bookings
-        </a>
-        <a routerLink="/business" class="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:border-blue-600 hover:bg-blue-50/50 hover:text-blue-700">
-          <svg class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-          </svg>
-          For Clinics
-        </a>
-      </nav>
-    </div>
+<div class="marketplace-shell">
+  <a href="#marketplace-content" class="sr-only focus:not-sr-only">Skip to content</a>
+  <header class="marketplace-header">
+    <a class="wordmark" routerLink="/dentists">MyDentalPlatform</a>
+    <nav aria-label="Patient navigation">
+      <a routerLink="/dentists" routerLinkActive="active">Find a dentist</a>
+      <a routerLink="/appointments" routerLinkActive="active">My appointments</a>
+      <a routerLink="/business" class="clinic-nav">For clinics</a>
+    </nav>
   </header>
-
-  <main id="marketplace-content" class="flex-1">
-    <router-outlet />
-  </main>
-
-  <footer class="border-t border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 gap-8 md:grid-cols-4 pb-8 border-b border-slate-200">
-        <div class="space-y-3 md:col-span-2">
-          <div class="flex items-center gap-2">
-            <img src="/assets/brand/mydentalplatform-logo.svg" alt="" class="h-7 w-7">
-            <span class="text-base font-bold text-slate-950">mydentalplatform</span>
-          </div>
-          <p class="max-w-md text-xs leading-relaxed text-slate-600">
-            Delhi NCR's dedicated dental platform helping patients find verified dentists, compare consultation fees, and request direct clinic appointments without hidden charges.
-          </p>
-          <div class="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold text-slate-500">
-            <span class="inline-flex items-center gap-1">🛡️ DCI Verified Clinics</span>
-            <span>•</span>
-            <span class="inline-flex items-center gap-1">⭐ Verified Reviews</span>
-            <span>•</span>
-            <span class="inline-flex items-center gap-1">⚡ Instant Appointment Requests</span>
-          </div>
-        </div>
-        <div>
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Popular Regions</h4>
-          <ul class="space-y-2 text-xs text-slate-600">
-            <li><a routerLink="/dentists/noida" class="hover:text-blue-600">Dentists in Noida</a></li>
-            <li><a routerLink="/dentists/delhi" class="hover:text-blue-600">Dentists in South & Central Delhi</a></li>
-            <li><a routerLink="/dentists/gurugram" class="hover:text-blue-600">Dentists in Gurugram</a></li>
-            <li><a routerLink="/dentists/ghaziabad" class="hover:text-blue-600">Dentists in Ghaziabad</a></li>
-            <li><a routerLink="/dentists/faridabad" class="hover:text-blue-600">Dentists in Faridabad</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Top Treatments</h4>
-          <ul class="space-y-2 text-xs text-slate-600">
-            <li><a routerLink="/dentists/root-canal/noida" class="hover:text-blue-600">Root Canal Treatment</a></li>
-            <li><a routerLink="/dentists/dental-implants/delhi" class="hover:text-blue-600">Dental Implants</a></li>
-            <li><a routerLink="/dentists/braces/delhi" class="hover:text-blue-600">Orthodontic Braces & Aligners</a></li>
-            <li><a routerLink="/business/signup" class="font-bold text-blue-700 hover:text-blue-800">List Your Clinic Free →</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="flex flex-col gap-4 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-        <p>© 2026 mydentalplatform. All rights reserved.</p>
-        <div class="flex flex-wrap gap-5">
-          <a routerLink="/business/privacy" class="hover:text-slate-900">Privacy Policy</a>
-          <a routerLink="/business/terms" class="hover:text-slate-900">Terms of Service</a>
-          <a routerLink="/business" class="hover:text-slate-900">For Dental Clinics</a>
-        </div>
-      </div>
-    </div>
-  </footer>
+  <main id="marketplace-content"><router-outlet /></main>
+  <footer><span>MyDentalPlatform · Dental care in Delhi NCR</span><nav aria-label="Footer"><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a><a routerLink="/business">For clinics</a></nav></footer>
 </div>
