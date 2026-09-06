@@ -1309,6 +1309,25 @@
             <input id="marketplaceConsultationFee" formControlName="marketplaceConsultationFee" type="number"
                    min="0" max="100000" step="1" placeholder="500" class="form-input">
           </div>
+          <div>
+            <label class="form-label" for="marketplaceExperienceYears">Experience (years)</label>
+            <input id="marketplaceExperienceYears" formControlName="marketplaceExperienceYears" type="number"
+                   min="0" max="80" step="1" placeholder="7" class="form-input">
+          </div>
+          <div>
+            <label class="form-label" for="marketplaceSpeciality">Primary speciality</label>
+            <input id="marketplaceSpeciality" formControlName="marketplaceSpeciality" type="text"
+                   placeholder="Endodontist, Orthodontist" class="form-input">
+          </div>
+          <div>
+            <label class="form-label" for="marketplaceGender">Dentist gender</label>
+            <select id="marketplaceGender" formControlName="marketplaceGender" class="form-input">
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
           <div class="sm:col-span-2">
             <label class="form-label" for="marketplaceLanguages">Languages</label>
             <input id="marketplaceLanguages" formControlName="marketplaceLanguages" type="text"

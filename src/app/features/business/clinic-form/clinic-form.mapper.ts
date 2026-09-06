@@ -86,6 +86,9 @@ export interface MarketplaceFormRawValue {
   marketplaceServiceIds: string[];
   marketplaceLanguages: string;
   marketplaceConsultationFee: number | null;
+  marketplaceExperienceYears: number | null;
+  marketplaceSpeciality: string;
+  marketplaceGender: string;
   marketplacePaymentMethods: string[];
   marketplaceAcceptingNewPatients: boolean;
   marketplaceListingImageUrl: string;
@@ -160,6 +163,10 @@ export function buildMarketplaceListingUpdate(
       serviceIds,
       languages: splitList(values.marketplaceLanguages).slice(0, 8),
       consultationFee: optionalNumber(values.marketplaceConsultationFee, 0, 100000),
+      experienceYears: optionalNumber(values.marketplaceExperienceYears, 0, 80),
+      speciality: optionalText(values.marketplaceSpeciality),
+      gender: ['female', 'male', 'other'].includes(values.marketplaceGender)
+        ? values.marketplaceGender as 'female' | 'male' | 'other' : null,
       paymentMethods,
       acceptingNewPatients: values.marketplaceAcceptingNewPatients,
       listingImageUrl: optionalText(values.marketplaceListingImageUrl),
