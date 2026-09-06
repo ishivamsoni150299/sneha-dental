@@ -19,8 +19,9 @@ final class PrerenderedPageController {
 
     @GetMapping(value = {
         "/dentists/noida", "/dentists/delhi", "/dentists/gurugram",
+        "/dentists/ghaziabad", "/dentists/faridabad",
         "/dentists/noida/sector-75", "/dentists/root-canal/noida",
-        "/dentists/dental-implants/delhi"
+        "/dentists/dental-implants/delhi", "/dentists/braces/delhi"
     }, produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     Resource dentistLandingPage(HttpServletRequest request) {

@@ -38,6 +38,16 @@ export const routes: Routes = [
         data: { title: 'Best Dentists in Gurugram', description: 'Find verified dentists in Gurugram, compare fees and check live appointment availability.', initialLocation: 'Gurugram' },
       },
       {
+        path: 'ghaziabad',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Best Dentists in Ghaziabad', description: 'Find verified dentists in Ghaziabad, compare fees and check live appointment availability.', initialLocation: 'Ghaziabad' },
+      },
+      {
+        path: 'faridabad',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Best Dentists in Faridabad', description: 'Find verified dentists in Faridabad, compare fees and check live appointment availability.', initialLocation: 'Faridabad' },
+      },
+      {
         path: 'noida/sector-75',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
         data: { title: 'Dentists in Sector 75, Noida', description: 'Find verified dentists near Sector 75, Noida and book an available appointment.', initialLocation: 'Sector 75' },
@@ -51,6 +61,11 @@ export const routes: Routes = [
         path: 'dental-implants/delhi',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
         data: { title: 'Dental Implant Dentists in Delhi', description: 'Find verified dental implant dentists in Delhi, compare fees and book an appointment.', initialLocation: 'Delhi', initialServiceId: 'dental-implants' },
+      },
+      {
+        path: 'braces/delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Braces Dentists in Delhi', description: 'Find verified orthodontists in Delhi, compare fees and book an appointment.', initialLocation: 'Delhi', initialServiceId: 'braces-orthodontics' },
       },
       {
         path: ':slug/book',
@@ -86,6 +101,23 @@ export const routes: Routes = [
         data: {
           title: 'Verified Dentist Profile',
           description: 'View qualifications, treatments, fees, clinic information, patient reviews and appointment availability.',
+        },
+      },
+    ],
+  },
+  {
+    path: 'clinic',
+    canActivate: [platformOnlyGuard],
+    loadComponent: () =>
+      import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
+    children: [
+      {
+        path: ':slug',
+        loadComponent: () =>
+          import('./features/marketplace/dentist-profile.component').then(m => m.DentistProfileComponent),
+        data: {
+          title: 'Verified Dental Clinic Profile',
+          description: 'View clinic photos, location, dentists, treatments, fees, reviews and appointment availability.',
         },
       },
     ],
