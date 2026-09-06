@@ -4,6 +4,8 @@ Multi-tenant dental marketplace and clinic operations platform. Angular 19 and S
 
 ## Architecture
 
+The marketplace-first product boundaries, user flows, domain ownership, and scaling sequence are documented in [Product architecture](docs/PRODUCT_ARCHITECTURE.md).
+
 ```text
 Browser -> Render Docker service -> Spring Boot -> Supabase PostgreSQL
                               |-> Angular static application
