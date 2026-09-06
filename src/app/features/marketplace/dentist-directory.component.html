@@ -30,17 +30,20 @@
     </nav>
     <span class="hero-kicker">{{ pageKicker() }}</span>
     }
-    <h1>{{ isDiscoveryHome ? 'Good dental care. Close to you.' : pageHeading() }}</h1>
-    <p class="hero-description">{{ isDiscoveryHome ? 'Tell us what you need. Find a dentist you feel good about.' : pageLead() }}</p>
+    @if (isDiscoveryHome) {
+      <span class="hero-kicker">Verified dentists · Clear fees · Direct booking</span>
+    }
+    <h1>{{ isDiscoveryHome ? 'Find the right dentist for what hurts.' : pageHeading() }}</h1>
+    <p class="hero-description">{{ isDiscoveryHome ? 'Tell us the problem and your location. We’ll help you compare trusted dentists and book the right care.' : pageLead() }}</p>
     <form class="search-bar" role="search" (submit)="$event.preventDefault(); findDentists()">
       <div class="search-field">
-        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         <div><label for="dentist-search">Problem or treatment</label>
           <input id="dentist-search" type="search" placeholder="Toothache, root canal, braces…" [value]="searchTerm()" (input)="updateSearch($event)">
         </div>
       </div>
       <div class="search-field location-field">
-        <i class="ph ph-map-pin" aria-hidden="true"></i>
+        <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
         <div><label for="dentist-locality">Where are you?</label>
           <select id="dentist-locality" [value]="locality()" (change)="updateLocality($event)">
             <option value="">Delhi NCR</option>
@@ -48,7 +51,7 @@
             @for (place of localities(); track place) { <option [value]="place">{{ place }}</option> }
           </select>
         </div>
-        <button type="button" class="location-button" (click)="useMyLocation()" [disabled]="locating()" aria-label="Find dentists near my location"><i class="ph ph-crosshair" aria-hidden="true"></i></button>
+        <button type="button" class="location-button" (click)="useMyLocation()" [disabled]="locating()" aria-label="Find dentists near my location"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
       </div>
       <button type="submit" class="primary search-submit">Find Dentists</button>
     </form>
@@ -57,9 +60,14 @@
     <div class="problems" aria-label="Choose your dental concern">
       @for (problem of cleanProblems; track problem.label) {
         <button type="button" [class.selected]="serviceId() === problem.serviceId" [attr.aria-pressed]="serviceId() === problem.serviceId" (click)="chooseService(problem.serviceId)">
-          <i [class]="'ph ' + problem.icon" aria-hidden="true"></i>{{ problem.label }}
+          <span class="problem-dot" aria-hidden="true"></span>{{ problem.label }}
         </button>
       }
+    </div>
+    <div class="trust-strip" aria-label="Why patients can book with confidence">
+      <span><strong>Verified profiles</strong><small>Registration and identity checks</small></span>
+      <span><strong>Transparent choices</strong><small>Compare fees, experience and location</small></span>
+      <span><strong>No booking fee</strong><small>Pay the clinic directly</small></span>
     </div>
   </div>
 </section>
@@ -71,9 +79,9 @@
         <button type="button" (click)="discoveryType.set('clinics')" [class.active]="discoveryType() === 'clinics'" [attr.aria-pressed]="discoveryType() === 'clinics'">Dental clinics</button>
       </div>
       <div class="quick-filters">
-        <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()"><i class="ph ph-calendar-blank" aria-hidden="true"></i>Available Today</button>
+        <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()">Available today</button>
         <select aria-label="Maximum consultation fee" [value]="maxFee() ?? 0" (change)="updateFee($event)"><option value="0">Fee: any</option><option value="500">Up to ₹500</option><option value="1000">Up to ₹1,000</option></select>
-        <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-controls="advanced-filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i>More filters</button>
+        <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-controls="advanced-filters">More filters</button>
       </div>
     </div>
     @if (isMobileFilterOpen()) {
@@ -96,7 +104,7 @@
       </div>
     }
     @if (loading()) {
-      <div class="empty-state" role="status"><i class="ph ph-tooth" aria-hidden="true"></i><h2>A little closer to the right care.</h2><p>Loading verified clinic details and appointment times.</p></div>
+      <div class="empty-state" role="status"><span class="status-orbit" aria-hidden="true"></span><h2>Finding trusted care nearby…</h2><p>Checking verified profiles and appointment times.</p></div>
     } @else if (error()) {
       <div class="empty-state" role="alert"><h2>We couldn’t load the directory.</h2><p>{{ error() }}</p><button type="button" class="primary" (click)="retry()">Try again</button></div>
     } @else {
@@ -137,7 +145,23 @@
             </div>
           </article>
         } @empty {
-          <div class="empty-state"><i class="ph ph-tooth" aria-hidden="true"></i><h2>{{ clinics().length ? 'Let’s widen your search.' : 'Good care starts with verified people.' }}</h2><p>{{ clinics().length ? 'Try a nearby city or remove a filter to see more options.' : 'We’re checking our first clinic listings. Dentist profiles and appointment times will appear here once verified.' }}</p>@if (hasFilters()) {<button type="button" (click)="clearFilters()" class="primary">See all dentists</button>} @else {<a routerLink="/business/signup" class="secondary">Are you a dentist? Join the directory</a>}</div>
+          <div class="empty-state empty-state-helpful">
+            <div class="empty-copy">
+              <span class="empty-label">{{ clinics().length ? 'No exact matches' : 'Directory opening soon' }}</span>
+              <h2>{{ clinics().length ? 'Let’s widen your search.' : 'We’re verifying the first dentists.' }}</h2>
+              <p>{{ clinics().length ? 'Try all Delhi NCR, remove a filter, or choose another treatment.' : 'Every dentist must complete our checks before appearing here. You can still explore treatment costs while verified profiles are prepared.' }}</p>
+              @if (hasFilters()) {<button type="button" (click)="clearFilters()" class="primary">Clear filters</button>} @else {<a href="#cost-guide-heading" class="primary">Explore treatment costs</a>}
+            </div>
+            <div class="booking-steps" aria-label="How booking works">
+              <span class="steps-kicker">How it works</span>
+              <ol>
+                <li><b>1</b><span><strong>Tell us what hurts</strong><small>Choose a problem or treatment.</small></span></li>
+                <li><b>2</b><span><strong>Compare trusted dentists</strong><small>Review fees, experience and availability.</small></span></li>
+                <li><b>3</b><span><strong>Book your time</strong><small>Request a slot with no platform fee.</small></span></li>
+              </ol>
+            </div>
+            <p class="provider-invite">Dental professional? <a routerLink="/professional/signup">Create your independent profile</a></p>
+          </div>
         }
       </div>
     }
