@@ -18,9 +18,39 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
         data: {
-          title: 'Verified Dentists in Delhi NCR',
-          description: 'Find verified dentists in Delhi, Noida, Gurugram, Ghaziabad and Faridabad. Compare treatments and fees, then request an appointment online.',
+          title: 'Find the Right Dentist Near You',
+          description: 'Tell us your dental problem, compare verified dentists, check live availability and book an appointment across Delhi NCR.',
         },
+      },
+      {
+        path: 'noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Best Dentists in Noida', description: 'Find verified dentists in Noida, compare fees and check live appointment availability.', initialLocation: 'Noida' },
+      },
+      {
+        path: 'delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Best Dentists in Delhi', description: 'Find verified dentists in Delhi, compare fees and check live appointment availability.', initialLocation: 'Delhi' },
+      },
+      {
+        path: 'gurugram',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Best Dentists in Gurugram', description: 'Find verified dentists in Gurugram, compare fees and check live appointment availability.', initialLocation: 'Gurugram' },
+      },
+      {
+        path: 'noida/sector-75',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Dentists in Sector 75, Noida', description: 'Find verified dentists near Sector 75, Noida and book an available appointment.', initialLocation: 'Sector 75' },
+      },
+      {
+        path: 'root-canal/noida',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Root Canal Dentists in Noida', description: 'Find verified root canal dentists in Noida, compare fees and book an appointment.', initialLocation: 'Noida', initialServiceId: 'root-canal' },
+      },
+      {
+        path: 'dental-implants/delhi',
+        loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
+        data: { title: 'Dental Implant Dentists in Delhi', description: 'Find verified dental implant dentists in Delhi, compare fees and book an appointment.', initialLocation: 'Delhi', initialServiceId: 'dental-implants' },
       },
       {
         path: ':slug/book',
@@ -39,6 +69,23 @@ export const routes: Routes = [
         data: {
           title: 'Verified Dental Clinic in Delhi NCR',
           description: 'View verified dentist details, services, consultation fees, clinic hours, and request an appointment.',
+        },
+      },
+    ],
+  },
+  {
+    path: 'dentist',
+    canActivate: [platformOnlyGuard],
+    loadComponent: () =>
+      import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
+    children: [
+      {
+        path: ':slug',
+        loadComponent: () =>
+          import('./features/marketplace/dentist-profile.component').then(m => m.DentistProfileComponent),
+        data: {
+          title: 'Verified Dentist Profile',
+          description: 'View qualifications, treatments, fees, clinic information, patient reviews and appointment availability.',
         },
       },
     ],

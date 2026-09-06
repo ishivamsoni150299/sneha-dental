@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class SpaRoutingConfig implements WebMvcConfigurer {
     static final String[] ROUTES = {
-        "/business", "/business/**", "/dentists", "/dentists/**",
+        "/business", "/business/**", "/dentists", "/dentists/**", "/dentist/**",
         "/services", "/about", "/appointment", "/appointment/**",
         "/appointments", "/platform/login", "/coming-soon",
         "/admin", "/admin/**",

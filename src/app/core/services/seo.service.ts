@@ -180,7 +180,7 @@ export class SeoService {
           })),
         })
       : undefined;
-    const dentistDirectory = path === '/dentists'
+    const dentistDirectory = path === '/dentists' || path.startsWith('/dentists/')
       ? this.compact({
           '@type': 'CollectionPage',
           '@id': `${url}#directory`,
@@ -196,7 +196,7 @@ export class SeoService {
           },
         })
       : undefined;
-    const dentistFaq = path === '/dentists'
+    const dentistFaq = path === '/dentists' || path.startsWith('/dentists/')
       ? this.compact({
           '@type': 'FAQPage',
           '@id': `${url}#faq`,

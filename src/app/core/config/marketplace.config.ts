@@ -35,6 +35,9 @@ export interface MarketplaceProfile {
   serviceIds: MarketplaceDentalServiceId[];
   languages: string[];
   consultationFee?: number | null;
+  experienceYears?: number | null;
+  gender?: 'female' | 'male' | 'other' | null;
+  speciality?: string | null;
   paymentMethods: MarketplacePaymentMethod[];
   acceptingNewPatients: boolean;
   listingImageUrl?: string | null;
