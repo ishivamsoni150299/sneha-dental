@@ -3,6 +3,7 @@ package com.mydentalplatform.auth;
 public enum UserRole {
     CLINIC_ADMIN("clinic-admin"),
     PLATFORM_ADMIN("platform-admin"),
+    DENTIST("dentist"),
     PATIENT("patient"),
     INCOMPLETE_SIGNUP("incomplete-signup");
 

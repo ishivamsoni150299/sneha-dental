@@ -83,6 +83,24 @@ public class ClinicLoginService {
     }
 
     @Transactional
+    public LoginResult signupProfessional(String email, String password, String fullName, String userAgent) {
+        String normalizedEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
+        if (userRepository.findByEmail(normalizedEmail).isPresent()) {
+            throw new AuthConflictException("An account already exists for this email.");
+        }
+        AuthUser user = userRepository.createProfessionalSignup(
+            normalizedEmail, passwordEncoder.encode(password), fullName);
+        Instant now = clock.instant();
+        TokenService.RefreshToken refreshToken = tokenService.createRefreshToken(now);
+        refreshTokenRepository.create(user.id(), refreshToken.hash(), refreshToken.expiresAt(), userAgent);
+        return new LoginResult(
+            tokenService.createAccessToken(user, now),
+            tokenService.accessTokenExpiresInSeconds(),
+            refreshToken,
+            user);
+    }
+
+    @Transactional
     public LoginResult refresh(String refreshTokenValue, String userAgent) {
         if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
             throw new AuthException("Refresh token is required.");

@@ -389,6 +389,87 @@ public class PlatformAdminController {
         return ResponseEntity.ok(Map.of("status", "suspended", "clinicId", clinicId.toString()));
     }
 
+    @GetMapping("/providers/pending")
+    List<Map<String, Object>> pendingProviders(@AuthenticationPrincipal Jwt jwt) {
+        requireAdmin(jwt);
+        return jdbcTemplate.queryForList("""
+            SELECT p.id, p.slug, p.full_name, p.qualification, p.speciality,
+                   p.experience_years, p.registration_number, p.registration_council,
+                   p.phone_e164, p.photo_url, p.languages::text AS languages, p.created_at,
+                   count(m.location_id) AS active_location_count
+            FROM providers p
+            LEFT JOIN provider_location_memberships m
+              ON m.provider_id = p.id AND m.status = 'active'
+            WHERE p.verification_status = 'pending'
+            GROUP BY p.id
+            ORDER BY p.created_at ASC
+            """);
+    }
+
+    @PostMapping("/providers/{providerId}/verify")
+    @Transactional
+    ResponseEntity<Map<String, Object>> verifyProvider(
+        @AuthenticationPrincipal Jwt jwt,
+        @PathVariable UUID providerId
+    ) {
+        requireAdmin(jwt);
+        UUID reviewerId = UUID.fromString(jwt.getSubject());
+        int updated = jdbcTemplate.update("""
+            UPDATE providers SET verification_status = 'verified', verified_at = now(), updated_at = now()
+            WHERE id = ? AND verification_status = 'pending'
+              AND qualification IS NOT NULL AND speciality IS NOT NULL
+              AND registration_number IS NOT NULL AND registration_council IS NOT NULL
+              AND EXISTS (
+                  SELECT 1 FROM provider_location_memberships m
+                  WHERE m.provider_id = providers.id AND m.status = 'active'
+              )
+            """, providerId);
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "The dentist is not pending or the required evidence is incomplete.");
+        }
+        jdbcTemplate.update("""
+            UPDATE provider_marketplace_listings
+            SET publication_status = 'published', published_at = now(), updated_at = now()
+            WHERE provider_id = ?
+            """, providerId);
+        jdbcTemplate.update("""
+            INSERT INTO provider_verification_reviews (provider_id, reviewer_id, decision)
+            VALUES (?, ?, 'verified')
+            """, providerId, reviewerId);
+        return ResponseEntity.ok(Map.of("status", "verified", "providerId", providerId.toString()));
+    }
+
+    @PostMapping("/providers/{providerId}/reject")
+    @Transactional
+    ResponseEntity<Map<String, Object>> rejectProvider(
+        @AuthenticationPrincipal Jwt jwt,
+        @PathVariable UUID providerId,
+        @RequestBody Map<String, String> body
+    ) {
+        requireAdmin(jwt);
+        UUID reviewerId = UUID.fromString(jwt.getSubject());
+        String reason = body.getOrDefault("reason", "").trim();
+        if (reason.length() > 1000) reason = reason.substring(0, 1000);
+        int updated = jdbcTemplate.update("""
+            UPDATE providers SET verification_status = 'rejected', verified_at = null, updated_at = now()
+            WHERE id = ? AND verification_status = 'pending'
+            """, providerId);
+        if (updated != 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The dentist is not pending verification.");
+        }
+        jdbcTemplate.update("""
+            UPDATE provider_marketplace_listings
+            SET publication_status = 'unlisted', published_at = null, updated_at = now()
+            WHERE provider_id = ?
+            """, providerId);
+        jdbcTemplate.update("""
+            INSERT INTO provider_verification_reviews (provider_id, reviewer_id, decision, reason)
+            VALUES (?, ?, 'rejected', ?)
+            """, providerId, reviewerId, reason);
+        return ResponseEntity.ok(Map.of("status", "rejected", "providerId", providerId.toString()));
+    }
+
     private List<Map<String, Object>> clinicQuery(String suffix, Object... arguments) {
         return jdbcTemplate.query("""
             select c.*, c.public_config::text as public_json, p.billing_email,

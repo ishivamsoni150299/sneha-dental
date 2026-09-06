@@ -16,6 +16,7 @@
 
       <!-- Nav links — use (click) + scrollTo to avoid Angular router interference -->
       <nav class="flex items-center gap-2">
+        <a routerLink="/professional" class="hidden lg:inline text-xs font-semibold text-blue-700 hover:text-blue-800">Are you a dentist?</a>
         <button (click)="scrollTo('problem')"  class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Why now?</button>
         <button (click)="scrollTo('features')" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Features</button>
         <button (click)="scrollTo('portfolio')" class="hidden md:inline text-xs text-gray-500 hover:text-gray-900 transition-colors cursor-pointer bg-transparent border-0">Our Work</button>

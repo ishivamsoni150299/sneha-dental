@@ -69,6 +69,7 @@ public class SecurityConfig {
                     "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
                 .requestMatchers(
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
+                    "/api/auth/professional/login", "/api/auth/professional/signup",
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()
                 .requestMatchers("/webhooks/**").permitAll()
                 .anyRequest().authenticated())

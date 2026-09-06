@@ -81,10 +81,12 @@ Do not split these into networked microservices yet. First enforce package bound
 2. Dentist identity, clinic membership, and location are separate. One dentist may later practise at multiple locations.
 3. Appointment, slot, patient, and review data are relational columns. Flexible presentation content may use JSONB.
 4. Separate these clinic concepts instead of growing one `public_config` document indefinitely:
-   - `clinic_profiles`: legal and contact identity
-   - `clinic_locations`: address, coordinates, timezone
-   - `provider_profiles` and `provider_registrations`
-   - `marketplace_listings`: publish state, discovery copy, search attributes
+   - `clinics`: clinic legal and contact identity
+   - `practice_locations`: clinic-owned or independently owned practice locations
+   - `providers`: dentist identity, credentials and verification state
+   - `provider_location_memberships`: accepted dentist-to-location relationships, fees and schedules
+   - `provider_services`: treatments offered by each dentist
+   - `provider_marketplace_listings`: publish state and discovery data
    - `site_versions`: clinic website content and theme
 5. Marketplace reads use a denormalized search projection. Clinic updates rebuild that projection after verification.
 6. A slot hold has a short expiry. Creating an appointment and consuming the hold happens in one database transaction.
@@ -147,6 +149,7 @@ Clinic and platform authorization must be enforced by Spring. Angular guards imp
 The platform domain should make the two audiences explicit:
 
 - Main patient CTA: **Find a dentist**
+- Dentist portal: **`/professional`** for an independently owned profile and practice locations
 - Secondary professional link: **For clinics**
 - Clinic landing CTA: **Join the appointment network**
 - Clinic workspace CTA: **Manage appointments**
@@ -187,4 +190,3 @@ Avoid presenting website creation as the company category. It is a clinic featur
 - Appointment completion and cancellation rates
 - Verified review rate
 - Active clinics with bookable availability in the next seven days
-

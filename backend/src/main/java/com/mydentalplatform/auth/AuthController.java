@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +47,10 @@ public class AuthController {
     ) {
         ClinicLoginService.LoginResult result = loginService.login(
             request.email().trim(), request.password(), servletRequest.getHeader(HttpHeaders.USER_AGENT));
+        if (result.user().role() == UserRole.DENTIST) {
+            loginService.logout(result.refreshToken().value());
+            throw new AuthException("Use the dentist portal to sign in.");
+        }
         return loginResponse(result);
     }
 
@@ -56,6 +61,31 @@ public class AuthController {
     ) {
         ClinicLoginService.LoginResult result = loginService.signup(
             request.email(), request.password(), servletRequest.getHeader(HttpHeaders.USER_AGENT));
+        return loginResponse(result);
+    }
+
+    @PostMapping("/professional/login")
+    ResponseEntity<LoginResponse> professionalLogin(
+        @Valid @RequestBody LoginRequest request,
+        HttpServletRequest servletRequest
+    ) {
+        ClinicLoginService.LoginResult result = loginService.login(
+            request.email().trim(), request.password(), servletRequest.getHeader(HttpHeaders.USER_AGENT));
+        if (result.user().role() != UserRole.DENTIST) {
+            loginService.logout(result.refreshToken().value());
+            throw new AuthException("Use the portal connected to your account.");
+        }
+        return loginResponse(result);
+    }
+
+    @PostMapping("/professional/signup")
+    ResponseEntity<LoginResponse> professionalSignup(
+        @Valid @RequestBody ProfessionalSignupRequest request,
+        HttpServletRequest servletRequest
+    ) {
+        ClinicLoginService.LoginResult result = loginService.signupProfessional(
+            request.email(), request.password(), request.fullName(),
+            servletRequest.getHeader(HttpHeaders.USER_AGENT));
         return loginResponse(result);
     }
 
@@ -140,6 +170,13 @@ public class AuthController {
     record SignupRequest(
         @Email @NotBlank String email,
         @NotBlank @jakarta.validation.constraints.Size(min = 8, max = 72) String password
+    ) {
+    }
+
+    record ProfessionalSignupRequest(
+        @Email @NotBlank String email,
+        @NotBlank @Size(min = 2, max = 160) String fullName,
+        @NotBlank @Size(min = 8, max = 72) String password
     ) {
     }
 

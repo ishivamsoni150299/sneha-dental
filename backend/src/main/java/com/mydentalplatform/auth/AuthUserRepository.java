@@ -39,6 +39,28 @@ public class AuthUserRepository {
             passwordHash, true, false, true, false);
     }
 
+    public AuthUser createProfessionalSignup(String email, String passwordHash, String fullName) {
+        UUID userId = UUID.randomUUID();
+        UUID providerId = UUID.randomUUID();
+        String baseSlug = fullName.trim().toLowerCase(java.util.Locale.ROOT)
+            .replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+        if (baseSlug.isBlank()) baseSlug = "dentist";
+        String slug = baseSlug.substring(0, Math.min(baseSlug.length(), 140))
+            + "-" + providerId.toString().substring(0, 8);
+        jdbcTemplate.update("""
+            insert into users (id, role, email, password_hash, email_verified)
+            values (?, 'dentist', lower(?), ?, true)
+            """, userId, email, passwordHash);
+        jdbcTemplate.update("""
+            insert into providers (id, user_id, slug, full_name)
+            values (?, ?, ?, ?)
+            """, providerId, userId, slug, fullName.trim());
+        jdbcTemplate.update("insert into provider_marketplace_listings (provider_id) values (?)", providerId);
+        return new AuthUser(
+            userId, null, UserRole.DENTIST, email.toLowerCase(), null,
+            passwordHash, true, false, true, false);
+    }
+
     private static AuthUser mapUser(ResultSet resultSet, int rowNumber) throws SQLException {
         return new AuthUser(
             resultSet.getObject("id", java.util.UUID.class),

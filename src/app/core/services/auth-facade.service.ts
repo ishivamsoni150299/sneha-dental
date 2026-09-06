@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ClinicConfigService } from './clinic-config.service';
 
-export type AuthRole = 'patient' | 'clinic-admin' | 'platform-admin' | 'incomplete-signup' | 'unverified';
+export type AuthRole = 'patient' | 'dentist' | 'clinic-admin' | 'platform-admin' | 'incomplete-signup' | 'unverified';
 
 export interface PlatformUser {
   uid: string;
@@ -55,6 +55,15 @@ export class AuthFacade {
   async createAccountWithEmail(email: string, password: string): Promise<PlatformUser> {
     this.applySession(await this.authRequest('/api/auth/clinic/signup', { email, password }));
     return this.currentUser()!;
+  }
+
+  async createProfessionalAccount(fullName: string, email: string, password: string): Promise<PlatformUser> {
+    this.applySession(await this.authRequest('/api/auth/professional/signup', { fullName, email, password }));
+    return this.currentUser()!;
+  }
+
+  async signInProfessional(email: string, password: string): Promise<AuthRole> {
+    return this.applySession(await this.authRequest('/api/auth/professional/login', { email, password }));
   }
 
   async createAccountWithGoogle(): Promise<{ user: PlatformUser; role: AuthRole }> {

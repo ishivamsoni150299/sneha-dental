@@ -2,8 +2,21 @@ import type { Routes } from '@angular/router';
 import { clinicRequiredGuard } from './core/guards/clinic-required.guard';
 import { platformOnlyGuard } from './core/guards/platform-only.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
+import { dentistGuard } from './core/guards/dentist.guard';
 
 export const routes: Routes = [
+
+  // Independent dentist identity and professional workspace.
+  {
+    path: 'professional',
+    canActivate: [platformOnlyGuard],
+    children: [
+      { path: '', pathMatch: 'full', loadComponent: () => import('./features/professional/professional-landing.component').then(m => m.ProfessionalLandingComponent), data: { title: 'List Your Dentist Profile', description: 'Create an independent verified dentist profile, add practice locations, publish availability, and receive appointments.' } },
+      { path: 'signup', loadComponent: () => import('./features/professional/professional-signup.component').then(m => m.ProfessionalSignupComponent), data: { title: 'Create Dentist Profile', noIndex: true } },
+      { path: 'login', loadComponent: () => import('./features/professional/professional-login.component').then(m => m.ProfessionalLoginComponent), data: { title: 'Dentist Sign In', noIndex: true } },
+      { path: 'profile', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-profile.component').then(m => m.ProfessionalProfileComponent), data: { title: 'Dentist Profile', noIndex: true } },
+    ],
+  },
 
   // ── Patient marketplace on the platform domain ──────────────────────────
   {
