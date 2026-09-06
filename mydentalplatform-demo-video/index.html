@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>MyDentalPlatform Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;700;900&family=IBM+Plex+Mono:wght@500;700&family=Newsreader:opsz,wght@6..72,700;6..72,900&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        overflow: hidden;
+        background: #f7fbff;
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        color: #0b2e4a;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: #f7fbff;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        padding: 90px 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 34px;
+        background-color: #f7fbff;
+        opacity: 0;
+      }
+
+      .scene::before {
+        content: "";
+        position: absolute;
+        inset: -180px;
+        background:
+          radial-gradient(circle at 14% 16%, rgba(122, 226, 199, 0.35), rgba(122, 226, 199, 0) 28%),
+          radial-gradient(circle at 86% 22%, rgba(29, 100, 216, 0.16), rgba(29, 100, 216, 0) 30%),
+          radial-gradient(circle at 76% 84%, rgba(122, 226, 199, 0.22), rgba(122, 226, 199, 0) 32%);
+        z-index: 0;
+      }
+
+      .scene::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(11, 46, 74, 0.04) 1px, rgba(11, 46, 74, 0) 1px),
+          linear-gradient(90deg, rgba(11, 46, 74, 0.04) 1px, rgba(11, 46, 74, 0) 1px);
+        background-size: 72px 72px;
+        mask-image: radial-gradient(circle at center, black, transparent 74%);
+        z-index: 0;
+      }
+
+      .content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+        align-items: center;
+        gap: 78px;
+        width: 100%;
+        height: 100%;
+      }
+
+      .content.center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 34px;
+      }
+
+      .eyebrow {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 22px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #1d64d8;
+        font-weight: 700;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-family: "Newsreader", serif;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+        line-height: 0.92;
+        color: #0b2e4a;
+      }
+
+      h1 {
+        font-size: 128px;
+        max-width: 980px;
+      }
+
+      h2 {
+        font-size: 100px;
+        max-width: 900px;
+      }
+
+      .sub {
+        margin: 0;
+        max-width: 760px;
+        font-size: 35px;
+        line-height: 1.24;
+        font-weight: 300;
+        color: #273445;
+      }
+
+      .logo {
+        width: 365px;
+        height: auto;
+        filter: drop-shadow(0 22px 42px rgba(11, 46, 74, 0.12));
+      }
+
+      .hero-card,
+      .phone,
+      .workflow-card,
+      .pricing-card,
+      .final-card {
+        border: 1px solid rgba(29, 100, 216, 0.14);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 32px 90px rgba(11, 46, 74, 0.13);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-card {
+        border-radius: 48px;
+        padding: 42px;
+      }
+
+      .card-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        border-bottom: 1px solid rgba(11, 46, 74, 0.08);
+        padding: 20px 0;
+      }
+
+      .card-row:last-child {
+        border-bottom: 0;
+      }
+
+      .label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 19px;
+        text-transform: uppercase;
+        letter-spacing: 0.11em;
+        color: #6a7888;
+      }
+
+      .value {
+        font-size: 31px;
+        font-weight: 900;
+        color: #0b2e4a;
+      }
+
+      .phone {
+        justify-self: center;
+        width: 454px;
+        height: 825px;
+        border-radius: 58px;
+        padding: 24px;
+        background: #f8fbff;
+      }
+
+      .screen {
+        width: 100%;
+        height: 100%;
+        border-radius: 42px;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid rgba(11, 46, 74, 0.08);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .screen-top {
+        padding: 30px;
+        background: #0b4f87;
+        color: white;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 999px;
+        background: #7ae2c7;
+      }
+
+      .clinic-name {
+        margin: 42px 0 8px;
+        font-size: 40px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+      }
+
+      .clinic-meta {
+        font-size: 22px;
+        opacity: 0.78;
+      }
+
+      .screen-body {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .slot {
+        border: 1px solid rgba(29, 100, 216, 0.12);
+        border-radius: 22px;
+        padding: 22px;
+        font-size: 22px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .cta {
+        margin-top: 10px;
+        border-radius: 24px;
+        background: #1d64d8;
+        color: white;
+        padding: 24px;
+        text-align: center;
+        font-size: 25px;
+        font-weight: 900;
+      }
+
+      .workflow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+        width: 100%;
+      }
+
+      .workflow-card {
+        min-height: 285px;
+        border-radius: 38px;
+        padding: 34px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 24px;
+        display: grid;
+        place-items: center;
+        background: #e6f7f4;
+        color: #0b6b5b;
+        font-size: 38px;
+        font-weight: 900;
+      }
+
+      .workflow-title {
+        font-size: 31px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+      }
+
+      .workflow-copy {
+        font-size: 23px;
+        line-height: 1.25;
+        color: #516070;
+      }
+
+      .pricing-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        width: 100%;
+        max-width: 1080px;
+      }
+
+      .pricing-card {
+        border-radius: 42px;
+        padding: 42px;
+      }
+
+      .plan {
+        font-size: 32px;
+        font-weight: 900;
+      }
+
+      .price {
+        margin-top: 16px;
+        font-family: "Newsreader", serif;
+        font-size: 82px;
+        letter-spacing: -0.055em;
+        font-weight: 900;
+      }
+
+      .price span {
+        font-family: "DM Sans", sans-serif;
+        font-size: 27px;
+        color: #6a7888;
+        letter-spacing: 0;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .chip {
+        padding: 12px 16px;
+        border-radius: 999px;
+        background: #eaf2ff;
+        color: #1d64d8;
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      .final-card {
+        border-radius: 52px;
+        padding: 58px 72px;
+        width: 1060px;
+      }
+
+      .final-brand {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-bottom: 18px;
+        color: #0b2e4a;
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+      }
+
+      .final-brand-mark {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #1d64d8, #7ae2c7);
+        color: white;
+        font-size: 31px;
+        font-weight: 900;
+      }
+
+      .url {
+        font-family: "IBM Plex Mono", monospace;
+        color: #1d64d8;
+        font-size: 32px;
+        font-weight: 700;
+      }
+
+      .transition-band {
+        position: absolute;
+        inset: 0;
+        z-index: 12;
+        background: #1d64d8;
+        transform: translateX(-105%);
+        pointer-events: none;
+      }
+
+      .accent-orb {
+        position: absolute;
+        width: 520px;
+        height: 520px;
+        border-radius: 999px;
+        background: rgba(122, 226, 199, 0.28);
+        filter: blur(18px);
+        right: 140px;
+        top: 70px;
+        z-index: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="mydental-demo"
+      data-start="0"
+      data-duration="16"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="scene-1" class="scene">
+        <div class="content">
+          <div>
+            <img id="logo" class="logo" src="assets/mydentalplatform-logo-full.svg" alt="MyDentalPlatform" />
+            <p id="s1-eyebrow" class="eyebrow">Dental clinic growth system</p>
+            <h1 id="s1-title">Your clinic website, ready to book.</h1>
+            <p id="s1-sub" class="sub">
+              Mobile-first clinic pages, online appointments, WhatsApp-ready enquiries, and AI receptionist support.
+            </p>
+          </div>
+          <div id="hero-card" class="hero-card">
+            <div class="card-row">
+              <span class="label">Patient enquiry</span>
+              <span class="value">WhatsApp-ready</span>
+            </div>
+            <div class="card-row">
+              <span class="label">Booking flow</span>
+              <span class="value">Online</span>
+            </div>
+            <div class="card-row">
+              <span class="label">Clinic trust</span>
+              <span class="value">SEO pages</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="scene-2" class="scene">
+        <div class="content">
+          <div>
+            <p id="s2-eyebrow" class="eyebrow">Client-facing website</p>
+            <h2 id="s2-title">A calm mobile experience patients understand.</h2>
+            <p id="s2-sub" class="sub">
+              Clinic name, doctor profile, timings, services, location, and booking CTA structured for one-handed mobile use.
+            </p>
+          </div>
+          <div id="phone" class="phone">
+            <div class="screen">
+              <div class="screen-top">
+                <div class="status"><span class="dot"></span> Open today</div>
+                <div class="clinic-name">Aarogyam Smile Dental</div>
+                <div class="clinic-meta">Jaipur · 4.9 rating · Same-day slots</div>
+              </div>
+              <div class="screen-body">
+                <div class="slot"><strong>Clinic hours</strong><span>9 AM - 8 PM</span></div>
+                <div class="slot"><strong>Services</strong><span>RCT · Implants · Whitening</span></div>
+                <div class="cta">Book Appointment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="scene-3" class="scene">
+        <div class="content center">
+          <p id="s3-eyebrow" class="eyebrow">Lead communication</p>
+          <h2 id="s3-title">Less manual follow-up. More structured patient flow.</h2>
+          <div class="workflow">
+            <div id="w1" class="workflow-card">
+              <div class="icon">1</div>
+              <div>
+                <div class="workflow-title">WhatsApp templates</div>
+                <div class="workflow-copy">First touch, follow-up, demo, and onboarding messages adapt to each clinic.</div>
+              </div>
+            </div>
+            <div id="w2" class="workflow-card">
+              <div class="icon">2</div>
+              <div>
+                <div class="workflow-title">Retell AI calls</div>
+                <div class="workflow-copy">Short Hindi AI calls qualify interest and request permission for demo sharing.</div>
+              </div>
+            </div>
+            <div id="w3" class="workflow-card">
+              <div class="icon">3</div>
+              <div>
+                <div class="workflow-title">Pipeline tracking</div>
+                <div class="workflow-copy">Status, follow-up dates, notes, and activities stay connected to every lead.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="scene-4" class="scene">
+        <div class="content center">
+          <p id="s4-eyebrow" class="eyebrow">Simple plans</p>
+          <h2 id="s4-title">Built for solo clinics and growing dental brands.</h2>
+          <div class="pricing-wrap">
+            <div id="starter" class="pricing-card">
+              <div class="plan">Starter</div>
+              <div class="price">₹999 <span>/month</span></div>
+              <div class="chips">
+                <span class="chip">Website</span>
+                <span class="chip">Booking flow</span>
+                <span class="chip">WhatsApp-ready</span>
+              </div>
+            </div>
+            <div id="pro" class="pricing-card">
+              <div class="plan">Pro</div>
+              <div class="price">₹2,499 <span>/month</span></div>
+              <div class="chips">
+                <span class="chip">AI receptionist</span>
+                <span class="chip">Automation</span>
+                <span class="chip">Lead handling</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="scene-5" class="scene">
+        <div class="content center">
+          <div id="final-card" class="final-card">
+            <div id="final-brand" class="final-brand">
+              <span class="final-brand-mark">M</span>
+              <span>MyDentalPlatform</span>
+            </div>
+            <h2 id="s5-title">Launch a professional dental clinic website in days, not months.</h2>
+            <p id="s5-sub" class="sub">
+              Website, booking, WhatsApp enquiries, and AI communication for modern dental clinics.
+            </p>
+            <div id="url" class="url">mydentalplatform.com</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="transition-band" class="transition-band" data-layout-ignore></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const scenes = ["#scene-1", "#scene-2", "#scene-3", "#scene-4", "#scene-5"];
+
+      gsap.set(scenes, { opacity: 0 });
+      gsap.set("#scene-1", { opacity: 1 });
+
+      function showScene(selector, time) {
+        if (selector !== "#scene-1") {
+          tl.set(selector, { opacity: 1 }, time);
+        }
+      }
+
+      function pushTransition(time) {
+        tl.fromTo(
+          "#transition-band",
+          { x: "-105%", skewX: -9 },
+          { x: "105%", skewX: -9, duration: 0.46, ease: "power3.inOut" },
+          time,
+        );
+      }
+
+      function entrance(scene, items, time) {
+        items.forEach((item, index) => {
+          const ease = ["power3.out", "back.out(1.35)", "expo.out", "sine.out"][index % 4];
+          const vars = item.vars || { y: 42, opacity: 0, scale: 0.98 };
+          tl.from(item.selector, { ...vars, duration: item.duration || 0.62, ease }, time + index * 0.12);
+        });
+      }
+
+      entrance("#scene-1", [
+        { selector: "#logo", vars: { y: 26, opacity: 0, scale: 0.92 } },
+        { selector: "#s1-eyebrow", vars: { x: -34, opacity: 0 } },
+        { selector: "#s1-title", vars: { y: 58, opacity: 0 } },
+        { selector: "#s1-sub", vars: { y: 34, opacity: 0 } },
+        { selector: "#hero-card", vars: { x: 70, opacity: 0, scale: 0.96 }, duration: 0.72 },
+      ], 0.2);
+
+      pushTransition(3.0);
+      showScene("#scene-2", 3.2);
+      tl.set("#scene-1", { opacity: 0 }, 3.48);
+      entrance("#scene-2", [
+        { selector: "#s2-eyebrow", vars: { x: -32, opacity: 0 } },
+        { selector: "#s2-title", vars: { y: 54, opacity: 0 } },
+        { selector: "#s2-sub", vars: { y: 34, opacity: 0 } },
+        { selector: "#phone", vars: { x: 88, opacity: 0, rotation: 2, scale: 0.94 }, duration: 0.76 },
+      ], 3.55);
+
+      pushTransition(6.1);
+      showScene("#scene-3", 6.3);
+      tl.set("#scene-2", { opacity: 0 }, 6.58);
+      entrance("#scene-3", [
+        { selector: "#s3-eyebrow", vars: { y: -24, opacity: 0 } },
+        { selector: "#s3-title", vars: { y: 48, opacity: 0 } },
+        { selector: "#w1", vars: { y: 64, opacity: 0, scale: 0.94 } },
+        { selector: "#w2", vars: { y: 64, opacity: 0, scale: 0.94 } },
+        { selector: "#w3", vars: { y: 64, opacity: 0, scale: 0.94 } },
+      ], 6.8);
+
+      pushTransition(9.45);
+      showScene("#scene-4", 9.65);
+      tl.set("#scene-3", { opacity: 0 }, 9.93);
+      entrance("#scene-4", [
+        { selector: "#s4-eyebrow", vars: { y: -24, opacity: 0 } },
+        { selector: "#s4-title", vars: { y: 48, opacity: 0 } },
+        { selector: "#starter", vars: { x: -58, opacity: 0, scale: 0.94 } },
+        { selector: "#pro", vars: { x: 58, opacity: 0, scale: 0.94 } },
+      ], 10.15);
+
+      pushTransition(12.55);
+      showScene("#scene-5", 12.75);
+      tl.set("#scene-4", { opacity: 0 }, 13.03);
+      entrance("#scene-5", [
+        { selector: "#final-card", vars: { y: 52, opacity: 0, scale: 0.96 } },
+        { selector: "#final-brand", vars: { y: 26, opacity: 0, scale: 0.92 } },
+        { selector: "#s5-title", vars: { y: 42, opacity: 0 } },
+        { selector: "#s5-sub", vars: { y: 28, opacity: 0 } },
+        { selector: "#url", vars: { y: 18, opacity: 0 } },
+      ], 13.2);
+
+      tl.to("#final-card", { opacity: 0, y: -22, duration: 0.7, ease: "power2.in" }, 15.35);
+
+      window.__timelines["mydental-demo"] = tl;
+    </script>
+  </body>
+</html>

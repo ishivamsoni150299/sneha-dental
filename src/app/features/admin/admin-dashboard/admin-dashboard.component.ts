@@ -9,6 +9,7 @@ import { AppointmentService, Appointment, PaymentStatus, PaymentMethod } from '.
 import { clinicHasPlatformFeature } from '../../../core/config/clinic.config';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
+import { ClinicApiService, ContactMessage } from '../../../core/services/clinic-api.service';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
   blue:    { hex: '#1E56DC', hexLight: '#EBF2FF', textClass: 'text-blue-700',    bgClass: 'bg-blue-700'    },
@@ -56,8 +57,15 @@ type UpgradeTeaser = {
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   private appointmentService = inject(AppointmentService);
+  private clinicApi          = inject(ClinicApiService);
   readonly clinic            = inject(ClinicConfigService);
   readonly clinicConfig      = this.clinic.config;
+
+  // ── Section & Enquiries state ────────────────────────────────────────────
+  activeSection   = signal<'appointments' | 'enquiries'>('appointments');
+  contacts        = signal<ContactMessage[]>([]);
+  loadingContacts = signal(false);
+  unreadContactsCount = computed(() => this.contacts().filter(c => c.status === 'unread').length);
 
   // ── Core state ───────────────────────────────────────────────────────────
   appointments    = signal<Appointment[]>([]);
@@ -393,12 +401,44 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
-  ngOnInit() { this.startRealtimeSync(); }
+  ngOnInit() {
+    this.startRealtimeSync();
+    void this.loadContacts();
+  }
 
   ngOnDestroy() {
     this.unsubscribeAppointments?.();
     if (this.errorTimer)   clearTimeout(this.errorTimer);
     if (this.successTimer) clearTimeout(this.successTimer);
+  }
+
+  async loadContacts(): Promise<void> {
+    this.loadingContacts.set(true);
+    try {
+      const list = await this.clinicApi.getClinicContacts();
+      this.contacts.set(list);
+    } catch {
+      this.setError('Could not load patient enquiries.');
+    } finally {
+      this.loadingContacts.set(false);
+    }
+  }
+
+  async markContactStatus(contact: ContactMessage, status: 'unread' | 'read' | 'responded' | 'archived'): Promise<void> {
+    try {
+      await this.clinicApi.updateContactStatus(contact.id, status);
+      this.contacts.update(list => list.map(c => c.id === contact.id ? { ...c, status } : c));
+      this.setSuccess(`Enquiry marked as ${status}.`);
+    } catch {
+      this.setError('Could not update enquiry status.');
+    }
+  }
+
+  contactWhatsappUrl(contact: ContactMessage): string {
+    const phone = contact.phone.replace(/[^0-9]/g, '');
+    const cleanPhone = phone.startsWith('91') ? phone : `91${phone}`;
+    const msg = encodeURIComponent(`Hi ${contact.name}, this is from ${this.clinicConfig.name || 'our clinic'}. Regarding your enquiry: "${contact.message.slice(0, 60)}..."`);
+    return `https://wa.me/${cleanPhone}?text=${msg}`;
   }
 
   /**

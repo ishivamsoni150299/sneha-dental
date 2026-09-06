@@ -170,8 +170,8 @@ export class SignupComponent implements OnInit {
     this.authError.set(null);
     const { email, password } = this.step0.getRawValue();
     try {
-      await this.auth.createAccountWithEmail(email.trim(), password);
-      await this.router.navigate(['/business/verify-email'], { replaceUrl: true });
+      const user = await this.auth.createAccountWithEmail(email.trim(), password);
+      await this.routeAuthenticatedUser(user, this.auth.role() ?? 'incomplete-signup');
     } catch (e: unknown) {
       const code = (e as { code?: string }).code ?? '';
       if (code === 'auth/email-already-in-use') {
@@ -461,10 +461,6 @@ export class SignupComponent implements OnInit {
     }
     if (role === 'clinic-admin') {
       await this.router.navigate(['/business/clinic/dashboard']);
-      return;
-    }
-    if (role === 'unverified') {
-      await this.router.navigate(['/business/verify-email'], { replaceUrl: true });
       return;
     }
     this.authUser.set(user);

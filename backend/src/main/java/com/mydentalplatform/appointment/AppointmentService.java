@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.core.JacksonException;
+import com.mydentalplatform.notification.NotificationService;
 import tools.jackson.databind.ObjectMapper;
 
 @Service
@@ -27,11 +28,22 @@ public class AppointmentService {
     private static final String BOOKING_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
     private final SecureRandom random = new SecureRandom();
 
-    public AppointmentService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public AppointmentService(
+        JdbcTemplate jdbcTemplate,
+        ObjectMapper objectMapper,
+        NotificationService notificationService
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.notificationService = notificationService;
+    }
+
+    public AppointmentService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+        this(jdbcTemplate, objectMapper, null);
     }
 
     @Transactional
@@ -59,6 +71,11 @@ public class AppointmentService {
                     clinic_id, doctor_id, appointment_id, appointment_date, appointment_time
                 ) values (?, ?, ?, ?, ?)
                 """, request.clinicId(), request.doctorId(), appointmentId, request.date(), request.time());
+            if (notificationService != null) {
+                notificationService.notifyClinicNewAppointment(
+                    request.clinicId(), bookingRef, request.name().trim(), "+91" + phone,
+                    request.service().trim(), request.date(), request.time(), request.source());
+            }
             return bookingRef;
         } catch (DuplicateKeyException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -163,7 +180,8 @@ public class AppointmentService {
     @Transactional
     public void setStatus(UUID clinicId, UUID appointmentId, AppointmentController.StatusRequest request) {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-            select status::text as status, source from appointments
+            select status::text as status, source, booking_ref, patient_name, email, appointment_date, appointment_time
+            from appointments
             where id = ? and clinic_id = ? for update
             """, appointmentId, clinicId);
         if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
@@ -190,6 +208,21 @@ public class AppointmentService {
             where id = ? and clinic_id = ?
             """, request.status(), request.status(), blankToNull(request.cancellationReason()), request.status(),
             request.status(), request.status(), request.status(), appointmentId, clinicId);
+
+        if (notificationService != null && List.of("confirmed", "cancelled", "declined").contains(request.status())) {
+            Map<String, Object> apt = rows.getFirst();
+            String patientEmail = (String) apt.get("email");
+            String patientName = (String) apt.get("patient_name");
+            String bookingRef = (String) apt.get("booking_ref");
+            Object dateObj = apt.get("appointment_date");
+            LocalDate date = dateObj instanceof LocalDate ld ? ld : dateObj instanceof java.sql.Date sd ? sd.toLocalDate() : LocalDate.parse(String.valueOf(dateObj));
+            Object timeObj = apt.get("appointment_time");
+            LocalTime time = timeObj instanceof LocalTime lt ? lt : timeObj instanceof java.sql.Time st ? st.toLocalTime() : LocalTime.parse(String.valueOf(timeObj));
+
+            notificationService.notifyPatientStatusUpdate(
+                clinicId, appointmentId, bookingRef, patientName, patientEmail,
+                request.status(), date, time, request.cancellationReason());
+        }
     }
 
     public void updateClinical(UUID clinicId, UUID appointmentId, AppointmentController.ClinicalRequest request) {

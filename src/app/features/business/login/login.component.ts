@@ -86,9 +86,9 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    if (role === 'unverified') {
-      await this.router.navigate(['/business/verify-email'], {
-        queryParams: returnUrl ? { returnUrl } : undefined,
+    if (role === 'unverified' || role === 'incomplete-signup') {
+      await this.router.navigate(['/business/signup'], {
+        queryParams: { resume: 'true' },
         replaceUrl: true,
       });
       return;

@@ -94,15 +94,15 @@ describe('LoginComponent', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
   });
 
-  it('routes an unverified account to verification', async () => {
+  it('routes an unverified or incomplete account to signup setup', async () => {
     const component = create('clinic');
     auth.signInWithEmail.and.resolveTo('unverified');
     component.form.setValue({ email: 'owner@example.com', password: 'password123' });
 
     await component.signInWithEmail();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/business/verify-email'], {
-      queryParams: undefined,
+    expect(router.navigate).toHaveBeenCalledWith(['/business/signup'], {
+      queryParams: { resume: 'true' },
       replaceUrl: true,
     });
   });

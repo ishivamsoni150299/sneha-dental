@@ -63,16 +63,6 @@ export const businessRoutes: Routes = [
     },
   },
 
-  {
-    path: 'verify-email',
-    loadComponent: () =>
-      import('./verify-email/verify-email.component').then(m => m.VerifyEmailComponent),
-    data: {
-      title: 'Verify Email',
-      description: 'Verify your email before accessing protected clinic information.',
-      noIndex: true,
-    },
-  },
 
   {
     path: 'privacy',

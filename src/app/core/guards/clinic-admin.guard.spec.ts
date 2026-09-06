@@ -64,11 +64,11 @@ describe('clinicAdminGuard', () => {
     });
   });
 
-  it('requires email verification before clinic access', async () => {
+  it('routes unverified or incomplete accounts to setup wizard', async () => {
     setup({ role: 'unverified' });
     await run();
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/verify-email'], {
-      queryParams: { returnUrl: '/business/clinic/patients' },
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/signup'], {
+      queryParams: { resume: 'true' },
     });
   });
 

@@ -70,6 +70,19 @@ export interface AppointmentDoc {
   createdAt?: string;
 }
 
+export interface ContactMessage {
+  id: string;
+  clinicId: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  message: string;
+  status: 'unread' | 'read' | 'responded' | 'archived';
+  consentVersion: string;
+  consentAt: string | null;
+  createdAt: string;
+}
+
 export interface StoredClinic extends ClinicConfig {
   id: string;
   domain: string;
@@ -82,6 +95,14 @@ export interface StoredClinic extends ClinicConfig {
 @Injectable({ providedIn: 'root' })
 export class ClinicApiService {
   private readonly api = inject(AuthenticatedApiService);
+
+  async getClinicContacts(): Promise<ContactMessage[]> {
+    return this.get<ContactMessage[]>('/api/clinics/current/contacts');
+  }
+
+  async updateContactStatus(contactId: string, status: 'unread' | 'read' | 'responded' | 'archived'): Promise<void> {
+    await this.write(`/api/clinics/current/contacts/${encodeURIComponent(contactId)}/status`, 'PATCH', { status });
+  }
 
   async getAll(): Promise<StoredClinic[]> {
     return this.get<StoredClinic[]>('/api/admin/clinics');

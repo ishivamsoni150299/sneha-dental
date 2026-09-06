@@ -193,7 +193,54 @@ export class SeoService {
             '@type': 'MedicalBusiness',
             name: 'Verified dentists and dental clinics in Delhi NCR',
             areaServed: ['Delhi', 'Noida', 'Gurugram', 'Ghaziabad', 'Faridabad'],
+            medicalSpecialty: ['Dentistry', 'Endodontics', 'Orthodontics', 'Periodontics', 'Prosthodontics', 'Pediatric Dentistry'],
           },
+        })
+      : undefined;
+    const dentistItemList = path === '/dentists' || path.startsWith('/dentists/')
+      ? this.compact({
+          '@type': 'ItemList',
+          '@id': `${url}#itemlist`,
+          name: title,
+          description,
+          numberOfItems: 5,
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Root Canal Treatment & Endodontics in Delhi NCR',
+              description: 'Pain-free single-sitting root canal treatment with rotary endodontics and dental crowns.',
+              url: `${origin}/dentists/root-canal/noida`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Dental Implants & Tooth Replacement in Delhi NCR',
+              description: 'Titanium and zirconia permanent dental implants with modern 3D imaging guidance.',
+              url: `${origin}/dentists/dental-implants/delhi`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: 'Braces & Clear Aligners in Delhi NCR',
+              description: 'Orthodontic teeth alignment, ceramic braces, and invisible aligners with certified orthodontists.',
+              url: `${origin}/dentists/braces/delhi`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 4,
+              name: 'Best Dentists in Noida & Sector 75',
+              description: 'Verified dental clinics and specialists in Noida with live appointment availability.',
+              url: `${origin}/dentists/noida`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 5,
+              name: 'Best Dentists in Delhi & Gurugram',
+              description: 'Top-rated dental clinics and dentists across South Delhi, Central Delhi, and Gurugram.',
+              url: `${origin}/dentists/delhi`,
+            },
+          ],
         })
       : undefined;
     const dentistFaq = path === '/dentists' || path.startsWith('/dentists/')
@@ -201,10 +248,12 @@ export class SeoService {
           '@type': 'FAQPage',
           '@id': `${url}#faq`,
           mainEntity: [
-            ['How are dentists verified on mydentalplatform?', 'A clinic appears in search only after its identity, address, phone number and dentist registration details have been reviewed.'],
-            ['Can I compare consultation fees before booking?', 'Yes. Clinics can publish their consultation fee, services, locality and whether they are accepting new patients.'],
-            ['How do I request a dental appointment?', 'Open a clinic profile, choose Request appointment, and submit your preferred date and time. The clinic confirms the request directly.'],
-            ['Which Delhi NCR areas are covered?', 'The directory is expanding across Delhi, Noida, Gurugram, Ghaziabad and Faridabad as clinics complete verification.'],
+            ['How are dentists verified on mydentalplatform?', 'A clinic appears in search only after its identity, address, phone number and dentist registration details with Dental Council of India (DCI) / State Dental Council have been reviewed.'],
+            ['Can I compare consultation fees before booking?', 'Yes. Clinics publish their standard consultation fee, treatment services, locality, and whether they are currently accepting new patients.'],
+            ['How do I request a dental appointment?', 'Select a dentist or clinic, choose your preferred available time slot, and submit your request. The clinic confirms your booking directly with no prepayment required.'],
+            ['Which Delhi NCR areas are covered?', 'The directory covers Delhi (South, Central, West, East), Noida (Sector 18, 62, 75, 76, 137), Gurugram (Cyber City, Sector 56, Golf Course Rd), Ghaziabad, and Faridabad.'],
+            ['Are there any booking or convenience fees?', 'No. Booking on mydentalplatform is 100% free for patients. All consultation and treatment fees are paid directly at the dental clinic.'],
+            ['Can I find same-day or emergency dental appointments?', 'Yes. Filter by "Available Today" to view clinics offering immediate appointment slots today for toothaches, chipped teeth, and urgent dental care.'],
           ].map(([name, text]) => ({
             '@type': 'Question',
             name,
@@ -250,6 +299,7 @@ export class SeoService {
       software,
       faq,
       dentistDirectory,
+      dentistItemList,
       dentistFaq,
       breadcrumb,
     ].filter(Boolean);

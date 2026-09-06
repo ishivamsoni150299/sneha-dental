@@ -67,13 +67,13 @@ describe('SignupComponent', () => {
     expect(component.step()).toBe(0);
   });
 
-  it('routes an unverified identity to email verification', async () => {
-    const component = create('unverified');
+  it('proceeds directly to step 1 for an incomplete signup', async () => {
+    const component = create('incomplete-signup');
 
     await component.createAccountWithGoogle();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/business/verify-email'], { replaceUrl: true });
-    expect(component.step()).toBe(0);
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.step()).toBe(1);
   });
 
   it('starts onboarding only for an identity without a workspace', async () => {

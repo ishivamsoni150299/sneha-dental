@@ -4,27 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**My Dental Platform** — multi-tenant dental clinic SaaS built with Angular 19 and Tailwind CSS.
+**My Dental Platform** — multi-tenant dental clinic SaaS built with Angular 19 frontend and Spring Boot 3 (Java 25) backend on PostgreSQL.
 
 ## Tech Stack
 
-- **Angular 19** — standalone components, no NgModules
-- **Tailwind CSS v3** — utility-first, mobile-first styling
-- **Angular Reactive Forms** — appointment booking form
-- **Angular Signals** — reactive state (`signal`, `computed`)
-- **Change Detection** — `OnPush` on every component
+- **Angular 19** — standalone components, no NgModules, Angular Signals (`signal`, `computed`), `OnPush` change detection
+- **Tailwind CSS v3** — utility-first, mobile-first styling with tenant CSS variables (`--accent`, `--accent-dk`, `--accent-lt`)
+- **Spring Boot 3.4+ / Java 25** — monolith with virtual threads (`spring.threads.virtual.enabled=true`)
+- **PostgreSQL & Flyway** — managed schema migrations (`backend/src/main/resources/db/migration/`)
+- **Security** — JWT Bearer tokens, HttpOnly secure refresh cookies, Argon2id password hashing, sliding-window rate limiting
+- **Background Tasks** — Resend email notification service with idempotency tracking; daily appointment reminder scheduler
 
 ## Commands
 
 ```bash
+# Frontend
 npm install          # install dependencies
-npm start            # dev server at localhost:4200
+npm start            # dev server at localhost:4200 (proxies /api to 8080)
 npm run build        # production build
 npm test             # run unit tests
 npm run lint         # lint check
 
-# generate a new page component
-ng generate component features/<name>/<name> --standalone --style css
+# Backend
+cd backend
+mvn spring-boot:run  # run Spring Boot server (port 8080)
+mvn clean test       # run backend tests
+mvn clean package    # build backend JAR
+
+# Full-Stack Docker
+docker build -t mydentalplatform .
 ```
 
 ## Color Palette
@@ -57,13 +65,26 @@ All routes lazy-loaded via `loadComponent` in `app.routes.ts`.
 ## Project Structure
 
 ```
-src/app/
-  core/services/          # appointment.service.ts, meta.service.ts
-  shared/components/      # navbar, footer, section-header, service-card, testimonial-card
-  features/               # one folder per page (home, services, about, etc.)
-  app.routes.ts
-  app.config.ts
-  app.component.ts        # shell: navbar + <router-outlet> + footer
+├── backend/                      # Spring Boot 3 / Java 25 monolith
+│   ├── src/main/java/com/mydentalplatform/
+│   │   ├── appointment/          # AppointmentController, AppointmentService, ReminderScheduler
+│   │   ├── auth/                 # AuthController, ClinicLoginService, TokenService
+│   │   ├── billing/              # BillingController, RazorpayService
+│   │   ├── clinic/               # ClinicController, ContactController, DoctorController, PatientController
+│   │   ├── config/               # SecurityConfig, RateLimitingFilter, GlobalExceptionHandler
+│   │   └── notification/         # NotificationService (Resend email & idempotency)
+│   └── src/main/resources/db/migration/  # Flyway SQL migrations (V1 to V8)
+├── src/                          # Angular 19 frontend
+│   ├── app/
+│   │   ├── core/services/        # appointment, clinic-api, auth-facade, clinic-config
+│   │   ├── core/guards/          # clinic-admin, super-admin, clinic-feature
+│   │   ├── features/admin/       # Clinic dashboard, settings, enquiries inbox
+│   │   ├── features/business/    # Platform landing, signup wizard, super-admin shell
+│   │   ├── features/my-appointment/ # Patient booking lookup & cancellation (<24h policy)
+│   │   └── shared/components/    # navbar, footer, modals, cards
+│   └── index.html
+├── Dockerfile                    # Multi-stage Angular + Spring Boot production container
+└── proxy.conf.json               # Local development API proxy
 ```
 
 ## Clinic Services

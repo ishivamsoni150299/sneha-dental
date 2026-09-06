@@ -27,13 +27,7 @@ export const clinicAdminGuard: CanActivateFn = async (_route, state) => {
     });
   }
 
-  if (auth.role() === 'unverified') {
-    return router.createUrlTree(['/business/verify-email'], {
-      queryParams: { returnUrl: state.url },
-    });
-  }
-
-  if (auth.role() === 'incomplete-signup') {
+  if (auth.role() === 'incomplete-signup' || auth.role() === 'unverified') {
     return router.createUrlTree(['/business/signup'], {
       queryParams: { resume: 'true' },
     });

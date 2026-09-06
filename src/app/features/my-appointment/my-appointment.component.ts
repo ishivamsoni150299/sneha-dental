@@ -84,10 +84,28 @@ export class MyAppointmentComponent {
     this.lookupForm.controls.bookingRef.setValue(value, { emitEvent: false });
   }
 
+  get cancelWhatsappUrl(): string {
+    const appt = this.appointment();
+    if (!appt || !this.clinic.hasWhatsapp) return '';
+    const ref = appt.bookingRef ? ` (${appt.bookingRef})` : '';
+    const timeDisplay = this.formatSlotDisplay(appt.time);
+    const text = encodeURIComponent(
+      `Hi ${this.clinic.displayName}, I need to cancel or reschedule my appointment${ref} scheduled on ${appt.date} at ${timeDisplay}. Thank you!`
+    );
+    return `https://wa.me/${this.config.whatsappNumber}?text=${text}`;
+  }
+
   canCancel(): boolean {
     const appt = this.appointment();
     return appt
-      ? ['pending', 'confirmed'].includes(appt.status) && this.appointmentService.canCancel(appt.date)
+      ? ['pending', 'confirmed'].includes(appt.status) && this.appointmentService.canCancel(appt.date, appt.time)
+      : false;
+  }
+
+  isWithin24Hours(): boolean {
+    const appt = this.appointment();
+    return appt
+      ? ['pending', 'confirmed'].includes(appt.status) && !this.appointmentService.canCancel(appt.date, appt.time)
       : false;
   }
 

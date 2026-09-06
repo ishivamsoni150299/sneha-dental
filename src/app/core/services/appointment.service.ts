@@ -199,10 +199,17 @@ export class AppointmentService {
     return new Error(body?.detail ?? body?.message ?? fallback);
   }
 
-  /** True if appointment date is more than 24 hours from now. */
-  canCancel(date: string): boolean {
-    const diffHours = (new Date(date).getTime() - Date.now()) / (1000 * 60 * 60);
-    return diffHours > 24;
+  /** True if appointment date/time is more than 24 hours from now. */
+  canCancel(date: string, time?: string): boolean {
+    try {
+      const timePart = time ? (time.length === 5 ? `${time}:00` : time) : '00:00:00';
+      const target = new Date(`${date}T${timePart}`);
+      const targetTime = isNaN(target.getTime()) ? new Date(date).getTime() : target.getTime();
+      const diffHours = (targetTime - Date.now()) / (1000 * 60 * 60);
+      return diffHours > 24;
+    } catch {
+      return false;
+    }
   }
 
   isBookable(date: string, time: string): boolean {
@@ -353,7 +360,7 @@ export class AppointmentService {
 
   /** Cancel appointment — enforces 24-hour rule and releases the reserved slot. */
   async cancelAppointment(appointment: Appointment): Promise<void> {
-    if (!this.canCancel(appointment.date)) {
+    if (!this.canCancel(appointment.date, appointment.time)) {
       throw new Error(
         `Cannot cancel within 24 hours of your appointment. Please call ${this.clinic.config.phone}.`,
       );
