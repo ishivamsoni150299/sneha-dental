@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import { TreatmentGuideComponent, type TreatmentCostGuideItem } from './treatment-guide.component';
+import { DentistListingCardComponent } from './dentist-listing-card.component';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MARKETPLACE_DENTAL_SERVICES } from '../../core/config/marketplace.config';
@@ -14,19 +16,10 @@ export interface ActiveFilterChip {
   label: string;
 }
 
-export interface TreatmentCostGuideItem {
-  treatment: string;
-  serviceId: string;
-  specialty: string;
-  priceRange: string;
-  sittings: string;
-  overview: string;
-}
-
 @Component({
   selector: 'app-dentist-directory',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TreatmentGuideComponent, DentistListingCardComponent],
   templateUrl: './dentist-directory.component.html',
   styleUrl: './dentist-directory.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -214,6 +207,7 @@ export class DentistDirectoryComponent implements OnInit {
   readonly availability = signal<Record<string, MarketplaceAvailabilitySlot[]>>({});
   readonly reviewStats = signal<Record<string, { rating: number; count: number }>>({});
   readonly isMobileFilterOpen = signal(false);
+  readonly filtersDialog = viewChild<ElementRef<HTMLDialogElement>>('filtersDialog');
   readonly isCompareModalOpen = signal(false);
 
   readonly popularServices = MARKETPLACE_DENTAL_SERVICES.filter(service =>
@@ -306,7 +300,7 @@ export class DentistDirectoryComponent implements OnInit {
   readonly localities = computed(() => [...new Set(
     this.clinics()
       .map(clinic => clinic.marketplaceProfile?.locality.trim())
-      .filter((value): value is string => Boolean(value)),
+      .filter((value): value is string => Boolean(value) && !this.locationChoices.some(city => city.toLowerCase() === value?.toLowerCase())),
   )].sort((first, second) => first.localeCompare(second)));
 
   readonly languages = computed(() => [...new Set(
@@ -315,6 +309,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly activeFilterCount = computed(() => {
     let count = 0;
+    if (this.searchTerm().trim()) count++;
     if (this.locality()) count++;
     if (this.serviceId()) count++;
     if (this.availableTodayOnly()) count++;
@@ -329,6 +324,9 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly activeFilterChips = computed<ActiveFilterChip[]>(() => {
     const chips: ActiveFilterChip[] = [];
+    if (this.searchTerm().trim()) {
+      chips.push({ id: 'search', label: `Search: ${this.searchTerm().trim()}` });
+    }
     if (this.locality()) {
       chips.push({ id: 'locality', label: `Location: ${this.locality()}` });
     }
@@ -474,6 +472,9 @@ export class DentistDirectoryComponent implements OnInit {
 
   removeFilter(chipId: string): void {
     switch (chipId) {
+      case 'search':
+        this.searchTerm.set('');
+        break;
       case 'locality':
         this.locality.set('');
         break;
@@ -542,7 +543,9 @@ export class DentistDirectoryComponent implements OnInit {
 
   findDentists(): void {
     if (this.isBrowser) {
-      document.getElementById('marketplace-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const results = document.getElementById('marketplace-results');
+      results?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+      results?.focus({ preventScroll: true });
     }
   }
 
@@ -572,7 +575,24 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   toggleMobileFilter(): void {
-    this.isMobileFilterOpen.update(value => !value);
+    if (this.isMobileFilterOpen()) {
+      this.closeFilters();
+    } else {
+      this.filtersDialog()?.nativeElement.showModal();
+      this.isMobileFilterOpen.set(true);
+    }
+  }
+
+  closeFilters(): void {
+    this.filtersDialog()?.nativeElement.close();
+    this.isMobileFilterOpen.set(false);
+  }
+
+  editSearch(): void {
+    if (!this.isBrowser) return;
+    const search = document.getElementById('dentist-search');
+    search?.scrollIntoView({ block: 'center' });
+    search?.focus({ preventScroll: true });
   }
 
   openCompareModal(): void {

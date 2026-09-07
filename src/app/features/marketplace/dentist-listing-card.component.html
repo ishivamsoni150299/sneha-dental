@@ -1,0 +1,38 @@
+          <article class="dentist-row">
+            <div class="listing-main">
+            <div class="profile-overview">
+            <a [routerLink]="profilePath()" class="portrait-link" [attr.aria-label]="'View profile of ' + (clinic().doctorName || clinic().name)">
+              @if (hasListingPhoto()) {<img [src]="listingImage()" [alt]="clinic().name" loading="lazy" width="104" height="120">}
+              @else {<span class="portrait-placeholder" aria-hidden="true"><i class="ph ph-tooth"></i><b>{{ initials() }}</b></span>}
+            </a>
+            <div class="doctor-info">
+              <div class="doctor-title"><a [routerLink]="profilePath()"><h2>{{ discoveryType() === 'dentists' ? clinic().doctorName || clinic().name : clinic().name }}</h2></a>
+                <details class="verification"><summary aria-label="View verification checks"><i class="ph ph-seal-check" aria-hidden="true"></i> Registration checked</summary><div><strong>What we checked</strong><p>DCI Registration Checked: State dental council registration, clinic identity, contact number and operating address verified.</p><p>Qualifications are supplied by the clinic.</p></div></details>
+              </div>
+              <p>{{ clinic().doctorQualification || 'Qualifications not listed' }}@if (clinic().marketplaceProfile?.experienceYears != null) {<span> · {{ clinic().marketplaceProfile?.experienceYears }} years experience</span>}</p>
+              @if (clinic().marketplaceProfile?.speciality) {<p class="muted">{{ clinic().marketplaceProfile?.speciality }}</p>}
+              <a [routerLink]="['/clinic', clinic().marketplaceSlug]" class="clinic-name"><i class="ph ph-map-pin" aria-hidden="true"></i>{{ clinic().name }}</a>
+              <p class="muted">{{ clinic().marketplaceProfile?.locality }}@if (distance() !== null) { · {{ distance() }} km}</p>
+              <div class="treatments">@for (treatment of serviceLabels().slice(0, 3); track treatment) {<span>{{ treatment }}</span>} @if (serviceLabels().length > 3) {<a [routerLink]="profilePath()">+{{ serviceLabels().length - 3 }} more</a>}</div>
+              @if (clinic().marketplaceProfile?.languages?.length) {<p class="languages"><i class="ph ph-chat-circle" aria-hidden="true"></i> {{ clinic().marketplaceProfile?.languages?.join(', ') }}</p>}
+            </div>
+            </div>
+            <div class="listing-facts">
+            <div class="stat"><span class="stat-label">Consultation fee</span><strong>{{ clinic().marketplaceProfile?.consultationFee != null ? '₹' + clinic().marketplaceProfile?.consultationFee : 'Ask clinic' }}</strong><span class="muted">at clinic</span></div>
+            <div class="stat"><span class="stat-label">Patient rating</span>@if (reviewCount()) {<strong><i class="ph ph-star" aria-hidden="true"></i> {{ rating().toFixed(1) }}</strong><span class="muted">{{ reviewCount() }} verified {{ reviewCount() === 1 ? 'review' : 'reviews' }}</span>} @else {<strong>New listing</strong><span class="muted">No reviews yet</span>}</div>
+            <button type="button" class="compare-button" [attr.aria-pressed]="compared()" (click)="compareToggled.emit()"><i [class]="compared() ? 'ph ph-check-square' : 'ph ph-plus-square'" aria-hidden="true"></i>{{ compared() ? 'Shortlisted' : 'Compare' }}</button>
+            </div>
+            </div>
+            <div class="booking-panel">
+            <div class="times">
+              @if (availabilityError()) {<p class="muted">Times unavailable</p><button type="button" class="text-blue-700 text-sm" (click)="retryAvailability.emit()">Retry times</button>}
+              @else if (slots().length && clinic().marketplaceProfile?.acceptingNewPatients) {
+                <span class="availability-title">Available Today</span><p>Next at {{ slotLabel(slots()[0]) }}</p>
+                <div class="slot-options">@for (slot of slots().slice(0, 3); track slot.doctorId + slot.startsAt) {<a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="{ startsAt: slot.startsAt, doctorId: slot.doctorId }">{{ slotLabel(slot) }}</a>}</div>
+              } @else {<p class="muted">{{ clinic().marketplaceProfile?.acceptingNewPatients ? 'No online times today' : 'Not accepting new patients' }}</p>}
+            </div>
+            <div class="booking">
+              @if (clinic().marketplaceProfile?.acceptingNewPatients) {<a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Book Appointment</a><p class="muted">Clinic confirmation required</p>} @else {<a [routerLink]="profilePath()" class="secondary inline-flex rounded-xl border border-gray-200 px-4 py-3 text-sm text-blue-600">View profile</a>}
+            </div>
+            </div>
+          </article>

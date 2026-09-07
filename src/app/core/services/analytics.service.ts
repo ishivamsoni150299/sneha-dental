@@ -4,6 +4,13 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 /**
  * Google Analytics GA4 (gtag.js) service.
  *
@@ -72,9 +79,9 @@ export class AnalyticsService {
   /** Dynamically inject the GA4 gtag.js script tag. */
   private loadGtagScript(): void {
     // Initialise the gtag data layer.
-    (window as any).dataLayer = (window as any).dataLayer || [];
-    (window as any).gtag = (...args: any[]) => {
-      (window as any).dataLayer.push(args);
+    window.dataLayer ??= [];
+    window.gtag = (...args: unknown[]) => {
+      window.dataLayer?.push(args);
     };
     this.gtag('js', new Date());
     this.gtag('config', this.trackingId, { send_page_view: false }); // we send page_view manually on route change
@@ -105,9 +112,7 @@ export class AnalyticsService {
   }
 
   /** Type-safe wrapper around window.gtag. */
-  private gtag(...args: any[]): void {
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag(...args);
-    }
+  private gtag(...args: unknown[]): void {
+    window.gtag?.(...args);
   }
 }

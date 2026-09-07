@@ -34,6 +34,7 @@ export class SlotPickerComponent implements OnInit {
 
   @Input({ required: true }) slug!: string;
   @Output() slotSelected = new EventEmitter<SelectedSlot>();
+  @Output() slotCleared = new EventEmitter<void>();
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -47,6 +48,12 @@ export class SlotPickerComponent implements OnInit {
   readonly hasAnySlots = computed(() => this.days().some(day => day.slots.length > 0));
 
   async ngOnInit(): Promise<void> {
+    await this.loadAvailability();
+  }
+
+  async loadAvailability(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
     try {
       const data = await this.marketplace.getAvailability(this.slug, 7);
       this.availability.set(data);
@@ -61,8 +68,10 @@ export class SlotPickerComponent implements OnInit {
   }
 
   selectDate(index: number): void {
+    if (index === this.selectedDateIndex()) return;
     this.selectedDateIndex.set(index);
     this.selectedSlotKey.set(null);
+    this.slotCleared.emit();
   }
 
   selectSlot(slot: MarketplaceAvailabilitySlot, day: MarketplaceAvailabilityDay): void {

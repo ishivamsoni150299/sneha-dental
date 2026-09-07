@@ -249,6 +249,25 @@ describe('DentistDirectoryComponent', () => {
     expect(component.filteredClinics().length).toBe(2);
   });
 
+  it('removes a search chip without clearing the selected location', async () => {
+    const { fixture, component } = await setupComponent();
+    component.locality.set('Noida');
+    component.searchTerm.set('No matching dentist');
+    fixture.detectChanges();
+
+    expect(component.filteredClinics().length).toBe(0);
+    expect(component.activeFilterCount()).toBe(2);
+    const removeSearch = fixture.nativeElement.querySelector('button[aria-label="Remove Search: No matching dentist"]') as HTMLButtonElement;
+    expect(removeSearch).not.toBeNull();
+    removeSearch.click();
+    fixture.detectChanges();
+
+    expect(component.searchTerm()).toBe('');
+    expect(component.locality()).toBe('Noida');
+    expect(component.filteredClinics().length).toBe(1);
+    expect(component.activeFilterCount()).toBe(1);
+  });
+
   it('adds and removes clinics for comparison up to a maximum of 3', async () => {
     const { component } = await setupComponent();
 
@@ -322,17 +341,56 @@ describe('DentistDirectoryComponent', () => {
     expect(breadcrumbsNav.textContent).toContain('Dental Implants');
   });
 
-  it('renders the 2026 Delhi NCR Dental Treatment & Procedure Cost Guide table', async () => {
+  it('renders the treatment cost guide with indicative pricing', async () => {
     const { fixture, component } = await setupComponent();
 
     const costSection = fixture.nativeElement.querySelector('.cost-guide-section');
     expect(costSection).toBeTruthy();
-    expect(costSection.textContent).toContain('Delhi NCR Dental Treatment & Procedure Cost Guide');
+    expect(costSection.textContent).toContain('Understand your care. Plan your budget.');
+    expect(costSection.textContent).toContain('These are estimates, not clinic quotes.');
     expect(costSection.textContent).toContain('Root Canal Treatment (RCT)');
     expect(costSection.textContent).toContain('Dental Implants');
     expect(costSection.textContent).toContain('₹2,500 – ₹7,500');
 
     expect(component.treatmentCostGuide.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('expands treatment choices and applies a service from the guide', async () => {
+    const { fixture, component } = await setupComponent();
+    const guide = fixture.nativeElement.querySelector('.cost-guide-section') as HTMLElement;
+    expect(guide.querySelectorAll('article').length).toBe(4);
+    (guide.querySelector('button[aria-controls="treatment-options"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(guide.querySelectorAll('article').length).toBe(component.treatmentCostGuide.length);
+    (guide.querySelector('button[aria-label="Find dentists for Teeth Whitening"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(component.serviceId()).toBe('teeth-whitening');
+  });
+
+  it('opens a modal filter panel and returns to results with the chosen filters', async () => {
+    const { fixture, component } = await setupComponent();
+    component.toggleMobileFilter();
+    fixture.detectChanges();
+    const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
+    expect(dialog.open).toBeTrue();
+    const treatment = dialog.querySelector('#filter-treatment') as HTMLSelectElement;
+    treatment.value = 'root-canal';
+    treatment.dispatchEvent(new Event('change'));
+    (dialog.querySelector('.filter-footer .primary') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(dialog.open).toBeFalse();
+    expect(component.isMobileFilterOpen()).toBeFalse();
+    expect(component.filteredClinics().map(clinic => clinic.id)).toEqual(['clinic-noida-1']);
+  });
+
+  it('connects the listing card comparison action and preserves booking links', async () => {
+    const { fixture, component } = await setupComponent();
+    const card = fixture.nativeElement.querySelector('app-dentist-listing-card') as HTMLElement;
+    (card.querySelector('.compare-button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(component.comparedClinics().length).toBe(1);
+    expect(card.querySelector('.booking a')?.getAttribute('href')).toContain('/book');
+    expect(card.querySelector('.slot-options a')?.getAttribute('href')).toContain('doctorId=doc-1');
   });
 
   it('provides dynamic FAQs tailored to active treatment service', async () => {

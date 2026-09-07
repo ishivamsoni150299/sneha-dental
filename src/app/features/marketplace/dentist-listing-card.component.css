@@ -1,0 +1,43 @@
+:host{display:block;min-width:0}
+:is(a,button,summary):focus-visible{outline:3px solid var(--ui-focus);outline-offset:3px}
+button,summary{cursor:pointer}
+.dentist-row{display:grid;grid-template-columns:minmax(0,1fr) 260px;overflow:clip;border:1px solid var(--ui-line);border-radius:20px;background:var(--ui-surface);box-shadow:var(--ui-shadow-xs)}
+.listing-main{min-width:0;padding:26px}
+.profile-overview{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:start;gap:22px}
+.portrait-link img{width:104px;height:120px;object-fit:cover;border-radius:15px}
+.portrait-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:104px;height:120px;border-radius:15px;background:var(--ui-primary-soft);color:var(--ui-primary)}
+.portrait-placeholder i{font-size:28px;opacity:.65}.portrait-placeholder b{font-size:24px;letter-spacing:.06em}
+.doctor-title h2{font-family:var(--ui-font-sans);font-size:22px;font-weight:700;letter-spacing:-.02em;overflow-wrap:anywhere}
+.doctor-info>p{margin-top:6px;color:var(--ui-ink-muted);font-size:13px;line-height:1.6}
+.verification{margin:8px 0}
+.verification summary{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:650;color:var(--ui-primary)}
+.verification summary::-webkit-details-marker{display:none}
+.verification>div{padding:12px;margin-top:8px;border-radius:10px;background:var(--ui-primary-soft);font-size:12px;line-height:1.7}
+.clinic-name{display:inline-flex;gap:5px;align-items:baseline;margin-top:12px;font-size:13px;font-weight:600}
+.treatments{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.treatments span,.treatments a{border-radius:6px;padding:5px 8px;background:var(--ui-surface-muted);color:var(--ui-ink-soft);font-size:11px}
+.treatments a{color:var(--ui-primary)}
+.listing-facts{display:flex;align-items:center;gap:28px;margin-top:22px;padding-top:18px;border-top:1px solid var(--ui-line)}
+.stat{display:flex;flex-direction:column;gap:3px}.stat-label{font-size:12px;color:var(--ui-ink-muted)}.stat strong{font-size:18px;font-weight:650}
+.muted{color:var(--ui-ink-muted);font-size:12px;line-height:1.5}
+.compare-button{display:inline-flex;align-items:center;gap:7px;min-height:44px;margin-left:auto;color:var(--ui-primary);font-size:13px}.compare-button i{font-size:21px}
+.booking-panel{display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:26px 20px;border-left:1px solid var(--ui-line);background:var(--ui-surface-muted)}
+.availability-title{display:inline-flex;align-items:center;gap:6px;color:var(--ui-primary);font-size:12px;font-weight:750}
+.availability-title:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.times>p{margin-top:10px;font-size:13px}
+.slot-options{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.slot-options a{display:grid;place-items:center;min-height:44px;padding:8px 10px;border:1px solid var(--ui-primary-line);border-radius:8px;background:var(--ui-surface);color:var(--ui-primary);font-size:12px}
+.booking .primary,.booking .secondary{width:100%;min-height:48px;justify-content:center}
+.booking p{margin-top:10px;text-align:center;font-size:11px}
+@media(max-width:1023px){
+  .dentist-row{grid-template-columns:minmax(0,1fr) 220px}.profile-overview{grid-template-columns:80px minmax(0,1fr);gap:16px}
+  .portrait-link img,.portrait-placeholder{width:80px;height:96px}.listing-main{padding:20px}
+}
+@media(max-width:767px){
+  .dentist-row{grid-template-columns:minmax(0,1fr);border-radius:18px}.listing-main{padding:18px}
+  .profile-overview{grid-template-columns:68px minmax(0,1fr);gap:14px}.portrait-link img,.portrait-placeholder{width:68px;height:80px;border-radius:12px}.portrait-placeholder{gap:4px}.portrait-placeholder i{font-size:21px}.portrait-placeholder b{font-size:20px}
+  .doctor-title h2{font-size:20px}.doctor-info>p{font-size:12px}.listing-facts{flex-wrap:wrap;gap:16px 24px}
+  .stat{flex:1}.stat strong{font-size:17px}.compare-button{margin-left:0}
+  .booking-panel{padding:18px;gap:20px;border-left:0;border-top:1px solid var(--ui-line)}
+  .slot-options{margin-top:12px}.slot-options a{flex:1}
+}

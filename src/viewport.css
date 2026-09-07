@@ -39,9 +39,11 @@ html {
 body {
   min-block-size: var(--app-viewport-height);
   overflow-x: clip;
-  overflow-y: auto;
+  /* Keep the document as the scrolling container so sticky headers work.
+     Pairing clip with auto computes to hidden and traps sticky descendants. */
+  overflow-y: visible;
   overscroll-behavior-y: auto;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
 }
 

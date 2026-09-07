@@ -14,6 +14,7 @@
 } @else if (error()) {
   <div role="alert" class="rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
     {{ error() }}
+    <button type="button" (click)="loadAvailability()" class="mt-3 block min-h-11 rounded-xl border border-red-200 bg-white px-4 font-semibold">Retry available times</button>
   </div>
 } @else if (!hasAnySlots()) {
   <div class="rounded-lg border border-gray-200 bg-gray-50 px-5 py-8 text-center">
@@ -23,15 +24,14 @@
 } @else {
   <div class="space-y-5">
     <div>
-      <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Select a date</p>
-      <div class="mt-2 flex gap-2 overflow-x-auto pb-2" role="tablist">
+      <div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold text-gray-900">Select a date</p><span class="text-xs text-gray-500">Times shown in IST</span></div>
+      <div class="mt-3 flex snap-x gap-3 overflow-x-auto pb-3" role="group" aria-label="Appointment dates">
         @for (day of days(); track day.date; let i = $index) {
           <button
             type="button"
-            role="tab"
-            [attr.aria-selected]="selectedDateIndex() === i"
+            [attr.aria-pressed]="selectedDateIndex() === i"
             (click)="selectDate(i)"
-            class="flex shrink-0 flex-col items-center rounded-lg border px-4 py-2.5 text-center transition-colors"
+            class="flex min-w-24 shrink-0 snap-start flex-col items-center rounded-xl border px-4 py-3 text-center transition-colors focus-visible:outline-blue-600"
             [class.border-blue-600]="selectedDateIndex() === i"
             [class.bg-blue-50]="selectedDateIndex() === i"
             [class.text-blue-700]="selectedDateIndex() === i"
@@ -41,8 +41,8 @@
             [class.hover:bg-gray-50]="selectedDateIndex() !== i"
             [class.opacity-50]="day.slots.length === 0"
           >
-            <span class="text-xs font-bold">{{ formatDayLabel(day.date) }}</span>
-            <span class="mt-0.5 text-[11px]">{{ formatDate(day.date) }}</span>
+            <span class="text-sm font-semibold">{{ formatDayLabel(day.date) }}</span>
+            <span class="mt-1 text-xs">{{ formatDate(day.date) }}</span>
             @if (day.slots.length > 0) {
               <span class="mt-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                 {{ day.slots.length }} {{ day.slots.length === 1 ? 'slot' : 'slots' }}
@@ -58,13 +58,14 @@
     @if (currentDay(); as day) {
       @if (day.slots.length > 0) {
         <div>
-          <p class="text-xs font-bold uppercase tracking-widest text-gray-500">Available times</p>
-          <div class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+          <p class="text-sm font-semibold text-gray-900">Choose a time that suits you</p>
+          <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             @for (slot of day.slots; track slot.time + slot.doctorId) {
               <button
                 type="button"
                 (click)="selectSlot(slot, day)"
-                class="rounded-lg border px-3 py-2.5 text-center text-sm font-semibold transition-colors"
+                [attr.aria-pressed]="isSelected(day, slot)"
+                class="min-h-16 rounded-xl border px-3 py-3 text-center text-sm font-semibold transition-colors focus-visible:outline-blue-600"
                 [class.border-blue-600]="isSelected(day, slot)"
                 [class.bg-blue-600]="isSelected(day, slot)"
                 [class.text-white]="isSelected(day, slot)"
@@ -75,7 +76,7 @@
                 [class.hover:bg-blue-50]="!isSelected(day, slot)"
               >
                 <span class="block">{{ formatTime(slot.time) }}</span>
-                <span class="mt-0.5 block text-[10px] font-normal" [class.text-blue-100]="isSelected(day, slot)" [class.text-gray-500]="!isSelected(day, slot)">{{ slot.doctorName }}</span>
+                <span class="mt-1 block text-xs font-normal" [class.text-blue-100]="isSelected(day, slot)" [class.text-gray-500]="!isSelected(day, slot)">{{ slot.doctorName }}</span>
               </button>
             }
           </div>

@@ -3,8 +3,8 @@
     <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Patient appointments</p>
     <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="max-w-2xl text-3xl font-bold text-gray-950 sm:text-4xl">Your visits, across clinics</h1>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">Manage a booking using its reference and the matching mobile number. No account or OTP is required.</p>
+        <h1 class="max-w-2xl text-3xl font-semibold text-gray-900 sm:text-5xl">Your visits, made simpler.</h1>
+        <p class="mt-4 max-w-xl text-sm leading-6 text-gray-500 sm:text-base">Check your appointment request with your booking reference and mobile number. No account or OTP required.</p>
       </div>
       @if (step() === 'appointments') {
         <button type="button" (click)="logout()" class="self-start text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-950">
@@ -25,9 +25,9 @@
         <button type="button" (click)="logout()" class="mt-6 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Sign out business account</button>
       </div>
     } @else if (step() === 'phone') {
-      <div class="mx-auto grid max-w-4xl gap-0 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm md:grid-cols-[minmax(0,1fr)_280px]">
+      <div class="mx-auto grid max-w-4xl gap-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:grid-cols-[minmax(0,1fr)_300px]">
         <form [formGroup]="phoneForm" (ngSubmit)="sendCode()" class="p-6 sm:p-9">
-          <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Booking access</p>
+          <p class="text-xs font-semibold uppercase tracking-widest text-blue-700">Step 1 · Find your booking</p>
           <h2 class="mt-3 text-2xl font-bold text-gray-950">Enter your mobile number</h2>
           <p class="mt-2 text-sm leading-6 text-gray-600">Use the same number entered when the appointment was requested. You will also need the booking reference.</p>
 
@@ -52,10 +52,12 @@
           <p class="mt-4 text-xs leading-5 text-gray-500">We verify the number against each booking reference. No OTP is sent.</p>
         </form>
 
-        <aside class="border-t border-gray-200 bg-blue-950 p-6 text-blue-50 md:border-l md:border-t-0 sm:p-8">
-          <p class="text-xs font-bold uppercase tracking-widest text-blue-200">Private by design</p>
-          <p class="mt-4 text-sm leading-6">The portal shows appointment coordination details only. Clinical notes, treatment records, and clinic billing data stay private to each clinic.</p>
-          <a routerLink="/dentists" class="mt-8 inline-flex text-sm font-bold text-white underline decoration-blue-400 underline-offset-4">Return to dentist search</a>
+        <aside class="border-t border-gray-200 bg-blue-50 p-6 md:border-l md:border-t-0 sm:p-8">
+          <span class="grid h-12 w-12 place-items-center rounded-xl bg-white text-2xl text-blue-600"><i class="ph ph-calendar-check" aria-hidden="true"></i></span>
+          <h3 class="mt-5 text-lg font-semibold text-gray-900">Have these handy</h3>
+          <ul class="mt-4 space-y-4 text-sm leading-6 text-gray-600"><li class="flex gap-2"><i class="ph ph-check text-blue-600" aria-hidden="true"></i> The mobile number used to book</li><li class="flex gap-2"><i class="ph ph-check text-blue-600" aria-hidden="true"></i> Your booking reference</li></ul>
+          <p class="mt-6 border-t border-blue-100 pt-5 text-xs leading-5 text-gray-500">Your clinical notes and treatment records remain private to your clinic.</p>
+          <a routerLink="/dentists" class="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700">Find a dentist<i class="ph ph-arrow-right" aria-hidden="true"></i></a>
         </aside>
       </div>
     } @else if (step() === 'code') {
