@@ -154,6 +154,12 @@ public class AppointmentService {
         return appointment == null ? null : publicValue(appointment);
     }
 
+    public List<Map<String, Object>> patientAppointments(String phone) {
+        return jdbcTemplate.queryForList("""
+            select booking_ref from appointments where phone_e164 = ? order by appointment_date desc limit 100
+            """, String.class, phone).stream().map(reference -> lookupAny(reference, phone)).toList();
+    }
+
     public Map<String, Object> lookupAny(String bookingRef, String phone) {
         List<Map<String, Object>> appointments = jdbcTemplate.query("""
             select a.*, d.name as doctor_name, c.name as clinic_name,

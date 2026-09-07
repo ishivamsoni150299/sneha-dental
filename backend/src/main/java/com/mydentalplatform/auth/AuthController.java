@@ -29,15 +29,29 @@ public class AuthController {
     private final ClinicLoginService loginService;
     private final PasswordResetService passwordResetService;
     private final boolean secureCookies;
+    private final OtpLoginService otp;
 
     public AuthController(
         ClinicLoginService loginService,
         PasswordResetService passwordResetService,
+        OtpLoginService otp,
         @Value("${platform.auth.secure-cookies}") boolean secureCookies
     ) {
         this.loginService = loginService;
         this.passwordResetService = passwordResetService;
         this.secureCookies = secureCookies;
+        this.otp = otp;
+    }
+
+    @PostMapping("/otp/request")
+    ResponseEntity<Void> requestOtp(@Valid @RequestBody OtpRequest request) {
+        otp.send(request.identity(), request.portal());
+        return ResponseEntity.accepted().cacheControl(org.springframework.http.CacheControl.noStore()).build();
+    }
+
+    @PostMapping("/otp/verify")
+    ResponseEntity<LoginResponse> verifyOtp(@Valid @RequestBody OtpVerification request, HttpServletRequest servletRequest) {
+        return loginResponse(otp.verify(request.identity(), request.portal(), request.code(), request.fullName(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
     }
 
     @PostMapping("/clinic/login")
@@ -128,7 +142,8 @@ public class AuthController {
             UUID.fromString(jwt.getSubject()),
             clinicId == null ? null : UUID.fromString(clinicId),
             jwt.getClaimAsString("role"),
-            jwt.getClaimAsString("email"));
+            jwt.getClaimAsString("email"), jwt.getClaimAsString("phone"),
+            Boolean.TRUE.equals(jwt.getClaim("email_verified")), Boolean.TRUE.equals(jwt.getClaim("phone_verified")));
     }
 
     private ResponseEntity<LoginResponse> loginResponse(ClinicLoginService.LoginResult result) {
@@ -137,10 +152,11 @@ public class AuthController {
             .build();
         AuthUser user = result.user();
         return ResponseEntity.ok()
+            .cacheControl(org.springframework.http.CacheControl.noStore())
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(new LoginResponse(
                 result.accessToken(), result.expiresIn(),
-                new UserResponse(user.id(), user.clinicId(), user.role().claimValue(), user.email())));
+                new UserResponse(user.id(), user.clinicId(), user.role().claimValue(), user.email(), user.phoneE164(), user.emailVerified(), user.phoneVerified())));
     }
 
     private ResponseCookie.ResponseCookieBuilder refreshCookie(String value) {
@@ -193,8 +209,12 @@ public class AuthController {
     record LoginResponse(String accessToken, long expiresIn, UserResponse user) {
     }
 
-    record UserResponse(UUID id, UUID clinicId, String role, String email) {
+    record UserResponse(UUID id, UUID clinicId, String role, String email, String phoneNumber, boolean emailVerified, boolean phoneVerified) {
     }
+
+    record OtpRequest(@NotBlank @Size(max=254) String identity, @NotBlank @jakarta.validation.constraints.Pattern(regexp="clinic|platform|dentist|patient") String portal) {}
+    record OtpVerification(@NotBlank @Size(max=254) String identity, @NotBlank @jakarta.validation.constraints.Pattern(regexp="clinic|platform|dentist|patient") String portal,
+        @NotBlank @jakarta.validation.constraints.Pattern(regexp="[0-9]{6,10}") String code, @Size(max=160) String fullName) {}
 
     record ErrorResponse(String code, String message) {
     }

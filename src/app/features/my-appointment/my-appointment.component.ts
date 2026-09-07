@@ -1,4 +1,6 @@
 import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
+import { PatientAuthService } from '../../core/services/patient-auth.service';
+import { PatientAppointmentsComponent } from '../marketplace/patient-appointments.component';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment } from '../../core/services/appointment.service';
@@ -11,11 +13,12 @@ type View = 'lookup' | 'detail' | 'edit' | 'cancelled';
 @Component({
   selector: 'app-my-appointment',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, PatientAppointmentsComponent],
   templateUrl: './my-appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyAppointmentComponent {
+  readonly patientAuth = inject(PatientAuthService);
   private fb = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
   readonly clinic = inject(ClinicConfigService);

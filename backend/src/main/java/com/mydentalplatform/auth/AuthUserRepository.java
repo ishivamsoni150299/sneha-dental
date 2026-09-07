@@ -28,6 +28,21 @@ public class AuthUserRepository {
             """, USER_MAPPER, email).stream().findFirst();
     }
 
+    public Optional<AuthUser> findByPhone(String phone) {
+        return jdbcTemplate.query("""
+            select id, clinic_id, role::text, email, phone_e164, password_hash,
+                   email_verified, phone_verified, enabled, password_migration_required
+            from users
+            where phone_e164 = ?
+            """, USER_MAPPER, phone).stream().findFirst();
+    }
+
+    public AuthUser createPatient(String phone) {
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update("insert into users (id, role, phone_e164, phone_verified) values (?, 'patient', ?, true)", id, phone);
+        return findByPhone(phone).orElseThrow();
+    }
+
     public AuthUser createClinicSignup(String email, String passwordHash) {
         UUID id = UUID.randomUUID();
         jdbcTemplate.update("""

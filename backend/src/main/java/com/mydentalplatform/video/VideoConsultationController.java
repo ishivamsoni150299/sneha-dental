@@ -24,7 +24,8 @@ public class VideoConsultationController {
     Map<String, Boolean> status() { return Map.of("available", daily.configured()); }
 
     @PostMapping("/public/appointments/{id}/video/join")
-    ResponseEntity<DailyVideoClient.Session> patient(@PathVariable UUID id, @Valid @RequestBody PatientAccess access) {
+    ResponseEntity<DailyVideoClient.Session> patient(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @Valid @RequestBody PatientAccess access) {
+        com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, access.phone());
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
             .body(video.join(id, null, access.bookingRef(), access.phone()));
     }
@@ -38,7 +39,8 @@ public class VideoConsultationController {
     Map<String, Object> settings(@AuthenticationPrincipal Jwt jwt) { return video.settings(clinicId(jwt)); }
 
     @PostMapping("/public/appointments/{id}/video/access")
-    ResponseEntity<Void> patientAccess(@PathVariable UUID id, @Valid @RequestBody PatientAccess access) {
+    ResponseEntity<Void> patientAccess(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @Valid @RequestBody PatientAccess access) {
+        com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, access.phone());
         video.checkAccess(id, null, access.bookingRef(), access.phone());
         return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
     }

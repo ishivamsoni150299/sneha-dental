@@ -16,10 +16,10 @@ describe('VideoConsultationService', () => {
   });
   it('sends patient access credentials only in a POST body', async () => {
     await service.join('appointment-1', false, 'BK-ABCDEFGH', '9999999999');
-    const [url, init] = fetchSpy.calls.mostRecent().args;
+    const [url, init] = api.fetch.calls.mostRecent().args;
     expect(url).toBe('/api/public/appointments/appointment-1/video/join');
-    expect(JSON.parse(init.body)).toEqual({bookingRef:'BK-ABCDEFGH',phone:'9999999999'});
-    expect(api.fetch).not.toHaveBeenCalled();
+    expect(JSON.parse(init!.body as string)).toEqual({bookingRef:'BK-ABCDEFGH',phone:'9999999999'});
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
   it('uses authenticated clinic access for staff', async () => {
     await service.join('appointment-1', true, '', '');
@@ -27,7 +27,7 @@ describe('VideoConsultationService', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
   it('rejects a room on an untrusted domain', async () => {
-    fetchSpy.and.resolveTo(new Response(JSON.stringify({...session,url:'https://daily.co.example.com/room'}),{status:200}));
+    api.fetch.and.resolveTo(new Response(JSON.stringify({...session,url:'https://daily.co.example.com/room'}),{status:200}));
     await expectAsync(service.join('appointment-1',false,'BK-ABCDEFGH','9999999999')).toBeRejected();
   });
 });

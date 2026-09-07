@@ -265,7 +265,7 @@ export class AppointmentService {
   /** Fetch appointment by bookingRef + phone — scoped to this clinic. */
   async getAppointmentByRef(bookingRef: string, phone: string): Promise<Appointment | null> {
     const params = new URLSearchParams({ clinicId: this.clinicId, bookingRef, phone });
-    const response = await fetch(`/api/public/appointments/lookup?${params}`);
+    const response = await this.api.fetch(`/api/public/appointments/lookup?${params}`);
     if (response.status === 404) return null;
     if (!response.ok) throw await this.error(response, 'Could not find this appointment.');
     return await response.json() as Appointment;
@@ -288,7 +288,7 @@ export class AppointmentService {
     if (!this.isBookable(nextDate, nextTime)) {
       throw new Error('Please choose a current or future appointment slot.');
     }
-    const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointment.id)}`, {
+    const response = await this.api.fetch(`/api/public/appointments/${encodeURIComponent(appointment.id)}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...data, phone: appointment.phone, date: nextDate, time: nextTime }),
     });
@@ -373,7 +373,7 @@ export class AppointmentService {
       throw new Error('Appointment reference is missing.');
     }
 
-    const response = await fetch(`/api/public/appointments/${encodeURIComponent(appointment.id)}/cancel`, {
+    const response = await this.api.fetch(`/api/public/appointments/${encodeURIComponent(appointment.id)}/cancel`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone: appointment.phone }),
     });

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { PatientAppointmentApiService } from './patient-appointment-api.service';
 import { PatientAuthService } from './patient-auth.service';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 describe('PatientAppointmentApiService', () => {
   const patientAuth = {
@@ -9,7 +10,10 @@ describe('PatientAppointmentApiService', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({ providers: [{ provide: PatientAuthService, useValue: patientAuth }] });
+    TestBed.configureTestingModule({ providers: [
+      { provide: PatientAuthService, useValue: patientAuth },
+      { provide: AuthenticatedApiService, useValue: { fetch: (path: string, init: RequestInit) => fetch(path, init) } },
+    ] });
   });
 
   it('claims a booking through the public Spring lookup', async () => {

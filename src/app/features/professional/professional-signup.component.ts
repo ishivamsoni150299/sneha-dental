@@ -3,11 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../core/services/auth-facade.service';
 import { PlatformBrandComponent } from '../../shared/components/platform-brand/platform-brand.component';
+import { OtpLoginComponent } from '../../shared/components/otp-login/otp-login.component';
 
 @Component({
   selector: 'app-professional-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, OtpLoginComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="border-b border-gray-200 bg-white"><div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4"><a routerLink="/professional"><app-platform-brand /></a><a routerLink="/professional/login" class="text-sm font-semibold text-blue-700">Sign in</a></div></header>
@@ -17,17 +18,13 @@ import { PlatformBrandComponent } from '../../shared/components/platform-brand/p
         <h1 class="mt-3 text-3xl font-bold text-gray-950">Join the dentist directory</h1>
         <p class="mt-2 text-sm leading-6 text-gray-600">No clinic website or clinic subscription is required.</p>
         @if (error()) { <p class="mt-5 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700" role="alert">{{ error() }}</p> }
-        <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4">
-          <label class="block text-sm font-semibold text-gray-800">Professional name<input formControlName="fullName" class="mt-1.5 w-full rounded-xl border border-gray-300 px-4 py-3" placeholder="Dr. Sneha Sharma" autocomplete="name"></label>
-          <label class="block text-sm font-semibold text-gray-800">Email<input formControlName="email" type="email" class="mt-1.5 w-full rounded-xl border border-gray-300 px-4 py-3" placeholder="doctor@example.com" autocomplete="email"></label>
-          <label class="block text-sm font-semibold text-gray-800">Password<input formControlName="password" type="password" class="mt-1.5 w-full rounded-xl border border-gray-300 px-4 py-3" placeholder="At least 8 characters" autocomplete="new-password"></label>
-          <button class="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-bold text-white hover:bg-blue-700 disabled:opacity-60" [disabled]="loading()">{{ loading() ? 'Creating profile…' : 'Create dentist profile' }}</button>
-        </form>
+<div class="mt-6"><app-otp-login portal="dentist" (authenticated)="onOtpAuthenticated()" /></div>
       </section>
     </main>
   `,
 })
 export class ProfessionalSignupComponent {
+  async onOtpAuthenticated(): Promise<void> { await this.router.navigateByUrl('/professional/profile'); }
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthFacade);
   private readonly router = inject(Router);
@@ -55,4 +52,3 @@ export class ProfessionalSignupComponent {
     }
   }
 }
-

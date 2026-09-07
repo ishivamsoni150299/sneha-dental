@@ -108,18 +108,24 @@ public class ClinicLoginService {
         Instant now = clock.instant();
         RefreshTokenRepository.RefreshSession session = refreshTokenRepository
             .findActiveForUpdate(tokenService.hashRefreshToken(refreshTokenValue), now)
-            .orElseThrow(() -> new AuthException("Refresh token is invalid or expired."));
+            .orElseThrow(() -> {
+                refreshTokenRepository.revokeReplayedFamily(tokenService.hashRefreshToken(refreshTokenValue), now);
+                return new AuthException("Refresh token is invalid or expired. Sign in again.");
+            });
         AuthUser user = session.user();
-        if (!user.enabled() || user.passwordMigrationRequired() || !user.emailVerified()) {
+        if (!user.enabled() || user.passwordMigrationRequired() ||
+            (user.role() == UserRole.PATIENT ? !user.phoneVerified() : !user.emailVerified())) {
             throw new AuthException("This session is no longer valid.");
         }
 
-        TokenService.RefreshToken replacement = tokenService.createRefreshToken(now);
+        TokenService.RefreshToken candidate = tokenService.createRefreshToken(now);
+        TokenService.RefreshToken replacement = new TokenService.RefreshToken(candidate.value(), candidate.hash(),
+            candidate.expiresAt().isBefore(session.familyExpiresAt()) ? candidate.expiresAt() : session.familyExpiresAt());
         java.util.UUID replacementId = refreshTokenRepository.create(
-            user.id(), replacement.hash(), replacement.expiresAt(), userAgent);
+            user.id(), replacement.hash(), replacement.expiresAt(), userAgent, session.familyId(), session.familyExpiresAt());
         refreshTokenRepository.revokeAndReplace(session.tokenId(), replacementId, now);
         return new LoginResult(
-            tokenService.createAccessToken(user, now),
+            tokenService.createAccessToken(user, now, session.familyId()),
             tokenService.accessTokenExpiresInSeconds(),
             replacement,
             user);
@@ -130,6 +136,16 @@ public class ClinicLoginService {
         if (refreshTokenValue == null || refreshTokenValue.isBlank()) return;
         refreshTokenRepository.revokeByHash(
             tokenService.hashRefreshToken(refreshTokenValue), clock.instant());
+    }
+
+    @Transactional
+    public LoginResult verifiedLogin(AuthUser user, String userAgent) {
+        if (!user.enabled()) throw new AuthException("This account is disabled.");
+        Instant now = clock.instant();
+        var refresh = tokenService.createRefreshToken(now);
+        var family = java.util.UUID.randomUUID();
+        refreshTokenRepository.create(user.id(), refresh.hash(), refresh.expiresAt(), userAgent, family, refresh.expiresAt());
+        return new LoginResult(tokenService.createAccessToken(user, now, family), tokenService.accessTokenExpiresInSeconds(), refresh, user);
     }
 
     public record LoginResult(

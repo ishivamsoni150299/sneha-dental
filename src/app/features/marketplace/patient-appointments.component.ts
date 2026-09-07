@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
@@ -19,7 +19,9 @@ type VerificationStep = 'phone' | 'code' | 'appointments';
   templateUrl: './patient-appointments.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PatientAppointmentsComponent implements OnInit {
+export class PatientAppointmentsComponent implements OnInit, OnDestroy {
+  readonly resendCooldown = signal(0);
+  private resendTimer?: ReturnType<typeof setInterval>;
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   readonly patientAuth = inject(PatientAuthService);
@@ -73,7 +75,7 @@ export class PatientAppointmentsComponent implements OnInit {
 
   async sendCode(): Promise<void> {
     this.phoneForm.markAllAsTouched();
-    if (this.phoneForm.invalid || this.sendingCode()) return;
+    if (this.phoneForm.invalid || this.sendingCode() || this.resendCooldown() > 0) return;
     this.sendingCode.set(true);
     this.error.set(null);
     try {
@@ -81,7 +83,11 @@ export class PatientAppointmentsComponent implements OnInit {
         this.phoneForm.controls.phone.value,
         'patient-phone-recaptcha',
       ));
-      await this.loadSession();
+      this.step.set('code');
+      this.codeForm.reset();
+      this.resendCooldown.set(60);
+      clearInterval(this.resendTimer);
+      this.resendTimer = setInterval(() => { this.resendCooldown.update(n => Math.max(0, n - 1)); if (!this.resendCooldown()) clearInterval(this.resendTimer); }, 1000);
     } catch (error) {
       this.error.set(this.authError(error));
     } finally {
@@ -105,11 +111,14 @@ export class PatientAppointmentsComponent implements OnInit {
   }
 
   resetVerification(): void {
+    clearInterval(this.resendTimer); this.resendCooldown.set(0);
     this.patientAuth.resetVerification();
     this.codeForm.reset();
     this.error.set(null);
     this.step.set('phone');
   }
+
+  ngOnDestroy(): void { clearInterval(this.resendTimer); }
 
   async loadSession(): Promise<void> {
     this.loading.set(true);

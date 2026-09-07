@@ -14,7 +14,7 @@ export class VideoConsultationService {
     const request: RequestInit = { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(staff ? {} : { bookingRef, phone }) };
     const path = `${prefix}${encodeURIComponent(id)}/video/join`;
-    const response = staff ? await this.api.fetch(path, request) : await fetch(path, request);
+    const response = await this.api.fetch(path, request);
     const session = await this.read<VideoSession>(response);
     const url = new URL(session.url);
     if (url.protocol !== 'https:' || !url.hostname.endsWith('.daily.co') || url.username || url.password || url.port) {
@@ -30,7 +30,7 @@ export class VideoConsultationService {
   async checkAccess(id: string, staff: boolean, bookingRef: string, phone: string): Promise<void> {
     const path = `${staff ? '/api/clinics/current' : '/api/public'}/appointments/${encodeURIComponent(id)}/video/access`;
     const init = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(staff ? {} : { bookingRef, phone }) };
-    const response = staff ? await this.api.fetch(path, init) : await fetch(path, init);
+    const response = await this.api.fetch(path, init);
     if (!response.ok) await this.read(response);
   }
 

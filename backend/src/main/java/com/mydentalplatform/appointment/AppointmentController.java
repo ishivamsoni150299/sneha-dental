@@ -41,35 +41,47 @@ public class AppointmentController {
         return Map.of("bookingRef", appointmentService.book(request));
     }
 
+    @GetMapping("/patient/session")
+    Map<String, Object> patientSession(@AuthenticationPrincipal Jwt jwt) {
+        String phone = com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, jwt == null ? null : jwt.getClaimAsString("phone"));
+        return Map.of("profile", Map.of("phoneMasked", "+91 ••••••" + phone.substring(phone.length() - 4)),
+            "appointments", appointmentService.patientAppointments(phone));
+    }
+
     @GetMapping("/public/appointments/lookup")
     ResponseEntity<Map<String, Object>> lookup(
+        @AuthenticationPrincipal Jwt jwt,
         @RequestParam UUID clinicId,
         @RequestParam String bookingRef,
         @RequestParam String phone
     ) {
-        return ResponseEntity.ofNullable(appointmentService.lookup(clinicId, bookingRef, phone));
+        return ResponseEntity.ofNullable(appointmentService.lookup(clinicId, bookingRef, com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, phone)));
     }
 
     @PostMapping("/public/appointments/lookup-any")
-    Map<String, Object> lookupAny(@Valid @RequestBody LookupRequest request) {
+    Map<String, Object> lookupAny(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody LookupRequest request) {
+        com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone());
         return appointmentService.lookupAny(request.bookingRef(), request.phone());
     }
 
     @PatchMapping("/public/appointments/{appointmentId}")
     ResponseEntity<Void> update(
+        @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID appointmentId,
         @Valid @RequestBody PatientUpdateRequest request
     ) {
+        com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone());
         appointmentService.patientUpdate(appointmentId, request);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/public/appointments/{appointmentId}/cancel")
     ResponseEntity<Void> cancel(
+        @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID appointmentId,
         @Valid @RequestBody PhoneRequest request
     ) {
-        appointmentService.patientCancel(appointmentId, request.phone());
+        appointmentService.patientCancel(appointmentId, com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone()));
         return ResponseEntity.noContent().build();
     }
 

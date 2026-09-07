@@ -105,12 +105,12 @@ class ClinicLoginServiceTest {
             "new-plain-token", "new-token-hash", NOW.plusSeconds(604_800));
         when(tokenService.hashRefreshToken("old-plain-token")).thenReturn("old-token-hash");
         when(refreshTokenRepository.findActiveForUpdate("old-token-hash", NOW))
-            .thenReturn(Optional.of(new RefreshTokenRepository.RefreshSession(oldTokenId, user)));
+            .thenReturn(Optional.of(new RefreshTokenRepository.RefreshSession(oldTokenId, user, oldTokenId, replacement.expiresAt())));
         when(tokenService.createRefreshToken(NOW)).thenReturn(replacement);
         when(refreshTokenRepository.create(
-            user.id(), replacement.hash(), replacement.expiresAt(), "test-browser"))
+            user.id(), replacement.hash(), replacement.expiresAt(), "test-browser", oldTokenId, replacement.expiresAt()))
             .thenReturn(newTokenId);
-        when(tokenService.createAccessToken(user, NOW)).thenReturn("new-access-token");
+        when(tokenService.createAccessToken(user, NOW, oldTokenId)).thenReturn("new-access-token");
         when(tokenService.accessTokenExpiresInSeconds()).thenReturn(900L);
 
         ClinicLoginService.LoginResult result = loginService.refresh("old-plain-token", "test-browser");

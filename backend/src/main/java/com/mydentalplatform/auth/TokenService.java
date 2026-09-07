@@ -38,6 +38,10 @@ public class TokenService {
     }
 
     public String createAccessToken(AuthUser user, Instant issuedAt) {
+        return createAccessToken(user, issuedAt, null);
+    }
+
+    public String createAccessToken(AuthUser user, Instant issuedAt, java.util.UUID sessionId) {
         JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
             .issuer(issuer)
             .subject(user.id().toString())
@@ -49,6 +53,7 @@ public class TokenService {
         if (user.email() != null) claims.claim("email", user.email());
         if (user.phoneE164() != null) claims.claim("phone", user.phoneE164());
         if (user.clinicId() != null) claims.claim("clinic_id", user.clinicId().toString());
+        if (sessionId != null) claims.claim("sid", sessionId.toString());
 
         return jwtEncoder.encode(JwtEncoderParameters.from(
             JwsHeader.with(MacAlgorithm.HS256).build(), claims.build())).getTokenValue();

@@ -137,9 +137,11 @@ public class ReviewController {
     @PostMapping("/public/appointments/{appointmentId}/review")
     @Transactional
     Map<String, Object> submitPublicReview(
+        @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID appointmentId,
         @Valid @RequestBody PublicReviewRequest request
     ) {
+        com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone());
         List<Map<String, Object>> appointments = jdbcTemplate.queryForList("""
             select clinic_id, patient_name, phone_e164 from appointments
             where id = ? and status = 'completed'
@@ -171,10 +173,11 @@ public class ReviewController {
     @PostMapping("/public/reviews/{reviewId}/reports")
     @Transactional
     ResponseEntity<Void> reportPublicReview(
+        @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID reviewId,
         @Valid @RequestBody PublicReportRequest request
     ) {
-        String phone = "+91" + normalizePhone(request.phone());
+        String phone = com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone());
         List<UUID> eligibleClinics = jdbcTemplate.queryForList("""
             select distinct r.clinic_id from appointment_reviews r
             join appointments a on a.clinic_id = r.clinic_id

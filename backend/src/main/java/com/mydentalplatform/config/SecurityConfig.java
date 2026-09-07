@@ -50,7 +50,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, org.springframework.jdbc.core.JdbcTemplate jdbc) throws Exception {
         return http
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/webhooks/**"))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -68,12 +68,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/favicon.ico",
                     "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
                 .requestMatchers(
+                    "/api/auth/otp/request", "/api/auth/otp/verify",
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
                     "/api/auth/professional/login", "/api/auth/professional/signup",
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()
                 .requestMatchers("/webhooks/**").permitAll()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
+            .addFilterAfter(new VerifiedSessionFilter(jdbc), org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
             .build();
     }
 

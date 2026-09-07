@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { DEFAULT_BOOKING_SLOTS } from './doctor.service';
-import { maskPatientPhone, PatientAuthService } from './patient-auth.service';
+import { PatientAuthService } from './patient-auth.service';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 export interface PatientAppointmentReview {
   id: string;
@@ -48,17 +49,15 @@ export interface PatientSession {
 
 @Injectable({ providedIn: 'root' })
 export class PatientAppointmentApiService {
+  private readonly api = inject(AuthenticatedApiService);
   private readonly patientAuth = inject(PatientAuthService);
   private readonly cache = new Map<string, PatientAppointmentSummary>();
 
   async session(): Promise<PatientSession> {
-    const phone = this.phone();
-    const references = this.references();
-    const settled = await Promise.allSettled(references.map(reference => this.lookup(reference, phone)));
-    const appointments = settled
-      .filter((result): result is PromiseFulfilledResult<PatientAppointmentSummary> => result.status === 'fulfilled')
-      .map(result => result.value);
-    return { profile: { phoneMasked: maskPatientPhone(phone) }, appointments };
+    const session = await this.request<PatientSession>('/api/patient/session');
+    this.cache.clear();
+    for (const appointment of session.appointments) this.cache.set(appointment.id, appointment);
+    return session;
   }
 
   async claim(bookingRef: string): Promise<PatientAppointmentSummary> {
@@ -123,7 +122,7 @@ export class PatientAppointmentApiService {
   }
 
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
-    const response = await fetch(path, {
+    const response = await this.api.fetch(path, {
       ...init,
       headers: { 'Content-Type': 'application/json', ...init.headers },
     });

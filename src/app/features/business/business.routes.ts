@@ -43,8 +43,7 @@ export const businessRoutes: Routes = [
 
   {
     path: 'forgot-password',
-    loadComponent: () =>
-      import('./forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    redirectTo: 'login', pathMatch: 'full',
     data: {
       title: 'Reset Password',
       description: 'Reset the password for your mydentalplatform clinic account.',
@@ -54,8 +53,7 @@ export const businessRoutes: Routes = [
 
   {
     path: 'reset-password',
-    loadComponent: () =>
-      import('./reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+    redirectTo: 'login', pathMatch: 'full',
     data: {
       title: 'Choose a New Password',
       description: 'Choose a new password for your mydentalplatform clinic account.',

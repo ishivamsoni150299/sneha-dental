@@ -45,6 +45,7 @@ class DeploymentSecurityTest {
         context.register(TestConfig.class, SecurityConfig.class, SpaRoutingConfig.class,
             PlatformAdminController.class, LeadController.class, ReviewController.class, VideoConsultationController.class);
         context.refresh();
+        org.mockito.Mockito.when(context.getBean(JdbcTemplate.class).queryForObject(org.mockito.ArgumentMatchers.contains("select exists"), org.mockito.ArgumentMatchers.eq(Boolean.class), org.mockito.ArgumentMatchers.any(Object[].class))).thenReturn(true);
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
     }
 
@@ -57,9 +58,9 @@ class DeploymentSecurityTest {
         var clinic = java.util.UUID.randomUUID();
         String route = "/api/clinics/current/appointments/" + appointment + "/video/join";
         mvc.perform(post(route)).andExpect(status().isUnauthorized());
-        mvc.perform(post(route).with(jwt().jwt(token -> token.claim("role", "patient").claim("clinic_id", clinic.toString()))))
+        mvc.perform(post(route).with(jwt().jwt(token -> token.subject("7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b0").claim("sid", "7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b1").claim("role", "patient").claim("clinic_id", clinic.toString()))))
             .andExpect(status().isForbidden());
-        mvc.perform(post(route).with(jwt().jwt(token -> token.claim("role", "clinic-admin").claim("clinic_id", clinic.toString()))))
+        mvc.perform(post(route).with(jwt().jwt(token -> token.subject("7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b0").claim("sid", "7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b1").claim("role", "clinic-admin").claim("clinic_id", clinic.toString()))))
             .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"));
         org.mockito.Mockito.verify(context.getBean(VideoConsultationService.class)).join(appointment, clinic, null, null);
     }
@@ -81,14 +82,14 @@ class DeploymentSecurityTest {
     @ParameterizedTest
     @ValueSource(strings = {"/api/admin/clinics", "/api/admin/leads", "/api/admin/reviews/moderation"})
     void platformRoleIssuedByLoginCanAccessAdminApis(String route) throws Exception {
-        mvc.perform(get(route).with(jwt().jwt(token -> token.claim("role", UserRole.PLATFORM_ADMIN.claimValue()))))
+        mvc.perform(get(route).with(jwt().jwt(token -> token.subject("7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b0").claim("sid", "7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b1").claim("role", UserRole.PLATFORM_ADMIN.claimValue()))))
             .andExpect(status().isOk());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"/api/admin/clinics", "/api/admin/leads", "/api/admin/reviews/moderation"})
     void clinicUsersCannotAccessPlatformAdminApis(String route) throws Exception {
-        mvc.perform(get(route).with(jwt().jwt(token -> token.claim("role", UserRole.CLINIC_ADMIN.claimValue()))))
+        mvc.perform(get(route).with(jwt().jwt(token -> token.subject("7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b0").claim("sid", "7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b1").claim("role", UserRole.CLINIC_ADMIN.claimValue()))))
             .andExpect(status().isForbidden());
         mvc.perform(get(route)).andExpect(status().isUnauthorized());
     }

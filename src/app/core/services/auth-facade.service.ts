@@ -19,6 +19,9 @@ interface AuthResponse {
     clinicId: string | null;
     role: AuthRole;
     email: string | null;
+    phoneNumber?: string | null;
+    emailVerified?: boolean;
+    phoneVerified?: boolean;
   };
 }
 
@@ -30,6 +33,7 @@ export class AuthFacade {
   private readyResolved = false;
   private resolveReady!: () => void;
   private refreshRequest: Promise<string> | null = null;
+  private sessionGeneration = 0;
 
   readonly currentUser = signal<PlatformUser | null>(null);
   readonly role = signal<AuthRole | null>(null);
@@ -55,6 +59,15 @@ export class AuthFacade {
   async createAccountWithEmail(email: string, password: string): Promise<PlatformUser> {
     this.applySession(await this.authRequest('/api/auth/clinic/signup', { email, password }));
     return this.currentUser()!;
+  }
+
+  async requestOtp(identity: string, portal: 'patient' | 'clinic' | 'platform' | 'dentist'): Promise<void> {
+    await this.passwordResetRequest('/api/auth/otp/request', { identity, portal });
+  }
+
+  async verifyOtp(identity: string, portal: 'patient' | 'clinic' | 'platform' | 'dentist', code: string, fullName?: string): Promise<AuthRole> {
+    await this.authReady;
+    return this.applySession(await this.authRequest('/api/auth/otp/verify', { identity, portal, code, fullName }));
   }
 
   async createProfessionalAccount(fullName: string, email: string, password: string): Promise<PlatformUser> {
@@ -105,6 +118,7 @@ export class AuthFacade {
   }
 
   async logout(): Promise<void> {
+    this.sessionGeneration++;
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } finally {
@@ -128,9 +142,15 @@ export class AuthFacade {
   }
 
   private async refreshSession(): Promise<string> {
-    const response = await this.authRequest('/api/auth/refresh');
-    this.applySession(response);
-    return response.accessToken;
+    const generation = this.sessionGeneration;
+    const refresh = async () => {
+      const response = await this.authRequest('/api/auth/refresh');
+      if (generation !== this.sessionGeneration) throw this.authError('auth/session-expired', 'Sign in again.');
+      this.applySession(response);
+      return response.accessToken;
+    };
+    return typeof navigator !== 'undefined' && navigator.locks
+      ? navigator.locks.request('mydentalplatform-auth-refresh', refresh) : refresh();
   }
 
   private async authRequest(path: string, body?: object): Promise<AuthResponse> {
@@ -145,7 +165,8 @@ export class AuthFacade {
       const code = response.status === 409 ? 'auth/email-already-in-use' :
         data.code === 'password_migration_required' ? 'auth/password-migration-required' :
         'auth/invalid-credential';
-      throw this.authError(code, data.message ?? 'Authentication failed.');
+      throw this.authError(response.status === 429 ? 'auth/too-many-requests' : code,
+        (data as { detail?: string }).detail ?? data.message ?? 'Authentication failed.');
     }
     return data;
   }
@@ -174,8 +195,8 @@ export class AuthFacade {
     this.currentUser.set({
       uid: response.user.id,
       email: response.user.email,
-      emailVerified: true,
-      phoneNumber: null,
+      emailVerified: response.user.emailVerified === true,
+      phoneNumber: response.user.phoneVerified ? response.user.phoneNumber ?? null : null,
       clinicId: response.user.clinicId,
     });
     this.role.set(response.user.role);

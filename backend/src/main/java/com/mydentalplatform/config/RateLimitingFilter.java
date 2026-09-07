@@ -51,6 +51,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String ruleKey = method + ":" + path;
 
         LimitRule rule = null;
+        if (method.equals("POST") && path.startsWith("/api/auth/otp/")) {
+            rule = new LimitRule(path.endsWith("/request") ? 10 : 30, 600);
+        }
         if (method.equals("POST") && path.matches("/api/(public|clinics/current)/appointments/[^/]+/video/(join|access)")) {
             boolean join = path.endsWith("/join");
             rule = new LimitRule(join ? 12 : 60, join ? 60 : 600);
@@ -74,24 +77,6 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String clientIp = resolveClientIp(request);
         String bucketKey = ruleKey + ":" + clientIp;
 
-        if (path.startsWith("/api/clinics/current")) {
-            String auth = request.getHeader("Authorization");
-            if (auth != null && auth.startsWith("Bearer ")) {
-                try {
-                    String token = auth.substring(7);
-                    String[] parts = token.split("\\.");
-                    if (parts.length == 3) {
-                        String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
-                        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"clinic_id\"\\s*:\\s*\"([^\"]+)\"").matcher(payload);
-                        if (m.find()) {
-                            bucketKey = ruleKey + ":" + m.group(1);
-                        }
-                    }
-                } catch (Exception e) {
-                    // fall back to IP
-                }
-            }
-        }
         long now = System.currentTimeMillis();
 
         if (requestCounter.incrementAndGet() % CLEANUP_INTERVAL == 0) {
@@ -129,8 +114,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isBlank()) {
             String[] parts = xForwardedFor.split(",");
-            if (parts.length > 0 && !parts[0].isBlank()) {
-                return parts[0].trim();
+            if (parts.length > 0 && !parts[parts.length - 1].isBlank()) {
+                // Hosting proxy appends its observed client. Never trust a client-supplied leftmost value.
+                return parts[parts.length - 1].trim();
             }
         }
         String realIp = request.getHeader("X-Real-IP");

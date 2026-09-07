@@ -18,6 +18,7 @@ import {
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
+import { OtpLoginComponent } from '../../../shared/components/otp-login/otp-login.component';
 
 async function isSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false;
@@ -98,7 +99,7 @@ declare const google: any;
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, OtpLoginComponent],
   templateUrl: './signup.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -187,6 +188,11 @@ export class SignupComponent implements OnInit {
     } finally {
       this.authLoading.set(false);
     }
+  }
+
+  async onOtpAuthenticated(role: AuthRole): Promise<void> {
+    const user = this.auth.currentUser();
+    if (user) await this.routeAuthenticatedUser(user, role);
   }
 
   async createAccountWithGoogle(): Promise<void> {
