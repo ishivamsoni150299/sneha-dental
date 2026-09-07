@@ -23,6 +23,7 @@ import {
 import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
+import { VideoSettingsComponent } from './video-settings.component';
 
 type TabId =
   | 'info'
@@ -97,7 +98,7 @@ const DEFAULT_SERVICE_LIBRARY: ClinicService[] = [
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ClinicAccountMenuComponent],
+  imports: [ReactiveFormsModule, RouterLink, ClinicAccountMenuComponent, VideoSettingsComponent],
   templateUrl: './admin-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

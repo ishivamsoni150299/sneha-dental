@@ -18,7 +18,7 @@
             </div>
             </div>
             <div class="listing-facts">
-            <div class="stat"><span class="stat-label">Consultation fee</span><strong>{{ clinic().marketplaceProfile?.consultationFee != null ? '₹' + clinic().marketplaceProfile?.consultationFee : 'Ask clinic' }}</strong><span class="muted">at clinic</span></div>
+            <div class="stat"><span class="stat-label">{{ videoOnly() ? 'Video consultation fee' : 'Consultation fee' }}</span><strong>{{ consultationFee() != null ? '₹' + consultationFee() : 'Ask clinic' }}</strong><span class="muted">{{ videoOnly() ? 'Video call' : 'at clinic' }}</span></div>
             <div class="stat"><span class="stat-label">Patient rating</span>@if (reviewCount()) {<strong><i class="ph ph-star" aria-hidden="true"></i> {{ rating().toFixed(1) }}</strong><span class="muted">{{ reviewCount() }} verified {{ reviewCount() === 1 ? 'review' : 'reviews' }}</span>} @else {<strong>New listing</strong><span class="muted">No reviews yet</span>}</div>
             <button type="button" class="compare-button" [attr.aria-pressed]="compared()" (click)="compareToggled.emit()"><i [class]="compared() ? 'ph ph-check-square' : 'ph ph-plus-square'" aria-hidden="true"></i>{{ compared() ? 'Shortlisted' : 'Compare' }}</button>
             </div>
@@ -28,11 +28,14 @@
               @if (availabilityError()) {<p class="muted">Times unavailable</p><button type="button" class="text-blue-700 text-sm" (click)="retryAvailability.emit()">Retry times</button>}
               @else if (slots().length && clinic().marketplaceProfile?.acceptingNewPatients) {
                 <span class="availability-title">Available Today</span><p>Next at {{ slotLabel(slots()[0]) }}</p>
-                <div class="slot-options">@for (slot of slots().slice(0, 3); track slot.doctorId + slot.startsAt) {<a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="{ startsAt: slot.startsAt, doctorId: slot.doctorId }">{{ slotLabel(slot) }}</a>}</div>
+                <div class="slot-options">@for (slot of slots().slice(0, 3); track slot.doctorId + slot.startsAt) {<a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="{ startsAt: slot.startsAt, doctorId: slot.doctorId, mode: videoOnly() ? 'video' : 'in_person' }">{{ slotLabel(slot) }}</a>}</div>
               } @else {<p class="muted">{{ clinic().marketplaceProfile?.acceptingNewPatients ? 'No online times today' : 'Not accepting new patients' }}</p>}
             </div>
             <div class="booking">
-              @if (clinic().marketplaceProfile?.acceptingNewPatients) {<a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Book Appointment</a><p class="muted">Clinic confirmation required</p>} @else {<a [routerLink]="profilePath()" class="secondary inline-flex rounded-xl border border-gray-200 px-4 py-3 text-sm text-blue-600">View profile</a>}
+              @if (clinic().marketplaceProfile?.acceptingNewPatients) {
+                @if (clinic().marketplaceProfile?.videoConsultationEnabled) {<span class="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Video consultation available</span>}
+                <a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="{mode: videoOnly() ? 'video' : 'in_person'}" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Book Appointment</a><p class="muted">Clinic confirmation required</p>
+              } @else {<a [routerLink]="profilePath()" class="secondary inline-flex rounded-xl border border-gray-200 px-4 py-3 text-sm text-blue-600">View profile</a>}
             </div>
             </div>
           </article>

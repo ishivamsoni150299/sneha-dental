@@ -29,6 +29,7 @@ import { formatLocalDateInput } from '../../core/utils/date-input';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 
 export interface BookingSubmission {
+  consultationMode?: 'in_person' | 'video';
   ref: string;
   name: string;
   date: string;
@@ -124,6 +125,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   readonly formatSlotDisplay = formatSlotDisplay;
 
   get services(): string[] {
+    if (this.bookingContext?.consultationMode === 'video') return ['Video Consultation'];
     const services = this.bookingContext?.services ?? this.config.services;
     return [...services.map(service => service.name), 'Other / Not Sure'];
   }
@@ -200,6 +202,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
       const match = this.services.find(s => s.toLowerCase() === preService.toLowerCase()) ?? preService;
       this.form.patchValue({ service: match });
     }
+    if (this.bookingContext?.consultationMode === 'video') this.form.patchValue({ service: 'Video Consultation' });
 
     if (this.bookingContext) {
       this.doctors.set(this.bookingContext.doctors.filter(doctor => doctor.available));
@@ -473,6 +476,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
         patientUid: this.patientAuth.matchingPatientUid(val.phone!),
       }, this.bookingContext ?? undefined);
       const submission: BookingSubmission = {
+        consultationMode: this.bookingContext?.consultationMode ?? 'in_person',
         ref,
         name: val.name!,
         date: val.date!,

@@ -10,6 +10,7 @@ import { clinicHasPlatformFeature } from '../../../core/config/clinic.config';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { ClinicApiService, ContactMessage } from '../../../core/services/clinic-api.service';
+import { VideoConsultationComponent } from '../../../shared/components/video-consultation/video-consultation.component';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
   blue:    { hex: '#1E56DC', hexLight: '#EBF2FF', textClass: 'text-blue-700',    bgClass: 'bg-blue-700'    },
@@ -51,7 +52,7 @@ type UpgradeTeaser = {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe, ClinicAccountMenuComponent],
+  imports: [RouterLink, FormsModule, DecimalPipe, ClinicAccountMenuComponent, VideoConsultationComponent],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

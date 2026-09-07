@@ -4,6 +4,9 @@ import com.mydentalplatform.admin.PlatformAdminController;
 import com.mydentalplatform.auth.UserRole;
 import com.mydentalplatform.lead.LeadController;
 import com.mydentalplatform.review.ReviewController;
+import com.mydentalplatform.video.VideoConsultationController;
+import com.mydentalplatform.video.VideoConsultationService;
+import com.mydentalplatform.video.DailyVideoClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class DeploymentSecurityTest {
@@ -39,13 +43,34 @@ class DeploymentSecurityTest {
             "platform.auth.secret=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             "platform.auth.issuer=http://localhost:8080");
         context.register(TestConfig.class, SecurityConfig.class, SpaRoutingConfig.class,
-            PlatformAdminController.class, LeadController.class, ReviewController.class);
+            PlatformAdminController.class, LeadController.class, ReviewController.class, VideoConsultationController.class);
         context.refresh();
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
     }
 
     @AfterEach
     void close() { context.close(); }
+
+    @org.junit.jupiter.api.Test
+    void videoHostRequiresClinicRoleAndUsesJwtClinicScope() throws Exception {
+        var appointment = java.util.UUID.randomUUID();
+        var clinic = java.util.UUID.randomUUID();
+        String route = "/api/clinics/current/appointments/" + appointment + "/video/join";
+        mvc.perform(post(route)).andExpect(status().isUnauthorized());
+        mvc.perform(post(route).with(jwt().jwt(token -> token.claim("role", "patient").claim("clinic_id", clinic.toString()))))
+            .andExpect(status().isForbidden());
+        mvc.perform(post(route).with(jwt().jwt(token -> token.claim("role", "clinic-admin").claim("clinic_id", clinic.toString()))))
+            .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"));
+        org.mockito.Mockito.verify(context.getBean(VideoConsultationService.class)).join(appointment, clinic, null, null);
+    }
+
+    @org.junit.jupiter.api.Test
+    void videoPatientCannotOmitAccessCredentials() throws Exception {
+        mvc.perform(post("/api/public/appointments/" + java.util.UUID.randomUUID() + "/video/join")
+            .contentType("application/json").content("{}"))
+            .andExpect(status().isBadRequest());
+        org.mockito.Mockito.verifyNoInteractions(context.getBean(VideoConsultationService.class));
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"/appointments", "/platform/login", "/coming-soon", "/admin/login", "/business/clinic/dashboard"})
@@ -89,5 +114,7 @@ class DeploymentSecurityTest {
     static class TestConfig {
         @Bean JdbcTemplate jdbcTemplate() { return mock(JdbcTemplate.class); }
         @Bean ObjectMapper objectMapper() { return new ObjectMapper(); }
+        @Bean VideoConsultationService videoConsultationService() { return mock(VideoConsultationService.class); }
+        @Bean DailyVideoClient dailyVideoClient() { return mock(DailyVideoClient.class); }
     }
 }

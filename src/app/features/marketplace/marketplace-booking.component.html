@@ -64,6 +64,7 @@
 
         <div class="mt-8 border-l-4 border-blue-600 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950">
           Keep this reference. The requested time is reserved while the clinic reviews it, but it is not confirmed yet.
+          @if (booking.consultationMode === 'video') {<p class="mt-3 font-semibold">Video consultation: after the clinic confirms, open My appointments with this reference and your booking phone number. Your private room opens 10 minutes before your appointment.</p>}
         </div>
         <div class="mt-8 flex flex-wrap gap-3">
           <a routerLink="/appointments" [queryParams]="{ claim: booking.ref }" class="inline-flex min-h-11 items-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Verify phone and track request</a>
@@ -73,13 +74,24 @@
       </div>
     </section>
   } @else {
-    @if (context(); as bookingContext) {
+    @if (selectedContext(); as bookingContext) {
       <section class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700"><i class="ph ph-arrow-left" aria-hidden="true"></i> Back to clinic</a>
         <div class="mt-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div><p class="text-xs font-semibold uppercase tracking-widest text-blue-700">Your next visit</p><h1 class="mt-3 text-3xl font-semibold text-gray-900 sm:text-4xl">Book your next visit.</h1><p class="mt-3 text-sm text-gray-500">{{ clinic()!.name }} · {{ clinic()!.marketplaceProfile?.locality }}</p></div>
           <span class="inline-flex items-center gap-2 text-sm text-gray-500"><i class="ph ph-seal-check text-lg text-blue-600" aria-hidden="true"></i> No platform booking fee</span>
         </div>
+        <fieldset class="mt-7">
+          <legend class="mb-3 text-sm font-semibold text-gray-900">How would you like to meet?</legend>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <button type="button" (click)="chooseMode('in_person')" [attr.aria-pressed]="consultationMode() === 'in_person'" [class.border-blue-600]="consultationMode() === 'in_person'" [class.bg-blue-50]="consultationMode() === 'in_person'" class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left"><i class="ph ph-hospital text-2xl text-blue-600" aria-hidden="true"></i><span><strong class="block text-sm text-gray-900">In-clinic visit</strong><span class="mt-1 block text-sm text-gray-500">Meet your dentist at the clinic.</span></span></button>
+            <button type="button" (click)="chooseMode('video')" [disabled]="!videoReady()" [attr.aria-pressed]="consultationMode() === 'video'" [class.border-blue-600]="consultationMode() === 'video'" [class.bg-blue-50]="consultationMode() === 'video'" class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left disabled:opacity-60"><i class="ph ph-video-camera text-2xl text-blue-600" aria-hidden="true"></i><span><strong class="block text-sm text-gray-900">Video consultation</strong><span class="mt-1 block text-sm text-gray-500">{{ videoReady() ? 'A private video call from your device.' : 'Not currently available at this clinic.' }}</span>@if (videoReady()) {<span class="mt-2 block text-sm font-semibold text-blue-700">{{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with clinic' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee }}</span>}</span></button>
+          </div>
+        </fieldset>
+        @if (videoUnavailable()) {
+          <p role="alert" class="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">Video consultations are unavailable for this clinic right now. Choose an in-clinic visit above or <a routerLink="/dentists" [queryParams]="{mode:'video'}" class="font-semibold underline">find another video dentist</a>.</p>
+        } @else {
+        @if (consultationMode() === 'video') {<p class="mt-4 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-900">Your dentist will discuss your concerns on a private video call. A physical examination or treatment may still require a clinic visit. Join from My appointments 10 minutes before your confirmed time.</p>}
         <ol class="my-7 grid grid-cols-3 gap-3 border-y border-gray-200 py-5 text-xs sm:text-sm" aria-label="Booking progress">
           <li class="flex items-center gap-2 font-semibold text-blue-700" [attr.aria-current]="selectedSlot() ? null : 'step'"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-100">1</span> Choose a time</li>
           <li class="flex items-center gap-2 font-semibold" [class.text-gray-500]="!selectedSlot()" [class.text-blue-700]="selectedSlot()" [attr.aria-current]="selectedSlot() ? 'step' : null"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gray-100">2</span> Your details</li>
@@ -93,11 +105,12 @@
           (slotCleared)="selectedSlot.set(null)"
         />
         </div>
+        }
       </section>
-      @if (selectedSlot(); as slot) {
+      @if (!videoUnavailable() && selectedSlot()) {
         <app-appointment
           [bookingContext]="bookingContext"
-          [preselectedSlot]="slot"
+          [preselectedSlot]="selectedSlot()"
           (bookingCompleted)="onBooked($event)"
         />
       }

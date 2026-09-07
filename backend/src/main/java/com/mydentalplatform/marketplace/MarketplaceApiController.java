@@ -79,7 +79,7 @@ public class MarketplaceApiController {
             request.email(), marketplace.serviceLabel(request.serviceId()), request.date(), request.time(),
             request.doctorId(), request.message(), "marketplace",
             OffsetDateTime.now(MarketplaceApiService.INDIA).plusHours(2), "2026-09-06",
-            Map.of("marketplaceSlug", request.dentistSlug(), "channel", "chatgpt_or_public_api")
+            Map.of("marketplaceSlug", request.dentistSlug(), "channel", "chatgpt_or_public_api"), "in_person"
         ));
         return new BookingResponse(bookingRef, "pending",
             "Appointment request sent. The clinic will confirm the requested time.",

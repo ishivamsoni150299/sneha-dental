@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   isClinicOpenAt,
@@ -31,6 +31,19 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly context = signal<BookingClinicContext | null>(null);
   readonly submission = signal<BookingSubmission | null>(null);
   readonly selectedSlot = signal<SelectedSlot | null>(null);
+  private readonly slotPicker = viewChild(SlotPickerComponent);
+  readonly consultationMode = signal<'in_person' | 'video'>('in_person');
+  readonly videoReady = signal(false);
+  readonly videoUnavailable = signal(false);
+  readonly selectedContext = computed(() => {
+    const context = this.context();
+    if (!context) return null;
+    return this.consultationMode() === 'video' ? {
+      ...context, consultationMode: 'video' as const,
+      services: [{ name: 'Video Consultation', price: this.clinic()?.marketplaceProfile?.videoConsultationFee == null
+        ? undefined : `₹${this.clinic()!.marketplaceProfile!.videoConsultationFee}` }],
+    } : { ...context, consultationMode: 'in_person' as const };
+  });
   readonly loading = signal(true);
   readonly notFound = signal(false);
   readonly unavailable = signal(false);
@@ -74,6 +87,11 @@ export class MarketplaceBookingComponent implements OnInit {
       ].filter(Boolean).join(', ');
 
       this.clinic.set(clinic);
+      if (clinic.marketplaceProfile.videoConsultationEnabled) this.videoReady.set(await this.marketplace.videoAvailable());
+      if (this.route.snapshot.queryParamMap.get('mode') === 'video') {
+        this.consultationMode.set('video');
+        this.videoUnavailable.set(!clinic.marketplaceProfile.videoConsultationEnabled || !this.videoReady());
+      }
       this.context.set({
         clinicId: clinic.id,
         bookingRefPrefix: clinic.bookingRefPrefix,
@@ -107,6 +125,16 @@ export class MarketplaceBookingComponent implements OnInit {
 
   onSlotSelected(slot: SelectedSlot): void {
     this.selectedSlot.set(slot);
+  }
+
+  chooseMode(mode: 'in_person' | 'video'): void {
+    if (mode === 'video' && (!this.videoReady() || !this.clinic()?.marketplaceProfile?.videoConsultationEnabled)) return;
+    if (mode !== this.consultationMode()) {
+      this.selectedSlot.set(null);
+      this.slotPicker()?.selectedSlotKey.set(null);
+    }
+    this.consultationMode.set(mode);
+    this.videoUnavailable.set(false);
   }
 
   formattedDate(value: string): string {

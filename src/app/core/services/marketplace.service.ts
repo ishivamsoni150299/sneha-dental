@@ -51,6 +51,12 @@ export interface MarketplaceAvailability {
 
 @Injectable({ providedIn: 'root' })
 export class MarketplaceService {
+  async videoAvailable(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/public/video-consultations/status');
+      return response.ok && (await response.json()).available === true;
+    } catch { return false; }
+  }
   private readonly serviceLabels = new Map<MarketplaceDentalServiceId, string>(
     MARKETPLACE_DENTAL_SERVICES.map(service => [service.id, service.label]),
   );

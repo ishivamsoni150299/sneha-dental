@@ -137,8 +137,8 @@
                     </div>
                   }
                   <div class="bg-white px-5 py-4" [class.sm:col-span-2]="!appointment.doctorName">
-                    <dt class="text-xs font-bold uppercase text-gray-400">Clinic</dt>
-                    <dd class="mt-1 text-sm text-gray-700">{{ appointment.clinicAddress || 'Address available from the clinic' }}</dd>
+                    <dt class="text-xs font-bold uppercase text-gray-400">{{ appointment.consultationMode === 'video' ? 'Video consultation' : 'Clinic' }}</dt>
+                    <dd class="mt-1 text-sm text-gray-700">{{ appointment.consultationMode === 'video' ? 'Join here 10 minutes before your confirmed appointment.' : (appointment.clinicAddress || 'Address available from the clinic') }}</dd>
                   </div>
                 </dl>
 
@@ -225,6 +225,9 @@
                 }
 
                 <div class="flex flex-wrap items-center gap-2 px-5 py-4">
+                  @if (appointment.consultationMode === 'video' && (appointment.status === 'confirmed' || appointment.status === 'checked_in')) {
+                    <app-video-consultation [appointmentId]="appointment.id" [bookingRef]="appointment.bookingRef" [phone]="patientAuth.user()?.phoneNumber ?? ''" />
+                  }
                   @if (canManage(appointment) && rescheduleId() !== appointment.id) {
                     <button type="button" (click)="openReschedule(appointment)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Change time</button>
                   }

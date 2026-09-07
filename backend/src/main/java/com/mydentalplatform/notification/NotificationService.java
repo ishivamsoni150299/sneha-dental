@@ -125,9 +125,12 @@ public class NotificationService {
                     "cancelled".equalsIgnoreCase(status) ? "Cancelled" :
                     "declined".equalsIgnoreCase(status) ? "Declined" : status;
 
-                String subject = "Appointment " + statusTitle + ": " + clinicName + " (Ref: " + bookingRef + ")";
+                String mode = jdbcTemplate.queryForObject("select consultation_mode from appointments where id = ?", String.class, appointmentId);
+                boolean video = "video".equals(mode);
+                String subject = (video ? "Video appointment " : "Appointment ") + statusTitle + ": " + clinicName + " (Ref: " + bookingRef + ")";
                 String messageBody = "confirmed".equalsIgnoreCase(status)
-                    ? "Your appointment has been confirmed. We look forward to seeing you!"
+                    ? (video ? "Your video consultation is confirmed. Open My appointments on mydentalplatform.com with your booking reference and phone number. Your private video room opens 10 minutes before your appointment; allow camera and microphone access when prompted."
+                        : "Your appointment has been confirmed. We look forward to seeing you!")
                     : "cancelled".equalsIgnoreCase(status)
                     ? "Your appointment has been cancelled." + (reason != null && !reason.isBlank() ? " Reason: " + escape(reason) : "")
                     : "The clinic was unable to accept this appointment time." + (reason != null && !reason.isBlank() ? " Reason: " + escape(reason) : "");

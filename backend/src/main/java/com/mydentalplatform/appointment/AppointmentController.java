@@ -128,7 +128,8 @@ public class AppointmentController {
         @NotBlank @Pattern(regexp = "clinic_website|marketplace") String source,
         OffsetDateTime confirmationDeadline,
         @Size(max = 20) String consentVersion,
-        Map<String, Object> attribution
+        Map<String, Object> attribution,
+        @Pattern(regexp = "in_person|video") String consultationMode
     ) {}
 
     public record PatientUpdateRequest(

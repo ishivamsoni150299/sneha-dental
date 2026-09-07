@@ -51,7 +51,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String ruleKey = method + ":" + path;
 
         LimitRule rule = null;
+        if (method.equals("POST") && path.matches("/api/(public|clinics/current)/appointments/[^/]+/video/(join|access)")) {
+            boolean join = path.endsWith("/join");
+            rule = new LimitRule(join ? 12 : 60, join ? 60 : 600);
+            ruleKey = join ? "POST:video-join" : "POST:video-access";
+        }
         for (Map.Entry<String, LimitRule> entry : RULES.entrySet()) {
+            if (rule != null) break;
             if (ruleKey.startsWith(entry.getKey())) {
                 rule = entry.getValue();
                 ruleKey = entry.getKey();

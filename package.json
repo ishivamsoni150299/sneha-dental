@@ -28,6 +28,7 @@
     "@angular/platform-server": "^19.2.20",
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.20",
+    "@daily-co/daily-js": "^0.92.2",
     "@phosphor-icons/web": "^2.1.2",
     "@sentry/angular": "^10.50.0",
     "@types/nodemailer": "^8.0.1",

@@ -78,6 +78,9 @@
             <a [routerLink]="['/dentists', currentClinic.marketplaceSlug, 'book']" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">
               Request appointment
             </a>
+            @if (currentClinic.marketplaceProfile!.videoConsultationEnabled) {
+              <a [routerLink]="['/dentists', currentClinic.marketplaceSlug, 'book']" [queryParams]="{mode:'video'}" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Video consultation {{ currentClinic.marketplaceProfile!.videoConsultationFee == null ? '' : '· ₹' + currentClinic.marketplaceProfile!.videoConsultationFee }}</a>
+            }
           }
           @if (phoneUrl(currentClinic); as callUrl) {
             <a [href]="callUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">

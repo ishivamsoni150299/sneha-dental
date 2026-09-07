@@ -25,3 +25,5 @@ services:
         value: "4"
       - key: SPRING_PROFILES_ACTIVE
         value: production
+      - key: DAILY_API_KEY
+        sync: false

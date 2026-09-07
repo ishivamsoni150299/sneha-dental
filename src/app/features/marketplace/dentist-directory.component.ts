@@ -194,6 +194,7 @@ export class DentistDirectoryComponent implements OnInit {
   readonly serviceId = signal('');
   readonly discoveryType = signal<'dentists' | 'clinics'>('dentists');
   readonly availableTodayOnly = signal(false);
+  readonly videoOnly = signal(false);
   readonly maxFee = signal<number | null>(null);
   readonly minExperience = signal(0);
   readonly gender = signal('');
@@ -309,6 +310,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly activeFilterCount = computed(() => {
     let count = 0;
+    if (this.videoOnly()) count++;
     if (this.searchTerm().trim()) count++;
     if (this.locality()) count++;
     if (this.serviceId()) count++;
@@ -324,6 +326,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly activeFilterChips = computed<ActiveFilterChip[]>(() => {
     const chips: ActiveFilterChip[] = [];
+    if (this.videoOnly()) chips.push({ id: 'video', label: 'Video consultation' });
     if (this.searchTerm().trim()) {
       chips.push({ id: 'search', label: `Search: ${this.searchTerm().trim()}` });
     }
@@ -374,9 +377,10 @@ export class DentistDirectoryComponent implements OnInit {
           profile.speciality,
           ...profile.serviceIds.map(id => this.marketplace.serviceLabel(id)),
         ].join(' ').toLowerCase();
-        const fee = profile.consultationFee;
+        const fee = this.videoOnly() ? profile.videoConsultationFee : profile.consultationFee;
         const rating = this.ratingFor(clinic.id);
-        return (!search || haystack.includes(search)) &&
+        return (!this.videoOnly() || (profile.videoConsultationEnabled === true && profile.acceptingNewPatients)) &&
+          (!search || haystack.includes(search)) &&
           (!locality || `${profile.locality} ${clinic.city}`.toLowerCase().includes(locality)) &&
           (!serviceId || profile.serviceIds.includes(serviceId as MarketplaceDentalServiceId)) &&
           (!this.availableTodayOnly() || this.slotsFor(clinic.id).length > 0) &&
@@ -391,7 +395,7 @@ export class DentistDirectoryComponent implements OnInit {
   });
 
   readonly hasFilters = computed(() => Boolean(
-    this.searchTerm().trim() || this.locality() || this.serviceId() || this.availableTodayOnly() ||
+    this.videoOnly() || this.searchTerm().trim() || this.locality() || this.serviceId() || this.availableTodayOnly() ||
     this.maxFee() != null || this.minExperience() || this.gender() || this.minRating() || this.language() || this.userCoordinates(),
   ));
 
@@ -401,6 +405,7 @@ export class DentistDirectoryComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    this.videoOnly.set(this.route.snapshot.queryParamMap?.get('mode') === 'video');
     const initialLocation = String(this.route.snapshot.data['initialLocation'] ?? '');
     if (initialLocation && initialLocation !== 'All Delhi NCR') {
       this.locality.set(initialLocation);
@@ -456,6 +461,7 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   clearFilters(): void {
+    this.videoOnly.set(false);
     this.searchTerm.set('');
     this.locality.set('');
     this.serviceId.set('');
@@ -472,6 +478,9 @@ export class DentistDirectoryComponent implements OnInit {
 
   removeFilter(chipId: string): void {
     switch (chipId) {
+      case 'video':
+        this.videoOnly.set(false);
+        break;
       case 'search':
         this.searchTerm.set('');
         break;
@@ -509,6 +518,12 @@ export class DentistDirectoryComponent implements OnInit {
   chooseLocation(location: string): void {
     this.userCoordinates.set(null);
     this.locality.set(location === 'All Delhi NCR' ? '' : location);
+    this.findDentists();
+  }
+
+  chooseVideo(): void {
+    this.clearFilters();
+    this.videoOnly.set(true);
     this.findDentists();
   }
 
@@ -703,8 +718,11 @@ export class DentistDirectoryComponent implements OnInit {
       return dist1 - dist2;
     }
     if (this.sortBy() === 'rating') return this.ratingFor(second.id) - this.ratingFor(first.id);
-    if (this.sortBy() === 'fee')
-      return (first.marketplaceProfile?.consultationFee ?? 999999) - (second.marketplaceProfile?.consultationFee ?? 999999);
+    if (this.sortBy() === 'fee') {
+      const fee = (clinic: MarketplaceClinic) => this.videoOnly()
+        ? clinic.marketplaceProfile?.videoConsultationFee : clinic.marketplaceProfile?.consultationFee;
+      return (fee(first) ?? 999999) - (fee(second) ?? 999999);
+    }
     if (this.sortBy() === 'experience')
       return (second.marketplaceProfile?.experienceYears ?? 0) - (first.marketplaceProfile?.experienceYears ?? 0);
     if (this.sortBy() === 'earliest') return (Date.parse(this.slotsFor(first.id)[0]?.startsAt) || Infinity) - (Date.parse(this.slotsFor(second.id)[0]?.startsAt) || Infinity);

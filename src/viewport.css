@@ -120,3 +120,4 @@ app-root {
     padding-block: 2rem;
   }
 }
+html:has(dialog.video-room[open]) { overflow: hidden; }

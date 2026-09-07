@@ -20,6 +20,9 @@ export class DentistListingCardComponent {
   readonly rating = input(0);
   readonly reviewCount = input(0);
   readonly compared = input(false);
+  readonly videoOnly = input(false);
+  readonly consultationFee = computed(() => this.videoOnly()
+    ? this.clinic().marketplaceProfile?.videoConsultationFee : this.clinic().marketplaceProfile?.consultationFee);
   readonly compareToggled = output<void>();
   readonly retryAvailability = output<void>();
   readonly profilePath = computed(() => [this.discoveryType() === 'dentists' ? '/dentist' : '/clinic', this.clinic().marketplaceSlug ?? '']);

@@ -51,6 +51,10 @@
         <p class="guide-note flex gap-2 border-t border-gray-200 pt-4 text-xs leading-relaxed text-gray-500"><i class="ph ph-check-circle" aria-hidden="true"></i> No platform booking fee. No account needed to request.</p>
       </aside>
     </div>
+    <div class="mt-6 flex flex-wrap gap-2" role="group" aria-label="Consultation format">
+      <button type="button" (click)="videoOnly.set(false)" [attr.aria-pressed]="!videoOnly()" [class.bg-blue-50]="!videoOnly()" [class.border-blue-600]="!videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-hospital" aria-hidden="true"></i> In-clinic visit</button>
+      <button type="button" (click)="chooseVideo()" [attr.aria-pressed]="videoOnly()" [class.bg-blue-50]="videoOnly()" [class.border-blue-600]="videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Video consultation</button>
+    </div>
     <form class="search-bar" role="search" (submit)="$event.preventDefault(); findDentists()">
       <div class="search-field">
         <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -105,6 +109,12 @@
         <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-haspopup="dialog" aria-controls="advanced-filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> All filters @if (activeFilterCount()) {<span class="filter-count">{{ activeFilterCount() }}</span>}</button>
       </div>
     </div>
+    @if (videoOnly()) {
+      <div role="status" class="mb-5 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900">
+        <i class="ph ph-video-camera mt-1 text-xl" aria-hidden="true"></i>
+        <div><strong>Talk to a dentist from home.</strong><p>Book with a participating clinic. After confirmation, join your private video room from My appointments. An in-clinic examination or treatment may still be needed.</p></div>
+      </div>
+    }
     <dialog #filtersDialog id="advanced-filters" class="filter-dialog" aria-labelledby="filter-heading" (close)="isMobileFilterOpen.set(false)">
       <div class="filter-header"><div><h2 id="filter-heading">Make it your search</h2><p>A few details can help you find the right fit.</p></div><button type="button" (click)="closeFilters()" class="icon-button" aria-label="Close filters"><i class="ph ph-x" aria-hidden="true"></i></button></div>
       <div class="advanced-filters">
@@ -135,6 +145,7 @@
       <div class="dentist-list">
         @for (clinic of filteredClinics(); track clinic.id) {
           <app-dentist-listing-card
+            [videoOnly]="videoOnly()"
             [clinic]="clinic" [discoveryType]="discoveryType()" [slots]="slotsFor(clinic.id)"
             [availabilityError]="!!availabilityErrors()[clinic.id]" [distance]="distanceFor(clinic)"
             [rating]="ratingFor(clinic.id)" [reviewCount]="reviewCountFor(clinic.id)" [compared]="isCompared(clinic.id)"

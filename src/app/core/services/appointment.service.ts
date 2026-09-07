@@ -8,6 +8,7 @@ import { AuthenticatedApiService } from './authenticated-api.service';
 type Unsubscribe = () => void;
 
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
+export type ConsultationMode = 'in_person' | 'video';
 export type PaymentMethod = 'cash' | 'upi' | 'card' | 'insurance' | 'other';
 export type AppointmentSource = 'clinic_website' | 'marketplace' | 'voice' | 'voice_webhook' | 'chat';
 export type AppointmentStatus =
@@ -32,6 +33,7 @@ export interface AppointmentAttribution {
 }
 
 export interface BookingClinicContext {
+  consultationMode?: ConsultationMode;
   clinicId: string;
   bookingRefPrefix: string;
   displayName: string;
@@ -134,6 +136,7 @@ export function calculateConfirmationDeadline(hours: ClinicHours[], now = new Da
 }
 
 export interface Appointment {
+  consultationMode?: ConsultationMode;
   id?: string;
   clinicId: string;      // scopes this appointment to its clinic
   lookupKey?: string;    // deterministic ID used for public self-service lookup
@@ -246,6 +249,7 @@ export class AppointmentService {
       bookingRefPrefix: context?.bookingRefPrefix ?? this.prefix,
       time: normalizedTime,
       doctorId: data.doctorId ?? null,
+      consultationMode: context?.consultationMode ?? 'in_person',
       source: context?.source ?? 'clinic_website',
       confirmationDeadline: calculateConfirmationDeadline(
         context?.hours ?? this.clinic.config.hours,

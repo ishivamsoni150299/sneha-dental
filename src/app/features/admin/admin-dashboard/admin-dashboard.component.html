@@ -108,6 +108,12 @@
             <div>
               <p class="text-xs text-gray-400 font-medium mb-0.5">Service</p>
               <p class="font-semibold text-gray-900">{{ detailAppt()!.service }}</p>
+              @if (detailAppt()!.consultationMode === 'video') {
+                <p class="my-3 text-sm font-semibold text-blue-700">Video consultation · Join from 10 minutes before the appointment.</p>
+                @if (detailAppt()!.status === 'confirmed' || detailAppt()!.status === 'checked_in') {
+                  <app-video-consultation [appointmentId]="detailAppt()!.id!" [staff]="true" />
+                }
+              }
             </div>
             <div>
               <p class="text-xs text-gray-400 font-medium mb-0.5">Booking ref</p>

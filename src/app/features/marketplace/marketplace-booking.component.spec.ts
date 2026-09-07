@@ -24,11 +24,12 @@ function clinic(): MarketplaceClinic {
 }
 
 describe('MarketplaceBookingComponent', () => {
-  async function createStateFixture(result: MarketplaceClinic | null) {
+  async function createStateFixture(result: MarketplaceClinic | null, videoReady = false, mode = '') {
     const marketplace = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
-      'getVerifiedClinicBySlug', 'serviceLabel',
+      'getVerifiedClinicBySlug', 'serviceLabel', 'videoAvailable',
     ]);
     marketplace.getVerifiedClinicBySlug.and.resolveTo(result);
+    marketplace.videoAvailable.and.resolveTo(videoReady);
     const doctors = jasmine.createSpyObj<DoctorService>('DoctorService', ['getDoctors']);
     doctors.getDoctors.and.resolveTo([]);
     await TestBed.configureTestingModule({
@@ -40,7 +41,7 @@ describe('MarketplaceBookingComponent', () => {
           useValue: {
             snapshot: {
               paramMap: convertToParamMap({ slug: 'missing-clinic' }),
-              queryParamMap: convertToParamMap({}),
+              queryParamMap: convertToParamMap({ mode }),
             },
           },
         },
@@ -161,5 +162,27 @@ describe('MarketplaceBookingComponent', () => {
     expect(text).toContain('Pending clinic confirmation');
     expect(text).toContain('Your request was sent');
     expect(text).not.toContain('Booking confirmed');
+  });
+
+  it('preserves a video booking link and limits the form to the video service', async () => {
+    const provider = clinic();
+    provider.marketplaceProfile!.videoConsultationEnabled = true;
+    provider.marketplaceProfile!.videoConsultationFee = 400;
+    const fixture = await createStateFixture(provider, true, 'video');
+    expect(fixture.componentInstance.consultationMode()).toBe('video');
+    expect(fixture.componentInstance.selectedContext()?.services).toEqual([{ name: 'Video Consultation', price: '₹400' }]);
+    fixture.componentInstance.onSlotSelected({ doctorId:'doctor-1', doctorName:'Doctor', date:'2026-12-01', time:'10:00' });
+    fixture.componentInstance.chooseMode('in_person');
+    expect(fixture.componentInstance.selectedSlot()).toBeNull();
+    expect(fixture.componentInstance.selectedContext()?.consultationMode).toBe('in_person');
+  });
+
+  it('does not silently change an unavailable video request into an in-person booking', async () => {
+    const fixture = await createStateFixture(clinic(), false, 'video');
+    expect(fixture.componentInstance.videoUnavailable()).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Video consultations are unavailable');
+    expect(fixture.nativeElement.querySelector('app-slot-picker')).toBeNull();
+    fixture.componentInstance.chooseMode('in_person'); fixture.detectChanges();
+    expect(fixture.componentInstance.videoUnavailable()).toBeFalse();
   });
 });

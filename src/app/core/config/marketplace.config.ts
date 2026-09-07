@@ -40,6 +40,8 @@ export interface MarketplaceProfile {
   speciality?: string | null;
   paymentMethods: MarketplacePaymentMethod[];
   acceptingNewPatients: boolean;
+  videoConsultationEnabled?: boolean;
+  videoConsultationFee?: number | null;
   listingImageUrl?: string | null;
 }
 

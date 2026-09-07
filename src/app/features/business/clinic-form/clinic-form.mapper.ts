@@ -91,6 +91,8 @@ export interface MarketplaceFormRawValue {
   marketplaceGender: string;
   marketplacePaymentMethods: string[];
   marketplaceAcceptingNewPatients: boolean;
+  marketplaceVideoConsultationEnabled?: boolean;
+  marketplaceVideoConsultationFee?: number | null;
   marketplaceListingImageUrl: string;
   marketplaceVerifiedDoctorIds: string;
   verificationRegistrationNumber: string;
@@ -169,6 +171,10 @@ export function buildMarketplaceListingUpdate(
         ? values.marketplaceGender as 'female' | 'male' | 'other' : null,
       paymentMethods,
       acceptingNewPatients: values.marketplaceAcceptingNewPatients,
+      ...(values.marketplaceVideoConsultationEnabled === undefined ? {} : {
+        videoConsultationEnabled: values.marketplaceVideoConsultationEnabled,
+        videoConsultationFee: optionalNumber(values.marketplaceVideoConsultationFee ?? null, 0, 100000),
+      }),
       listingImageUrl: optionalText(values.marketplaceListingImageUrl),
     },
     verification: {

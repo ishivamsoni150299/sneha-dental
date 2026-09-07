@@ -32,26 +32,32 @@ public class AppointmentService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
+    private final com.mydentalplatform.video.DailyVideoClient video;
     private final SecureRandom random = new SecureRandom();
 
     @org.springframework.beans.factory.annotation.Autowired
     public AppointmentService(
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
-        NotificationService notificationService
+        NotificationService notificationService,
+        com.mydentalplatform.video.DailyVideoClient video
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.notificationService = notificationService;
+        this.video = video;
     }
 
     public AppointmentService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
-        this(jdbcTemplate, objectMapper, null);
+        this(jdbcTemplate, objectMapper, null, null);
     }
 
     @Transactional
     public String book(AppointmentController.BookingRequest request) {
-        if (request.date().atTime(request.time()).isBefore(java.time.LocalDateTime.now())) {
+        String mode = request.consultationMode() == null ? "in_person" : request.consultationMode();
+        if (!List.of("in_person", "video").contains(mode)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid consultation mode.");
+        if ("video".equals(mode)) validateVideoBooking(request);
+        if (request.date().atTime(request.time()).isBefore(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "Please choose a current or future appointment slot.");
         }
@@ -63,12 +69,12 @@ public class AppointmentService {
                 insert into appointments (
                     id, clinic_id, doctor_id, booking_ref, patient_name, phone_e164, email,
                     service, appointment_date, appointment_time, status, source, message,
-                    confirmation_deadline, consent_version, consent_at, attribution
-                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb))
+                    confirmation_deadline, consent_version, consent_at, attribution, consultation_mode
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb), ?)
                 """, appointmentId, request.clinicId(), request.doctorId(), bookingRef,
                 request.name().trim(), "+91" + phone, blankToNull(request.email()), request.service().trim(),
                 request.date(), request.time(), request.source(), blankToNull(request.message()),
-                request.confirmationDeadline(), request.consentVersion(), json(request.attribution()));
+                request.confirmationDeadline(), request.consentVersion(), json(request.attribution()), mode);
             jdbcTemplate.update("""
                 insert into appointment_slots (
                     clinic_id, doctor_id, appointment_id, appointment_date, appointment_time
@@ -110,6 +116,30 @@ public class AppointmentService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "This time slot has just been taken. Please choose another time.", error);
         }
+    }
+
+    private void validateVideoBooking(AppointmentController.BookingRequest request) {
+        if (video == null || !video.configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+            "Video consultations are not available right now. Please book an in-clinic visit.");
+        if (!"Video Consultation".equals(request.service()) || request.doctorId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a dentist and the video consultation service.");
+        }
+        String day = request.date().getDayOfWeek().name().substring(0, 3).toLowerCase(java.util.Locale.ROOT);
+        Boolean enabled = jdbcTemplate.queryForObject("""
+            select exists(select 1 from clinics c join doctors d on d.clinic_id = c.id
+            where c.id = ? and c.active = true and c.marketplace_status = 'verified'
+              and c.public_config->'marketplaceProfile'->>'videoConsultationEnabled' = 'true'
+              and c.public_config->'marketplaceProfile'->>'acceptingNewPatients' = 'true'
+              and d.id = ? and d.available = true
+              and jsonb_exists(c.public_config->'marketplaceVerifiedDoctorIds', d.id::text)
+              and d.schedule->?->>'enabled' = 'true'
+              and ?::time >= (d.schedule->?->>'start')::time
+              and ?::time < (d.schedule->?->>'end')::time
+              and mod(extract(epoch from (?::time - (d.schedule->?->>'start')::time))::integer, 1800) = 0)
+            """, Boolean.class, request.clinicId(), request.doctorId(), day,
+            request.time(), day, request.time(), day, request.time(), day);
+        if (!Boolean.TRUE.equals(enabled)) throw new ResponseStatusException(HttpStatus.CONFLICT,
+            "This clinic or dentist is not available for the requested video consultation.");
     }
 
     public Map<String, Object> lookup(UUID clinicId, String bookingRef, String phone) {
@@ -228,6 +258,16 @@ public class AppointmentService {
         LocalDate date = request.date() == null ? (LocalDate) current.get("rawDate") : request.date();
         LocalTime time = request.time() == null ? (LocalTime) current.get("rawTime") : request.time();
         UUID doctorId = (UUID) current.get("rawDoctorId");
+        if ("video".equals(current.get("consultationMode"))) {
+            if (request.service() != null && !"Video Consultation".equals(request.service())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A video appointment cannot be changed to an in-clinic treatment.");
+            }
+            if (date.atTime(time).isBefore(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please choose a future video consultation time.");
+            }
+            validateVideoBooking(new AppointmentController.BookingRequest((UUID) current.get("rawClinicId"), null,
+                "", "", null, "Video Consultation", date, time, doctorId, null, "marketplace", null, null, null, "video"));
+        }
         boolean changed = !date.equals(current.get("rawDate")) || !time.equals(current.get("rawTime"));
         try {
             if (changed) {
@@ -391,6 +431,7 @@ public class AppointmentService {
         value.put("phoneE164", resultSet.getString("phone_e164"));
         value.put("email", resultSet.getString("email"));
         value.put("service", resultSet.getString("service"));
+        value.put("consultationMode", resultSet.getString("consultation_mode"));
         value.put("date", date.toString());
         value.put("time", time.format(TIME));
         value.put("doctorId", doctorId == null ? null : doctorId.toString());

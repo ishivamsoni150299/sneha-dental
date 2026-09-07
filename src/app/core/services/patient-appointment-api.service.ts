@@ -15,6 +15,7 @@ export interface PatientAppointmentReview {
 }
 
 export interface PatientAppointmentSummary {
+  consultationMode?: 'in_person' | 'video';
   id: string;
   clinicId: string;
   clinicName: string;

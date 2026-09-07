@@ -8,13 +8,14 @@ import {
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { formatSlotDisplay } from '../../core/services/doctor.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
+import { VideoConsultationComponent } from '../../shared/components/video-consultation/video-consultation.component';
 
 type VerificationStep = 'phone' | 'code' | 'appointments';
 
 @Component({
   selector: 'app-patient-appointments',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, VideoConsultationComponent],
   templateUrl: './patient-appointments.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
