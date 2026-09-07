@@ -7,4 +7,6 @@ export const environment = {
   // The DSN is safe to commit (it's included in the public JS bundle anyway).
   // Leave empty to disable error reporting.
   sentryDsn: publicEnv.sentryDsn,
+  // Google Analytics GA4 Measurement ID (e.g. G-XXXXXXXXXX).
+  gaTrackingId: publicEnv.gaTrackingId,
 };

@@ -8,4 +8,7 @@ export const environment = {
   googleMapsApiKey: publicEnv.googleMapsApiKey,
   // Sentry DSN — leave empty in dev to disable error reporting locally.
   sentryDsn: publicEnv.sentryDsn,
+  // Google Analytics GA4 Measurement ID (e.g. G-XXXXXXXXXX).
+  // Leave empty to disable tracking in development.
+  gaTrackingId: publicEnv.gaTrackingId,
 };
