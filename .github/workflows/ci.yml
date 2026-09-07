@@ -45,4 +45,4 @@ jobs:
 
       - name: Backend tests
         working-directory: backend
-        run: ./mvnw -B test
+        run: mvn -B test
