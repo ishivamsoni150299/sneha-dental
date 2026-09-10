@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.mydentalplatform.appointment.ScheduleRules;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -67,24 +68,19 @@ public class DoctorController {
         @PathVariable UUID doctorId,
         @RequestParam LocalDate date
     ) {
-        if (date.isBefore(LocalDate.now())) return List.of();
+        if (date.isBefore(LocalDate.now(ScheduleRules.INDIA))) return List.of();
         List<Map<String, Object>> schedules = jdbcTemplate.query("""
             select schedule::text as schedule from doctors
             where id = ? and clinic_id = ? and available = true
             """, (resultSet, rowNumber) -> parseJson(resultSet.getString("schedule")), doctorId, clinicId);
         if (schedules.isEmpty()) return List.of();
-        String day = dayKey(date.getDayOfWeek());
-        Object value = schedules.getFirst().get(day);
-        if (!(value instanceof Map<?, ?> rawDay) || !Boolean.TRUE.equals(rawDay.get("enabled"))) return List.of();
-        LocalTime start = LocalTime.parse(String.valueOf(rawDay.get("start")));
-        LocalTime end = LocalTime.parse(String.valueOf(rawDay.get("end")));
         List<String> reserved = jdbcTemplate.queryForList("""
             select to_char(appointment_time, 'HH24:MI') from appointment_slots
             where clinic_id = ? and doctor_id = ? and appointment_date = ?
             """, String.class, clinicId, doctorId, date);
         List<String> result = new ArrayList<>();
-        for (LocalTime time = start; time.isBefore(end); time = time.plusMinutes(30)) {
-            if (date.equals(LocalDate.now()) && time.isBefore(LocalTime.now())) continue;
+        for (LocalTime time : ScheduleRules.slots(schedules.getFirst(), date)) {
+            if (!date.atTime(time).isAfter(java.time.LocalDateTime.now(ScheduleRules.INDIA))) continue;
             String slot = time.toString();
             if (!reserved.contains(slot)) result.add(slot);
         }
@@ -99,6 +95,7 @@ public class DoctorController {
     ) {
         UUID id = UUID.randomUUID();
         UUID clinicId = clinicId(jwt);
+        ScheduleRules.validate(request.schedule());
         jdbcTemplate.update("""
             insert into doctors (id, clinic_id, name, qualification, speciality, available, schedule)
             values (?, ?, ?, ?, ?, ?, cast(? as jsonb))
@@ -128,6 +125,22 @@ public class DoctorController {
         @PathVariable UUID doctorId,
         @Valid @RequestBody DoctorRequest request
     ) {
+        ScheduleRules.validate(request.schedule());
+        List<UUID> locked = jdbcTemplate.queryForList(
+            "select id from doctors where id = ? and clinic_id = ? for update", UUID.class, doctorId, clinicId(jwt));
+        if (locked.isEmpty()) return ResponseEntity.notFound().build();
+        List<Map<String, Object>> bookings = jdbcTemplate.queryForList("""
+            select appointment_date, appointment_time from appointments
+            where clinic_id = ? and doctor_id = ? and status in ('pending', 'confirmed', 'checked_in')
+              and appointment_date + appointment_time > (now() at time zone 'Asia/Kolkata')
+            """, clinicId(jwt), doctorId);
+        for (Map<String, Object> booking : bookings) {
+            LocalDate date = LocalDate.parse(booking.get("appointment_date").toString());
+            LocalTime time = LocalTime.parse(booking.get("appointment_time").toString());
+            if (!request.available() || !ScheduleRules.slots(request.schedule(), date).contains(time))
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+                    "Reschedule or cancel affected upcoming appointments before changing this schedule.");
+        }
         int updated = jdbcTemplate.update("""
             update doctors set name = ?, qualification = ?, speciality = ?, available = ?,
                 schedule = cast(? as jsonb), updated_at = now()

@@ -149,7 +149,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                             : 'bg-gray-100 border-gray-200 text-gray-500 hover:bg-gray-200'">
                     <span class="w-1.5 h-1.5 rounded-full"
                           [class]="doctor.available ? 'bg-green-500' : 'bg-gray-400'"></span>
-                    {{ doctor.available ? 'Available' : 'Off Today' }}
+                    {{ doctor.available ? 'Available' : 'Unavailable' }}
                   </button>
                 </div>
 
@@ -301,9 +301,41 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                       <span class="flex-1 text-xs text-gray-400 italic">Day off</span>
                     }
                   </div>
+                  @if (form.schedule[day.key].enabled) {
+                    <div class="pl-4 space-y-2">
+                      @for (pause of form.schedule[day.key].breaks ?? []; track $index) {
+                        <div class="flex flex-wrap items-center gap-2">
+                          <input type="time" [(ngModel)]="pause.start" [attr.aria-label]="day.label + ' break start'"
+                            class="border border-gray-200 rounded-lg p-2 text-sm">
+                          <span class="text-gray-500 text-sm">to</span>
+                          <input type="time" [(ngModel)]="pause.end" [attr.aria-label]="day.label + ' break end'"
+                            class="border border-gray-200 rounded-lg p-2 text-sm">
+                          <button type="button" (click)="form.schedule[day.key].breaks!.splice($index, 1)"
+                            class="text-sm text-red-600 p-2">Remove break</button>
+                        </div>
+                      }
+                      <button type="button" (click)="addBreak(day.key)" class="text-sm text-blue-600 py-2">+ Add break</button>
+                    </div>
+                  }
                 }
               </div>
             </div>
+
+            <div class="border-t border-gray-200 pt-4">
+              <h3 class="text-sm font-bold text-gray-900">Holidays and days off</h3>
+              <p class="text-xs text-gray-500 mt-1">No new slots will be offered on these dates. Reschedule affected appointments first.</p>
+              <div class="flex gap-2 mt-3">
+                <input type="date" [(ngModel)]="dayOffDate" aria-label="Day off date" class="border border-gray-200 rounded-xl p-2 text-sm">
+                <button type="button" (click)="addDayOff()" [disabled]="!dayOffDate" class="text-sm text-blue-600 px-3 disabled:opacity-50">Add date</button>
+              </div>
+              @for (date of form.schedule.daysOff ?? []; track date) {
+                <div class="flex items-center justify-between py-2 text-sm">
+                  <span>{{ date }}</span>
+                  <button type="button" (click)="removeDayOff(date)" [attr.aria-label]="'Remove day off ' + date" class="text-red-600 p-2">Remove</button>
+                </div>
+              }
+            </div>
+            @if (errorMsg()) { <p role="alert" class="text-sm text-red-600">{{ errorMsg() }}</p> }
 
           </div>
 
@@ -405,6 +437,21 @@ export class AdminDoctorsComponent implements OnInit {
   modalMode  = signal<ModalMode>('add');
   editId     = signal<string | null>(null);
   form: Omit<Doctor, 'id' | 'createdAt'> = blankDoctor();
+  dayOffDate = '';
+
+  addBreak(day: typeof WEEK_DAYS[number]['key']) {
+    const schedule = this.form.schedule[day];
+    (schedule.breaks ??= []).push({ start: '13:00', end: '14:00' });
+  }
+
+  addDayOff() {
+    if (this.dayOffDate) this.form.schedule.daysOff = [...new Set([...(this.form.schedule.daysOff ?? []), this.dayOffDate])].sort();
+    this.dayOffDate = '';
+  }
+
+  removeDayOff(date: string) {
+    this.form.schedule.daysOff = this.form.schedule.daysOff?.filter(value => value !== date);
+  }
 
   private get clinicId(): string { return this.clinic.config.clinicId ?? ''; }
 
@@ -425,6 +472,8 @@ export class AdminDoctorsComponent implements OnInit {
   }
 
   openAddModal() {
+    this.errorMsg.set(null);
+    this.dayOffDate = '';
     this.form = blankDoctor();
     this.editId.set(null);
     this.modalMode.set('add');
@@ -432,6 +481,8 @@ export class AdminDoctorsComponent implements OnInit {
   }
 
   openEditModal(doctor: Doctor) {
+    this.errorMsg.set(null);
+    this.dayOffDate = '';
     this.form = {
       name:          doctor.name,
       qualification: doctor.qualification,
@@ -466,7 +517,7 @@ export class AdminDoctorsComponent implements OnInit {
       this.closeModal();
     } catch (e) {
       console.error(e);
-      this.errorMsg.set('Save failed. Please try again.');
+      this.errorMsg.set(e instanceof Error ? e.message : 'Save failed. Please try again.');
     } finally {
       this.saving.set(false);
     }
@@ -483,7 +534,7 @@ export class AdminDoctorsComponent implements OnInit {
       );
     } catch (e) {
       console.error(e);
-      this.errorMsg.set('Update failed.');
+      this.errorMsg.set(e instanceof Error ? e.message : 'Update failed.');
     } finally {
       this.toggling.set(null);
     }

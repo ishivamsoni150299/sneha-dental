@@ -126,6 +126,15 @@ public class AppointmentController {
         return UUID.fromString(value);
     }
 
+    @PatchMapping("/clinics/current/appointments/{appointmentId}/reschedule")
+    ResponseEntity<Void> reschedule(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID appointmentId,
+        @Valid @RequestBody RescheduleRequest request) {
+        appointmentService.reschedule(clinicId(jwt), appointmentId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    public record RescheduleRequest(@NotNull LocalDate date, @NotNull LocalTime time, @NotNull UUID doctorId) {}
+
     public record BookingRequest(
         @NotNull UUID clinicId,
         @Size(max = 12) String bookingRefPrefix,
@@ -160,7 +169,7 @@ public class AppointmentController {
     ) {}
 
     public record StatusRequest(
-        @Pattern(regexp = "confirmed|checked_in|completed|no_show|cancelled|declined") String status,
+        @NotBlank @Pattern(regexp = "confirmed|checked_in|completed|no_show|cancelled|declined") String status,
         @Size(max = 500) String cancellationReason
     ) {}
 

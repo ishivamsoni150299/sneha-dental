@@ -42,6 +42,9 @@ class VideoBookingTest {
         var daily = mock(DailyVideoClient.class);
         when(daily.configured()).thenReturn(true);
         when(jdbc.queryForObject(contains("select exists"), eq(Boolean.class), any(Object[].class))).thenReturn(true);
+        String day = LocalDate.now().plusDays(2).getDayOfWeek().name().substring(0, 3).toLowerCase(java.util.Locale.ROOT);
+        when(jdbc.queryForList(contains("for update of d"), eq(String.class), any(Object[].class)))
+            .thenReturn(java.util.List.of("{\"" + day + "\":{\"enabled\":true,\"start\":\"09:00\",\"end\":\"17:00\"}}"));
         var service = new AppointmentService(jdbc, new ObjectMapper(), null, daily);
         service.book(request("video", "Video Consultation"));
         verify(jdbc).update(contains("consultation_mode"), any(Object[].class));

@@ -119,6 +119,9 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   doctors          = signal<Doctor[]>([]);
   doctorsLoading   = signal(true);
   selectedDoctorId = signal<string>('');
+  doctorSchedulesRequired = signal(false);
+  doctorLoadFailed = signal(false);
+  private slotRequest = 0;
   availableSlots   = signal<string[]>([]);
   slotsLoading     = signal(false);
 
@@ -206,6 +209,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
 
     if (this.bookingContext) {
       this.doctors.set(this.bookingContext.doctors.filter(doctor => doctor.available));
+      this.doctorSchedulesRequired.set(this.bookingContext.doctors.length > 0);
       this.doctorsLoading.set(false);
     }
 
@@ -215,7 +219,9 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     if (clinicId) {
       this.doctorSvc.getDoctors(clinicId).then(docs => {
         this.doctors.set(docs.filter(d => d.available));
-      }).catch(() => { /* silently fall back to time-range selection */ }).finally(() => {
+        this.doctorSchedulesRequired.set(docs.length > 0);
+        void this.refreshSlots();
+      }).catch(() => { this.doctorLoadFailed.set(true); }).finally(() => {
         this.doctorsLoading.set(false);
       });
     } else {
@@ -299,28 +305,32 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private async refreshSlots() {
+    const request = ++this.slotRequest;
     const doctorId = this.selectedDoctorId();
     const date     = this.form.get('date')!.value;
-    if (!doctorId || !date) {
+    this.availableSlots.set([]);
+    if (!date) {
+      this.slotsLoading.set(false);
       this.availableSlots.set([]);
       this.validateScheduleFields();
       return;
     }
 
-    const doctor = this.doctors().find(d => d.id === doctorId);
-    if (!doctor) return;
+    const doctors = doctorId ? this.doctors().filter(d => d.id === doctorId) : this.doctors();
 
     this.slotsLoading.set(true);
     try {
-      const slots = await this.doctorSvc.getAvailableSlots(
+      const results = await Promise.all(doctors.map(doctor => this.doctorSvc.getAvailableSlots(
         this.bookingContext?.clinicId ?? this.clinic.config.clinicId!, doctor, date
-      );
-      this.availableSlots.set(slots);
+      )));
+      if (request === this.slotRequest) this.availableSlots.set([...new Set(results.flat())].sort());
     } catch {
-      this.availableSlots.set([]);
+      if (request === this.slotRequest) this.availableSlots.set([]);
     } finally {
-      this.slotsLoading.set(false);
-      this.validateScheduleFields();
+      if (request === this.slotRequest) {
+        this.slotsLoading.set(false);
+        this.validateScheduleFields();
+      }
     }
   }
 
@@ -331,7 +341,8 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   get timeSlots(): string[] {
     // Show doctor's specific slots when available, else fallback
     const slots = this.availableSlots();
-    if (this.selectedDoctorId() && slots.length > 0) return slots;
+    if (this.doctorsLoading() || this.doctorLoadFailed()) return [];
+    if (this.selectedDoctorId() || this.doctorSchedulesRequired() || this.doctors().length) return slots;
     const date = String(this.form.get('date')?.value ?? '');
     return date ? filterBookableSlots(date, this.fallbackSlots) : this.fallbackSlots;
   }

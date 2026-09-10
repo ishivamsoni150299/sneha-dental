@@ -11,6 +11,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { ClinicApiService, ContactMessage } from '../../../core/services/clinic-api.service';
 import { VideoConsultationComponent } from '../../../shared/components/video-consultation/video-consultation.component';
+import { DoctorService, Doctor, formatSlotDisplay } from '../../../core/services/doctor.service';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
   blue:    { hex: '#1E56DC', hexLight: '#EBF2FF', textClass: 'text-blue-700',    bgClass: 'bg-blue-700'    },
@@ -58,6 +59,81 @@ type UpgradeTeaser = {
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   private appointmentService = inject(AppointmentService);
+  private readonly doctorService = inject(DoctorService);
+  readonly formatSlotDisplay = formatSlotDisplay;
+  rescheduleTarget = signal<Appointment | null>(null);
+  rescheduleDoctors = signal<Doctor[]>([]);
+  rescheduleSlots = signal<string[]>([]);
+  rescheduleLoading = signal(false);
+  rescheduleSaving = signal(false);
+  rescheduleError = signal('');
+  rescheduleDate = '';
+  rescheduleDoctorId = '';
+  rescheduleTime = '';
+  private slotRequest = 0;
+
+  async openReschedule(appt: Appointment) {
+    this.rescheduleTarget.set(appt);
+    this.rescheduleError.set('');
+    this.rescheduleDate = appt.date;
+    this.rescheduleDoctorId = appt.doctorId ?? '';
+    this.rescheduleDoctors.set([]);
+    this.rescheduleSlots.set([]);
+    this.rescheduleLoading.set(true);
+    try {
+      const doctors = await this.doctorService.getDoctors(appt.clinicId);
+      if (this.rescheduleTarget() !== appt) return;
+      this.rescheduleDoctors.set(doctors.filter(d => d.available));
+      if (!this.rescheduleDoctorId) this.rescheduleDoctorId = doctors.find(d => d.available)?.id ?? '';
+      await this.loadRescheduleSlots();
+    } catch {
+      this.rescheduleError.set('Could not load doctors. Close and try again.');
+      this.rescheduleLoading.set(false);
+    }
+  }
+
+  closeReschedule() {
+    if (this.rescheduleSaving()) return;
+    this.slotRequest++;
+    this.rescheduleTarget.set(null);
+  }
+
+  async loadRescheduleSlots() {
+    const request = ++this.slotRequest;
+    const appt = this.rescheduleTarget();
+    const doctor = this.rescheduleDoctors().find(d => d.id === this.rescheduleDoctorId);
+    this.rescheduleTime = '';
+    this.rescheduleSlots.set([]);
+    this.rescheduleError.set('');
+    this.rescheduleLoading.set(true);
+    try {
+      if (!appt || !doctor || !this.rescheduleDate) return;
+      const slots = await this.doctorService.getAvailableSlots(appt.clinicId, doctor, this.rescheduleDate);
+      if (request === this.slotRequest) this.rescheduleSlots.set(slots);
+    } catch {
+      if (request === this.slotRequest) this.rescheduleError.set('Could not load available times. Select the date again to retry.');
+    } finally {
+      if (request === this.slotRequest) this.rescheduleLoading.set(false);
+    }
+  }
+
+  async saveReschedule() {
+    const appt = this.rescheduleTarget();
+    if (!appt?.id || this.rescheduleSaving() || !this.rescheduleSlots().includes(this.rescheduleTime)) return;
+    this.rescheduleSaving.set(true);
+    this.rescheduleError.set('');
+    try {
+      await this.appointmentService.reschedule(appt.id, this.rescheduleDate, this.rescheduleTime, this.rescheduleDoctorId);
+      const updated = { ...appt, date: this.rescheduleDate, time: this.rescheduleTime, doctorId: this.rescheduleDoctorId,
+        doctorName: this.rescheduleDoctors().find(d => d.id === this.rescheduleDoctorId)?.name };
+      this.appointments.update(list => list.map(a => a.id === appt.id ? updated : a));
+      if (this.detailAppt()?.id === appt.id) this.detailAppt.set(updated);
+      this.rescheduleTarget.set(null);
+      this.setSuccess('Appointment rescheduled. Inform the patient of the new time.');
+    } catch (error) {
+      this.rescheduleError.set(error instanceof Error ? error.message : 'Could not reschedule appointment.');
+    } finally { this.rescheduleSaving.set(false); }
+  }
   private clinicApi          = inject(ClinicApiService);
   readonly clinic            = inject(ClinicConfigService);
   readonly clinicConfig      = this.clinic.config;
@@ -103,7 +179,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     paymentMethod: '' as PaymentMethod | '',
   });
 
-  today = new Date().toISOString().split('T')[0];
+  today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
   private errorTimer:   ReturnType<typeof setTimeout> | null = null;
   private successTimer: ReturnType<typeof setTimeout> | null = null;
   private unsubscribeAppointments: (() => void) | null = null;
@@ -454,6 +530,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
    * patient books or an admin changes a status. It is torn down on destroy.
    */
   startRealtimeSync() {
+    this.unsubscribeAppointments?.();
     this.loading.set(true);
     this.unsubscribeAppointments = this.appointmentService.subscribeToAppointments(
       (appointments) => {
@@ -491,10 +568,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   async markCompleted(appt: Appointment) {
     await this.transition(appt, 'completed', `${appt.name}'s appointment completed.`);
-    // If detail panel is open for this appointment, update it
-    if (this.detailAppt()?.id === appt.id) {
-      this.detailAppt.update(a => a ? { ...a, status: 'completed' } : null);
-    }
   }
 
   async markNoShow(appt: Appointment) {
@@ -513,8 +586,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.detailAppt.update(a => a ? { ...a, status } : null);
       }
       this.setSuccess(successMsg);
-    } catch {
-      this.setError(`Could not update appointment.`);
+    } catch (error) {
+      this.setError(error instanceof Error ? error.message : 'Could not update appointment.');
     } finally {
       this.updatingId.set(null);
     }

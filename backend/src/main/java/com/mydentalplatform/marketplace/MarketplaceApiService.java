@@ -103,12 +103,7 @@ public class MarketplaceApiService {
             LocalDate date = start.plusDays(offset);
             List<AvailabilitySlot> slots = new ArrayList<>();
             for (DoctorSchedule doctor : doctors) {
-                Map<String, Object> schedule = map(doctor.schedule().get(dayKey(date)));
-                if (!Boolean.TRUE.equals(schedule.get("enabled"))) continue;
-                LocalTime opens = parseTime(schedule.get("start"));
-                LocalTime closes = parseTime(schedule.get("end"));
-                if (opens == null || closes == null || !opens.isBefore(closes)) continue;
-                for (LocalTime time = opens; time.isBefore(closes); time = time.plusMinutes(30)) {
+                for (LocalTime time : com.mydentalplatform.appointment.ScheduleRules.slots(doctor.schedule(), date)) {
                     if (date.equals(today) && !time.isAfter(now.toLocalTime())) continue;
                     if (reserved.contains(slotKey(doctor.id(), date, time))) continue;
                     String startsAt = OffsetDateTime.of(date, time, ZoneOffset.ofHoursMinutes(5, 30)).toString();
@@ -134,6 +129,7 @@ public class MarketplaceApiService {
                 "The selected treatment is not listed by this clinic.");
         }
         boolean available = availability(slug, date, 1).days().stream()
+            .filter(day -> day.date().equals(date))
             .flatMap(day -> day.slots().stream())
             .anyMatch(slot -> slot.doctorId().equals(doctorId) && slot.time().equals(time));
         if (!available) {

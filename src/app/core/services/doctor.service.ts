@@ -8,7 +8,9 @@ export interface DaySchedule {
   enabled: boolean;
   start:   string;   // "09:00"
   end:     string;   // "17:00"
+  breaks?: { start: string; end: string }[];
 }
+export type DoctorSchedule = Record<WeekDay, DaySchedule> & { daysOff?: string[] };
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -18,7 +20,7 @@ export interface Doctor {
   qualification: string;
   speciality:    string;
   available:     boolean;           // overall on/off toggle
-  schedule:      Record<WeekDay, DaySchedule>;
+  schedule:      DoctorSchedule;
   createdAt?:    string;
 }
 
@@ -52,7 +54,7 @@ export function generateSlots(start: string, end: string): string[] {
   const startMin = sh * 60 + sm;
   const endMin   = eh * 60 + em;
   const slots: string[] = [];
-  for (let m = startMin; m < endMin; m += 30) {
+  for (let m = startMin; m + 30 <= endMin; m += 30) {
     const h   = Math.floor(m / 60);
     const min = m % 60;
     slots.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
@@ -151,7 +153,7 @@ export class DoctorService {
     const response = await this.api.fetch('/api/clinics/current/doctors', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Could not add doctor.');
+    if (!response.ok) throw await this.scheduleError(response);
     return (await response.json() as { id: string }).id;
   }
 
@@ -163,7 +165,7 @@ export class DoctorService {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...current, ...data }),
     });
-    if (!response.ok) throw new Error('Could not update doctor.');
+    if (!response.ok) throw await this.scheduleError(response);
   }
 
   /** Delete a doctor document. */
@@ -199,5 +201,10 @@ export class DoctorService {
     if (!response.ok) throw new Error('Could not load appointment times.');
     const available = await response.json() as string[];
     return filterBookableSlots(date, allSlots.filter(slot => available.includes(slot)));
+  }
+
+  private async scheduleError(response: Response): Promise<Error> {
+    const body = await response.json().catch(() => ({})) as { detail?: string; message?: string };
+    return new Error(body.detail || body.message || 'Could not save the doctor schedule.');
   }
 }

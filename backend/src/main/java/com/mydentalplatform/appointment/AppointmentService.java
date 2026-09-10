@@ -57,6 +57,9 @@ public class AppointmentService {
         String mode = request.consultationMode() == null ? "in_person" : request.consultationMode();
         if (!List.of("in_person", "video").contains(mode)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid consultation mode.");
         if ("video".equals(mode)) validateVideoBooking(request);
+        UUID selectedDoctorId = request.doctorId() == null
+            ? resolveDoctor(request.clinicId(), request.date(), request.time()) : request.doctorId();
+        validateSlot(request.clinicId(), selectedDoctorId, request.date(), request.time());
         if (request.date().atTime(request.time()).isBefore(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "Please choose a current or future appointment slot.");
@@ -71,7 +74,7 @@ public class AppointmentService {
                     service, appointment_date, appointment_time, status, source, message,
                     confirmation_deadline, consent_version, consent_at, attribution, consultation_mode
                 ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb), ?)
-                """, appointmentId, request.clinicId(), request.doctorId(), bookingRef,
+                """, appointmentId, request.clinicId(), selectedDoctorId, bookingRef,
                 request.name().trim(), "+91" + phone, blankToNull(request.email()), request.service().trim(),
                 request.date(), request.time(), request.source(), blankToNull(request.message()),
                 request.confirmationDeadline(), request.consentVersion(), json(request.attribution()), mode);
@@ -79,7 +82,7 @@ public class AppointmentService {
                 insert into appointment_slots (
                     clinic_id, doctor_id, appointment_id, appointment_date, appointment_time
                 ) values (?, ?, ?, ?, ?)
-                """, request.clinicId(), request.doctorId(), appointmentId, request.date(), request.time());
+                """, request.clinicId(), selectedDoctorId, appointmentId, request.date(), request.time());
             if (notificationService != null) {
                 notificationService.notifyClinicNewAppointment(
                     request.clinicId(), bookingRef, request.name().trim(), "+91" + phone,
@@ -140,6 +143,73 @@ public class AppointmentService {
             request.time(), day, request.time(), day, request.time(), day);
         if (!Boolean.TRUE.equals(enabled)) throw new ResponseStatusException(HttpStatus.CONFLICT,
             "This clinic or dentist is not available for the requested video consultation.");
+    }
+
+    private UUID resolveDoctor(UUID clinicId, LocalDate date, LocalTime time) {
+        List<Map<String, Object>> doctors = jdbcTemplate.queryForList("""
+            select id, available, schedule::text as schedule from doctors where clinic_id = ? order by id for update
+            """, clinicId);
+        if (doctors.isEmpty()) return null;
+        for (Map<String, Object> doctor : doctors) {
+            if (!Boolean.TRUE.equals(doctor.get("available"))) continue;
+            Map<String, Object> schedule = objectMapper.readValue((String) doctor.get("schedule"), new tools.jackson.core.type.TypeReference<>() {});
+            if (!ScheduleRules.slots(schedule, date).contains(time)) continue;
+            UUID id = (UUID) doctor.get("id");
+            Boolean reserved = jdbcTemplate.queryForObject("""
+                select exists(select 1 from appointment_slots where clinic_id = ? and doctor_id = ? and appointment_date = ? and appointment_time = ?)
+                """, Boolean.class, clinicId, id, date, time);
+            if (Boolean.FALSE.equals(reserved)) return id;
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "No doctor is available at that time. Choose another slot.");
+    }
+
+    private void validateSlot(UUID clinicId, UUID doctorId, LocalDate date, LocalTime time) {
+        if (!date.atTime(time).isAfter(java.time.LocalDateTime.now(ScheduleRules.INDIA)))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a future appointment time.");
+        if (doctorId == null) {
+            if (time.getSecond() != 0 || time.getNano() != 0 || time.getMinute() % 30 != 0)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a 30-minute appointment slot.");
+            return;
+        }
+        // Serialize booking with schedule changes. The unique slot constraint handles competing reservations.
+        List<String> schedules = jdbcTemplate.queryForList("""
+            select d.schedule::text from doctors d join clinics c on c.id = d.clinic_id
+            where d.id = ? and d.clinic_id = ? and d.available = true and c.active = true for update of d
+            """, String.class, doctorId, clinicId);
+        if (schedules.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT, "This doctor is unavailable at this clinic.");
+        Map<String, Object> schedule = objectMapper.readValue(schedules.getFirst(), new tools.jackson.core.type.TypeReference<>() {});
+        if (!ScheduleRules.slots(schedule, date).contains(time))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Choose a time within the doctor's available hours, outside breaks and days off.");
+    }
+
+    @Transactional
+    public void reschedule(UUID clinicId, UUID appointmentId, AppointmentController.RescheduleRequest request) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select status::text as status, consultation_mode from appointments
+            where id = ? and clinic_id = ? for update
+            """, appointmentId, clinicId);
+        if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
+        if (!List.of("pending", "confirmed").contains(rows.getFirst().get("status")))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Only pending or confirmed appointments can be rescheduled.");
+        validateSlot(clinicId, request.doctorId(), request.date(), request.time());
+        if ("video".equals(rows.getFirst().get("consultation_mode"))) {
+            validateVideoBooking(new AppointmentController.BookingRequest(clinicId, null, "", "", null,
+                "Video Consultation", request.date(), request.time(), request.doctorId(), null,
+                "clinic_website", null, null, null, "video"));
+        }
+        try {
+            jdbcTemplate.update("delete from appointment_slots where appointment_id = ?", appointmentId);
+            jdbcTemplate.update("""
+                insert into appointment_slots(clinic_id, doctor_id, appointment_id, appointment_date, appointment_time)
+                values (?, ?, ?, ?, ?)
+                """, clinicId, request.doctorId(), appointmentId, request.date(), request.time());
+            jdbcTemplate.update("""
+                update appointments set doctor_id = ?, appointment_date = ?, appointment_time = ?,
+                    updated_at = now() where id = ? and clinic_id = ?
+                """, request.doctorId(), request.date(), request.time(), appointmentId, clinicId);
+        } catch (DuplicateKeyException error) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That time was just booked. The original appointment is unchanged.", error);
+        }
     }
 
     public Map<String, Object> lookup(UUID clinicId, String bookingRef, String phone) {
@@ -275,6 +345,10 @@ public class AppointmentService {
                 "", "", null, "Video Consultation", date, time, doctorId, null, "marketplace", null, null, null, "video"));
         }
         boolean changed = !date.equals(current.get("rawDate")) || !time.equals(current.get("rawTime"));
+        if (changed) {
+            if (doctorId == null) doctorId = resolveDoctor((UUID) current.get("rawClinicId"), date, time);
+            validateSlot((UUID) current.get("rawClinicId"), doctorId, date, time);
+        }
         try {
             if (changed) {
                 jdbcTemplate.update("delete from appointment_slots where appointment_id = ?", appointmentId);
@@ -284,10 +358,10 @@ public class AppointmentService {
                     """, current.get("rawClinicId"), doctorId, appointmentId, date, time);
             }
             jdbcTemplate.update("""
-                update appointments set service = coalesce(?, service), appointment_date = ?,
+                update appointments set doctor_id = ?, service = coalesce(?, service), appointment_date = ?,
                     appointment_time = ?, message = coalesce(?, message), status = 'pending', updated_at = now()
                 where id = ?
-                """, blankToNull(request.service()), date, time, blankToNull(request.message()), appointmentId);
+                """, doctorId, blankToNull(request.service()), date, time, blankToNull(request.message()), appointmentId);
         } catch (DuplicateKeyException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "That new time slot is no longer available.", error);
@@ -299,7 +373,9 @@ public class AppointmentService {
         Map<String, Object> current = requirePublic(appointmentId, phone);
         LocalDate date = (LocalDate) current.get("rawDate");
         LocalTime time = (LocalTime) current.get("rawTime");
-        if (!date.atTime(time).isAfter(java.time.LocalDateTime.now().plusHours(24))) {
+        if (!List.of("pending", "confirmed").contains(current.get("status")))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This appointment can no longer be cancelled online.");
+        if (!date.atTime(time).isAfter(java.time.LocalDateTime.now(ScheduleRules.INDIA).plusHours(24))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "Appointments cannot be cancelled online within 24 hours.");
         }
@@ -320,6 +396,8 @@ public class AppointmentService {
         if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
         String currentStatus = String.valueOf(rows.getFirst().get("status"));
         String source = String.valueOf(rows.getFirst().get("source"));
+        if (!AppointmentTransitions.allows(currentStatus, request.status()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This status change is not allowed. Refresh the appointment.");
         if (List.of("confirmed", "declined").contains(request.status()) && !"pending".equals(currentStatus)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "This request has already been handled.");
         }

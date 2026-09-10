@@ -113,6 +113,9 @@ class DeploymentSecurityTest {
     @EnableWebSecurity
     @EnableWebMvc
     static class TestConfig {
+        @Bean com.mydentalplatform.auth.TestPhoneOtp testPhoneOtp() {
+            return new com.mydentalplatform.auth.TestPhoneOtp(false, "1970-01-01T00:00:00Z");
+        }
         @Bean JdbcTemplate jdbcTemplate() { return mock(JdbcTemplate.class); }
         @Bean ObjectMapper objectMapper() { return new ObjectMapper(); }
         @Bean VideoConsultationService videoConsultationService() { return mock(VideoConsultationService.class); }
