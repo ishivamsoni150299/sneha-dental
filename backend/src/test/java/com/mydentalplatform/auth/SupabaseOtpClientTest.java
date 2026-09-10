@@ -10,9 +10,11 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SupabaseOtpClientTest {
+    private HttpClient lastHttp;
     @SuppressWarnings("unchecked")
     private SupabaseOtpClient client(String body, int status) throws Exception {
         var http = mock(HttpClient.class);
+        lastHttp = http;
         var response = (HttpResponse<String>) mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(status); when(response.body()).thenReturn(body);
         when(http.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(response);
@@ -48,13 +50,18 @@ class SupabaseOtpClientTest {
         assertEquals(503, error.getStatusCode().value());
         assertFalse(error.getMessage().contains("sensitive-provider-body"));
     }
-    @Test void emailOtpPayloadCarriesProductionRedirect() throws Exception {
+    @Test void emailRedirectIsSentAsGoTrueQueryParameterForEveryPortal() throws Exception {
         var provider = client("{}", 200);
-        var payload = provider.otpPayload("owner@example.com", false, "/professional/signup");
-
-        @SuppressWarnings("unchecked")
-        var options = (Map<String, String>) payload.get("options");
-        assertEquals("https://mydentalplatform.com/professional/signup", options.get("email_redirect_to"));
+        for (String portal : java.util.List.of("clinic", "dentist", "platform")) {
+            clearInvocations(lastHttp);
+            provider.send("owner@example.com", false, OtpLoginService.redirectPath(portal));
+            var captured = org.mockito.ArgumentCaptor.forClass(HttpRequest.class);
+            verify(lastHttp).send(captured.capture(), any(HttpResponse.BodyHandler.class));
+            assertEquals("/auth/v1/otp", captured.getValue().uri().getPath());
+            assertEquals("redirect_to=https://mydentalplatform.com" + OtpLoginService.redirectPath(portal),
+                java.net.URLDecoder.decode(captured.getValue().uri().getRawQuery(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+        assertFalse(provider.otpPayload("owner@example.com", false, "/business/signup").containsKey("options"));
     }
 
     @Test void phoneOtpPayloadDoesNotCarryEmailRedirect() throws Exception {
@@ -62,6 +69,10 @@ class SupabaseOtpClientTest {
         var payload = provider.otpPayload("+919876543210", true, "/");
 
         assertFalse(payload.containsKey("options"));
+        provider.send("+919876543210", true, "/");
+        var captured = org.mockito.ArgumentCaptor.forClass(HttpRequest.class);
+        verify(lastHttp).send(captured.capture(), any(HttpResponse.BodyHandler.class));
+        assertNull(captured.getValue().uri().getQuery());
     }
     @Test void publicSignupCannotRequestPlatformOrClinicAdminRole() {
         assertFalse(OtpLoginService.allowed("clinic", UserRole.PLATFORM_ADMIN));
@@ -74,6 +85,6 @@ class SupabaseOtpClientTest {
     @Test void otpRedirectsMatchPortalEntryPoints() {
         assertEquals("/professional/signup", OtpLoginService.redirectPath("dentist"));
         assertEquals("/business/signup", OtpLoginService.redirectPath("clinic"));
-        assertEquals("/business/login", OtpLoginService.redirectPath("platform"));
+        assertEquals("/platform/login", OtpLoginService.redirectPath("platform"));
     }
 }

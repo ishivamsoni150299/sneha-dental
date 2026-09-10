@@ -41,16 +41,15 @@ public class SupabaseOtpClient {
     }
 
     public void send(String identity, boolean phone, String redirectPath) {
-        call("/otp", otpPayload(identity, phone, redirectPath), false);
+        String path = phone ? "/otp" : "/otp?redirect_to=" + java.net.URLEncoder.encode(
+            publicBaseUrl + redirectPath, java.nio.charset.StandardCharsets.UTF_8);
+        call(path, otpPayload(identity, phone, redirectPath), false);
     }
 
     Map<String, Object> otpPayload(String identity, boolean phone, String redirectPath) {
         Map<String, Object> payload = new java.util.HashMap<>();
         payload.put(phone ? "phone" : "email", identity);
         payload.put("create_user", true);
-        if (!phone) {
-            payload.put("options", Map.of("email_redirect_to", publicBaseUrl + redirectPath));
-        }
         return payload;
     }
 

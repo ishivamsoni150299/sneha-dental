@@ -450,7 +450,8 @@ export class SignupComponent implements OnInit {
     return 'trial';
   }
 
-  private async resumeAuthenticatedSignup(): Promise<void> {
+    private async resumeAuthenticatedSignup(): Promise<void> {
+      if (typeof location !== 'undefined' && new URLSearchParams(location.hash.slice(1)).has('access_token')) return;
     await this.auth.authReady;
     const user = this.auth.currentUser();
     const role = this.auth.role();

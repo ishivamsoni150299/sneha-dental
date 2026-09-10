@@ -28,6 +28,17 @@ Existing password sessions are intentionally invalidated by migration `V15__veri
 In **Authentication -> URL Configuration**, production must use:
 
 - Site URL: `https://mydentalplatform.com`
-- Redirect URLs: `https://mydentalplatform.com/professional/signup`, `https://mydentalplatform.com/business/signup`, and `https://mydentalplatform.com/business/login`
+- Redirect URLs: `https://mydentalplatform.com/professional/signup`, `https://mydentalplatform.com/business/signup`, `https://mydentalplatform.com/business/login`, and `https://mydentalplatform.com/platform/login`
 
-Supabase falls back to the Site URL when the application's `email_redirect_to` is not on this allow-list. Leaving the dashboard default of `http://localhost:3000` therefore sends production email links to a blank local page.
+The backend calls GoTrue directly, so email requests must use
+`POST /auth/v1/otp?redirect_to=<encoded callback URL>`. The SDK's `emailRedirectTo`
+option is not a JSON body field in this REST endpoint. Supabase falls back to the
+Site URL if the redirect is missing or not allowed, leaving users on the homepage
+without an application session. Platform staff must return to `/platform/login`
+so verification uses the platform portal.
+
+After deploying a redirect fix, request a fresh email: previously issued links
+keep their original destination and may already be consumed. Clinic and platform
+callbacks exchange the provider token automatically; new dentist profiles also
+ask for a professional name. Error fragments are cleared and shown as an expired
+link message, with an option to request another link.

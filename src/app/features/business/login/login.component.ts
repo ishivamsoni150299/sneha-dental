@@ -35,6 +35,8 @@ export class LoginComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    // Let an incoming email link replace any existing browser session first.
+    if (typeof location !== 'undefined' && new URLSearchParams(location.hash.slice(1)).has('access_token')) return;
     await this.auth.authReady;
     const role = this.auth.role();
     if (role) await this.routeResolvedUser(role, false);

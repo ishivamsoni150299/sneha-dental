@@ -7,7 +7,7 @@ import { AuthFacade, AuthRole } from '../../../core/services/auth-facade.service
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
       @if (magicLinkToken()) {
-        <p role="status" class="rounded-xl bg-green-50 p-4 text-sm leading-6 text-green-900">Your email link is verified. Continue to securely sign in{{ portal() === 'dentist' ? ' or finish creating your profile.' : '.' }}</p>
+        <p role="status" class="rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-900">{{ busy() ? 'Checking your email link…' : 'Email link received. Continue to sign in' + (portal() === 'dentist' ? ' or finish creating your profile.' : '.') }}</p>
         @if (portal() === 'dentist') {
           <label class="block text-sm font-semibold text-gray-800">Professional name <span class="font-normal text-gray-500">(required for a new profile)</span><input formControlName="name" autocomplete="name" maxlength="160" class="mt-2 min-h-12 w-full rounded-xl border border-gray-300 px-4 text-base" placeholder="Dr. Sneha Sharma"></label>
         }
@@ -25,6 +25,9 @@ import { AuthFacade, AuthRole } from '../../../core/services/auth-facade.service
       <button type="submit" [disabled]="busy()" class="min-h-12 w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60">{{ busy() ? 'Please wait…' : magicLinkToken() ? 'Continue' : sent() ? 'Verify and continue' : 'Email me a secure sign-in link' }}</button>
       @if (sent() && !magicLinkToken()) {
         <div class="flex flex-wrap justify-between gap-3 text-sm"><button type="button" (click)="changeEmail()" [disabled]="busy()" class="min-h-11 font-semibold text-gray-600">Change email</button><button type="button" (click)="send()" [disabled]="busy() || cooldown() > 0" class="min-h-11 font-semibold text-blue-700 disabled:text-gray-400">{{ cooldown() > 0 ? 'Resend in ' + cooldown() + 's' : 'Resend code' }}</button></div>
+      }
+      @if (magicLinkToken() && error()) {
+        <button type="button" (click)="requestNewLink()" [disabled]="busy()" class="min-h-11 text-sm font-semibold text-blue-700">Request a new sign-in link</button>
       }
     </form>
   `,
@@ -44,11 +47,19 @@ export class OtpLoginComponent implements OnInit, OnDestroy {
   private timer?: ReturnType<typeof setInterval>;
   ngOnInit(): void {
     if (typeof location === 'undefined' || !location.hash) return;
-    const token = new URLSearchParams(location.hash.slice(1)).get('access_token') ?? '';
+    const parameters = new URLSearchParams(location.hash.slice(1));
+    if (parameters.has('error') || parameters.has('error_code')) {
+      history.replaceState(history.state, '', location.pathname + location.search);
+      this.error.set('This email link has expired or has already been used. Enter your email to request a new link.');
+      return;
+    }
+    const token = parameters.get('access_token') ?? '';
     if (!token) return;
     this.magicLinkToken.set(token);
-    history.replaceState(null, '', location.pathname + location.search);
+    history.replaceState(history.state, '', location.pathname + location.search);
+    if (this.portal() !== 'dentist') void this.exchangeMagicLink();
   }
+  requestNewLink(): void { this.magicLinkToken.set(''); this.changeEmail(); }
   async submit(): Promise<void> {
     if (this.magicLinkToken()) { await this.exchangeMagicLink(); return; }
     if (!this.sent()) { await this.send(); return; }

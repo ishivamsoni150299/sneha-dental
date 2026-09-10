@@ -3,6 +3,7 @@ import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { OtpLoginComponent } from './otp-login.component';
 
 describe('OtpLoginComponent', () => {
+  afterEach(() => history.replaceState(null, '', '/'));
   let auth: jasmine.SpyObj<AuthFacade>;
   beforeEach(() => {
     auth = jasmine.createSpyObj('AuthFacade', ['requestOtp', 'verifyOtp', 'exchangeMagicLink']);
@@ -44,5 +45,31 @@ describe('OtpLoginComponent', () => {
     expect(auth.exchangeMagicLink).toHaveBeenCalledWith('link-token', 'dentist', 'Dr. Sneha Sharma');
     expect(authenticated).toHaveBeenCalledOnceWith('dentist');
     history.replaceState(null, '', '/'); fixture.destroy();
+  });
+  it('completes clinic sign-in automatically after returning from the email link', async () => {
+    history.replaceState(null, '', '/business/signup#access_token=link-token&refresh_token=secret&type=magiclink');
+    auth.exchangeMagicLink.and.resolveTo('clinic-admin');
+    const fixture = TestBed.createComponent(OtpLoginComponent);
+    const authenticated = jasmine.createSpy(); fixture.componentInstance.authenticated.subscribe(authenticated);
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(auth.exchangeMagicLink).toHaveBeenCalledOnceWith('link-token', 'clinic', '');
+    expect(authenticated).toHaveBeenCalledOnceWith('clinic-admin');
+    expect(location.hash).toBe(''); fixture.destroy();
+  });
+  it('shows a useful expired-link error without treating the redirect as verification', () => {
+    history.replaceState(null, '', '/business/signup#error=access_denied&error_code=otp_expired');
+    const fixture = TestBed.createComponent(OtpLoginComponent); fixture.detectChanges();
+    expect(fixture.componentInstance.error()).toContain('expired');
+    expect(auth.exchangeMagicLink).not.toHaveBeenCalled();
+    expect(location.hash).toBe(''); fixture.destroy();
+  });
+  it('allows a fresh link request after token exchange fails', async () => {
+    history.replaceState(null, '', '/business/login#access_token=expired-token');
+    auth.exchangeMagicLink.and.rejectWith(new Error('Link expired'));
+    const fixture = TestBed.createComponent(OtpLoginComponent); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.componentInstance.error()).toBe('Link expired');
+    fixture.componentInstance.requestNewLink();
+    expect(fixture.componentInstance.magicLinkToken()).toBe('');
+    expect(fixture.componentInstance.sent()).toBeFalse(); fixture.destroy();
   });
 });

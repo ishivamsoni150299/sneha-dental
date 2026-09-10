@@ -128,7 +128,7 @@ public class OtpLoginService {
         return switch (portal) {
             case "dentist" -> "/professional/signup";
             case "clinic" -> "/business/signup";
-            case "platform" -> "/business/login";
+            case "platform" -> "/platform/login";
             case "patient" -> "/";
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a valid portal.");
         };
