@@ -1,6 +1,7 @@
 package com.mydentalplatform.auth;
 
 import java.net.http.*;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
@@ -15,7 +16,7 @@ class SupabaseOtpClientTest {
         var response = (HttpResponse<String>) mock(HttpResponse.class);
         when(response.statusCode()).thenReturn(status); when(response.body()).thenReturn(body);
         when(http.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(response);
-        return new SupabaseOtpClient(new ObjectMapper(), "https://example.supabase.co", "test-publishable-key", http);
+        return new SupabaseOtpClient(new ObjectMapper(), "https://example.supabase.co", "test-publishable-key", "https://mydentalplatform.com", http);
     }
     @Test void acceptsOnlyConfirmedIdentityReturnedBySupabase() throws Exception {
         var provider = client("""
@@ -37,9 +38,24 @@ class SupabaseOtpClientTest {
     }
     @Test void sanitizesProviderErrors() throws Exception {
         var provider = client("sensitive-provider-body", 500);
-        var error = assertThrows(ResponseStatusException.class, () -> provider.send("owner@example.com", false));
+        var error = assertThrows(ResponseStatusException.class, () -> provider.send("owner@example.com", false, "/professional/signup"));
         assertEquals(503, error.getStatusCode().value());
         assertFalse(error.getMessage().contains("sensitive-provider-body"));
+    }
+    @Test void emailOtpPayloadCarriesProductionRedirect() throws Exception {
+        var provider = client("{}", 200);
+        var payload = provider.otpPayload("owner@example.com", false, "/professional/signup");
+
+        @SuppressWarnings("unchecked")
+        var options = (Map<String, String>) payload.get("options");
+        assertEquals("https://mydentalplatform.com/professional/signup", options.get("email_redirect_to"));
+    }
+
+    @Test void phoneOtpPayloadDoesNotCarryEmailRedirect() throws Exception {
+        var provider = client("{}", 200);
+        var payload = provider.otpPayload("+919876543210", true, "/");
+
+        assertFalse(payload.containsKey("options"));
     }
     @Test void publicSignupCannotRequestPlatformOrClinicAdminRole() {
         assertFalse(OtpLoginService.allowed("clinic", UserRole.PLATFORM_ADMIN));
@@ -47,5 +63,11 @@ class SupabaseOtpClientTest {
         assertFalse(OtpLoginService.allowed("dentist", UserRole.CLINIC_ADMIN));
         assertTrue(OtpLoginService.allowed("platform", UserRole.PLATFORM_ADMIN));
         assertTrue(OtpLoginService.allowed("clinic", UserRole.INCOMPLETE_SIGNUP));
+    }
+
+    @Test void otpRedirectsMatchPortalEntryPoints() {
+        assertEquals("/professional/signup", OtpLoginService.redirectPath("dentist"));
+        assertEquals("/business/signup", OtpLoginService.redirectPath("clinic"));
+        assertEquals("/business/login", OtpLoginService.redirectPath("platform"));
     }
 }

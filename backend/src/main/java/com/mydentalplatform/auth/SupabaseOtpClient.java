@@ -16,26 +16,42 @@ import tools.jackson.databind.ObjectMapper;
 public class SupabaseOtpClient {
     private final String url;
     private final String key;
+    private final String publicBaseUrl;
     private final ObjectMapper mapper;
     private final HttpClient http;
 
     @org.springframework.beans.factory.annotation.Autowired
     public SupabaseOtpClient(ObjectMapper mapper,
         @Value("${SUPABASE_URL:https://bzdhowtdayekdusfpmbw.supabase.co}") String url,
-        @Value("${SUPABASE_PUBLISHABLE_KEY:}") String key) {
-        this(mapper, url, key, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
+        @Value("${SUPABASE_PUBLISHABLE_KEY:}") String key,
+        @Value("${platform.public-base-url:https://mydentalplatform.com}") String publicBaseUrl) {
+        this(mapper, url, key, publicBaseUrl, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build());
     }
 
-    SupabaseOtpClient(ObjectMapper mapper, String url, String key, HttpClient http) {
+    SupabaseOtpClient(ObjectMapper mapper, String url, String key, String publicBaseUrl, HttpClient http) {
         URI origin = URI.create(url);
         if (!"https".equals(origin.getScheme()) || origin.getHost() == null || !origin.getHost().endsWith(".supabase.co")
             || origin.getUserInfo() != null || origin.getPort() != -1 || origin.getQuery() != null)
             throw new IllegalArgumentException("Use the HTTPS Supabase project URL.");
-        this.url = url.replaceAll("/+$", ""); this.key = key; this.mapper = mapper; this.http = http;
+        this.url = url.replaceAll("/+$", "");
+        this.key = key;
+        this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
+        this.mapper = mapper;
+        this.http = http;
     }
 
-    public void send(String identity, boolean phone) {
-        call("/otp", Map.of(phone ? "phone" : "email", identity, "create_user", true), false);
+    public void send(String identity, boolean phone, String redirectPath) {
+        call("/otp", otpPayload(identity, phone, redirectPath), false);
+    }
+
+    Map<String, Object> otpPayload(String identity, boolean phone, String redirectPath) {
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put(phone ? "phone" : "email", identity);
+        payload.put("create_user", true);
+        if (!phone) {
+            payload.put("options", Map.of("email_redirect_to", publicBaseUrl + redirectPath));
+        }
+        return payload;
     }
 
     public Identity verify(String identity, boolean phone, String code) {

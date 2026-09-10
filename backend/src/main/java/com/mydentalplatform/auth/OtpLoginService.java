@@ -25,7 +25,7 @@ public class OtpLoginService {
     public void send(String identity, String portal) {
         String normalized = normalize(identity, portal);
         limit("send:" + normalized, 3, 600);
-        provider.send(normalized, portal.equals("patient"));
+        provider.send(normalized, portal.equals("patient"), redirectPath(portal));
     }
 
     public ClinicLoginService.LoginResult verify(String identity, String portal, String code, String fullName, String userAgent) {
@@ -77,6 +77,16 @@ public class OtpLoginService {
         } else if (!value.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+") || value.length() > 254)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a valid email address.");
         return value;
+    }
+
+    static String redirectPath(String portal) {
+        return switch (portal) {
+            case "dentist" -> "/professional/signup";
+            case "clinic" -> "/business/signup";
+            case "platform" -> "/business/login";
+            case "patient" -> "/";
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a valid portal.");
+        };
     }
 
     private void limit(String key, int max, int seconds) {
