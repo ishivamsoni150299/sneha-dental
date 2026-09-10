@@ -106,6 +106,7 @@ public class PlatformAdminController {
         requireAdmin(jwt);
         Map<String, Object> publicData = publicData(request);
         Map<String, Object> privateData = privateData(request);
+        boolean activeFlag = request.get("active") instanceof Boolean flag ? flag : true;
         int updated = jdbcTemplate.update("""
             update clinics set name = coalesce(nullif(?, ''), name),
                 active = case when ? then ? else active end,
@@ -113,7 +114,7 @@ public class PlatformAdminController {
                 subscription_status = coalesce(nullif(?, ''), subscription_status),
                 public_config = public_config || cast(? as jsonb), updated_at = now()
             where id = ?
-            """, text(request.get("name")), request.containsKey("active"), booleanValue(request.get("active"), true),
+            """, text(request.get("name")), request.containsKey("active"), activeFlag,
             text(request.get("subscriptionPlan")), text(request.get("subscriptionStatus")), json(publicData), clinicId);
         if (updated != 1) return ResponseEntity.notFound().build();
         if (!privateData.isEmpty()) {
