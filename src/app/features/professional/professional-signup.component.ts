@@ -3,12 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../core/services/auth-facade.service';
 import { PlatformBrandComponent } from '../../shared/components/platform-brand/platform-brand.component';
-import { OtpLoginComponent } from '../../shared/components/otp-login/otp-login.component';
+import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
 
 @Component({
   selector: 'app-professional-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, OtpLoginComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, PasswordLoginComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="border-b border-gray-200 bg-white"><div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4"><a routerLink="/professional"><app-platform-brand /></a><a routerLink="/professional/login" class="text-sm font-semibold text-blue-700">Sign in</a></div></header>
@@ -18,7 +18,7 @@ import { OtpLoginComponent } from '../../shared/components/otp-login/otp-login.c
         <h1 class="mt-3 text-3xl font-bold text-gray-950">Join the dentist directory</h1>
         <p class="mt-2 text-sm leading-6 text-gray-600">No clinic website or clinic subscription is required.</p>
         @if (error()) { <p class="mt-5 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700" role="alert">{{ error() }}</p> }
-<div class="mt-6"><app-otp-login portal="dentist" (authenticated)="onOtpAuthenticated()" /></div>
+<div class="mt-6"><app-password-login [signup]="true" portal="dentist" (authenticated)="onOtpAuthenticated()" /></div>
       </section>
     </main>
   `,

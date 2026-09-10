@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
 import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
-import { OtpLoginComponent } from '../../../shared/components/otp-login/otp-login.component';
+import { PasswordLoginComponent } from '../../../shared/components/password-login/password-login.component';
 
 type LoginPortal = 'clinic' | 'platform';
 type LoginMethod = 'email' | 'google';
@@ -11,7 +11,7 @@ type LoginMethod = 'email' | 'google';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, OtpLoginComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, PasswordLoginComponent],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -36,7 +36,6 @@ export class LoginComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     // Let an incoming email link replace any existing browser session first.
-    if (typeof location !== 'undefined' && new URLSearchParams(location.hash.slice(1)).has('access_token')) return;
     await this.auth.authReady;
     const role = this.auth.role();
     if (role) await this.routeResolvedUser(role, false);

@@ -55,7 +55,7 @@
             <p class="mt-2 text-sm text-gray-500">Your website setup begins after account creation.</p>
           </div>
 
-<app-otp-login portal="clinic" (authenticated)="onOtpAuthenticated($event)" />
+<app-password-login [signup]="true" portal="clinic" (authenticated)="onOtpAuthenticated($event)" />
 
           <p class="text-center text-xs text-gray-400 mt-4">
             By creating an account you agree to our

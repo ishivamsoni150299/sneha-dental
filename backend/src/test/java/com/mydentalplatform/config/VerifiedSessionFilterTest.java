@@ -24,11 +24,11 @@ class VerifiedSessionFilterTest {
         new VerifiedSessionFilter(jdbc).doFilter(new MockHttpServletRequest("GET", "/api/patient/session"), response, chain);
         assertEquals(401, response.getStatus()); assertNull(chain.getRequest());
     }
-    @Test void legacyPasswordAndCrossSiteAuthRequestsAreBlocked() throws Exception {
+    @Test void passwordLoginIsAllowedAndCrossSiteAuthRequestsAreBlocked() throws Exception {
         var filter = new AuthRequestProtectionFilter();
         var response = new MockHttpServletResponse();
         filter.doFilter(new MockHttpServletRequest("POST", "/api/auth/clinic/login"), response, new MockFilterChain());
-        assertEquals(410, response.getStatus());
+        assertEquals(200, response.getStatus());
         var request = new MockHttpServletRequest("POST", "/api/auth/otp/verify"); request.addHeader("Sec-Fetch-Site", "cross-site");
         response = new MockHttpServletResponse(); filter.doFilter(request, response, new MockFilterChain());
         assertEquals(403, response.getStatus());

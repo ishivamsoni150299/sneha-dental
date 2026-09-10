@@ -12,7 +12,6 @@ import static org.mockito.ArgumentMatchers.*;
 
 class TestPhoneOtpFlowTest {
     private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
-    private final SupabaseOtpClient provider = mock(SupabaseOtpClient.class);
     private final AuthUserRepository users = mock(AuthUserRepository.class);
     private final ClinicLoginService login = mock(ClinicLoginService.class);
     private final TokenService tokens = mock(TokenService.class);
@@ -22,23 +21,23 @@ class TestPhoneOtpFlowTest {
     @BeforeEach void setup() {
         var mode = new TestPhoneOtp(true, Instant.parse("2026-09-13T00:00:00Z"),
             Clock.fixed(Instant.parse("2026-09-10T00:00:00Z"), ZoneOffset.UTC));
-        service = new OtpLoginService(provider, jdbc, users, login, tokens, manager, mode);
+        service = new OtpLoginService(jdbc, users, login, tokens, manager, mode);
         when(jdbc.queryForObject(contains("auth_otp_limits"), eq(Integer.class), any(Object[].class))).thenReturn(1);
         when(tokens.hashRefreshToken(anyString())).thenReturn("test-hash");
     }
 
     @Test void sendSkipsSmsOnlyForAllowlistedNumber() {
         service.send(TestPhoneOtp.PHONE, "patient");
-        verifyNoInteractions(provider);
+
         verify(jdbc).update(contains("insert into auth_challenges"), eq(TestPhoneOtp.PHONE), eq("test-hash"));
-        service.send("+919473903052", "patient");
-        verify(provider).send("+919473903052", true, "/");
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> service.send("+919473903052", "patient"));
+
     }
 
     @Test void wrongCodeAndMissingOrConsumedChallengeCannotLogin() {
         assertThrows(AuthException.class, () -> service.verify(TestPhoneOtp.PHONE, "patient", "000000", null, null));
         assertThrows(AuthException.class, () -> service.verify(TestPhoneOtp.PHONE, "patient", "947390", null, null));
-        verifyNoInteractions(provider, login, users);
+        verifyNoInteractions(login, users);
     }
 
     @Test void validChallengeLogsInPatientWithoutCreatingProviderIdentity() {
@@ -48,7 +47,7 @@ class TestPhoneOtpFlowTest {
         when(users.findByPhone(TestPhoneOtp.PHONE)).thenReturn(Optional.of(user));
         service.verify(TestPhoneOtp.PHONE, "patient", "947390", null, "test-agent");
         verify(login).verifiedLogin(user, "test-agent");
-        verifyNoInteractions(provider);
+
         verify(jdbc, never()).update(contains("supabase_user_id"), any(Object[].class));
     }
 
@@ -67,6 +66,6 @@ class TestPhoneOtpFlowTest {
         when(jdbc.queryForObject(contains("auth_otp_limits"), eq(Integer.class), any(Object[].class))).thenReturn(11);
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
             () -> service.verify(TestPhoneOtp.PHONE, "patient", "947390", null, null));
-        verifyNoInteractions(login, provider, users);
+        verifyNoInteractions(login, users);
     }
 }

@@ -51,7 +51,7 @@
           </div>
         }
 
-<div class="mt-7"><app-otp-login [portal]="portal()" (authenticated)="onOtpAuthenticated($event)" /></div>
+<div class="mt-7"><app-password-login [portal]="portal()" (authenticated)="onOtpAuthenticated($event)" /></div>
 
         @if (!isPlatform()) {
           <p class="ui-caption mt-7 text-center">

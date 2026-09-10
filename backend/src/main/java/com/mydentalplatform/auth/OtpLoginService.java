@@ -10,16 +10,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class OtpLoginService {
-    private final SupabaseOtpClient provider;
+
     private final JdbcTemplate jdbc;
     private final AuthUserRepository users;
     private final ClinicLoginService login;
     private final TokenService tokens;
     private final TransactionTemplate transaction;
     private final TestPhoneOtp testPhoneOtp;
-    public OtpLoginService(SupabaseOtpClient provider, JdbcTemplate jdbc, AuthUserRepository users,
+    public OtpLoginService(JdbcTemplate jdbc, AuthUserRepository users,
         ClinicLoginService login, TokenService tokens, PlatformTransactionManager manager, TestPhoneOtp testPhoneOtp) {
-        this.provider = provider; this.jdbc = jdbc; this.users = users; this.login = login; this.tokens = tokens;
+        this.jdbc = jdbc; this.users = users; this.login = login; this.tokens = tokens;
         this.transaction = new TransactionTemplate(manager);
         this.testPhoneOtp = testPhoneOtp;
     }
@@ -38,7 +38,7 @@ public class OtpLoginService {
             });
             return;
         }
-        provider.send(normalized, portal.equals("patient"), redirectPath(portal));
+        throw new ResponseStatusException(HttpStatus.GONE, "Use email and password to sign in. SMS delivery is not configured.");
     }
 
     public ClinicLoginService.LoginResult verify(String identity, String portal, String code, String fullName, String userAgent) {
@@ -63,47 +63,12 @@ public class OtpLoginService {
                 return login.verifiedLogin(users.findByPhone(normalized).orElseThrow(), userAgent);
             });
         }
-        var verified = provider.verify(normalized, portal.equals("patient"), code);
-        return completeVerifiedLogin(verified, normalized, portal, fullName, userAgent);
+        throw new ResponseStatusException(HttpStatus.GONE, "Use email and password to sign in. SMS delivery is not configured.");
     }
 
     public ClinicLoginService.LoginResult exchangeMagicLink(String accessToken, String portal, String fullName, String userAgent) {
-        if (portal.equals("patient")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use mobile verification to sign in.");
-        var verified = provider.verifyAccessToken(accessToken);
-        String normalized = normalize(verified.value(), portal);
-        limit("link:" + portal + ":" + normalized, 10, 600);
-        return completeVerifiedLogin(verified, normalized, portal, fullName, userAgent);
+        throw new ResponseStatusException(HttpStatus.GONE, "Email links have been retired. Sign in with your password, or contact the platform owner to set one.");
     }
-
-    private ClinicLoginService.LoginResult completeVerifiedLogin(SupabaseOtpClient.Identity verified, String normalized,
-        String portal, String fullName, String userAgent) {
-        return transaction.execute(status -> {
-            // Serialize simultaneous first logins without locking during the provider call.
-            jdbc.queryForList("select pg_advisory_xact_lock(hashtextextended(?, 0))", normalized);
-            AuthUser user = verified.phone() ? users.findByPhone(normalized).orElse(null) : users.findByEmail(normalized).orElse(null);
-            if (user == null) {
-                user = switch (portal) {
-                    case "patient" -> users.createPatient(normalized);
-                    case "clinic" -> users.createClinicSignup(normalized, null);
-                    case "dentist" -> {
-                        if (fullName == null || fullName.trim().length() < 2) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter your professional name to create a profile.");
-                        yield users.createProfessionalSignup(normalized, null, fullName);
-                    }
-                    default -> throw new AuthException("This account does not have access to this portal.");
-                };
-            }
-            if (!user.enabled() || !allowed(portal, user.role())) throw new AuthException("This account does not have access to this portal.");
-            int updated = jdbc.update("""
-                update users set supabase_user_id = ?, email_verified = case when ? then email_verified else true end,
-                    phone_verified = case when ? then true else phone_verified end, password_migration_required = false
-                where id = ? and (supabase_user_id is null or supabase_user_id = ?)
-                """, verified.providerId(), verified.phone(), verified.phone(), user.id(), verified.providerId());
-            if (updated != 1) throw new AuthException("Account identity has changed. Contact support.");
-            AuthUser confirmed = verified.phone() ? users.findByPhone(normalized).orElseThrow() : users.findByEmail(normalized).orElseThrow();
-            return login.verifiedLogin(confirmed, userAgent);
-        });
-    }
-
     static boolean allowed(String portal, UserRole role) {
         return switch (portal) {
             case "patient" -> role == UserRole.PATIENT;

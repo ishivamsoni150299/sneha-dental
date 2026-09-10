@@ -51,17 +51,10 @@ public class ClinicLoginService {
         if (user.passwordMigrationRequired()) {
             throw new PasswordMigrationRequiredException();
         }
-        if (!user.emailVerified()) throw new AuthException("Verify your email before signing in.");
+
         if (user.role() == UserRole.PATIENT) throw new AuthException("Use mobile verification to sign in.");
 
-        Instant now = clock.instant();
-        TokenService.RefreshToken refreshToken = tokenService.createRefreshToken(now);
-        refreshTokenRepository.create(user.id(), refreshToken.hash(), refreshToken.expiresAt(), userAgent);
-        return new LoginResult(
-            tokenService.createAccessToken(user, now),
-            tokenService.accessTokenExpiresInSeconds(),
-            refreshToken,
-            user);
+        return verifiedLogin(user, userAgent);
     }
 
     @Transactional
@@ -72,14 +65,7 @@ public class ClinicLoginService {
         }
         AuthUser user = userRepository.createClinicSignup(
             normalizedEmail, passwordEncoder.encode(password));
-        Instant now = clock.instant();
-        TokenService.RefreshToken refreshToken = tokenService.createRefreshToken(now);
-        refreshTokenRepository.create(user.id(), refreshToken.hash(), refreshToken.expiresAt(), userAgent);
-        return new LoginResult(
-            tokenService.createAccessToken(user, now),
-            tokenService.accessTokenExpiresInSeconds(),
-            refreshToken,
-            user);
+        return verifiedLogin(user, userAgent);
     }
 
     @Transactional
@@ -90,14 +76,7 @@ public class ClinicLoginService {
         }
         AuthUser user = userRepository.createProfessionalSignup(
             normalizedEmail, passwordEncoder.encode(password), fullName);
-        Instant now = clock.instant();
-        TokenService.RefreshToken refreshToken = tokenService.createRefreshToken(now);
-        refreshTokenRepository.create(user.id(), refreshToken.hash(), refreshToken.expiresAt(), userAgent);
-        return new LoginResult(
-            tokenService.createAccessToken(user, now),
-            tokenService.accessTokenExpiresInSeconds(),
-            refreshToken,
-            user);
+        return verifiedLogin(user, userAgent);
     }
 
     @Transactional
@@ -114,7 +93,7 @@ public class ClinicLoginService {
             });
         AuthUser user = session.user();
         if (!user.enabled() || user.passwordMigrationRequired() ||
-            (user.role() == UserRole.PATIENT ? !user.phoneVerified() : !user.emailVerified())) {
+            (user.role() == UserRole.PATIENT ? !user.phoneVerified() : user.passwordHash() == null)) {
             throw new AuthException("This session is no longer valid.");
         }
 

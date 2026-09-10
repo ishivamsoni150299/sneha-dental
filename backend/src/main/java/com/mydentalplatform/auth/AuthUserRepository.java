@@ -47,11 +47,11 @@ public class AuthUserRepository {
         UUID id = UUID.randomUUID();
         jdbcTemplate.update("""
             insert into users (id, role, email, password_hash, email_verified)
-            values (?, 'incomplete_signup', lower(?), ?, true)
+            values (?, 'incomplete_signup', lower(?), ?, false)
             """, id, email, passwordHash);
         return new AuthUser(
             id, null, UserRole.INCOMPLETE_SIGNUP, email.toLowerCase(), null,
-            passwordHash, true, false, true, false);
+            passwordHash, false, false, true, false);
     }
 
     public AuthUser createProfessionalSignup(String email, String passwordHash, String fullName) {
@@ -64,7 +64,7 @@ public class AuthUserRepository {
             + "-" + providerId.toString().substring(0, 8);
         jdbcTemplate.update("""
             insert into users (id, role, email, password_hash, email_verified)
-            values (?, 'dentist', lower(?), ?, true)
+            values (?, 'dentist', lower(?), ?, false)
             """, userId, email, passwordHash);
         jdbcTemplate.update("""
             insert into providers (id, user_id, slug, full_name)
@@ -73,7 +73,7 @@ public class AuthUserRepository {
         jdbcTemplate.update("insert into provider_marketplace_listings (provider_id) values (?)", providerId);
         return new AuthUser(
             userId, null, UserRole.DENTIST, email.toLowerCase(), null,
-            passwordHash, true, false, true, false);
+            passwordHash, false, false, true, false);
     }
 
     private static AuthUser mapUser(ResultSet resultSet, int rowNumber) throws SQLException {

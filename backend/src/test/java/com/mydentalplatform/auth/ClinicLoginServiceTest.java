@@ -70,7 +70,7 @@ class ClinicLoginServiceTest {
             "plain-refresh-token", "hashed-refresh-token", NOW.plusSeconds(604_800));
         when(userRepository.findByEmail("owner@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("correct-password", user.passwordHash())).thenReturn(true);
-        when(tokenService.createAccessToken(user, NOW)).thenReturn("access-token");
+        when(tokenService.createAccessToken(eq(user), eq(NOW), any(UUID.class))).thenReturn("access-token");
         when(tokenService.createRefreshToken(NOW)).thenReturn(refreshToken);
         when(tokenService.accessTokenExpiresInSeconds()).thenReturn(900L);
 
@@ -79,8 +79,17 @@ class ClinicLoginServiceTest {
 
         assertEquals("access-token", result.accessToken());
         assertEquals("plain-refresh-token", result.refreshToken().value());
+        var family = org.mockito.ArgumentCaptor.forClass(UUID.class);
+        verify(tokenService).createAccessToken(eq(user), eq(NOW), family.capture());
         verify(refreshTokenRepository).create(
-            user.id(), "hashed-refresh-token", refreshToken.expiresAt(), "test-browser");
+            eq(user.id()), eq("hashed-refresh-token"), eq(refreshToken.expiresAt()), eq("test-browser"), eq(family.getValue()), eq(refreshToken.expiresAt()));
+    }
+
+    @Test
+    void incorrectPasswordCannotCreateSession() {
+        when(userRepository.findByEmail("owner@example.com")).thenReturn(Optional.of(clinicAdmin(false)));
+        assertThrows(AuthException.class, () -> loginService.login("owner@example.com", "incorrect", "browser"));
+        org.mockito.Mockito.verifyNoInteractions(refreshTokenRepository, tokenService);
     }
 
     @Test
@@ -140,7 +149,7 @@ class ClinicLoginServiceTest {
         when(passwordEncoder.encode("strong-password")).thenReturn("encoded-password");
         when(userRepository.createClinicSignup("new@example.com", "encoded-password")).thenReturn(user);
         when(tokenService.createRefreshToken(NOW)).thenReturn(refreshToken);
-        when(tokenService.createAccessToken(user, NOW)).thenReturn("access-token");
+        when(tokenService.createAccessToken(eq(user), eq(NOW), any(UUID.class))).thenReturn("access-token");
         when(tokenService.accessTokenExpiresInSeconds()).thenReturn(900L);
 
         ClinicLoginService.LoginResult result = loginService.signup(
@@ -148,7 +157,7 @@ class ClinicLoginServiceTest {
 
         assertEquals(UserRole.INCOMPLETE_SIGNUP, result.user().role());
         verify(refreshTokenRepository).create(
-            user.id(), "hashed-refresh-token", refreshToken.expiresAt(), "test-browser");
+            eq(user.id()), eq("hashed-refresh-token"), eq(refreshToken.expiresAt()), eq("test-browser"), any(UUID.class), eq(refreshToken.expiresAt()));
     }
 
     private AuthUser clinicAdmin(boolean passwordMigrationRequired) {
@@ -159,7 +168,7 @@ class ClinicLoginServiceTest {
             "owner@example.com",
             null,
             "$2a$12$password-hash",
-            true,
+            false,
             false,
             true,
             passwordMigrationRequired);

@@ -20,10 +20,6 @@ public class AuthRequestProtectionFilter extends OncePerRequestFilter {
             if (!request.getMethod().equals("GET") && "cross-site".equals(request.getHeader("Sec-Fetch-Site"))) {
                 response.sendError(403); return;
             }
-            if (path.matches("/api/auth/(clinic|professional)/(login|signup)") || path.startsWith("/api/auth/password-reset/")) {
-                response.setStatus(410); response.setContentType("application/json");
-                response.getWriter().write("{\"message\":\"Use the secure email link or verification code to sign in or create your account.\"}"); return;
-            }
             if (request.getContentLengthLong() > 4096) { response.sendError(413); return; }
         }
         chain.doFilter(request, response);

@@ -18,7 +18,7 @@ import {
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
-import { OtpLoginComponent } from '../../../shared/components/otp-login/otp-login.component';
+import { PasswordLoginComponent } from '../../../shared/components/password-login/password-login.component';
 
 async function isSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false;
@@ -99,7 +99,7 @@ declare const google: any;
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, OtpLoginComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, PasswordLoginComponent],
   templateUrl: './signup.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -451,8 +451,7 @@ export class SignupComponent implements OnInit {
   }
 
     private async resumeAuthenticatedSignup(): Promise<void> {
-      if (typeof location !== 'undefined' && new URLSearchParams(location.hash.slice(1)).has('access_token')) return;
-    await this.auth.authReady;
+      await this.auth.authReady;
     const user = this.auth.currentUser();
     const role = this.auth.role();
     if (user && role) await this.routeAuthenticatedUser(user, role);
