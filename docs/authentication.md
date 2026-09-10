@@ -22,3 +22,12 @@ Email OTP is used for clinic, dentist, and platform staff. Phone OTP is used for
 Do not add the Twilio token to Render, source control, browser code, or issue reports. Supabase's email provider must also be configured for production delivery; custom SMTP is recommended for branded messages and reliable delivery.
 
 Existing password sessions are intentionally invalidated by migration `V15__verified_authentication.sql`. Each user signs in once with an OTP to establish a verified Supabase identity and a new refresh-token family.
+
+## Supabase authentication URLs
+
+In **Authentication -> URL Configuration**, production must use:
+
+- Site URL: `https://mydentalplatform.com`
+- Redirect URLs: `https://mydentalplatform.com/professional/signup`, `https://mydentalplatform.com/business/signup`, and `https://mydentalplatform.com/business/login`
+
+Supabase falls back to the Site URL when the application's `email_redirect_to` is not on this allow-list. Leaving the dashboard default of `http://localhost:3000` therefore sends production email links to a blank local page.

@@ -36,6 +36,12 @@ class SupabaseOtpClientTest {
         assertTrue(provider.verify("+919876543210", true, "123456").phone());
         assertThrows(ResponseStatusException.class, () -> provider.verify("+919999999999", true, "123456"));
     }
+    @Test void acceptsAConfirmedEmailFromMagicLinkAccessToken() throws Exception {
+        var provider = client("""
+            {"id":"78a2fd30-03b3-4fd6-bb0d-74e3700c7d91","email":"owner@example.com","email_confirmed_at":"2026-09-07T10:00:00Z"}
+            """, 200);
+        assertEquals("owner@example.com", provider.verifyAccessToken("supabase-access-token").value());
+    }
     @Test void sanitizesProviderErrors() throws Exception {
         var provider = client("sensitive-provider-body", 500);
         var error = assertThrows(ResponseStatusException.class, () -> provider.send("owner@example.com", false, "/professional/signup"));

@@ -54,6 +54,11 @@ public class AuthController {
         return loginResponse(otp.verify(request.identity(), request.portal(), request.code(), request.fullName(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
     }
 
+    @PostMapping("/otp/exchange-link")
+    ResponseEntity<LoginResponse> exchangeMagicLink(@Valid @RequestBody MagicLinkExchange request, HttpServletRequest servletRequest) {
+        return loginResponse(otp.exchangeMagicLink(request.accessToken(), request.portal(), request.fullName(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
+    }
+
     @PostMapping("/clinic/login")
     ResponseEntity<LoginResponse> clinicLogin(
         @Valid @RequestBody LoginRequest request,
@@ -215,6 +220,9 @@ public class AuthController {
     record OtpRequest(@NotBlank @Size(max=254) String identity, @NotBlank @jakarta.validation.constraints.Pattern(regexp="clinic|platform|dentist|patient") String portal) {}
     record OtpVerification(@NotBlank @Size(max=254) String identity, @NotBlank @jakarta.validation.constraints.Pattern(regexp="clinic|platform|dentist|patient") String portal,
         @NotBlank @jakarta.validation.constraints.Pattern(regexp="[0-9]{6,10}") String code, @Size(max=160) String fullName) {}
+    record MagicLinkExchange(@NotBlank @Size(max=4096) String accessToken,
+        @NotBlank @jakarta.validation.constraints.Pattern(regexp="clinic|platform|dentist") String portal,
+        @Size(max=160) String fullName) {}
 
     record ErrorResponse(String code, String message) {
     }

@@ -64,6 +64,19 @@ public class OtpLoginService {
             });
         }
         var verified = provider.verify(normalized, portal.equals("patient"), code);
+        return completeVerifiedLogin(verified, normalized, portal, fullName, userAgent);
+    }
+
+    public ClinicLoginService.LoginResult exchangeMagicLink(String accessToken, String portal, String fullName, String userAgent) {
+        if (portal.equals("patient")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use mobile verification to sign in.");
+        var verified = provider.verifyAccessToken(accessToken);
+        String normalized = normalize(verified.value(), portal);
+        limit("link:" + normalized, 10, 600);
+        return completeVerifiedLogin(verified, normalized, portal, fullName, userAgent);
+    }
+
+    private ClinicLoginService.LoginResult completeVerifiedLogin(SupabaseOtpClient.Identity verified, String normalized,
+        String portal, String fullName, String userAgent) {
         return transaction.execute(status -> {
             // Serialize simultaneous first logins without locking during the provider call.
             jdbc.queryForList("select pg_advisory_xact_lock(hashtextextended(?, 0))", normalized);

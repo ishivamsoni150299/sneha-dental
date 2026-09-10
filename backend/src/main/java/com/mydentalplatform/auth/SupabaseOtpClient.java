@@ -57,6 +57,28 @@ public class SupabaseOtpClient {
     public Identity verify(String identity, boolean phone, String code) {
         var body = call("/verify", Map.of(phone ? "phone" : "email", identity, "token", code,
             "type", phone ? "sms" : "email"), true);
+        return confirmedIdentity(body, identity, phone);
+    }
+
+    public Identity verifyAccessToken(String accessToken) {
+        try {
+            if (key == null || key.isBlank()) throw unavailable();
+            var request = HttpRequest.newBuilder(URI.create(url + "/auth/v1/user"))
+                .timeout(Duration.ofSeconds(15)).header("apikey", key)
+                .header("Authorization", "Bearer " + accessToken).GET().build();
+            var response = http.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 401 || response.statusCode() == 403) throw invalid();
+            if (response.statusCode() / 100 != 2) throw unavailable();
+            var body = mapper.readTree(response.body());
+            var wrapped = mapper.createObjectNode();
+            wrapped.set("user", body);
+            return confirmedIdentity(wrapped, body.path("email").asText(""), false);
+        } catch (ResponseStatusException error) { throw error; }
+        catch (InterruptedException error) { Thread.currentThread().interrupt(); throw unavailable(); }
+        catch (Exception error) { throw unavailable(); }
+    }
+
+    private Identity confirmedIdentity(tools.jackson.databind.JsonNode body, String identity, boolean phone) {
         var user = body.path("user");
         String confirmed = user.path(phone ? "phone_confirmed_at" : "email_confirmed_at").asText("");
         String actual = user.path(phone ? "phone" : "email").asText("");

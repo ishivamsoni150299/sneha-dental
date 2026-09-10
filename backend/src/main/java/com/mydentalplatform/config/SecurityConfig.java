@@ -69,7 +69,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/favicon.ico",
                     "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
                 .requestMatchers(
-                    "/api/auth/otp/request", "/api/auth/otp/verify",
+                    "/api/auth/otp/request", "/api/auth/otp/verify", "/api/auth/otp/exchange-link",
                     "/api/auth/clinic/login", "/api/auth/clinic/signup",
                     "/api/auth/professional/login", "/api/auth/professional/signup",
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()

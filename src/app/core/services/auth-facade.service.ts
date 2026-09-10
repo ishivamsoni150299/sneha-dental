@@ -70,6 +70,11 @@ export class AuthFacade {
     return this.applySession(await this.authRequest('/api/auth/otp/verify', { identity, portal, code, fullName }));
   }
 
+  async exchangeMagicLink(accessToken: string, portal: 'clinic' | 'platform' | 'dentist', fullName?: string): Promise<AuthRole> {
+    await this.authReady;
+    return this.applySession(await this.authRequest('/api/auth/otp/exchange-link', { accessToken, portal, fullName }));
+  }
+
   async createProfessionalAccount(fullName: string, email: string, password: string): Promise<PlatformUser> {
     this.applySession(await this.authRequest('/api/auth/professional/signup', { fullName, email, password }));
     return this.currentUser()!;
