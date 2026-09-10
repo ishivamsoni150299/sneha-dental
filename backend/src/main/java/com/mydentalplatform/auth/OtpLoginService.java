@@ -26,7 +26,7 @@ public class OtpLoginService {
 
     public void send(String identity, String portal) {
         String normalized = normalize(identity, portal);
-        limit("send:" + normalized, 3, 600);
+        limit("send:" + portal + ":" + normalized, 3, 600);
         if (testPhoneOtp.permits(normalized, portal)) {
             transaction.executeWithoutResult(status -> {
                 jdbc.queryForList("select pg_advisory_xact_lock(hashtextextended(?, 0))", normalized);
@@ -43,7 +43,7 @@ public class OtpLoginService {
 
     public ClinicLoginService.LoginResult verify(String identity, String portal, String code, String fullName, String userAgent) {
         String normalized = normalize(identity, portal);
-        limit("verify:" + normalized, 10, 600);
+        limit("verify:" + portal + ":" + normalized, 10, 600);
         if (testPhoneOtp.permits(normalized, portal)) {
             testPhoneOtp.check(normalized, portal, code);
             return transaction.execute(status -> {
@@ -71,7 +71,7 @@ public class OtpLoginService {
         if (portal.equals("patient")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use mobile verification to sign in.");
         var verified = provider.verifyAccessToken(accessToken);
         String normalized = normalize(verified.value(), portal);
-        limit("link:" + normalized, 10, 600);
+        limit("link:" + portal + ":" + normalized, 10, 600);
         return completeVerifiedLogin(verified, normalized, portal, fullName, userAgent);
     }
 

@@ -96,7 +96,7 @@ public class SupabaseOtpClient {
                 .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload))).build();
             var response = http.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 429) throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                "Please wait before requesting or checking another code.");
+                "Email delivery is temporarily rate-limited by Supabase. Wait for the cooldown to expire before requesting another sign-in link.");
             if (response.statusCode() / 100 != 2) {
                 if (verify && (response.statusCode() == 400 || response.statusCode() == 403 || response.statusCode() == 422)) throw invalid();
                 throw unavailable();

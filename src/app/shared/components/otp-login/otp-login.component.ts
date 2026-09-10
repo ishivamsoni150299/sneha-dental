@@ -22,7 +22,7 @@ import { AuthFacade, AuthRole } from '../../../core/services/auth-facade.service
         <label class="block text-sm font-semibold text-gray-800">Verification code <span class="font-normal text-gray-500">(if shown)</span><input formControlName="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" class="mt-2 min-h-14 w-full rounded-xl border border-gray-300 px-4 text-center font-mono text-2xl tracking-widest" placeholder="Enter your code"></label>
       }
       @if (error()) {<p role="alert" class="rounded-xl bg-red-50 p-4 text-sm leading-6 text-red-700">{{ error() }}</p>}
-      <button type="submit" [disabled]="busy()" class="min-h-12 w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60">{{ busy() ? 'Please wait…' : magicLinkToken() ? 'Continue' : sent() ? 'Verify and continue' : 'Email me a secure sign-in link' }}</button>
+      <button type="submit" [disabled]="busy() || (!magicLinkToken() && cooldown() > 0)" class="min-h-12 w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60">{{ busy() ? 'Please wait…' : (!magicLinkToken() && cooldown() > 0) ? 'Try again in ' + cooldown() + 's' : magicLinkToken() ? 'Continue' : sent() ? 'Verify and continue' : 'Email me a secure sign-in link' }}</button>
       @if (sent() && !magicLinkToken()) {
         <div class="flex flex-wrap justify-between gap-3 text-sm"><button type="button" (click)="changeEmail()" [disabled]="busy()" class="min-h-11 font-semibold text-gray-600">Change email</button><button type="button" (click)="send()" [disabled]="busy() || cooldown() > 0" class="min-h-11 font-semibold text-blue-700 disabled:text-gray-400">{{ cooldown() > 0 ? 'Resend in ' + cooldown() + 's' : 'Resend code' }}</button></div>
       }
@@ -89,7 +89,15 @@ export class OtpLoginComponent implements OnInit, OnDestroy {
       await this.auth.requestOtp(this.destination, this.portal());
       this.sent.set(true); this.form.controls.code.setValue(''); this.cooldown.set(60);
       clearInterval(this.timer); this.timer = setInterval(() => { this.cooldown.update(n => Math.max(0, n - 1)); if (!this.cooldown()) clearInterval(this.timer); }, 1000);
-    } catch (error) { this.error.set(error instanceof Error ? error.message : 'Could not send a code.'); }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not send a code.';
+      if ((error as { code?: string })?.code === 'auth/too-many-requests') {
+        this.cooldown.set(60);
+        clearInterval(this.timer);
+        this.timer = setInterval(() => { this.cooldown.update(n => Math.max(0, n - 1)); if (!this.cooldown()) clearInterval(this.timer); }, 1000);
+      }
+      this.error.set(message);
+    }
     finally { this.busy.set(false); }
   }
   changeEmail(): void { this.sent.set(false); this.form.controls.code.setValue(''); this.error.set(''); }
