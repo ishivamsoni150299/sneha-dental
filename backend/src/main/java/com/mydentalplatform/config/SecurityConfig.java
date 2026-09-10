@@ -50,7 +50,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, org.springframework.jdbc.core.JdbcTemplate jdbc) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, org.springframework.jdbc.core.JdbcTemplate jdbc,
+        com.mydentalplatform.auth.TestPhoneOtp testPhoneOtp) throws Exception {
         return http
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/webhooks/**"))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -75,7 +76,7 @@ public class SecurityConfig {
                 .requestMatchers("/webhooks/**").permitAll()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
-            .addFilterAfter(new VerifiedSessionFilter(jdbc), org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
+            .addFilterAfter(new VerifiedSessionFilter(jdbc, testPhoneOtp), org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
             .build();
     }
 

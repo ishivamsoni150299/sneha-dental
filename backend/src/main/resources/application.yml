@@ -27,6 +27,8 @@ spring:
 platform:
   public-base-url: ${PUBLIC_BASE_URL:http://localhost:4200}
   auth:
+    test-phone-otp-enabled: ${TEST_PHONE_OTP_ENABLED:false}
+    test-phone-otp-valid-until: ${TEST_PHONE_OTP_VALID_UNTIL:1970-01-01T00:00:00Z}
     issuer: ${JWT_ISSUER:http://localhost:8080}
     secret: ${JWT_SECRET:bXlkZW50YWxwbGF0Zm9ybS1sb2NhbC1kZXZlbG9wbWVudC1vbmx5LXNlY3JldA==}
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT15M}

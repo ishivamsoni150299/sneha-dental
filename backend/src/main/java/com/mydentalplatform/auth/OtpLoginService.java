@@ -16,21 +16,53 @@ public class OtpLoginService {
     private final ClinicLoginService login;
     private final TokenService tokens;
     private final TransactionTemplate transaction;
+    private final TestPhoneOtp testPhoneOtp;
     public OtpLoginService(SupabaseOtpClient provider, JdbcTemplate jdbc, AuthUserRepository users,
-        ClinicLoginService login, TokenService tokens, PlatformTransactionManager manager) {
+        ClinicLoginService login, TokenService tokens, PlatformTransactionManager manager, TestPhoneOtp testPhoneOtp) {
         this.provider = provider; this.jdbc = jdbc; this.users = users; this.login = login; this.tokens = tokens;
         this.transaction = new TransactionTemplate(manager);
+        this.testPhoneOtp = testPhoneOtp;
     }
 
     public void send(String identity, String portal) {
         String normalized = normalize(identity, portal);
         limit("send:" + normalized, 3, 600);
+        if (testPhoneOtp.permits(normalized, portal)) {
+            transaction.executeWithoutResult(status -> {
+                jdbc.queryForList("select pg_advisory_xact_lock(hashtextextended(?, 0))", normalized);
+                jdbc.update("update auth_challenges set consumed_at = now() where destination = ? and purpose = 'phone_otp' and consumed_at is null", normalized);
+                jdbc.update("""
+                    insert into auth_challenges(purpose, destination, secret_hash, expires_at)
+                    values ('phone_otp', ?, ?, now() + interval '5 minutes')
+                    """, normalized, tokens.hashRefreshToken("test-phone-otp:" + normalized));
+            });
+            return;
+        }
         provider.send(normalized, portal.equals("patient"), redirectPath(portal));
     }
 
     public ClinicLoginService.LoginResult verify(String identity, String portal, String code, String fullName, String userAgent) {
         String normalized = normalize(identity, portal);
         limit("verify:" + normalized, 10, 600);
+        if (testPhoneOtp.permits(normalized, portal)) {
+            testPhoneOtp.check(normalized, portal, code);
+            return transaction.execute(status -> {
+                jdbc.queryForList("select pg_advisory_xact_lock(hashtextextended(?, 0))", normalized);
+                testPhoneOtp.check(normalized, portal, code);
+                int consumed = jdbc.update("""
+                    update auth_challenges set consumed_at = now()
+                    where destination = ? and purpose = 'phone_otp' and secret_hash = ?
+                      and consumed_at is null and expires_at > now()
+                    """, normalized, tokens.hashRefreshToken("test-phone-otp:" + normalized));
+                if (consumed != 1) throw new AuthException("Request a new code and try again.");
+                AuthUser user = users.findByPhone(normalized).orElseGet(() -> users.createPatient(normalized));
+                if (!user.enabled() || user.role() != UserRole.PATIENT)
+                    throw new AuthException("This account does not have access to this portal.");
+                // Do not invent or overwrite a Supabase identity; real SMS can link it later.
+                jdbc.update("update users set phone_verified = true, password_migration_required = false where id = ?", user.id());
+                return login.verifiedLogin(users.findByPhone(normalized).orElseThrow(), userAgent);
+            });
+        }
         var verified = provider.verify(normalized, portal.equals("patient"), code);
         return transaction.execute(status -> {
             // Serialize simultaneous first logins without locking during the provider call.
