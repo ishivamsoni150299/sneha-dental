@@ -85,6 +85,7 @@ describe('DentistDirectoryComponent', () => {
   beforeEach(() => {
     marketplaceSpy = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
       'getVerifiedClinics',
+      'getVerifiedProviders',
       'getPublishedReviews',
       'getAvailability',
       'serviceLabel',
@@ -93,6 +94,7 @@ describe('DentistDirectoryComponent', () => {
       'clinicWebsiteUrl',
     ]);
 
+    marketplaceSpy.getVerifiedProviders.and.resolveTo([]);
     marketplaceSpy.getVerifiedClinics.and.resolveTo({
       dentists: [createMockClinic(), createDelhiClinic()],
       totalCount: 2,
@@ -171,6 +173,28 @@ describe('DentistDirectoryComponent', () => {
     fixture.detectChanges();
     return { fixture, component: fixture.componentInstance };
   }
+
+  it('shows an approved independent dentist even when no clinics are published', async () => {
+    marketplaceSpy.getVerifiedClinics.and.resolveTo({ dentists: [], totalCount: 0, limit: 50, offset: 0 });
+    marketplaceSpy.getVerifiedProviders.and.resolveTo([{
+      id: 'provider-1', slug: 'sneha-soni', fullName: 'Sneha Soni', qualification: 'BDS',
+      speciality: 'Endodontics', experienceYears: 2, languages: ['Hindi'],
+      locationId: 'location-1', locationName: 'Noida', locality: 'Kanchanjunga', city: 'Noida',
+      consultationFee: 200, acceptingNewPatients: true, serviceIds: ['root-canal'],
+    }]);
+    const { fixture, component } = await setupComponent();
+    expect(fixture.nativeElement.textContent).toContain('Sneha Soni');
+    expect(fixture.nativeElement.querySelector('a[href="/dentist/sneha-soni"]')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('We’re verifying the first dentists.');
+    expect(component.resultCount()).toBe(1);
+    component.locality.set('Delhi');
+    expect(component.resultCount()).toBe(0);
+    component.locality.set('Noida');
+    component.serviceId.set('root-canal');
+    expect(component.resultCount()).toBe(1);
+    component.discoveryType.set('clinics');
+    expect(component.resultCount()).toBe(0);
+  });
 
   it('renders verified clinics with doctor details, consultation fees, and trust badges', async () => {
     const { fixture } = await setupComponent();

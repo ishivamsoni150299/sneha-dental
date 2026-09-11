@@ -20,6 +20,14 @@ export interface MarketplaceSearchResponse {
   offset: number;
 }
 
+export interface MarketplaceProvider {
+  id: string; slug: string; fullName: string; qualification: string | null;
+  speciality: string | null; experienceYears: number | null; languages: string[];
+  locationId: string; locationName: string; locality: string | null; city: string;
+  consultationFee: number | null; acceptingNewPatients: boolean;
+  serviceIds?: string[];
+}
+
 export interface MarketplaceReview {
   id: string;
   clinicId: string;
@@ -51,6 +59,19 @@ export interface MarketplaceAvailability {
 
 @Injectable({ providedIn: 'root' })
 export class MarketplaceService {
+  async getVerifiedProviders(): Promise<MarketplaceProvider[]> {
+    const providers: MarketplaceProvider[] = [];
+    let total = 1;
+    while (providers.length < total) {
+      const response = await fetch(`/api/v1/providers?limit=50&offset=${providers.length}`);
+      if (!response.ok) throw new Error('Could not load verified dentist profiles.');
+      const page = await response.json() as { providers: MarketplaceProvider[]; totalCount: number };
+      if (!page.providers.length) break;
+      providers.push(...page.providers);
+      total = page.totalCount;
+    }
+    return providers;
+  }
   async videoAvailable(): Promise<boolean> {
     try {
       const response = await fetch('/api/public/video-consultations/status');

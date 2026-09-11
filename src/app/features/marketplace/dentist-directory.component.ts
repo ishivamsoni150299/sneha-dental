@@ -9,6 +9,7 @@ import {
   MarketplaceService,
   type MarketplaceAvailabilitySlot,
   type MarketplaceClinic,
+  type MarketplaceProvider,
 } from '../../core/services/marketplace.service';
 
 export interface ActiveFilterChip {
@@ -187,6 +188,22 @@ export class DentistDirectoryComponent implements OnInit {
   readonly services = MARKETPLACE_DENTAL_SERVICES;
   readonly totalCount = signal(0);
   readonly clinics = signal<MarketplaceClinic[]>([]);
+  readonly providers = signal<MarketplaceProvider[]>([]);
+  readonly filteredProviders = computed(() => {
+    if (this.discoveryType() !== 'dentists' || this.videoOnly() || this.availableTodayOnly()
+      || this.minRating() || this.gender() || this.userCoordinates()) return [];
+    const search = this.searchTerm().trim().toLowerCase();
+    return this.providers().filter(p =>
+      (!search || [p.fullName, p.qualification, p.speciality, p.locationName, p.city, p.locality].join(' ').toLowerCase().includes(search)) &&
+      (!this.locality() || [p.city, p.locality].join(' ').toLowerCase().includes(this.locality().toLowerCase())) &&
+      (!this.serviceId() || (p.serviceIds ?? []).includes(this.serviceId())) &&
+      (!this.language() || p.languages.includes(this.language())) &&
+      (!this.minExperience() || (p.experienceYears ?? 0) >= this.minExperience()) &&
+      (this.maxFee() == null || (p.consultationFee != null && p.consultationFee <= this.maxFee()!))
+    ).sort((a, b) => this.sortBy() === 'fee' ? (a.consultationFee ?? Infinity) - (b.consultationFee ?? Infinity)
+      : this.sortBy() === 'experience' ? (b.experienceYears ?? 0) - (a.experienceYears ?? 0) : a.fullName.localeCompare(b.fullName));
+  });
+  readonly resultCount = computed(() => this.filteredClinics().length + this.filteredProviders().length);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly searchTerm = signal('');
@@ -305,7 +322,8 @@ export class DentistDirectoryComponent implements OnInit {
   )].sort((first, second) => first.localeCompare(second)));
 
   readonly languages = computed(() => [...new Set(
-    this.clinics().flatMap(clinic => clinic.marketplaceProfile?.languages ?? []),
+    [...this.clinics().flatMap(clinic => clinic.marketplaceProfile?.languages ?? []),
+      ...this.providers().flatMap(provider => provider.languages)],
   )].sort((first, second) => first.localeCompare(second)));
 
   readonly activeFilterCount = computed(() => {
@@ -426,7 +444,10 @@ export class DentistDirectoryComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const response = await this.marketplace.getVerifiedClinics('delhi-ncr');
+      const [response, providers] = await Promise.all([
+        this.marketplace.getVerifiedClinics('delhi-ncr'), this.marketplace.getVerifiedProviders(),
+      ]);
+      this.providers.set(providers);
       this.clinics.set(response.dentists);
       this.totalCount.set(response.totalCount);
       await Promise.all(response.dentists.map(async clinic => {

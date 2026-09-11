@@ -86,7 +86,9 @@ public class ProviderController {
             SELECT p.id, p.slug, p.full_name, p.qualification, p.speciality,
                    p.experience_years, p.photo_url, p.languages::text AS languages,
                    l.id AS location_id, l.name AS location_name, l.locality, l.city,
-                   m.consultation_fee, m.accepting_new_patients
+                   m.consultation_fee, m.accepting_new_patients,
+                   (SELECT coalesce(jsonb_agg(ps.service_id), '[]'::jsonb)::text
+                    FROM provider_services ps WHERE ps.provider_id = p.id AND ps.active) AS service_ids
             FROM providers p
             JOIN provider_marketplace_listings ml ON ml.provider_id = p.id
             JOIN provider_location_memberships m ON m.provider_id = p.id
@@ -102,6 +104,7 @@ public class ProviderController {
                 value.put("experienceYears", rs.getObject("experience_years", Integer.class));
                 value.put("photoUrl", rs.getString("photo_url"));
                 value.put("languages", jsonList(rs.getString("languages")));
+                value.put("serviceIds", jsonList(rs.getString("service_ids")));
                 value.put("locationId", rs.getObject("location_id", UUID.class));
                 value.put("locationName", rs.getString("location_name"));
                 value.put("locality", rs.getString("locality"));
