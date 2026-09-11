@@ -212,9 +212,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   });
 
   socialForm = this.fb.nonNullable.group({
-    facebook:  [''],
-    instagram: [''],
-    linkedin:  [''],
+    facebook:          [''],
+    instagram:         [''],
+    linkedin:          [''],
+    googleAnalyticsId: ['', [Validators.pattern(/^G-[A-Za-z0-9]+$/)]],
   });
 
   voiceForm = this.fb.nonNullable.group({
@@ -338,9 +339,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     (cfg.testimonials ?? []).forEach(item => this.addTestimonial(item));
 
     this.socialForm.patchValue({
-      facebook:  cfg.social?.facebook ?? '',
-      instagram: cfg.social?.instagram ?? '',
-      linkedin:  cfg.social?.linkedin ?? '',
+      facebook:          cfg.social?.facebook ?? '',
+      instagram:         cfg.social?.instagram ?? '',
+      linkedin:          cfg.social?.linkedin ?? '',
+      googleAnalyticsId: cfg.googleAnalyticsId ?? '',
     });
 
     this.voiceForm.patchValue({
@@ -611,7 +613,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   async saveSocial() {
-    if (!this.guardClinicId()) return;
+    this.socialForm.markAllAsTouched();
+    if (this.socialForm.invalid || !this.guardClinicId()) return;
 
     this.savingSocial.set(true);
     try {
@@ -621,14 +624,21 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         ...(values.instagram ? { instagram: values.instagram } : {}),
         ...(values.linkedin ? { linkedin: values.linkedin } : {}),
       };
+      const googleAnalyticsId = values.googleAnalyticsId?.trim() || undefined;
 
-      await this.store.updateClinicSettings(this.clinicId, { social });
-      this.clinicCfg.updateConfig({ social });
+      await this.store.updateClinicSettings(this.clinicId, {
+        social,
+        googleAnalyticsId,
+      });
+      this.clinicCfg.updateConfig({
+        social,
+        googleAnalyticsId,
+      });
 
       this.clearDirty('social');
-      this.showToast('Social links saved.', 'success');
+      this.showToast('Social links and analytics saved.', 'success');
     } catch {
-      this.showToast('Failed to save social links.', 'error');
+      this.showToast('Failed to save social settings.', 'error');
     } finally {
       this.savingSocial.set(false);
     }

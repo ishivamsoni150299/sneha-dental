@@ -20,7 +20,8 @@ public class ClinicQueryService {
         "name", "doctorName", "doctorQualification", "patientCount", "doctorBio",
         "phone", "phoneE164", "whatsappNumber", "addressLine1", "addressLine2", "city",
         "mapEmbedUrl", "mapDirectionsUrl", "hours", "services", "testimonials", "social",
-        "theme", "logoDataUrl", "marketplaceProfile", "onboardingDismissed", "onboardingSharedWebsite");
+        "theme", "logoDataUrl", "marketplaceProfile", "onboardingDismissed", "onboardingSharedWebsite",
+        "googleAnalyticsId");
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
@@ -366,6 +367,10 @@ public class ClinicQueryService {
                     }
                 }
             }
+        }
+        Object gaId = settings.get("googleAnalyticsId");
+        if (gaId instanceof String gid && !gid.isBlank() && !gid.matches("^G-[A-Za-z0-9]+$")) {
+            throw new IllegalArgumentException("Google Analytics ID must be in the format G-XXXXXXXXXX.");
         }
     }
 

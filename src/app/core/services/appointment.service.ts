@@ -35,6 +35,7 @@ export interface AppointmentAttribution {
 export interface BookingClinicContext {
   consultationMode?: ConsultationMode;
   clinicId: string;
+  isIndependent?: boolean;
   bookingRefPrefix: string;
   displayName: string;
   phone: string;

@@ -27,6 +27,7 @@ import {
 } from '../../core/services/doctor.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 
 export interface BookingSubmission {
   consultationMode?: 'in_person' | 'video';
@@ -56,6 +57,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   private readonly route              = inject(ActivatedRoute);
   private readonly doctorSvc          = inject(DoctorService);
   private readonly patientAuth        = inject(PatientAuthService);
+  private readonly analytics          = inject(AnalyticsService);
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
 
@@ -120,6 +122,12 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     if (step === 1) {
       const ok = await this.acquireSlotHold();
       if (!ok) return;
+      this.analytics.trackBeginBooking({
+        service: this.form.get('service')?.value || undefined,
+        clinic_id: this.bookingContext?.clinicId ?? this.clinic.config.clinicId,
+        consultation_mode: this.bookingContext?.consultationMode ?? 'in_person',
+        doctor_name: this.selectedDoctor?.name,
+      });
     }
     if (step < this.totalSteps) {
       this.currentStep.set(step + 1);
@@ -538,6 +546,14 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
         time: val.time!,
         service: val.service!,
       };
+      this.analytics.trackBookingSubmitted({
+        booking_ref: ref,
+        service: val.service!,
+        clinic_id: this.bookingContext?.clinicId ?? this.clinic.config.clinicId,
+        consultation_mode: submission.consultationMode,
+        doctor_name: doctor?.name,
+        is_independent: this.bookingContext?.isIndependent ?? false,
+      });
       if (this.bookingContext) {
         this.bookingCompleted.emit(submission);
         return;

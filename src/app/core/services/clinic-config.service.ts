@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import {
   CLINIC_THEMES,
   clinicConfig,
@@ -6,6 +6,7 @@ import {
   type ClinicConfig,
   type ClinicTheme,
 } from '../config/clinic.config';
+import { AnalyticsService } from './analytics.service';
 export type { ClinicConfig };
 
 // ── Premium theme palettes ────────────────────────────────────────────────────
@@ -137,12 +138,16 @@ function clinicConfigData(raw: Record<string, unknown>): Record<string, unknown>
 
 @Injectable({ providedIn: 'root' })
 export class ClinicConfigService {
+  private readonly analytics = inject(AnalyticsService);
   private readonly _config   = signal<ClinicConfig>(clinicConfig);
   private readonly _isLoaded = signal<boolean>(false);
   private adminToken: string | null = null;
 
   constructor() {
     applyTheme(this._config().theme);
+    if (this._config().googleAnalyticsId) {
+      this.analytics.setClinicTrackingId(this._config().googleAnalyticsId);
+    }
   }
 
   /** Current clinic config — synchronous, always has a value. */
@@ -233,6 +238,7 @@ export class ClinicConfigService {
 
         this._config.set(config);
         this._isLoaded.set(true);
+        this.analytics.setClinicTrackingId(config.googleAnalyticsId);
       }
     } catch (e) {
       console.error('[ClinicConfig] API load failed — using static config:', e);
@@ -288,6 +294,7 @@ export class ClinicConfigService {
     }
     this._config.set(config);
     this._isLoaded.set(true);
+    this.analytics.setClinicTrackingId(config.googleAnalyticsId);
     return true;
   }
 
@@ -323,6 +330,9 @@ export class ClinicConfigService {
       : partial;
     this._config.update(c => ({ ...c, ...nextPartial }));
     if (nextPartial.theme) applyTheme(nextPartial.theme);
+    if ('googleAnalyticsId' in nextPartial) {
+      this.analytics.setClinicTrackingId(nextPartial.googleAnalyticsId);
+    }
   }
 
   /**
@@ -334,6 +344,7 @@ export class ClinicConfigService {
     this._isLoaded.set(false);
     this.adminToken = null;
     applyPlatformTheme();
+    this.analytics.setClinicTrackingId(null);
   }
 
   /** Full single-line address derived from the two address lines. */

@@ -242,6 +242,60 @@ const secConfig = fs.readFileSync(secConfigPath, 'utf8');
 const hasFontSecurityPermits = secConfig.includes('"/fonts/**"') && secConfig.includes('"/**/*.woff2"');
 report('SecurityConfig: Spring Security permits static fonts and woff2 binaries', hasFontSecurityPermits);
 
+// 10. Checking Google Analytics 4 (GA4) Architecture & Telemetry Integration
+console.log('\n10. Checking Google Analytics 4 (GA4) Multi-Tenant Telemetry:');
+const analyticsSvcPath = path.join(root, 'src', 'app', 'core', 'services', 'analytics.service.ts');
+const analyticsSvc = fs.readFileSync(analyticsSvcPath, 'utf8');
+const hasGaCoreMethods = analyticsSvc.includes('setClinicTrackingId') &&
+  analyticsSvc.includes('trackBookingSubmitted') &&
+  analyticsSvc.includes('trackBeginBooking') &&
+  analyticsSvc.includes('trackContactSubmitted') &&
+  analyticsSvc.includes('trackCtaClick') &&
+  analyticsSvc.includes('trackMarketplaceSearch') &&
+  analyticsSvc.includes('trackDentistProfileView') &&
+  analyticsSvc.includes('trackVideoRoomJoined');
+report('AnalyticsService: Multi-tenant dual-stream and funnel taxonomy methods implemented', hasGaCoreMethods);
+
+const clinicConfigDefPath = path.join(root, 'src', 'app', 'core', 'config', 'clinic.config.ts');
+const clinicConfigDef = fs.readFileSync(clinicConfigDefPath, 'utf8');
+const hasGaClinicConfig = clinicConfigDef.includes('googleAnalyticsId?: string;');
+report('ClinicConfig: Interface declares optional tenant googleAnalyticsId', hasGaClinicConfig);
+
+const clinicCfgSvcPath = path.join(root, 'src', 'app', 'core', 'services', 'clinic-config.service.ts');
+const clinicCfgSvc = fs.readFileSync(clinicCfgSvcPath, 'utf8');
+const hasGaConfigSync = clinicCfgSvc.includes('setClinicTrackingId') &&
+  clinicCfgSvc.includes('AnalyticsService');
+report('ClinicConfigService: Synchronizes tenant GA tracking ID on load, update, and reset', hasGaConfigSync);
+
+const backendQuerySvcPath = path.join(root, 'backend', 'src', 'main', 'java', 'com', 'mydentalplatform', 'clinic', 'ClinicQueryService.java');
+const backendQuerySvc = fs.readFileSync(backendQuerySvcPath, 'utf8');
+const hasBackendGaSupport = backendQuerySvc.includes('"googleAnalyticsId"') &&
+  backendQuerySvc.includes('^G-[A-Za-z0-9]+$');
+report('Backend: ClinicQueryService validates and stores tenant googleAnalyticsId in public_config', hasBackendGaSupport);
+
+const adminSettingsPath = path.join(root, 'src', 'app', 'features', 'admin', 'admin-settings', 'admin-settings.component.ts');
+const adminSettings = fs.readFileSync(adminSettingsPath, 'utf8');
+const hasAdminGaSettings = adminSettings.includes('googleAnalyticsId') &&
+  adminSettings.includes('updateClinicSettings');
+report('Clinic Admin: AdminSettingsComponent supports tenant GA4 measurement ID persistence', hasAdminGaSettings);
+
+const gaApptComp = fs.readFileSync(path.join(root, 'src', 'app', 'features', 'appointment', 'appointment.component.ts'), 'utf8');
+const hasApptTelemetry = gaApptComp.includes('trackBeginBooking') && gaApptComp.includes('trackBookingSubmitted');
+report('Funnel: Appointment booking flow instruments begin_booking and appointment_booked', hasApptTelemetry);
+
+const gaContactComp = fs.readFileSync(path.join(root, 'src', 'app', 'features', 'contact', 'contact.component.ts'), 'utf8');
+const hasContactTelemetry = gaContactComp.includes('trackContactSubmitted');
+report('Funnel: Contact form instruments contact_form_submit telemetry', hasContactTelemetry);
+
+const gaLayoutComp = fs.readFileSync(path.join(root, 'src', 'app', 'shared', 'components', 'clinic-layout', 'clinic-layout.component.ts'), 'utf8');
+const hasLayoutTelemetry = gaLayoutComp.includes('trackWhatsappClick') && gaLayoutComp.includes('trackCallClick');
+report('Funnel: Layout instruments WhatsApp, Phone call, and Book CTA clicks', hasLayoutTelemetry);
+
+const dockerfilePath = path.join(root, 'Dockerfile');
+const dockerfile = fs.readFileSync(dockerfilePath, 'utf8');
+const hasDockerGaArg = dockerfile.includes('ARG GA_TRACKING_ID');
+report('Dockerfile: Declares ARG GA_TRACKING_ID in frontend stage', hasDockerGaArg);
+
 // Summary
 console.log('\n========================================');
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);

@@ -11,6 +11,7 @@ import {
   type MarketplaceClinic,
   type MarketplaceProvider,
 } from '../../core/services/marketplace.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 
 export interface ActiveFilterChip {
   id: string;
@@ -28,6 +29,7 @@ export interface ActiveFilterChip {
 export class DentistDirectoryComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly route = inject(ActivatedRoute);
+  private readonly analytics = inject(AnalyticsService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly isDiscoveryHome = !this.route.snapshot.data['initialLocation'] && !this.route.snapshot.data['initialServiceId'];
   readonly routeHeading = this.route.snapshot.data['initialLocation']
@@ -453,6 +455,12 @@ export class DentistDirectoryComponent implements OnInit {
       this.providers.set(providers);
       this.clinics.set(response.dentists);
       this.totalCount.set(response.totalCount);
+      this.analytics.trackMarketplaceSearch({
+        search_term: this.searchTerm().trim() || undefined,
+        locality: this.locality() || undefined,
+        service: this.serviceId() || undefined,
+        results_count: response.totalCount,
+      });
       await Promise.all(response.dentists.map(async clinic => {
         await this.checkAvailability(clinic);
         try {

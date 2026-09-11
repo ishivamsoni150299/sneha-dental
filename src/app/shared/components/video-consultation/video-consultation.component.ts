@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, InjectionToken, OnDestroy, inject, input, signal, viewChild } from '@angular/core';
 import type { DailyCall } from '@daily-co/daily-js';
 import { VideoAccessError, VideoConsultationService } from '../../../core/services/video-consultation.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 
 export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => Promise<DailyCall>>('Video frame factory', {
   providedIn: 'root', factory: () => async element => {
@@ -44,6 +45,7 @@ export class VideoConsultationComponent implements OnDestroy {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   private readonly video = inject(VideoConsultationService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly createFrame = inject(VIDEO_FRAME_FACTORY);
   private readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialog');
   private readonly frame = viewChild<ElementRef<HTMLDivElement>>('frame');
@@ -76,6 +78,10 @@ export class VideoConsultationComponent implements OnDestroy {
       this.loading.set(false);
       this.verifyAccess(attempt);
       await call.join({ url: session.url, token: session.token });
+      this.analytics.trackVideoRoomJoined({
+        appointment_id: this.appointmentId(),
+        is_staff: this.staff(),
+      });
     } catch (error) {
       if (attempt === this.generation) {
         this.error.set(error instanceof VideoAccessError ? error.message : 'Could not open the video room. Check your connection and browser permissions, or contact the clinic.');

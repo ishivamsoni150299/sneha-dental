@@ -91,6 +91,7 @@ export interface ClinicConfig {
   hostedDomain?: string;           // platform-hosted domain e.g. "sneha-dental.mydentalplatform.com"
   active?: boolean;                // false = paused deployment
   googlePlaceId?: string;          // Google Maps Place ID — used for reviews sync + map embed
+  googleAnalyticsId?: string;      // Clinic GA4 Measurement ID e.g. "G-XXXXXXXXXX"
 
   // ── Patient marketplace (verification is platform-managed) ──────────────
   marketplaceStatus?: MarketplaceListingStatus;

@@ -126,6 +126,7 @@ export class MarketplaceBookingComponent implements OnInit {
       }
       this.context.set({
         clinicId: clinic.id,
+        isIndependent: clinic.isIndependent,
         bookingRefPrefix: clinic.bookingRefPrefix || 'MDP',
         displayName: clinic.name,
         phone: clinic.phone,

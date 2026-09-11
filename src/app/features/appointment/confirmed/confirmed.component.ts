@@ -2,6 +2,7 @@ import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from '@ang
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { formatSlotDisplay } from '../../../core/services/doctor.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 
 @Component({
   selector: 'app-confirmed',
@@ -12,6 +13,7 @@ import { formatSlotDisplay } from '../../../core/services/doctor.service';
 })
 export class ConfirmedComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private analytics = inject(AnalyticsService);
   readonly clinic = inject(ClinicConfigService);
 
   bookingRef = signal('');
@@ -28,6 +30,14 @@ export class ConfirmedComponent implements OnInit {
     this.date.set(p.get('date') ?? '');
     this.time.set(p.get('time') ?? '');
     this.service.set(p.get('service') ?? '');
+
+    if (this.bookingRef()) {
+      this.analytics.trackEvent('appointment_confirmed_view', {
+        booking_ref: this.bookingRef(),
+        service: this.service() || undefined,
+        date: this.date() || undefined,
+      });
+    }
   }
 
   get formattedTime(): string {
@@ -96,5 +106,13 @@ export class ConfirmedComponent implements OnInit {
     } catch {
       this.copied.set(false);
     }
+  }
+
+  onWhatsAppClick(): void {
+    this.analytics.trackCtaClick('whatsapp', 'confirmed_page');
+  }
+
+  onCalendarClick(): void {
+    this.analytics.trackCtaClick('add_to_calendar', 'confirmed_page');
   }
 }

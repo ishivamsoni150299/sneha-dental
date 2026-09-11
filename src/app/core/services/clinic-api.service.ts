@@ -35,6 +35,7 @@ export interface ClinicSettingsPayload {
   marketplaceProfile?: MarketplaceProfile;
   onboardingDismissed?: boolean;
   onboardingSharedWebsite?: boolean;
+  googleAnalyticsId?: string;
 }
 
 const CLINIC_SETTINGS_ALLOWED_KEYS = new Set<keyof ClinicSettingsPayload>([
@@ -42,6 +43,7 @@ const CLINIC_SETTINGS_ALLOWED_KEYS = new Set<keyof ClinicSettingsPayload>([
   'phone', 'phoneE164', 'whatsappNumber', 'addressLine1', 'addressLine2', 'city',
   'mapEmbedUrl', 'mapDirectionsUrl', 'hours', 'services', 'testimonials', 'social',
   'theme', 'logoDataUrl', 'marketplaceProfile', 'onboardingDismissed', 'onboardingSharedWebsite',
+  'googleAnalyticsId',
 ]);
 
 export interface PlatformCosts {

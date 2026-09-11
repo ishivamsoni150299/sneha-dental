@@ -10,6 +10,7 @@ import {
 } from '../../core/services/marketplace.service';
 import { PatientAppointmentApiService } from '../../core/services/patient-appointment-api.service';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 
 @Component({
   selector: 'app-dentist-profile',
@@ -24,6 +25,7 @@ export class DentistProfileComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly doctorService = inject(DoctorService);
   private readonly patientApi = inject(PatientAppointmentApiService);
+  private readonly analytics = inject(AnalyticsService);
   readonly patientAuth = inject(PatientAuthService);
 
   readonly clinic = signal<MarketplaceClinic | null>(null);
@@ -56,6 +58,13 @@ export class DentistProfileComponent implements OnInit {
       }
 
       this.clinic.set(clinic);
+      this.analytics.trackDentistProfileView({
+        dentist_id: clinic.id,
+        dentist_name: clinic.doctorName,
+        locality: clinic.marketplaceProfile?.locality,
+        city: clinic.city,
+        is_independent: clinic.isIndependent ?? false,
+      });
       try {
         this.reviews.set(await this.marketplace.getPublishedReviews(clinic.id));
       } catch (error) {

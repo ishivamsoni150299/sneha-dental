@@ -8,7 +8,8 @@ COPY scripts ./scripts
 COPY src ./src
 ARG GOOGLE_MAPS_API_KEY=""
 ARG SENTRY_DSN=""
-RUN npm run build && cp dist/mydentalplatform/browser/index.csr.html dist/mydentalplatform/browser/index.html
+ARG GA_TRACKING_ID=""
+RUN GA_TRACKING_ID="$GA_TRACKING_ID" npm run build && cp dist/mydentalplatform/browser/index.csr.html dist/mydentalplatform/browser/index.html
 
 FROM maven:3.9.11-eclipse-temurin-25 AS backend
 WORKDIR /workspace/backend

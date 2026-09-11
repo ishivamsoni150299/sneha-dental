@@ -5,6 +5,7 @@ import type { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
 @Component({
@@ -33,6 +34,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       @if (clinic.hasWhatsapp) {
       <div class="hidden md:flex fixed bottom-8 right-6 z-50">
         <a [href]="clinic.bookingWhatsappUrl"
+           (click)="trackWhatsappClick()"
            target="_blank"
            rel="noopener noreferrer"
            aria-label="Chat on WhatsApp"
@@ -134,6 +136,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
           <div class="mobile-dock-grid" [class.mobile-dock-grid-single]="!clinic.hasPhone">
             @if (clinic.hasPhone) {
             <a [href]="'tel:+' + clinic.config.phoneE164"
+               (click)="trackCallClick()"
                aria-label="Call clinic"
                class="mobile-dock-link min-w-0">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
@@ -144,6 +147,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
             }
 
             <a routerLink="/appointment"
+               (click)="trackBookClick()"
                routerLinkActive="scale-[1.02]"
                [routerLinkActiveOptions]="{ exact: true }"
                aria-label="Book appointment"
@@ -164,7 +168,20 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly clinic = inject(ClinicConfigService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
+  private readonly analytics = inject(AnalyticsService);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  trackWhatsappClick(): void {
+    this.analytics.trackCtaClick('whatsapp', 'floating_action');
+  }
+
+  trackCallClick(): void {
+    this.analytics.trackCtaClick('call', 'mobile_dock');
+  }
+
+  trackBookClick(): void {
+    this.analytics.trackCtaClick('book_appointment', 'mobile_dock');
+  }
 
   readonly showBackToTop = signal(false);
   readonly showInstallBanner = signal(false);

@@ -6,6 +6,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import type { SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 const requiredValidator = Validators.required.bind(Validators);
 const emailValidator = Validators.email.bind(Validators);
 
@@ -21,6 +22,7 @@ export class ContactComponent {
   readonly config     = this.clinic.config;
   readonly safeMapUrl: SafeResourceUrl = inject(DomSanitizer).bypassSecurityTrustResourceUrl(this.config.mapEmbedUrl);
   private readonly http = inject(HttpClient);
+  private readonly analytics = inject(AnalyticsService);
 
   submitted  = signal(false);
   submitting = signal(false);
@@ -62,6 +64,9 @@ export class ContactComponent {
         consentVersion: '2026-08-29',
       }));
       this.submitted.set(true);
+      this.analytics.trackContactSubmitted({
+        clinic_id: this.config.clinicId,
+      });
       queueMicrotask(() => document.getElementById('contact-form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     } catch {
       this.sendError.set(true);
