@@ -167,7 +167,8 @@ export class MarketplaceService {
           description: 'Remote video consultation with verified independent dentist',
         }],
         testimonials: [],
-        hours: [],
+        hours: [{ days: 'Mon-Sat', time: '09:00 AM - 07:00 PM' }],
+        marketplaceVerifiedDoctorIds: [String(provider.id)],
       } as unknown as MarketplaceClinic;
     } catch {
       return null;

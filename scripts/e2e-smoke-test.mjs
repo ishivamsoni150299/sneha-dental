@@ -221,6 +221,27 @@ const hasDisabledInClinic = bookingHtml.includes('[disabled]="isIndependent()"')
   bookingHtml.includes('Independent Dentist Profile:');
 report('Frontend: MarketplaceBooking HTML disables in-clinic visit for independent dentists', hasDisabledInClinic);
 
+// 9. Checking Phosphor Icon Font Assets & Fallback Integrity
+console.log('\n9. Checking Phosphor Icon Font Assets & Fallback Integrity:');
+const fontWoff2Exists = fs.existsSync(path.join(root, 'public', 'fonts', 'Phosphor.woff2'));
+const fontWoffExists = fs.existsSync(path.join(root, 'public', 'fonts', 'Phosphor.woff'));
+report('Static Font: Phosphor.woff2 and Phosphor.woff exist in public/fonts', fontWoff2Exists && fontWoffExists);
+
+const stylesCssPath = path.join(root, 'src', 'styles.css');
+const stylesCss = fs.readFileSync(stylesCssPath, 'utf8');
+const hasFontFace = stylesCss.includes('font-family: "Phosphor"') && stylesCss.includes('url("/fonts/Phosphor.woff2")');
+report('Styles: Root-relative Phosphor @font-face declared in styles.css', hasFontFace);
+
+const indexHtmlPath = path.join(root, 'src', 'index.html');
+const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+const hasCdnFallback = indexHtml.includes('@phosphor-icons/web') && indexHtml.includes('regular/style.css');
+report('Index HTML: Phosphor icons stylesheet included in index.html head', hasCdnFallback);
+
+const secConfigPath = path.join(root, 'backend', 'src', 'main', 'java', 'com', 'mydentalplatform', 'config', 'SecurityConfig.java');
+const secConfig = fs.readFileSync(secConfigPath, 'utf8');
+const hasFontSecurityPermits = secConfig.includes('"/fonts/**"') && secConfig.includes('"/**/*.woff2"');
+report('SecurityConfig: Spring Security permits static fonts and woff2 binaries', hasFontSecurityPermits);
+
 // Summary
 console.log('\n========================================');
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);

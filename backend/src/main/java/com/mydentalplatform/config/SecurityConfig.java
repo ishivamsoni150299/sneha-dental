@@ -63,8 +63,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/appointments/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/appointments").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/chat", "/api/voice-session", "/api/voice-booking-action").permitAll()
-                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**",
+                    "/media/**", "/fonts/**", "/**/*.woff2", "/**/*.woff", "/**/*.ttf", "/**/*.svg").permitAll()
                 .requestMatchers(HttpMethod.GET, SpaRoutingConfig.ROUTES).permitAll()
                 .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/favicon.ico",
                     "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()

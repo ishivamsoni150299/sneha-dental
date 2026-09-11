@@ -187,6 +187,11 @@ public class ClinicQueryService {
                 map.put("eligibleForVideo", true);
                 map.put("consultationModes", List.of("video"));
 
+                Map<String, String> defaultHours = new LinkedHashMap<>();
+                defaultHours.put("days", "Mon-Sat");
+                defaultHours.put("time", "09:00 AM - 07:00 PM");
+                map.put("hours", List.of(defaultHours));
+
                 Map<String, Object> mp = new LinkedHashMap<>();
                 mp.put("locality", rs.getString("locality"));
                 mp.put("speciality", rs.getString("speciality"));
@@ -196,13 +201,20 @@ public class ClinicQueryService {
                 mp.put("videoConsultationFee", fee);
                 mp.put("videoConsultationEnabled", true);
                 mp.put("acceptingNewPatients", rs.getObject("accepting_new_patients") == null || rs.getBoolean("accepting_new_patients"));
-                mp.put("serviceIds", jsonList(rs.getString("service_ids")));
+                List<String> serviceIds = jsonList(rs.getString("service_ids"));
+                if (serviceIds.isEmpty()) {
+                    serviceIds = List.of("consultation");
+                }
+                mp.put("serviceIds", serviceIds);
                 map.put("marketplaceProfile", mp);
 
-                Map<String, Object> service = new LinkedHashMap<>();
-                service.put("name", "Video Consultation");
-                service.put("price", fee == null ? null : "₹" + fee);
-                map.put("services", List.of(service));
+                Map<String, Object> videoService = new LinkedHashMap<>();
+                videoService.put("name", "Video Consultation");
+                videoService.put("price", fee == null ? null : "₹" + fee);
+                Map<String, Object> consultService = new LinkedHashMap<>();
+                consultService.put("name", "Consultation");
+                consultService.put("price", fee == null ? null : "₹" + fee);
+                map.put("services", List.of(videoService, consultService));
                 map.put("marketplaceVerifiedDoctorIds", List.of(id.toString()));
                 return map;
             }, slug.trim().toLowerCase(Locale.ROOT));

@@ -89,16 +89,18 @@ function timeMinutes(value: string): number | null {
 }
 
 function workingWindows(
-  hours: ClinicHours[],
+  hours: ClinicHours[] | null | undefined,
   reference: Date,
   dayOffset = 0,
 ): Array<{ start: Date; end: Date }> {
+  if (!hours || !Array.isArray(hours) || !hours.length) return [];
   const indiaDate = new Date(reference.getTime() + INDIA_OFFSET_MS + dayOffset * 24 * 60 * 60_000);
   const day = indiaDate.getUTCDay();
   const year = indiaDate.getUTCFullYear();
   const month = indiaDate.getUTCMonth();
   const date = indiaDate.getUTCDate();
   return hours.flatMap(entry => {
+    if (!entry || !entry.days || !entry.time) return [];
     if (!dayNumbers(entry.days).has(day)) return [];
     const values = entry.time.match(/\d{1,2}(?::\d{2})?\s*(?:AM|PM)/gi) ?? [];
     if (values.length < 2) return [];
@@ -111,13 +113,13 @@ function workingWindows(
   }).sort((first, second) => first.start.getTime() - second.start.getTime());
 }
 
-export function isClinicOpenAt(hours: ClinicHours[], now = new Date()): boolean {
-  if (!hours.length) return true;
+export function isClinicOpenAt(hours?: ClinicHours[] | null, now = new Date()): boolean {
+  if (!hours || !Array.isArray(hours) || !hours.length) return true;
   return workingWindows(hours, now).some(window => now >= window.start && now < window.end);
 }
 
-export function calculateConfirmationDeadline(hours: ClinicHours[], now = new Date()): Date {
-  if (!hours.length) return new Date(now.getTime() + (RESPONSE_WINDOW_MINUTES * 60_000));
+export function calculateConfirmationDeadline(hours?: ClinicHours[] | null, now = new Date()): Date {
+  if (!hours || !Array.isArray(hours) || !hours.length) return new Date(now.getTime() + (RESPONSE_WINDOW_MINUTES * 60_000));
 
   let remainingMinutes = RESPONSE_WINDOW_MINUTES;
   for (let offset = 0; offset < 14; offset++) {
