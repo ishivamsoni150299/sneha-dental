@@ -34,8 +34,14 @@ final class PrerenderedPageController {
     @GetMapping(value = {
         "/dentists/noida", "/dentists/delhi", "/dentists/gurugram",
         "/dentists/ghaziabad", "/dentists/faridabad",
-        "/dentists/noida/sector-75", "/dentists/root-canal/noida",
-        "/dentists/dental-implants/delhi", "/dentists/braces/delhi"
+        "/dentists/noida/sector-75", "/dentists/delhi/south-delhi",
+        "/dentists/gurugram/cyber-city",
+        "/dentists/root-canal/delhi", "/dentists/root-canal/noida", "/dentists/root-canal/gurugram",
+        "/dentists/dental-implants/delhi", "/dentists/dental-implants/noida", "/dentists/dental-implants/gurugram",
+        "/dentists/braces/delhi", "/dentists/braces/noida",
+        "/dentists/teeth-whitening/delhi", "/dentists/teeth-whitening/noida",
+        "/dentists/cleaning-scaling/delhi", "/dentists/cleaning-scaling/noida",
+        "/dentists/emergency/delhi", "/dentists/emergency/noida"
     }, produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     Resource dentistLandingPage(HttpServletRequest request) {

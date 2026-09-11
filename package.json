@@ -9,10 +9,12 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "postbuild": "node -e \"const fs=require('fs'); const src='dist/mydentalplatform/browser/index.csr.html'; const dst='dist/mydentalplatform/browser/index.html'; if(fs.existsSync(src)) fs.copyFileSync(src,dst);\"",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "eslint src --max-warnings 0",
-    "release:check": "node scripts/release-check.mjs"
+    "release:check": "node scripts/release-check.mjs",
+    "test:e2e": "node scripts/e2e-smoke-test.mjs"
   },
   "private": true,
   "engines": {
