@@ -1,8 +1,10 @@
 import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import type { SafeResourceUrl } from '@angular/platform-browser';
+import { firstValueFrom } from 'rxjs';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 const requiredValidator = Validators.required.bind(Validators);
 const emailValidator = Validators.email.bind(Validators);
@@ -18,6 +20,7 @@ export class ContactComponent {
   readonly clinic     = inject(ClinicConfigService);
   readonly config     = this.clinic.config;
   readonly safeMapUrl: SafeResourceUrl = inject(DomSanitizer).bypassSecurityTrustResourceUrl(this.config.mapEmbedUrl);
+  private readonly http = inject(HttpClient);
 
   submitted  = signal(false);
   submitting = signal(false);
@@ -50,19 +53,14 @@ export class ContactComponent {
     this.submitting.set(true);
     this.sendError.set(false);
     try {
-      const response = await fetch('/api/public/contacts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await firstValueFrom(this.http.post('/api/public/contacts', {
         clinicId:  this.config.clinicId,
         name:      this.form.value.name,
         phone:     this.form.value.phone,
         email:     this.form.value.email ?? null,
         message:   this.form.value.message,
         consentVersion: '2026-08-29',
-        }),
-      });
-      if (!response.ok) throw new Error('Could not send message.');
+      }));
       this.submitted.set(true);
       queueMicrotask(() => document.getElementById('contact-form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     } catch {

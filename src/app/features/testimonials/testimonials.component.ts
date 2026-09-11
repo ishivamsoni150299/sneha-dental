@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TestimonialCardComponent } from '../../shared/components/testimonial-card/testimonial-card.component';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
@@ -16,11 +16,7 @@ export class TestimonialsComponent {
   readonly clinic = inject(ClinicConfigService);
   readonly config = this.clinic.config;
 
-  get testimonials(): Testimonial[] {
-    return this.config.testimonials;
-  }
+  readonly testimonials = computed<Testimonial[]>(() => this.config.testimonials);
 
-  get hasTestimonials(): boolean {
-    return this.testimonials.length > 0;
-  }
+  readonly hasTestimonials = computed(() => this.testimonials().length > 0);
 }

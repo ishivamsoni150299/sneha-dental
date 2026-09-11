@@ -15,6 +15,10 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
     class: 'clinic-theme-scope block',
   },
   template: `
+    <a href="#main-content"
+       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-xl focus:bg-white focus:px-4 focus:py-2.5 focus:text-sm focus:font-bold focus:text-ui-ink focus:shadow-ui-lg focus:outline-none focus:ring-2 focus:ring-ui-primary">
+      Skip to main content
+    </a>
     <app-navbar />
 
       <main id="main-content" class="min-h-[60vh] overflow-x-clip bg-ui-canvas">

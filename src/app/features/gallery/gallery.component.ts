@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ClinicImage } from '../../core/config/clinic.config';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
@@ -12,6 +12,21 @@ import { ClinicConfigService } from '../../core/services/clinic-config.service';
 })
 export class GalleryComponent {
   readonly config = inject(ClinicConfigService).config;
+
+  readonly selectedImage = signal<ClinicImage | null>(null);
+
+  openImage(image: ClinicImage) {
+    this.selectedImage.set(image);
+  }
+
+  closeImage() {
+    this.selectedImage.set(null);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeImage();
+  }
 
   private readonly fallbackClinicImages: ClinicImage[] = [
     { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=900&q=80', alt: 'Clinic reception area' },

@@ -5,7 +5,7 @@
       <h1 class="ui-display">Trust is earned one visit at a time.</h1>
       <p class="ui-lede">Read what patients say about the care, communication, and comfort they experienced at {{ config.name || 'the clinic' }}.</p>
 
-      @if (hasTestimonials) {
+      @if (hasTestimonials()) {
         <div class="clinic-reviews-rating">
           <strong>{{ config.rating || '4.9' }}</strong>
           <div>
@@ -22,15 +22,15 @@
       }
     </div>
 
-    @if (hasTestimonials) {
+    @if (hasTestimonials()) {
       <blockquote class="clinic-reviews-featured">
         <span class="clinic-reviews-quote-mark" aria-hidden="true">&ldquo;</span>
-        <p>{{ testimonials[0].review }}</p>
+        <p>{{ testimonials()[0].review }}</p>
         <footer>
-          <span class="clinic-reviews-avatar">{{ testimonials[0].name.charAt(0) }}</span>
+          <span class="clinic-reviews-avatar">{{ testimonials()[0].name.charAt(0) }}</span>
           <span>
-            <strong>{{ testimonials[0].name }}</strong>
-            <small>{{ testimonials[0].location || 'Verified patient' }}</small>
+            <strong>{{ testimonials()[0].name }}</strong>
+            <small>{{ testimonials()[0].location || 'Verified patient' }}</small>
           </span>
           <span class="clinic-reviews-verified"><i aria-hidden="true"></i>Verified patient</span>
         </footer>
@@ -48,7 +48,7 @@
   </div>
 </section>
 
-@if (testimonials.length > 1) {
+@if (testimonials().length > 1) {
 <section class="clinic-reviews-stories">
   <div class="ui-container">
       <div class="clinic-reviews-stories-heading">
@@ -72,7 +72,7 @@
       </div>
 
       <div class="clinic-reviews-grid">
-        @for (testimonial of testimonials.slice(1); track testimonial.name + testimonial.review) {
+        @for (testimonial of testimonials().slice(1); track testimonial.name + testimonial.review) {
           <app-testimonial-card
             [name]="testimonial.name"
             [location]="testimonial.location"

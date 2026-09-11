@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import type {
@@ -26,61 +26,61 @@ export class HomeComponent {
   readonly defaultClinicMoments = DEFAULT_CLINIC_MOMENTS;
   readonly defaultTrustPills = DEFAULT_TRUST_PILLS;
 
-  get previewServices(): ClinicService[] { return this.config.services.slice(0, 6); }
-  get hasTestimonials(): boolean { return this.config.testimonials.length > 0; }
+  readonly previewServices = computed<ClinicService[]>(() => this.config.services.slice(0, 6));
+  readonly hasTestimonials = computed(() => this.config.testimonials.length > 0);
 
-  get homeContent(): ClinicHomeCustomization {
+  readonly homeContent = computed<ClinicHomeCustomization>(() => {
     return this.config.customization?.content?.home ?? {};
-  }
+  });
 
-  get clinicMoments(): readonly ClinicImage[] {
+  readonly clinicMoments = computed<readonly ClinicImage[]>(() => {
     const images = this.config.customization?.media?.clinicImages?.filter(image => image.src && image.alt) ?? [];
     return images.length ? images.slice(0, 3) : this.defaultClinicMoments;
-  }
+  });
 
-  get careImage(): ClinicImage {
-    return this.clinicMoments[1] ?? this.clinicMoments[0];
-  }
+  readonly careImage = computed<ClinicImage>(() => {
+    return this.clinicMoments()[1] ?? this.clinicMoments()[0];
+  });
 
-  get hasPatientCount(): boolean {
-    const count = Number(String(this.config.patientCount ?? '').replace(/[^\d.]/g, ''));
+  readonly hasPatientCount = computed(() => {
+    const count = Number(String(this.config.patientCount ?? '').replace(/[^\\d.]/g, ''));
     return Number.isFinite(count) && count > 0;
-  }
+  });
 
-  get hasRating(): boolean {
+  readonly hasRating = computed(() => {
     const rating = Number(this.config.rating);
     return Number.isFinite(rating) && rating > 0 && rating <= 5;
-  }
+  });
 
-  get clinicContext(): string {
+  readonly clinicContext = computed<string>(() => {
     const doctor = [this.config.doctorName, this.config.doctorQualification]
       .map(value => value?.trim())
       .filter(Boolean)
       .join(', ');
     return [doctor, this.config.city?.trim()].filter(Boolean).join(' | ')
       || 'Gentle care, clearly explained.';
-  }
+  });
 
-  get heroImageEyebrow(): string {
+  readonly heroImageEyebrow = computed<string>(() => {
     const hasCustomImage = this.config.customization?.media?.clinicImages
       ?.some(image => Boolean(image.src && image.alt)) ?? false;
-    return hasCustomImage ? (this.clinicMoments[0].label?.trim() || 'Our clinic') : 'A calmer dental visit';
-  }
+    return hasCustomImage ? (this.clinicMoments()[0].label?.trim() || 'Our clinic') : 'A calmer dental visit';
+  });
 
-  get heroEyebrow(): string { return this.homeContent.eyebrow ?? 'Modern dentistry, close to home'; }
-  get heroTitle(): string { return this.homeContent.heroTitle ?? 'Gentle Dental Care'; }
-  get heroHighlight(): string { return this.homeContent.heroHighlight ?? 'Rooted in Trust'; }
-  get heroSubtitle(): string {
-    return this.homeContent.heroSubtitle ?? 'Thoughtful care for every generation, with modern equipment, sterilised tools, and prices explained before treatment.';
-  }
+  readonly heroEyebrow = computed<string>(() => this.homeContent().eyebrow ?? 'Modern dentistry, close to home');
+  readonly heroTitle = computed<string>(() => this.homeContent().heroTitle ?? 'Gentle Dental Care');
+  readonly heroHighlight = computed<string>(() => this.homeContent().heroHighlight ?? 'Rooted in Trust');
+  readonly heroSubtitle = computed<string>(() => {
+    return this.homeContent().heroSubtitle ?? 'Thoughtful care for every generation, with modern equipment, sterilised tools, and prices explained before treatment.';
+  });
 
-  get trustPills(): readonly string[] {
-    const pills = this.homeContent.trustPills?.filter(Boolean).slice(0, 4) ?? [];
+  readonly trustPills = computed<readonly string[]>(() => {
+    const pills = this.homeContent().trustPills?.filter(Boolean).slice(0, 4) ?? [];
     return pills.length ? pills : this.defaultTrustPills;
-  }
+  });
 
-  get finalCtaTitle(): string { return this.homeContent.finalCtaTitle ?? 'A healthier smile starts close to home.'; }
-  get finalCtaSubtitle(): string {
-    return this.homeContent.finalCtaSubtitle ?? 'Same-day slots available. Confirmed within 2 hours. No hidden charges.';
-  }
+  readonly finalCtaTitle = computed<string>(() => this.homeContent().finalCtaTitle ?? 'A healthier smile starts close to home.');
+  readonly finalCtaSubtitle = computed<string>(() => {
+    return this.homeContent().finalCtaSubtitle ?? 'Same-day slots available. Confirmed within 2 hours. No hidden charges.';
+  });
 }

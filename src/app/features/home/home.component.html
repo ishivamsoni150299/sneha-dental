@@ -1,18 +1,21 @@
 <!-- ===== CLINIC HERO ===== -->
 <section class="clinic-home-hero">
-  <img [src]="clinicMoments[0].src"
-       [alt]="clinicMoments[0].alt"
+  <img [src]="clinicMoments()[0].src"
+       [alt]="clinicMoments()[0].alt"
+       fetchpriority="high"
+       loading="eager"
+       decoding="async"
        class="clinic-home-hero-image">
   <div class="clinic-home-hero-shade" aria-hidden="true"></div>
 
   <div class="clinic-home-hero-inner ui-container">
     <div class="clinic-home-hero-copy">
-      <p class="clinic-home-kicker"><span aria-hidden="true"></span>{{ heroEyebrow }}</p>
+      <p class="clinic-home-kicker"><span aria-hidden="true"></span>{{ heroEyebrow() }}</p>
       <h1 class="clinic-home-title">
-        {{ heroTitle }}
-        <span>{{ heroHighlight }}</span>
+        {{ heroTitle() }}
+        <span>{{ heroHighlight() }}</span>
       </h1>
-      <p class="clinic-home-intro">{{ heroSubtitle }}</p>
+      <p class="clinic-home-intro">{{ heroSubtitle() }}</p>
 
       <div class="clinic-home-actions">
         <a routerLink="/appointment" class="clinic-home-primary-action">
@@ -61,7 +64,7 @@
     </div>
 
     <div class="clinic-treatment-index">
-      @for (service of previewServices.slice(0, 6); track service.name; let index = $index) {
+      @for (service of previewServices().slice(0, 6); track service.name; let index = $index) {
         <a routerLink="/appointment" [queryParams]="{ service: service.name }" class="clinic-treatment-row">
           <span class="clinic-treatment-number">0{{ index + 1 }}</span>
           <span class="clinic-treatment-icon" aria-hidden="true">
@@ -88,8 +91,8 @@
 <section class="clinic-home-care">
   <div class="clinic-home-care-grid ui-container">
     <div class="clinic-home-care-image-wrap">
-      <img [src]="careImage.src" [alt]="careImage.alt" class="clinic-home-care-image">
-      <p>{{ heroImageEyebrow }}</p>
+      <img [src]="careImage().src" [alt]="careImage().alt" class="clinic-home-care-image">
+      <p>{{ heroImageEyebrow() }}</p>
     </div>
 
     <div class="clinic-home-care-copy">
@@ -98,7 +101,7 @@
       <p class="clinic-home-care-intro">We take time to explain what we see, what can wait, and what needs attention now. You stay informed at every step.</p>
 
       <div class="clinic-home-promises">
-        @for (item of trustPills; track item; let index = $index) {
+        @for (item of trustPills(); track item; let index = $index) {
           <div>
             <span>0{{ index + 1 }}</span>
             <strong>{{ item }}</strong>
@@ -110,7 +113,7 @@
 </section>
 
 <!-- ===== REVIEW PROOF ===== -->
-@if (hasTestimonials) {
+@if (hasTestimonials()) {
   <section class="clinic-home-review">
     <div class="ui-container-reading text-center">
       <p class="clinic-home-section-kicker">Patient feedback</p>
@@ -125,8 +128,8 @@
   <div class="clinic-home-booking-inner ui-container">
     <div>
       <p class="clinic-home-section-kicker">Ready when you are</p>
-      <h2>{{ finalCtaTitle }}</h2>
-      <p>{{ finalCtaSubtitle }}</p>
+      <h2>{{ finalCtaTitle() }}</h2>
+      <p>{{ finalCtaSubtitle() }}</p>
     </div>
     <a routerLink="/appointment" class="clinic-home-booking-action">
       Book Appointment
