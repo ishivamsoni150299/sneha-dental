@@ -18,6 +18,7 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,17 @@ public class AppointmentController {
     @PostMapping("/public/appointments")
     Map<String, String> book(@Valid @RequestBody BookingRequest request) {
         return Map.of("bookingRef", appointmentService.book(request));
+    }
+
+    @PostMapping("/public/appointments/hold-slot")
+    HoldSlotResponse holdSlot(@Valid @RequestBody HoldSlotRequest request) {
+        return appointmentService.holdSlot(request);
+    }
+
+    @DeleteMapping("/public/appointments/hold-slot/{holdToken}")
+    ResponseEntity<Void> releaseHold(@PathVariable String holdToken) {
+        appointmentService.releaseHold(holdToken);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/patient/session")
@@ -135,6 +147,15 @@ public class AppointmentController {
 
     public record RescheduleRequest(@NotNull LocalDate date, @NotNull LocalTime time, @NotNull UUID doctorId) {}
 
+    public record HoldSlotRequest(
+        @NotNull UUID clinicId,
+        UUID doctorId,
+        @NotNull LocalDate date,
+        @NotNull LocalTime time
+    ) {}
+
+    public record HoldSlotResponse(String holdToken, String expiresAt) {}
+
     public record BookingRequest(
         @NotNull UUID clinicId,
         @Size(max = 12) String bookingRefPrefix,
@@ -150,8 +171,29 @@ public class AppointmentController {
         OffsetDateTime confirmationDeadline,
         @Size(max = 20) String consentVersion,
         Map<String, Object> attribution,
-        @Pattern(regexp = "in_person|video") String consultationMode
-    ) {}
+        @Pattern(regexp = "in_person|video") String consultationMode,
+        String holdToken
+    ) {
+        public BookingRequest(
+            UUID clinicId,
+            String bookingRefPrefix,
+            String name,
+            String phone,
+            String email,
+            String service,
+            LocalDate date,
+            LocalTime time,
+            UUID doctorId,
+            String message,
+            String source,
+            OffsetDateTime confirmationDeadline,
+            String consentVersion,
+            Map<String, Object> attribution,
+            String consultationMode
+        ) {
+            this(clinicId, bookingRefPrefix, name, phone, email, service, date, time, doctorId, message, source, confirmationDeadline, consentVersion, attribution, consultationMode, null);
+        }
+    }
 
     public record PatientUpdateRequest(
         @NotBlank String phone,

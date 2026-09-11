@@ -83,6 +83,14 @@ public class AppointmentService {
                     clinic_id, doctor_id, appointment_id, appointment_date, appointment_time
                 ) values (?, ?, ?, ?, ?)
                 """, request.clinicId(), selectedDoctorId, appointmentId, request.date(), request.time());
+            if (request.holdToken() != null && !request.holdToken().isBlank()) {
+                jdbcTemplate.update("delete from appointment_slot_holds where hold_token = ?", request.holdToken().trim());
+            } else {
+                jdbcTemplate.update("""
+                    delete from appointment_slot_holds
+                    where clinic_id = ? and appointment_date = ? and appointment_time = ?
+                    """, request.clinicId(), request.date(), request.time());
+            }
             if (notificationService != null) {
                 notificationService.notifyClinicNewAppointment(
                     request.clinicId(), bookingRef, request.name().trim(), "+91" + phone,
@@ -118,6 +126,52 @@ public class AppointmentService {
         } catch (DuplicateKeyException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                 "This time slot has just been taken. Please choose another time.", error);
+        }
+    }
+
+    @Transactional
+    public AppointmentController.HoldSlotResponse holdSlot(AppointmentController.HoldSlotRequest request) {
+        jdbcTemplate.update("delete from appointment_slot_holds where expires_at < now()");
+
+        UUID selectedDoctorId = request.doctorId() == null
+            ? resolveDoctor(request.clinicId(), request.date(), request.time()) : request.doctorId();
+        validateSlot(request.clinicId(), selectedDoctorId, request.date(), request.time());
+
+        if (request.date().atTime(request.time()).isBefore(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please choose a current or future appointment slot.");
+        }
+
+        List<Map<String, Object>> existingHolds = jdbcTemplate.queryForList("""
+            select id from appointment_slot_holds
+            where clinic_id = ?
+              and (? is null or doctor_id is null or doctor_id = ?)
+              and appointment_date = ?
+              and appointment_time = ?
+              and expires_at > now()
+            """, request.clinicId(), selectedDoctorId, selectedDoctorId, request.date(), request.time());
+        if (!existingHolds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That time is temporarily reserved by another patient. Please choose another slot.");
+        }
+
+        String holdToken = UUID.randomUUID().toString().replace("-", "") + Long.toHexString(System.currentTimeMillis());
+        OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(10);
+
+        try {
+            jdbcTemplate.update("""
+                insert into appointment_slot_holds (clinic_id, doctor_id, appointment_date, appointment_time, hold_token, expires_at)
+                values (?, ?, ?, ?, ?, ?)
+                """, request.clinicId(), selectedDoctorId, request.date(), request.time(), holdToken, expiresAt);
+        } catch (DuplicateKeyException error) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "That time was just reserved. Please choose another slot.", error);
+        }
+
+        return new AppointmentController.HoldSlotResponse(holdToken, expiresAt.toInstant().toString());
+    }
+
+    @Transactional
+    public void releaseHold(String holdToken) {
+        if (holdToken != null && !holdToken.isBlank()) {
+            jdbcTemplate.update("delete from appointment_slot_holds where hold_token = ?", holdToken.trim());
         }
     }
 

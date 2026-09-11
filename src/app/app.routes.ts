@@ -15,6 +15,7 @@ export const routes: Routes = [
       { path: 'signup', loadComponent: () => import('./features/professional/professional-signup.component').then(m => m.ProfessionalSignupComponent), data: { title: 'Create Dentist Profile', noIndex: true } },
       { path: 'login', loadComponent: () => import('./features/professional/professional-login.component').then(m => m.ProfessionalLoginComponent), data: { title: 'Dentist Sign In', noIndex: true } },
       { path: 'profile', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-profile.component').then(m => m.ProfessionalProfileComponent), data: { title: 'Dentist Profile', noIndex: true } },
+      { path: 'workspace', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-workspace.component').then(m => m.ProfessionalWorkspaceComponent), data: { title: 'Dentist Appointments and Availability', noIndex: true } },
     ],
   },
 

@@ -34,6 +34,7 @@ interface ProviderProfile {
           <div><p class="text-sm font-bold uppercase tracking-wider text-blue-700">Dentist portal</p><h1 class="mt-2 text-3xl font-bold text-gray-950">Your professional profile</h1><p class="mt-2 text-sm text-gray-600">This profile belongs to you and can connect to multiple clinics.</p></div>
           @if (profile()) { <span class="w-fit rounded-full px-3 py-1.5 text-sm font-bold" [class]="profile()!.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' : profile()!.verificationStatus === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-700'">{{ profile()!.verificationStatus }}</span> }
         </div>
+        <a routerLink="/professional/workspace" class="mt-5 inline-flex min-h-12 items-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">Appointments & availability →</a>
         @if (profile()?.verificationStatus === 'rejected' && profile()?.verificationReason) {
           <p class="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-800" role="status">Verification rejected: {{ profile()?.verificationReason }}. Update your details and submit again.</p>
         }
