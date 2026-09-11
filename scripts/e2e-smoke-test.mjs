@@ -186,6 +186,41 @@ const notifSvc = fs.readFileSync(notifSvcPath, 'utf8');
 const hasOutbox = notifSvc.includes('notification_outbox') && notifSvc.includes('next_retry_at');
 report('Pillar 4: Transactional notification outbox in NotificationService', hasOutbox);
 
+// 8. Consultation Mode Eligibility (Independent vs Clinic Dentists)
+console.log('\n8. Checking Consultation Mode Eligibility (Independent vs Clinic Dentists):');
+const apptServicePath = path.join(root, 'backend', 'src', 'main', 'java', 'com', 'mydentalplatform', 'appointment', 'AppointmentService.java');
+const apptService = fs.readFileSync(apptServicePath, 'utf8');
+const hasIndependentVideoCheck = apptService.includes('isIndependentProvider') &&
+  apptService.includes('Dentists from an independent profile are eligible for video consultations only');
+report('Backend: AppointmentService enforces independent dentists eligible for video only', hasIndependentVideoCheck);
+
+const providerControllerPath = path.join(root, 'backend', 'src', 'main', 'java', 'com', 'mydentalplatform', 'provider', 'ProviderController.java');
+const providerController = fs.readFileSync(providerControllerPath, 'utf8');
+const hasEligibilityFields = providerController.includes('isIndependent') &&
+  providerController.includes('eligibleForInClinic') &&
+  providerController.includes('eligibleForVideo') &&
+  providerController.includes('consultationModes');
+report('Backend: ProviderController exposes isIndependent and consultationModes', hasEligibilityFields);
+
+const marketplaceSvcPath = path.join(root, 'src', 'app', 'core', 'services', 'marketplace.service.ts');
+const marketplaceSvc = fs.readFileSync(marketplaceSvcPath, 'utf8');
+const hasMarketplaceEligibility = marketplaceSvc.includes('isIndependent?: boolean;') &&
+  marketplaceSvc.includes('eligibleForInClinic?: boolean;') &&
+  marketplaceSvc.includes('consultationModes?: (\'in_person\' | \'video\')[];');
+report('Frontend: MarketplaceService models consultation mode eligibility', hasMarketplaceEligibility);
+
+const bookingCompPath = path.join(root, 'src', 'app', 'features', 'marketplace', 'marketplace-booking.component.ts');
+const bookingComp = fs.readFileSync(bookingCompPath, 'utf8');
+const hasBookingLock = bookingComp.includes('isIndependent = computed') &&
+  bookingComp.includes('eligibleForInClinic = computed');
+report('Frontend: MarketplaceBookingComponent locks independent dentists to video', hasBookingLock);
+
+const bookingHtmlPath = path.join(root, 'src', 'app', 'features', 'marketplace', 'marketplace-booking.component.html');
+const bookingHtml = fs.readFileSync(bookingHtmlPath, 'utf8');
+const hasDisabledInClinic = bookingHtml.includes('[disabled]="isIndependent()"') &&
+  bookingHtml.includes('Independent Dentist Profile:');
+report('Frontend: MarketplaceBooking HTML disables in-clinic visit for independent dentists', hasDisabledInClinic);
+
 // Summary
 console.log('\n========================================');
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);

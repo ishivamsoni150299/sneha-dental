@@ -50,7 +50,8 @@ public class ProviderWorkspaceController {
         return jdbc.queryForList("""
             SELECT a.id, a.booking_ref, a.patient_name, a.phone_e164, a.service,
                 a.appointment_date::text AS date, to_char(a.appointment_time, 'HH24:MI') AS time,
-                a.status::text AS status, a.source, c.name AS location_name, a.cancellation_reason
+                a.status::text AS status, a.source, c.name AS location_name, a.cancellation_reason,
+                a.consultation_mode
             FROM appointments a JOIN clinics c ON c.id = a.clinic_id
             JOIN providers p ON (a.provider_id = p.id OR (a.provider_id IS NULL AND a.doctor_id = p.legacy_doctor_id))
             WHERE p.user_id = ? AND p.active

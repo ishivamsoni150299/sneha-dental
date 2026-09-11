@@ -30,6 +30,32 @@ public class VideoConsultationService {
         requireVisit(appointmentId, clinicId, bookingRef, phone);
     }
 
+    public DailyVideoClient.Session joinForProvider(UUID appointmentId, UUID dentistUserId) {
+        Visit visit = requireProviderVisit(appointmentId, dentistUserId);
+        Instant start = visit.date().atTime(visit.time()).atZone(INDIA).toInstant();
+        String room = "mdp-" + appointmentId.toString().replace("-", "") + "-" + start.getEpochSecond();
+        return daily.createSession(room, start.minusSeconds(600), start.plusSeconds(3600), true);
+    }
+
+    public void checkAccessForProvider(UUID appointmentId, UUID dentistUserId) {
+        requireProviderVisit(appointmentId, dentistUserId);
+    }
+
+    private Visit requireProviderVisit(UUID appointmentId, UUID dentistUserId) {
+        var rows = jdbc.query("""
+            select a.consultation_mode, a.status::text, a.appointment_date, a.appointment_time
+            from appointments a
+            join providers p on (a.provider_id = p.id or (a.provider_id is null and a.doctor_id = p.legacy_doctor_id))
+            where a.id = ? and p.user_id = ? and p.active = true
+            """, (rs, row) -> new Visit(rs.getString("consultation_mode"), rs.getString("status"),
+                rs.getObject("appointment_date", LocalDate.class), rs.getObject("appointment_time", LocalTime.class)),
+            appointmentId, dentistUserId);
+        if (rows.isEmpty()) throw notFound();
+        Visit visit = rows.getFirst();
+        validateAccess(visit, Instant.now());
+        return visit;
+    }
+
     private Visit requireVisit(UUID appointmentId, UUID clinicId, String bookingRef, String phone) {
         boolean host = clinicId != null;
         String normalized = phone == null ? "" : phone.replaceAll("[^0-9]", "");

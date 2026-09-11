@@ -3,6 +3,7 @@ package com.mydentalplatform.clinic;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -98,6 +99,10 @@ public class ClinicQueryService {
             clinic.put("subscriptionStatus", resultSet.getString("subscription_status"));
             clinic.put("ratingCount", resultSet.getInt("rating_count"));
             clinic.put("averageRating", resultSet.getBigDecimal("average_rating"));
+            clinic.put("isIndependent", false);
+            clinic.put("eligibleForInClinic", true);
+            clinic.put("eligibleForVideo", true);
+            clinic.put("consultationModes", List.of("in_person", "video"));
             return clinic;
         }, params.toArray()));
     }
@@ -133,11 +138,84 @@ public class ClinicQueryService {
     }
 
     public Optional<Map<String, Object>> findMarketplaceBySlug(String slug) {
-        return clinicQuery("""
+        Optional<Map<String, Object>> clinic = clinicQuery("""
             where active = true and marketplace_status = 'verified'
               and marketplace_slug = ?
             limit 1
             """, slug).stream().findFirst();
+        if (clinic.isPresent()) {
+            return clinic;
+        }
+        return findIndependentProviderBySlug(slug);
+    }
+
+    private Optional<Map<String, Object>> findIndependentProviderBySlug(String slug) {
+        List<Map<String, Object>> rows = jdbcTemplate.query("""
+            SELECT p.id, p.slug, p.full_name, p.qualification, p.speciality, p.biography,
+                   p.experience_years, p.phone_e164, p.photo_url, p.languages::text AS languages,
+                   l.id AS location_id, l.name AS location_name, l.address_line1,
+                   l.locality, l.city, l.phone_e164 AS location_phone,
+                   m.consultation_fee, m.accepting_new_patients, m.schedule::text AS schedule,
+                   (SELECT coalesce(jsonb_agg(ps.service_id), '[]'::jsonb)::text
+                    FROM provider_services ps WHERE ps.provider_id = p.id AND ps.active) AS service_ids
+            FROM providers p
+            JOIN provider_marketplace_listings ml ON ml.provider_id = p.id AND ml.publication_status = 'published'
+            LEFT JOIN provider_location_memberships m ON m.provider_id = p.id AND m.status = 'active'
+            LEFT JOIN practice_locations l ON l.id = m.location_id AND l.active = true
+            WHERE p.slug = ? AND p.active = true AND p.verification_status = 'verified'
+            ORDER BY l.city, l.name
+            LIMIT 1
+            """, (rs, rowNum) -> {
+                Map<String, Object> map = new LinkedHashMap<>();
+                UUID id = rs.getObject("id", UUID.class);
+                map.put("id", id.toString());
+                map.put("clinicId", id.toString());
+                map.put("active", true);
+                map.put("marketplaceStatus", "verified");
+                map.put("marketplaceSlug", rs.getString("slug"));
+                map.put("name", rs.getString("full_name"));
+                map.put("doctorName", rs.getString("full_name"));
+                map.put("doctorQualification", rs.getString("qualification"));
+                map.put("doctorBio", rs.getString("biography"));
+                map.put("phone", rs.getString("phone_e164"));
+                map.put("phoneE164", rs.getString("phone_e164"));
+                map.put("city", rs.getString("city") != null ? rs.getString("city") : "Delhi NCR");
+                map.put("addressLine1", rs.getString("address_line1") != null ? rs.getString("address_line1") : "Online Video Consultation");
+                map.put("bookingRefPrefix", "MDP");
+                map.put("isIndependent", true);
+                map.put("eligibleForInClinic", false);
+                map.put("eligibleForVideo", true);
+                map.put("consultationModes", List.of("video"));
+
+                Map<String, Object> mp = new LinkedHashMap<>();
+                mp.put("locality", rs.getString("locality"));
+                mp.put("speciality", rs.getString("speciality"));
+                mp.put("experienceYears", rs.getObject("experience_years", Integer.class));
+                Integer fee = rs.getObject("consultation_fee", Integer.class);
+                mp.put("consultationFee", fee);
+                mp.put("videoConsultationFee", fee);
+                mp.put("videoConsultationEnabled", true);
+                mp.put("acceptingNewPatients", rs.getObject("accepting_new_patients") == null || rs.getBoolean("accepting_new_patients"));
+                mp.put("serviceIds", jsonList(rs.getString("service_ids")));
+                map.put("marketplaceProfile", mp);
+
+                Map<String, Object> service = new LinkedHashMap<>();
+                service.put("name", "Video Consultation");
+                service.put("price", fee == null ? null : "₹" + fee);
+                map.put("services", List.of(service));
+                map.put("marketplaceVerifiedDoctorIds", List.of(id.toString()));
+                return map;
+            }, slug.trim().toLowerCase(Locale.ROOT));
+        return rows.stream().findFirst();
+    }
+
+    private List<String> jsonList(String value) {
+        if (value == null || value.isBlank()) return List.of();
+        try {
+            return objectMapper.readValue(value, new TypeReference<>() {});
+        } catch (JacksonException e) {
+            return List.of();
+        }
     }
 
     public List<Map<String, Object>> publishedReviews(UUID clinicId) {
@@ -209,6 +287,10 @@ public class ClinicQueryService {
             clinic.put("subscriptionStatus", resultSet.getString("subscription_status"));
             clinic.put("ratingCount", resultSet.getInt("rating_count"));
             clinic.put("averageRating", resultSet.getBigDecimal("average_rating"));
+            clinic.put("isIndependent", false);
+            clinic.put("eligibleForInClinic", true);
+            clinic.put("eligibleForVideo", true);
+            clinic.put("consultationModes", List.of("in_person", "video"));
             return clinic;
         }, arguments));
     }

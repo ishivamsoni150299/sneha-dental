@@ -35,6 +35,8 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly consultationMode = signal<'in_person' | 'video'>('in_person');
   readonly videoReady = signal(false);
   readonly videoUnavailable = signal(false);
+  readonly isIndependent = computed(() => Boolean(this.clinic()?.isIndependent));
+  readonly eligibleForInClinic = computed(() => !this.isIndependent());
   readonly selectedContext = computed(() => {
     const context = this.context();
     if (!context) return null;
@@ -87,10 +89,12 @@ export class MarketplaceBookingComponent implements OnInit {
       ].filter(Boolean).join(', ');
 
       this.clinic.set(clinic);
-      if (clinic.marketplaceProfile.videoConsultationEnabled) this.videoReady.set(await this.marketplace.videoAvailable());
-      if (this.route.snapshot.queryParamMap.get('mode') === 'video') {
+      if (clinic.marketplaceProfile.videoConsultationEnabled || clinic.isIndependent) {
+        this.videoReady.set(await this.marketplace.videoAvailable());
+      }
+      if (clinic.isIndependent || this.route.snapshot.queryParamMap.get('mode') === 'video') {
         this.consultationMode.set('video');
-        this.videoUnavailable.set(!clinic.marketplaceProfile.videoConsultationEnabled || !this.videoReady());
+        this.videoUnavailable.set(!clinic.isIndependent && (!clinic.marketplaceProfile.videoConsultationEnabled || !this.videoReady()));
       }
       this.context.set({
         clinicId: clinic.id,
@@ -128,7 +132,8 @@ export class MarketplaceBookingComponent implements OnInit {
   }
 
   chooseMode(mode: 'in_person' | 'video'): void {
-    if (mode === 'video' && (!this.videoReady() || !this.clinic()?.marketplaceProfile?.videoConsultationEnabled)) return;
+    if (mode === 'in_person' && this.isIndependent()) return;
+    if (mode === 'video' && !this.isIndependent() && (!this.videoReady() || !this.clinic()?.marketplaceProfile?.videoConsultationEnabled)) return;
     if (mode !== this.consultationMode()) {
       this.selectedSlot.set(null);
       this.slotPicker()?.selectedSlotKey.set(null);

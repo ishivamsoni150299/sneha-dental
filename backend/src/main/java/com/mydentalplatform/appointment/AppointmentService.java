@@ -59,6 +59,12 @@ public class AppointmentService {
         if ("video".equals(mode)) validateVideoBooking(request);
         UUID selectedDoctorId = request.doctorId() == null
             ? resolveDoctor(request.clinicId(), request.date(), request.time()) : request.doctorId();
+        boolean isIndependent = isIndependentProvider(selectedDoctorId, request.clinicId());
+        if (isIndependent && "in_person".equals(mode)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Dentists from an independent profile are eligible for video consultations only. In-clinic visits are not available.");
+        }
+        ensureClinicForProvider(selectedDoctorId != null ? selectedDoctorId : request.clinicId());
         validateSlot(request.clinicId(), selectedDoctorId, request.date(), request.time());
         if (request.date().atTime(request.time()).isBefore(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -70,11 +76,11 @@ public class AppointmentService {
         try {
             jdbcTemplate.update("""
                 insert into appointments (
-                    id, clinic_id, doctor_id, booking_ref, patient_name, phone_e164, email,
+                    id, clinic_id, doctor_id, provider_id, booking_ref, patient_name, phone_e164, email,
                     service, appointment_date, appointment_time, status, source, message,
                     confirmation_deadline, consent_version, consent_at, attribution, consultation_mode
-                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb), ?)
-                """, appointmentId, request.clinicId(), selectedDoctorId, bookingRef,
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb), ?)
+                """, appointmentId, request.clinicId(), selectedDoctorId, selectedDoctorId, bookingRef,
                 request.name().trim(), "+91" + phone, blankToNull(request.email()), request.service().trim(),
                 request.date(), request.time(), request.source(), blankToNull(request.message()),
                 request.confirmationDeadline(), request.consentVersion(), json(request.attribution()), mode);
@@ -181,6 +187,17 @@ public class AppointmentService {
         if (!"Video Consultation".equals(request.service()) || request.doctorId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a dentist and the video consultation service.");
         }
+        boolean isIndependent = isIndependentProvider(request.doctorId(), request.clinicId());
+        if (isIndependent) {
+            Boolean verified = jdbcTemplate.queryForObject("""
+                select exists(select 1 from providers p where p.id = ? and p.active = true)
+                """, Boolean.class, request.doctorId());
+            if (!Boolean.TRUE.equals(verified)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "This dentist is not available for the requested video consultation.");
+            }
+            return;
+        }
         String day = request.date().getDayOfWeek().name().substring(0, 3).toLowerCase(java.util.Locale.ROOT);
         Boolean enabled = jdbcTemplate.queryForObject("""
             select exists(select 1 from clinics c join doctors d on d.clinic_id = c.id
@@ -197,6 +214,50 @@ public class AppointmentService {
             request.time(), day, request.time(), day, request.time(), day);
         if (!Boolean.TRUE.equals(enabled)) throw new ResponseStatusException(HttpStatus.CONFLICT,
             "This clinic or dentist is not available for the requested video consultation.");
+    }
+
+    private boolean isIndependentProvider(UUID doctorId, UUID clinicId) {
+        if (doctorId != null) {
+            Boolean independent = jdbcTemplate.queryForObject("""
+                SELECT exists(
+                    SELECT 1 FROM providers p
+                    WHERE p.id = ? AND p.legacy_doctor_id IS NULL
+                )
+                """, Boolean.class, doctorId);
+            if (Boolean.TRUE.equals(independent)) return true;
+        }
+        if (clinicId != null) {
+            Boolean independentLoc = jdbcTemplate.queryForObject("""
+                SELECT exists(
+                    SELECT 1 FROM practice_locations l
+                    WHERE l.id = ? AND l.clinic_id IS NULL AND l.owner_provider_id IS NOT NULL
+                )
+                """, Boolean.class, clinicId);
+            if (Boolean.TRUE.equals(independentLoc)) return true;
+            Boolean independentProvider = jdbcTemplate.queryForObject("""
+                SELECT exists(
+                    SELECT 1 FROM providers p
+                    WHERE p.id = ? AND p.legacy_doctor_id IS NULL
+                )
+                """, Boolean.class, clinicId);
+            if (Boolean.TRUE.equals(independentProvider)) return true;
+        }
+        return false;
+    }
+
+    private void ensureClinicForProvider(UUID providerId) {
+        if (providerId == null) return;
+        List<Map<String, Object>> providers = jdbcTemplate.queryForList(
+            "SELECT id, slug, full_name FROM providers WHERE id = ?", providerId);
+        if (!providers.isEmpty()) {
+            Map<String, Object> p = providers.getFirst();
+            jdbcTemplate.update("""
+                INSERT INTO clinics (id, name, marketplace_status, marketplace_slug, public_config)
+                VALUES (?, ?, 'verified', ?, cast(? AS jsonb))
+                ON CONFLICT (id) DO NOTHING
+                """, providerId, p.get("full_name"), p.get("slug"),
+                "{\"marketplaceProfile\":{\"videoConsultationEnabled\":true,\"videoConsultationFee\":500,\"isIndependent\":true}}");
+        }
     }
 
     private UUID resolveDoctor(UUID clinicId, LocalDate date, LocalTime time) {
@@ -230,9 +291,27 @@ public class AppointmentService {
             select d.schedule::text from doctors d join clinics c on c.id = d.clinic_id
             where d.id = ? and d.clinic_id = ? and d.available = true and c.active = true for update of d
             """, String.class, doctorId, clinicId);
-        if (schedules.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT, "This doctor is unavailable at this clinic.");
+        if (schedules.isEmpty()) {
+            schedules = jdbcTemplate.queryForList("""
+                select m.schedule::text from provider_location_memberships m
+                join providers p on p.id = m.provider_id
+                where p.id = ? and p.active = true and m.status = 'active'
+                """, String.class, doctorId);
+            if (schedules.isEmpty()) {
+                Boolean isProvider = jdbcTemplate.queryForObject("""
+                    select exists(select 1 from providers where id = ? and active = true)
+                    """, Boolean.class, doctorId);
+                if (Boolean.TRUE.equals(isProvider)) {
+                    if (time.getSecond() != 0 || time.getNano() != 0 || time.getMinute() % 30 != 0) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a 30-minute appointment slot.");
+                    }
+                    return;
+                }
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "This doctor is unavailable at this clinic.");
+            }
+        }
         Map<String, Object> schedule = objectMapper.readValue(schedules.getFirst(), new tools.jackson.core.type.TypeReference<>() {});
-        if (!ScheduleRules.slots(schedule, date).contains(time))
+        if (!schedule.isEmpty() && !ScheduleRules.slots(schedule, date).contains(time))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Choose a time within the doctor's available hours, outside breaks and days off.");
     }
 

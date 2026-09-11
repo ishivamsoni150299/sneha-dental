@@ -6,6 +6,7 @@ import { AuthenticatedApiService } from '../../core/services/authenticated-api.s
 interface Visit {
   id: string; booking_ref: string; patient_name: string; phone_e164: string;
   service: string; date: string; time: string; status: string; source: string; location_name: string;
+  consultation_mode?: 'in_person' | 'video';
 }
 interface Day { enabled: boolean; start: string; end: string; breaks: { start: string; end: string }[] }
 interface Practice { id: string; name: string; city: string; status: string; schedule: string | Record<string, unknown> }
@@ -43,7 +44,17 @@ interface Practice { id: string; name: string; city: string; status: string; sch
           @else {
             @for (visit of visits(); track visit.id) {
               <article class="mb-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div class="flex flex-wrap justify-between gap-3"><h2 class="text-lg font-bold text-gray-900">{{ visit.patient_name }}</h2><span class="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700">{{ visit.status.replace('_', ' ') }}</span></div>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-900">{{ visit.patient_name }}</h2>
+                    @if (visit.consultation_mode === 'video' || visit.service.toLowerCase().includes('video')) {
+                      <span class="rounded-lg bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-800">Video consultation</span>
+                    } @else {
+                      <span class="rounded-lg bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">In-clinic</span>
+                    }
+                  </div>
+                  <span class="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700">{{ visit.status.replace('_', ' ') }}</span>
+                </div>
                 <p class="mt-2 font-semibold text-gray-900">{{ visit.date }} · {{ visit.time }}</p>
                 <p class="mt-1 text-sm text-gray-500">{{ visit.location_name }} · {{ visit.service }} · {{ visit.booking_ref }}</p>
                 <a [href]="'tel:' + visit.phone_e164" class="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-blue-700">Call {{ visit.phone_e164 }}</a>
@@ -54,10 +65,20 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                   </div>
                 }
                 @if (visit.status === 'confirmed') {
-                  <button (click)="updateVisit(visit, 'checked_in')" [disabled]="busy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Mark checked in</button>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <button (click)="updateVisit(visit, 'checked_in')" [disabled]="busy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Mark checked in</button>
+                    @if (visit.consultation_mode === 'video' || visit.service.toLowerCase().includes('video')) {
+                      <button (click)="joinVideo(visit)" [disabled]="busy()" class="min-h-11 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">Join video call</button>
+                    }
+                  </div>
                 }
                 @if (visit.status === 'checked_in') {
-                  <button (click)="updateVisit(visit, 'completed')" [disabled]="busy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Complete visit</button>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <button (click)="updateVisit(visit, 'completed')" [disabled]="busy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Complete visit</button>
+                    @if (visit.consultation_mode === 'video' || visit.service.toLowerCase().includes('video')) {
+                      <button (click)="joinVideo(visit)" [disabled]="busy()" class="min-h-11 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">Join video call</button>
+                    }
+                  </div>
                 }
                 @if (declining()?.id === visit.id) {
                   <label class="mt-4 block text-sm font-semibold" [for]="'reason-' + visit.id">Reason for patient</label>
@@ -189,5 +210,25 @@ export class ProfessionalWorkspaceComponent implements OnInit {
       this.message.set('Availability saved. Existing appointments are unchanged.');
     } catch (e) { this.error.set((e as Error).message); }
     finally { this.saving.set(false); }
+  }
+  async joinVideo(visit: Visit): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true); this.error.set(null);
+    try {
+      const response = await this.api.fetch(`/api/providers/me/appointments/${visit.id}/video/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json() as { roomUrl?: string; token?: string; message?: string; detail?: string };
+      if (!response.ok) throw new Error(data.detail || data.message || 'Could not join video consultation.');
+      if (data.roomUrl) {
+        const fullUrl = data.token ? `${data.roomUrl}?t=${encodeURIComponent(data.token)}` : data.roomUrl;
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (e) {
+      this.error.set((e as Error).message);
+    } finally {
+      this.busy.set(false);
+    }
   }
 }

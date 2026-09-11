@@ -84,11 +84,47 @@
         <fieldset class="mt-7">
           <legend class="mb-3 text-sm font-semibold text-gray-900">How would you like to meet?</legend>
           <div class="grid gap-3 sm:grid-cols-2">
-            <button type="button" (click)="chooseMode('in_person')" [attr.aria-pressed]="consultationMode() === 'in_person'" [class.border-blue-600]="consultationMode() === 'in_person'" [class.bg-blue-50]="consultationMode() === 'in_person'" class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left"><i class="ph ph-hospital text-2xl text-blue-600" aria-hidden="true"></i><span><strong class="block text-sm text-gray-900">In-clinic visit</strong><span class="mt-1 block text-sm text-gray-500">Meet your dentist at the clinic.</span></span></button>
-            <button type="button" (click)="chooseMode('video')" [disabled]="!videoReady()" [attr.aria-pressed]="consultationMode() === 'video'" [class.border-blue-600]="consultationMode() === 'video'" [class.bg-blue-50]="consultationMode() === 'video'" class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left disabled:opacity-60"><i class="ph ph-video-camera text-2xl text-blue-600" aria-hidden="true"></i><span><strong class="block text-sm text-gray-900">Video consultation</strong><span class="mt-1 block text-sm text-gray-500">{{ videoReady() ? 'A private video call from your device.' : 'Not currently available at this clinic.' }}</span>@if (videoReady()) {<span class="mt-2 block text-sm font-semibold text-blue-700">{{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with clinic' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee }}</span>}</span></button>
+            <button type="button" (click)="chooseMode('in_person')"
+              [disabled]="isIndependent()"
+              [attr.aria-pressed]="consultationMode() === 'in_person'"
+              [class.border-blue-600]="consultationMode() === 'in_person'"
+              [class.bg-blue-50]="consultationMode() === 'in_person'"
+              [class.opacity-50]="isIndependent()"
+              [class.cursor-not-allowed]="isIndependent()"
+              class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left">
+              <i class="ph ph-hospital text-2xl" [class.text-blue-600]="!isIndependent()" [class.text-gray-400]="isIndependent()" aria-hidden="true"></i>
+              <span>
+                <strong class="block text-sm text-gray-900">In-clinic visit</strong>
+                <span class="mt-1 block text-sm text-gray-500">
+                  {{ isIndependent() ? 'Unavailable for independent profiles. Remote video consultations only.' : 'Meet your dentist at the clinic.' }}
+                </span>
+              </span>
+            </button>
+            <button type="button" (click)="chooseMode('video')"
+              [disabled]="!videoReady() && !isIndependent()"
+              [attr.aria-pressed]="consultationMode() === 'video'"
+              [class.border-blue-600]="consultationMode() === 'video'"
+              [class.bg-blue-50]="consultationMode() === 'video'"
+              class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left disabled:opacity-60">
+              <i class="ph ph-video-camera text-2xl text-blue-600" aria-hidden="true"></i>
+              <span>
+                <strong class="block text-sm text-gray-900">Video consultation</strong>
+                <span class="mt-1 block text-sm text-gray-500">
+                  {{ isIndependent() ? 'Direct video consultation with independent practitioner.' : (videoReady() ? 'A private video call from your device.' : 'Not currently available at this clinic.') }}
+                </span>
+                <span class="mt-2 block text-sm font-semibold text-blue-700">
+                  {{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with practitioner' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee }}
+                </span>
+              </span>
+            </button>
           </div>
         </fieldset>
-        @if (videoUnavailable()) {
+        @if (isIndependent()) {
+          <p class="mt-4 rounded-xl border border-purple-200 bg-purple-50 p-4 text-sm leading-6 text-purple-900">
+            <i class="ph ph-info font-bold text-purple-700 mr-1.5" aria-hidden="true"></i>
+            <strong>Independent Dentist Profile:</strong> This practitioner conducts tele-dentistry video consultations exclusively. If you require in-person dental treatments or physical procedures, please select a verified dental clinic.
+          </p>
+        } @else if (videoUnavailable()) {
           <p role="alert" class="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">Video consultations are unavailable for this clinic right now. Choose an in-clinic visit above or <a routerLink="/dentists" [queryParams]="{mode:'video'}" class="font-semibold underline">find another video dentist</a>.</p>
         } @else {
         @if (consultationMode() === 'video') {<p class="mt-4 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-900">Your dentist will discuss your concerns on a private video call. A physical examination or treatment may still require a clinic visit. Join from My appointments 10 minutes before your confirmed time.</p>}

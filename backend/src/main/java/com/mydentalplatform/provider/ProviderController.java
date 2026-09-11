@@ -88,7 +88,8 @@ public class ProviderController {
                    l.id AS location_id, l.name AS location_name, l.locality, l.city,
                    m.consultation_fee, m.accepting_new_patients,
                    (SELECT coalesce(jsonb_agg(ps.service_id), '[]'::jsonb)::text
-                    FROM provider_services ps WHERE ps.provider_id = p.id AND ps.active) AS service_ids
+                    FROM provider_services ps WHERE ps.provider_id = p.id AND ps.active) AS service_ids,
+                   (p.legacy_doctor_id IS NULL AND l.clinic_id IS NULL) AS is_independent
             FROM providers p
             JOIN provider_marketplace_listings ml ON ml.provider_id = p.id
             JOIN provider_location_memberships m ON m.provider_id = p.id
@@ -111,6 +112,11 @@ public class ProviderController {
                 value.put("city", rs.getString("city"));
                 value.put("consultationFee", rs.getObject("consultation_fee", Integer.class));
                 value.put("acceptingNewPatients", rs.getBoolean("accepting_new_patients"));
+                boolean isIndependent = rs.getBoolean("is_independent");
+                value.put("isIndependent", isIndependent);
+                value.put("eligibleForVideo", true);
+                value.put("eligibleForInClinic", !isIndependent);
+                value.put("consultationModes", isIndependent ? List.of("video") : List.of("in_person", "video"));
                 value.put("profilePath", "/dentist/" + rs.getString("slug"));
                 return value;
             }, pageParams.toArray());
@@ -126,7 +132,8 @@ public class ProviderController {
                    p.registration_council, l.id AS location_id, l.name AS location_name,
                    l.address_line1, l.address_line2, l.locality, l.city, l.state, l.postal_code,
                    l.latitude, l.longitude, l.timezone, l.phone_e164,
-                   m.consultation_fee, m.accepting_new_patients, m.schedule::text AS schedule
+                   m.consultation_fee, m.accepting_new_patients, m.schedule::text AS schedule,
+                   (p.legacy_doctor_id IS NULL AND l.clinic_id IS NULL) AS is_independent
             FROM providers p
             JOIN provider_marketplace_listings ml ON ml.provider_id = p.id AND ml.publication_status = 'published'
             JOIN provider_location_memberships m ON m.provider_id = p.id AND m.status = 'active'
@@ -147,6 +154,11 @@ public class ProviderController {
         profile.put("experienceYears", first.get("experience_years"));
         profile.put("photoUrl", first.get("photo_url"));
         profile.put("languages", jsonList((String) first.get("languages")));
+        boolean isIndependent = Boolean.TRUE.equals(first.get("is_independent"));
+        profile.put("isIndependent", isIndependent);
+        profile.put("eligibleForVideo", true);
+        profile.put("eligibleForInClinic", !isIndependent);
+        profile.put("consultationModes", isIndependent ? List.of("video") : List.of("in_person", "video"));
         profile.put("verification", Map.of(
             "registrationVerified", true,
             "registrationCouncil", String.valueOf(first.getOrDefault("registration_council", ""))));

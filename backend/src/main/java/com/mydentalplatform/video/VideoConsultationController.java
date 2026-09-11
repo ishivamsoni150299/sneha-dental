@@ -51,6 +51,17 @@ public class VideoConsultationController {
         return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
     }
 
+    @PostMapping("/providers/me/appointments/{id}/video/join")
+    ResponseEntity<DailyVideoClient.Session> providerJoin(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(video.joinForProvider(id, dentistUserId(jwt)));
+    }
+
+    @PostMapping("/providers/me/appointments/{id}/video/access")
+    ResponseEntity<Void> providerAccess(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        video.checkAccessForProvider(id, dentistUserId(jwt));
+        return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+    }
+
     @PutMapping("/clinics/current/video-settings")
     ResponseEntity<Void> settings(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody Settings settings) {
         video.saveSettings(clinicId(jwt), settings.enabled(), settings.fee());
@@ -62,6 +73,13 @@ public class VideoConsultationController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Clinic staff access is required.");
         }
         return UUID.fromString(jwt.getClaimAsString("clinic_id"));
+    }
+
+    private UUID dentistUserId(Jwt jwt) {
+        if (jwt == null || !"dentist".equals(jwt.getClaimAsString("role"))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Dentist access is required.");
+        }
+        return UUID.fromString(jwt.getSubject());
     }
 
     public record PatientAccess(@NotBlank @Size(max=32) String bookingRef, @NotBlank @Size(max=20) String phone) {}

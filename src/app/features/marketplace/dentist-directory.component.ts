@@ -190,17 +190,20 @@ export class DentistDirectoryComponent implements OnInit {
   readonly clinics = signal<MarketplaceClinic[]>([]);
   readonly providers = signal<MarketplaceProvider[]>([]);
   readonly filteredProviders = computed(() => {
-    if (this.discoveryType() !== 'dentists' || this.videoOnly() || this.availableTodayOnly()
+    if (this.discoveryType() !== 'dentists' || this.availableTodayOnly()
       || this.minRating() || this.gender() || this.userCoordinates()) return [];
     const search = this.searchTerm().trim().toLowerCase();
-    return this.providers().filter(p =>
-      (!search || [p.fullName, p.qualification, p.speciality, p.locationName, p.city, p.locality].join(' ').toLowerCase().includes(search)) &&
-      (!this.locality() || [p.city, p.locality].join(' ').toLowerCase().includes(this.locality().toLowerCase())) &&
-      (!this.serviceId() || (p.serviceIds ?? []).includes(this.serviceId())) &&
-      (!this.language() || p.languages.includes(this.language())) &&
-      (!this.minExperience() || (p.experienceYears ?? 0) >= this.minExperience()) &&
-      (this.maxFee() == null || (p.consultationFee != null && p.consultationFee <= this.maxFee()!))
-    ).sort((a, b) => this.sortBy() === 'fee' ? (a.consultationFee ?? Infinity) - (b.consultationFee ?? Infinity)
+    return this.providers().filter(p => {
+      if (this.videoOnly() && !p.eligibleForVideo && !p.consultationModes?.includes('video')) {
+        return false;
+      }
+      return (!search || [p.fullName, p.qualification, p.speciality, p.locationName, p.city, p.locality].join(' ').toLowerCase().includes(search)) &&
+        (!this.locality() || [p.city, p.locality].join(' ').toLowerCase().includes(this.locality().toLowerCase())) &&
+        (!this.serviceId() || (p.serviceIds ?? []).includes(this.serviceId())) &&
+        (!this.language() || p.languages.includes(this.language())) &&
+        (!this.minExperience() || (p.experienceYears ?? 0) >= this.minExperience()) &&
+        (this.maxFee() == null || (p.consultationFee != null && p.consultationFee <= this.maxFee()!));
+    }).sort((a, b) => this.sortBy() === 'fee' ? (a.consultationFee ?? Infinity) - (b.consultationFee ?? Infinity)
       : this.sortBy() === 'experience' ? (b.experienceYears ?? 0) - (a.experienceYears ?? 0) : a.fullName.localeCompare(b.fullName));
   });
   readonly resultCount = computed(() => this.filteredClinics().length + this.filteredProviders().length);

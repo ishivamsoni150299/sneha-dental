@@ -33,7 +33,8 @@
             </div>
             <div class="booking">
               @if (clinic().marketplaceProfile?.acceptingNewPatients) {
-                @if (clinic().marketplaceProfile?.videoConsultationEnabled) {<span class="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Video consultation available</span>}
+                @if (clinic().marketplaceProfile?.videoConsultationEnabled) {<span class="mb-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-700"><i class="ph ph-check-circle" aria-hidden="true"></i> In-Clinic &amp; Video Available</span>}
+                @else {<span class="mb-3 inline-flex items-center gap-2 text-xs font-medium text-gray-600"><i class="ph ph-map-pin" aria-hidden="true"></i> In-Clinic Visit</span>}
                 <a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="{mode: videoOnly() ? 'video' : 'in_person'}" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Book Appointment</a><p class="muted">Clinic confirmation required</p>
               } @else {<a [routerLink]="profilePath()" class="secondary inline-flex rounded-xl border border-gray-200 px-4 py-3 text-sm text-blue-600">View profile</a>}
             </div>
