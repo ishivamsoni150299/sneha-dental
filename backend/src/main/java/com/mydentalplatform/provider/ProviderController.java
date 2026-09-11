@@ -230,7 +230,9 @@ public class ProviderController {
             Map<String, Object> row = jdbcTemplate.queryForMap("""
                 SELECT id, slug, full_name, qualification, speciality, biography, experience_years,
                        registration_number, registration_council, phone_e164, photo_url,
-                       languages::text AS languages, verification_status, verified_at, active
+                       languages::text AS languages, verification_status, verified_at, active,
+                       (SELECT r.reason FROM provider_verification_reviews r WHERE r.provider_id = providers.id
+                        ORDER BY r.created_at DESC LIMIT 1) AS verification_reason
                 FROM providers WHERE id = ?
                 """, providerId);
             Map<String, Object> profile = new LinkedHashMap<>();
@@ -247,6 +249,7 @@ public class ProviderController {
             profile.put("photoUrl", row.get("photo_url"));
             profile.put("languages", jsonList((String) row.get("languages")));
             profile.put("verificationStatus", row.get("verification_status"));
+            profile.put("verificationReason", row.get("verification_reason"));
             profile.put("verifiedAt", row.get("verified_at"));
             profile.put("active", row.get("active"));
             profile.put("locations", jdbcTemplate.queryForList("""

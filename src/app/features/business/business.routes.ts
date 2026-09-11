@@ -162,6 +162,11 @@ export const businessRoutes: Routes = [
         data: { title: 'Edit Clinic', noIndex: true },
       },
       {
+        path: 'dentists/verification',
+        loadComponent: () => import('./dentist-verification/dentist-verification.component').then(m => m.DentistVerificationComponent),
+        data: { title: 'Dentist Verification', noIndex: true },
+      },
+      {
         path: 'revenue',
         loadComponent: () =>
           import('./revenue/revenue.component').then(m => m.RevenueComponent),

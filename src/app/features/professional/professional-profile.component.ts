@@ -18,6 +18,7 @@ interface ProviderProfile {
   photoUrl: string | null;
   languages: string[];
   verificationStatus: string;
+  verificationReason?: string | null;
   locations: Array<{ id: string; name: string; city: string; status: string }>;
 }
 
@@ -33,6 +34,9 @@ interface ProviderProfile {
           <div><p class="text-sm font-bold uppercase tracking-wider text-blue-700">Dentist portal</p><h1 class="mt-2 text-3xl font-bold text-gray-950">Your professional profile</h1><p class="mt-2 text-sm text-gray-600">This profile belongs to you and can connect to multiple clinics.</p></div>
           @if (profile()) { <span class="w-fit rounded-full px-3 py-1.5 text-sm font-bold" [class]="profile()!.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' : profile()!.verificationStatus === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-700'">{{ profile()!.verificationStatus }}</span> }
         </div>
+        @if (profile()?.verificationStatus === 'rejected' && profile()?.verificationReason) {
+          <p class="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-800" role="status">Verification rejected: {{ profile()?.verificationReason }}. Update your details and submit again.</p>
+        }
         @if (message()) { <p class="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-900" role="status">{{ message() }}</p> }
         @if (error()) { <p class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert">{{ error() }}</p> }
         @if (loading()) { <p class="mt-10 text-sm text-gray-600">Loading your profile…</p> }
