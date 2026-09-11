@@ -51,6 +51,16 @@ export class MyAppointmentComponent {
     message: [''],
   });
 
+  reviewForm = this.fb.group({
+    rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
+    text: ['', [Validators.maxLength(1200)]],
+    anonymous: [false],
+  });
+
+  submittingReview = signal(false);
+  reviewSuccess = signal(false);
+  reviewError = signal<string | null>(null);
+
   get minDate() {
     return formatLocalDateInput();
   }
@@ -230,5 +240,39 @@ export class MyAppointmentComponent {
   formatDate(dateStr: string): string {
     const d = new Date(`${dateStr  }T00:00:00`);
     return d.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  setRating(stars: number) {
+    this.reviewForm.patchValue({ rating: stars });
+  }
+
+  async onSubmitReview() {
+    const appt = this.appointment();
+    if (!appt || !appt.id || this.submittingReview()) return;
+
+    this.submittingReview.set(true);
+    this.reviewError.set(null);
+    try {
+      const { rating, text, anonymous } = this.reviewForm.value;
+      const res = await this.appointmentService.submitReview(
+        appt.id,
+        appt.phone,
+        rating ?? 5,
+        text || '',
+        Boolean(anonymous),
+      );
+      this.reviewSuccess.set(true);
+      this.appointment.update(curr => curr ? {
+        ...curr,
+        reviewId: res.id,
+        reviewRating: res.rating,
+        reviewText: res.text,
+        reviewStatus: res.moderationStatus,
+      } : null);
+    } catch (e: unknown) {
+      this.reviewError.set(e instanceof Error ? e.message : 'Could not submit your review. Please try again.');
+    } finally {
+      this.submittingReview.set(false);
+    }
   }
 }

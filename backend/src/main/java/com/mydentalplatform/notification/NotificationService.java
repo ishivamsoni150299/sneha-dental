@@ -273,6 +273,14 @@ public class NotificationService {
             on conflict (idempotency_key) do nothing
             """, idempotencyKey, clinicId, appointmentId, notificationType, destination, payloadJson);
 
+        try {
+            jdbcTemplate.update("""
+                insert into notification_outbox (idempotency_key, clinic_id, appointment_id, notification_type, channel, destination, subject, payload, status, attempts)
+                values (?, ?, ?, ?, 'email', ?, ?, cast(? as jsonb), 'pending', 1)
+                on conflict (idempotency_key) do nothing
+                """, idempotencyKey, clinicId, appointmentId, notificationType, destination, subject, payloadJson);
+        } catch (Exception ignored) {}
+
         if (inserted == 0) {
             LOG.info("Notification with idempotency key {} already processed or queued. Skipping duplicate.", idempotencyKey);
             return;
@@ -286,9 +294,15 @@ public class NotificationService {
         boolean success = sendResendEmail(destination, subject, html);
         if (success) {
             jdbcTemplate.update("update notifications set status = 'sent', updated_at = now() where idempotency_key = ?", idempotencyKey);
+            try {
+                jdbcTemplate.update("update notification_outbox set status = 'sent', processed_at = now(), updated_at = now() where idempotency_key = ?", idempotencyKey);
+            } catch (Exception ignored) {}
             LOG.info("Successfully sent notification {} to {}", notificationType, destination);
         } else {
             jdbcTemplate.update("update notifications set status = 'failed', updated_at = now() where idempotency_key = ?", idempotencyKey);
+            try {
+                jdbcTemplate.update("update notification_outbox set status = 'failed', next_retry_at = now() + interval '5 minutes', updated_at = now() where idempotency_key = ?", idempotencyKey);
+            } catch (Exception ignored) {}
             LOG.warn("Delivery failed for notification {}", idempotencyKey);
         }
     }
@@ -350,13 +364,22 @@ public class NotificationService {
                 boolean success = sendResendEmail(destination, subject, html);
                 if (success) {
                     jdbcTemplate.update("update notifications set status = 'sent', attempts = attempts + 1, updated_at = now() where idempotency_key = ?", key);
+                    try {
+                        jdbcTemplate.update("update notification_outbox set status = 'sent', attempts = attempts + 1, processed_at = now(), updated_at = now() where idempotency_key = ?", key);
+                    } catch (Exception ignored) {}
                     LOG.info("Retry succeeded for notification {}", key);
                 } else {
                     jdbcTemplate.update("update notifications set attempts = attempts + 1, updated_at = now() where idempotency_key = ?", key);
+                    try {
+                        jdbcTemplate.update("update notification_outbox set status = 'failed', attempts = attempts + 1, next_retry_at = now() + interval '15 minutes', updated_at = now() where idempotency_key = ?", key);
+                    } catch (Exception ignored) {}
                     LOG.warn("Retry failed for notification {} (attempt {})", key, attempts + 1);
                 }
             } catch (Exception error) {
                 jdbcTemplate.update("update notifications set attempts = attempts + 1, updated_at = now() where idempotency_key = ?", key);
+                try {
+                    jdbcTemplate.update("update notification_outbox set status = 'failed', attempts = attempts + 1, next_retry_at = now() + interval '15 minutes', updated_at = now() where idempotency_key = ?", key);
+                } catch (Exception ignored) {}
                 LOG.error("Failed executing retry for notification {}", key, error);
             }
         }

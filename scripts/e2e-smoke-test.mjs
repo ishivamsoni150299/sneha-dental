@@ -100,7 +100,7 @@ for (let i = 1; i <= migrations.length; i++) {
   }
 }
 if (migrationSequenceValid) {
-  report('Continuous migration sequence (V1 to V17)', true, `Latest is ${migrations[migrations.length - 1]}`);
+  report(`Continuous migration sequence (V1 to V${migrations.length})`, true, `Latest is ${migrations[migrations.length - 1]}`);
 }
 
 // 4. Security Configuration Integrity
@@ -158,6 +158,33 @@ const galleryCompPath = path.join(root, 'src', 'app', 'features', 'gallery', 'ga
 const galleryComp = fs.readFileSync(galleryCompPath, 'utf8');
 const hasLightbox = galleryComp.includes('selectedImage') && galleryComp.includes('openImage') && galleryComp.includes('closeImage');
 report('Gallery component includes interactive lightbox', hasLightbox);
+
+// 7. Four Strategic Pillars Verification
+console.log('\n7. Checking Strategic Pillars (Slot Holds, Reviews, Readiness, Notification Outbox):');
+const apptSvcPath = path.join(root, 'src', 'app', 'core', 'services', 'appointment.service.ts');
+const apptSvc = fs.readFileSync(apptSvcPath, 'utf8');
+const hasSlotHolds = apptSvc.includes('holdSlot') && apptSvc.includes('releaseHold');
+report('Pillar 1: Slot hold acquisition and release methods in AppointmentService', hasSlotHolds);
+
+const apptCompPath = path.join(root, 'src', 'app', 'features', 'appointment', 'appointment.component.ts');
+const apptComp = fs.readFileSync(apptCompPath, 'utf8');
+const wiresHolds = apptComp.includes('holdToken') && apptComp.includes('acquireSlotHold');
+report('Pillar 1: Slot hold wiring and hold token in AppointmentComponent', wiresHolds);
+
+const myApptCompPath = path.join(root, 'src', 'app', 'features', 'my-appointment', 'my-appointment.component.ts');
+const myApptComp = fs.readFileSync(myApptCompPath, 'utf8');
+const hasReviews = myApptComp.includes('reviewForm') && myApptComp.includes('onSubmitReview');
+report('Pillar 2: Verified patient review submission in MyAppointmentComponent', hasReviews);
+
+const adminDashboardPath = path.join(root, 'src', 'app', 'features', 'admin', 'admin-dashboard', 'admin-dashboard.component.ts');
+const adminDashboard = fs.readFileSync(adminDashboardPath, 'utf8');
+const hasMarketplaceReadiness = adminDashboard.includes('Marketplace Directory Verification') && adminDashboard.includes('Treatments & Transparent Pricing');
+report('Pillar 3: Marketplace listing readiness checklist in AdminDashboardComponent', hasMarketplaceReadiness);
+
+const notifSvcPath = path.join(root, 'backend', 'src', 'main', 'java', 'com', 'mydentalplatform', 'notification', 'NotificationService.java');
+const notifSvc = fs.readFileSync(notifSvcPath, 'utf8');
+const hasOutbox = notifSvc.includes('notification_outbox') && notifSvc.includes('next_retry_at');
+report('Pillar 4: Transactional notification outbox in NotificationService', hasOutbox);
 
 // Summary
 console.log('\n========================================');

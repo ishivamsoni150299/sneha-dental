@@ -268,14 +268,25 @@ public class AppointmentService {
 
     public Map<String, Object> lookup(UUID clinicId, String bookingRef, String phone) {
         Map<String, Object> appointment = jdbcTemplate.query("""
-            select a.*, d.name as doctor_name from appointments a
+            select a.*, d.name as doctor_name, c.name as clinic_name,
+                   c.marketplace_slug, c.public_config ->> 'phone' as clinic_phone,
+                   concat_ws(', ', nullif(c.public_config ->> 'addressLine1', ''),
+                       nullif(c.public_config ->> 'addressLine2', ''),
+                       nullif(c.public_config ->> 'city', '')) as clinic_address,
+                   r.id as review_id, r.rating as review_rating, r.review_text,
+                   r.patient_alias, r.moderation_status::text as review_status,
+                   r.clinic_response, r.clinic_responded_at, r.created_at as review_created_at,
+                   r.published_at as review_published_at
+            from appointments a
+            join clinics c on c.id = a.clinic_id
             left join doctors d on d.id = a.doctor_id
+            left join appointment_reviews r on r.appointment_id = a.id
             where a.clinic_id = ? and upper(a.booking_ref) = upper(?)
               and right(regexp_replace(a.phone_e164, '[^0-9]', '', 'g'), 10) = ?
             limit 1
-            """, resultSet -> resultSet.next() ? map(resultSet) : null,
+            """, resultSet -> resultSet.next() ? patientSummary(resultSet) : null,
             clinicId, bookingRef.trim(), normalizePhone(phone));
-        return appointment == null ? null : publicValue(appointment);
+        return appointment;
     }
 
     public List<Map<String, Object>> patientAppointments(String phone) {
@@ -443,9 +454,11 @@ public class AppointmentService {
     @Transactional
     public void setStatus(UUID clinicId, UUID appointmentId, AppointmentController.StatusRequest request) {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-            select status::text as status, source, booking_ref, patient_name, email, appointment_date, appointment_time
-            from appointments
-            where id = ? and clinic_id = ? for update
+            select a.status::text as status, a.source, a.booking_ref, a.patient_name, a.email,
+                   a.appointment_date, a.appointment_time, c.name as clinic_name
+            from appointments a
+            join clinics c on c.id = a.clinic_id
+            where a.id = ? and a.clinic_id = ? for update of a
             """, appointmentId, clinicId);
         if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
         String currentStatus = String.valueOf(rows.getFirst().get("status"));
@@ -474,19 +487,25 @@ public class AppointmentService {
             """, request.status(), request.status(), blankToNull(request.cancellationReason()), request.status(),
             request.status(), request.status(), request.status(), appointmentId, clinicId);
 
-        if (notificationService != null && List.of("confirmed", "cancelled", "declined").contains(request.status())) {
+        if (notificationService != null) {
             Map<String, Object> apt = rows.getFirst();
             String patientEmail = (String) apt.get("email");
             String patientName = (String) apt.get("patient_name");
             String bookingRef = (String) apt.get("booking_ref");
+            String clinicName = apt.get("clinic_name") != null ? String.valueOf(apt.get("clinic_name")) : "our clinic";
             Object dateObj = apt.get("appointment_date");
             LocalDate date = dateObj instanceof LocalDate ld ? ld : dateObj instanceof java.sql.Date sd ? sd.toLocalDate() : LocalDate.parse(String.valueOf(dateObj));
             Object timeObj = apt.get("appointment_time");
             LocalTime time = timeObj instanceof LocalTime lt ? lt : timeObj instanceof java.sql.Time st ? st.toLocalTime() : LocalTime.parse(String.valueOf(timeObj));
 
-            notificationService.notifyPatientStatusUpdate(
-                clinicId, appointmentId, bookingRef, patientName, patientEmail,
-                request.status(), date, time, request.cancellationReason());
+            if (List.of("confirmed", "cancelled", "declined").contains(request.status())) {
+                notificationService.notifyPatientStatusUpdate(
+                    clinicId, appointmentId, bookingRef, patientName, patientEmail,
+                    request.status(), date, time, request.cancellationReason());
+            } else if ("completed".equals(request.status()) && patientEmail != null && !patientEmail.isBlank()) {
+                notificationService.sendReviewInvitation(
+                    clinicId, appointmentId, bookingRef, patientName, patientEmail, clinicName, date);
+            }
         }
     }
 
@@ -530,7 +549,7 @@ public class AppointmentService {
 
     private Map<String, Object> patientSummary(ResultSet resultSet) throws SQLException {
         Map<String, Object> result = publicValue(map(resultSet));
-        result.put("patientName", result.remove("name"));
+        result.put("patientName", result.get("name"));
         result.put("clinicName", resultSet.getString("clinic_name"));
         result.put("clinicPhone", resultSet.getString("clinic_phone"));
         result.put("clinicAddress", resultSet.getString("clinic_address"));

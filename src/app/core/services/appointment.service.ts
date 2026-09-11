@@ -174,6 +174,13 @@ export interface Appointment {
   paymentMethod?:  PaymentMethod;
   createdAt?: string;
   updatedAt?: string;
+  // Patient review details
+  reviewId?: string;
+  reviewRating?: number;
+  reviewText?: string;
+  reviewStatus?: string;
+  clinicResponse?: string;
+  clinicRespondedAt?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -230,9 +237,50 @@ export class AppointmentService {
    *
    * The API owns slot reservation and conflict handling.
    */
+  /**
+   * Acquire a 10-minute temporary slot hold to prevent concurrent booking.
+   */
+  async holdSlot(
+    clinicId: string,
+    date: string,
+    time: string,
+    doctorId?: string | null,
+  ): Promise<{ holdToken: string; expiresAt: string }> {
+    const normalizedTime = normalizeTimeValue(time);
+    const response = await fetch('/api/public/appointments/hold-slot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clinicId,
+        doctorId: doctorId ?? null,
+        date,
+        time: normalizedTime,
+      }),
+    });
+    if (!response.ok) {
+      throw await this.error(response, 'That time is temporarily reserved by another patient. Please choose another slot.');
+    }
+    return (await response.json()) as { holdToken: string; expiresAt: string };
+  }
+
+  /**
+   * Release a temporary slot hold early (e.g., when the user changes their selection).
+   */
+  async releaseHold(holdToken: string): Promise<void> {
+    if (!holdToken) return;
+    try {
+      await fetch(`/api/public/appointments/hold-slot/${encodeURIComponent(holdToken)}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // Best-effort
+    }
+  }
+
   async bookAppointment(
     data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>,
     context?: BookingClinicContext,
+    holdToken?: string,
   ): Promise<string> {
     if (!this.isBookable(data.date, data.time)) {
       throw new Error('Please choose a current or future appointment slot.');
@@ -256,6 +304,7 @@ export class AppointmentService {
       ).toISOString(),
       attribution: context?.attribution,
       consentVersion: '2026-08-29',
+      holdToken: holdToken ?? null,
       }),
     });
     if (!response.ok) throw await this.error(response, 'Could not book this appointment.');
@@ -293,6 +342,30 @@ export class AppointmentService {
       body: JSON.stringify({ ...data, phone: appointment.phone, date: nextDate, time: nextTime }),
     });
     if (!response.ok) throw await this.error(response, 'Could not update this appointment.');
+  }
+
+  /** Submit verified patient review for a completed visit. */
+  async submitReview(
+    appointmentId: string,
+    phone: string,
+    rating: number,
+    text?: string,
+    anonymous?: boolean,
+  ): Promise<{ id: string; rating: number; text: string; moderationStatus: string }> {
+    const response = await this.api.fetch(`/api/public/appointments/${encodeURIComponent(appointmentId)}/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone,
+        rating,
+        text: text?.trim() || '',
+        anonymous: Boolean(anonymous),
+      }),
+    });
+    if (!response.ok) {
+      throw await this.error(response, 'Could not submit your review. Please try again.');
+    }
+    return (await response.json()) as { id: string; rating: number; text: string; moderationStatus: string };
   }
 
   /**

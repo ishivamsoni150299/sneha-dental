@@ -62,6 +62,9 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   // ── Multi-step form state ─────────────────────────────────────────────────
   currentStep = signal<number>(1);
   readonly totalSteps = 3;
+  holdToken = signal<string | null>(null);
+  holdExpiresAt = signal<string | null>(null);
+  holdingSlot = signal(false);
 
   readonly stepLabels = [
     { num: 1, title: 'Service & Schedule', short: 'Service' },
@@ -76,7 +79,36 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     3: [],
   };
 
-  nextStep() {
+  private async acquireSlotHold(): Promise<boolean> {
+    const clinicId = this.bookingContext?.clinicId ?? this.clinic.config.clinicId;
+    const date = this.form.get('date')?.value;
+    const time = this.form.get('time')?.value;
+    const doctorId = this.selectedDoctorId() || null;
+    if (!clinicId || !date || !time) return true;
+
+    this.holdingSlot.set(true);
+    this.error.set(null);
+    try {
+      if (this.holdToken()) {
+        await this.appointmentService.releaseHold(this.holdToken()!);
+        this.holdToken.set(null);
+        this.holdExpiresAt.set(null);
+      }
+      const res = await this.appointmentService.holdSlot(clinicId, date, time, doctorId);
+      this.holdToken.set(res.holdToken);
+      this.holdExpiresAt.set(res.expiresAt);
+      return true;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'That slot is temporarily held by another patient. Please choose another slot.';
+      this.error.set(msg);
+      return false;
+    } finally {
+      this.holdingSlot.set(false);
+    }
+  }
+
+  async nextStep() {
+    if (this.holdingSlot()) return;
     const step = this.currentStep();
     const fields = this.stepFields[step] ?? [];
     fields.forEach(f => { this.form.get(f)!.markAsTouched(); });
@@ -84,6 +116,10 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     if (hasErrors) {
       this.focusFirstInvalidField(fields);
       return;
+    }
+    if (step === 1) {
+      const ok = await this.acquireSlotHold();
+      if (!ok) return;
     }
     if (step < this.totalSteps) {
       this.currentStep.set(step + 1);
@@ -286,7 +322,13 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() { this.subs.unsubscribe(); }
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+    const token = this.holdToken();
+    if (token) {
+      void this.appointmentService.releaseHold(token);
+    }
+  }
 
   onDoctorSelectionChange(event: Event): void {
     this.selectDoctor((event.target as HTMLSelectElement).value);
@@ -485,7 +527,9 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
         doctorName: doctor?.name,
         message:    val.message || undefined,
         patientUid: this.patientAuth.matchingPatientUid(val.phone!),
-      }, this.bookingContext ?? undefined);
+      }, this.bookingContext ?? undefined, this.holdToken() ?? undefined);
+      this.holdToken.set(null);
+      this.holdExpiresAt.set(null);
       const submission: BookingSubmission = {
         consultationMode: this.bookingContext?.consultationMode ?? 'in_person',
         ref,

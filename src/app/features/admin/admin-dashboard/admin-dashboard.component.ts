@@ -337,53 +337,67 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // ── Onboarding checklist ─────────────────────────────────────────────────
   onboardingItems = computed(() => {
     const cfg = this.clinic.config;
+    const hasPrice = (cfg.services?.length ?? 0) > 0 && cfg.services.some(s => Boolean(s.price?.trim()));
     return [
       {
         key:   'profile',
-        label: 'Complete your clinic profile',
-        hint:  'Add doctor name, qualification, and bio',
+        label: 'Doctor Credentials & Profile',
+        hint:  cfg.doctorName?.trim() && cfg.doctorQualification?.trim()
+          ? `${cfg.doctorName} · ${cfg.doctorQualification}`
+          : 'Add primary doctor name, qualifications, and dental bio',
         done:  !!(cfg.doctorName?.trim() && cfg.doctorQualification?.trim()),
         link:  '/business/clinic/settings',
       },
       {
         key:   'contact',
-        label: 'Add contact & address details',
-        hint:  'Phone number and clinic address',
-        done:  !!(cfg.phone?.trim() && cfg.addressLine1?.trim()),
+        label: 'Clinic Address & Contact',
+        hint:  'Phone number, address, and city for local patient discovery',
+        done:  !!(cfg.phone?.trim() && (cfg.addressLine1?.trim() || cfg.city?.trim())),
         link:  '/business/clinic/settings',
       },
       {
         key:   'hours',
-        label: 'Set your clinic hours',
-        hint:  'Let patients know when you\'re open',
+        label: 'Consultation Hours & Days',
+        hint:  'Set weekly open hours and days off for slot availability',
         done:  (cfg.hours?.length ?? 0) > 0,
         link:  '/business/clinic/settings',
       },
       {
         key:   'services',
-        label: 'Add your services',
-        hint:  'List treatments and pricing',
-        done:  (cfg.services?.length ?? 0) > 0,
+        label: 'Treatments & Transparent Pricing',
+        hint:  hasPrice
+          ? 'Treatments with upfront pricing configured'
+          : 'List key dental treatments and estimated prices',
+        done:  hasPrice,
+        link:  '/business/clinic/settings',
+      },
+      {
+        key:   'marketplace',
+        label: 'Marketplace Directory Verification',
+        hint:  cfg.marketplaceStatus === 'verified'
+          ? 'Verified clinic listing active on national directory'
+          : 'Verification unlocks organic patient search & bookings',
+        done:  cfg.marketplaceStatus === 'verified',
         link:  '/business/clinic/settings',
       },
       {
         key:   'notifications',
-        label: 'Confirm your notification email',
-        hint:  'New appointment alerts are sent to the clinic owner email',
+        label: 'Notification & Email Outbox',
+        hint:  'Instant alerts for bookings, confirmations, and reviews',
         done:  !!cfg.billingEmail?.trim(),
         link:  '/business/clinic/settings',
       },
       {
         key:   'test-booking',
-        label: 'Complete a test patient booking',
-        hint:  'Verify the mobile form, dashboard record, and email alert',
+        label: 'Complete a Test Patient Booking',
+        hint:  'Verify 10-min slot hold, appointment creation, and dashboard updates',
         done:  this.appointments().length > 0,
         link:  '/appointment',
       },
       {
         key:   'share',
-        label: 'Share your website with patients',
-        hint:  'Send your unique link to 5 patients',
+        label: 'Share Your Clinic Booking Link',
+        hint:  'Send your unique website link to patients or social channels',
         done:  !!(cfg.onboardingSharedWebsite),
         link:  null, // handled by button
       },

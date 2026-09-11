@@ -371,7 +371,7 @@
               Mark as arrived
             </button>
           }
-          @if (detailAppt()!.status === 'checked_in') {
+          @if (detailAppt()!.status === 'checked_in' || detailAppt()!.status === 'confirmed') {
             <button (click)="markCompleted(detailAppt()!)"
                     [disabled]="updatingId() === detailAppt()!.id"
                     class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl
@@ -1273,7 +1273,7 @@
                             Arrived
                           </button>
                         }
-                        @if (appt.status === 'checked_in') {
+                        @if (appt.status === 'checked_in' || appt.status === 'confirmed') {
                           <button (click)="markCompleted(appt)" [disabled]="updatingId() === appt.id"
                                   class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
                             @if (updatingId() === appt.id) {

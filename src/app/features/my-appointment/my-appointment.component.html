@@ -193,23 +193,134 @@
               </div>
             }
 
-            <div class="clinic-manage-warning">
-              Need a same-day change? Call the clinic directly for faster help.
-            </div>
+            @if (appointment()?.status === 'completed') {
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-indigo-50/30 p-5 sm:p-6">
+                @if (appointment()?.reviewRating || appointment()?.reviewId) {
+                  <!-- Already submitted review view -->
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      Verified Patient Review
+                    </span>
+                    <span class="text-xs text-gray-500 font-medium capitalize">
+                      ({{ appointment()?.reviewStatus ?? 'Published' }})
+                    </span>
+                  </div>
 
-            <div class="space-y-3">
-              @if (canEdit()) {
-                <button (click)="openEdit()" class="ui-btn ui-btn-primary ui-btn-block">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                  </svg>
-                  Edit Appointment
-                </button>
-              } @else {
-                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm font-medium text-gray-600">
-                  This booking can no longer be edited online. Call the clinic for help.
-                </div>
-              }
+                  <div class="flex items-center gap-1 my-2">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <svg class="w-5 h-5" [class]="star <= (appointment()?.reviewRating ?? 5) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                      </svg>
+                    }
+                  </div>
+
+                  @if (appointment()?.reviewText) {
+                    <p class="text-sm text-gray-700 bg-white/80 rounded-xl p-3 border border-gray-100 italic mt-2">
+                      "{{ appointment()?.reviewText }}"
+                    </p>
+                  }
+
+                  @if (appointment()?.clinicResponse) {
+                    <div class="mt-3 rounded-xl bg-blue-100/60 p-3 text-xs text-blue-950 border border-blue-200">
+                      <p class="font-bold text-blue-900 mb-1">Clinic Response:</p>
+                      <p>{{ appointment()?.clinicResponse }}</p>
+                    </div>
+                  }
+                } @else {
+                  <!-- Review submission form -->
+                  <div class="space-y-4">
+                    <div>
+                      <h3 class="font-display text-lg font-bold text-gray-900">How was your visit?</h3>
+                      <p class="text-xs text-gray-500 mt-0.5">Share your feedback to help other patients make informed healthcare decisions.</p>
+                    </div>
+
+                    @if (reviewSuccess()) {
+                      <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+                        Thank you! Your verified review has been submitted.
+                      </div>
+                    } @else {
+                      <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview()" class="space-y-4">
+                        <!-- Star Rating Selector -->
+                        <div>
+                          <label class="block text-xs font-semibold text-gray-700 mb-1.5">Rating <span class="text-red-500">*</span></label>
+                          <div class="flex items-center gap-1.5" role="radiogroup" aria-label="Rate from 1 to 5 stars">
+                            @for (star of [1, 2, 3, 4, 5]; track star) {
+                              <button type="button" (click)="setRating(star)"
+                                      [attr.aria-label]="star + ' out of 5 stars'"
+                                      class="p-1 rounded-lg hover:scale-110 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                                <svg class="w-7 h-7 cursor-pointer transition-colors"
+                                     [class]="star <= (reviewForm.get('rating')?.value ?? 5) ? 'text-amber-400 fill-amber-400' : 'text-gray-300 hover:text-amber-200'"
+                                     viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                              </button>
+                            }
+                            <span class="ml-2 text-xs font-bold text-gray-700">
+                              {{ reviewForm.get('rating')?.value }} / 5 stars
+                            </span>
+                          </div>
+                        </div>
+
+                        <!-- Comments -->
+                        <div>
+                          <label for="review-text" class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Comments <span class="text-gray-400 font-normal">(optional)</span>
+                          </label>
+                          <textarea id="review-text" formControlName="text" rows="3"
+                                    placeholder="What was good? What could be improved? (e.g. hygiene, wait time, doctor's explanation)"
+                                    class="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"></textarea>
+                        </div>
+
+                        <!-- Anonymous Checkbox -->
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-600">
+                          <input type="checkbox" formControlName="anonymous" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                          <span>Post anonymously (shows as "Verified patient")</span>
+                        </label>
+
+                        @if (reviewError()) {
+                          <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+                            {{ reviewError() }}
+                          </div>
+                        }
+
+                        <button type="submit" [disabled]="submittingReview()"
+                                class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                          @if (submittingReview()) {
+                            <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                            Submitting Review...
+                          } @else {
+                            Submit Verified Review
+                          }
+                        </button>
+                      </form>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="clinic-manage-warning">
+                Need a same-day change? Call the clinic directly for faster help.
+              </div>
+
+              <div class="space-y-3">
+                @if (canEdit()) {
+                  <button (click)="openEdit()" class="ui-btn ui-btn-primary ui-btn-block">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit Appointment
+                  </button>
+                } @else {
+                  <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-center text-sm font-medium text-gray-600">
+                    This booking can no longer be edited online. Call the clinic for help.
+                  </div>
+                }
 
               @if (canCancel()) {
                 <button (click)="showConfirm.set(true)" [disabled]="cancelling()"
@@ -272,6 +383,7 @@
                   </button>
                 </div>
               </div>
+            }
             }
 
             <button (click)="backToLookup()" class="w-full py-2 text-sm text-gray-400 transition-colors hover:text-gray-600">
