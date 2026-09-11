@@ -4619,6 +4619,24 @@ textarea.ui-field {
   backdrop-filter: blur(18px);
 }
 
+@media (max-width: 639px) {
+  .platform-admin-shell > main#main-content {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+  .platform-admin-shell .platform-mobile-nav > div { gap: 2px; padding-inline: 4px; }
+  .platform-admin-shell .platform-mobile-nav .ui-nav-link {
+    min-width: 0;
+    padding-inline: 2px;
+    margin-block: 5px;
+    border-radius: 12px;
+    touch-action: manipulation;
+  }
+  .platform-admin-shell .platform-mobile-nav .ui-nav-link-active {
+    @apply bg-blue-100 text-blue-700;
+  }
+  .platform-admin-shell :is(input, select, textarea) { font-size: 16px; }
+}
+
 @media (min-width: 768px) {
   .platform-mobile-menu-button,
   .platform-mobile-menu {

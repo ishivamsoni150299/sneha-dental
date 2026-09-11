@@ -46,7 +46,7 @@
 
   <nav class="platform-mobile-nav sm:hidden" aria-label="Platform administration">
     <div class="grid h-16 grid-cols-6">
-      <a routerLink="/business/dentists/verification" routerLinkActive="ui-nav-link-active" class="ui-nav-link flex-col justify-center rounded-none"><span class="text-[10px]">Dentists</span></a>
+      <a routerLink="/business/dentists/verification" routerLinkActive="ui-nav-link-active" ariaCurrentWhenActive="page" class="ui-nav-link flex-col justify-center gap-1 rounded-none"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span class="text-[10px]">Dentists</span></a>
       <a routerLink="/business/clinics" routerLinkActive #clinicRoute="routerLinkActive" class="ui-nav-link flex-col justify-center gap-1 rounded-none" [class.ui-nav-link-active]="clinicRoute.isActive">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5"/></svg>
         <span class="text-[10px]">Clinics</span>

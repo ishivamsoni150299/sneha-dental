@@ -51,7 +51,7 @@
         <p class="guide-note flex gap-2 border-t border-gray-200 pt-4 text-xs leading-relaxed text-gray-500"><i class="ph ph-check-circle" aria-hidden="true"></i> No platform booking fee. No account needed to request.</p>
       </aside>
     </div>
-    <div class="mt-6 flex flex-wrap gap-2" role="group" aria-label="Consultation format">
+    <div class="consultation-switch mt-6 flex flex-wrap gap-2" role="group" aria-label="Consultation format">
       <button type="button" (click)="videoOnly.set(false)" [attr.aria-pressed]="!videoOnly()" [class.bg-blue-50]="!videoOnly()" [class.border-blue-600]="!videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-hospital" aria-hidden="true"></i> In-clinic visit</button>
       <button type="button" (click)="chooseVideo()" [attr.aria-pressed]="videoOnly()" [class.bg-blue-50]="videoOnly()" [class.border-blue-600]="videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Video consultation</button>
     </div>
@@ -223,8 +223,4 @@
     </section>
   </div>
 </section>
-<div class="mobile-booking-bar md:hidden">
-  <span class="text-xs text-gray-500">No booking fee<br><strong class="text-gray-900">Choose a dentist to book</strong></span>
-  <button type="button" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700" (click)="findDentists()">Book Appointment <i class="ph ph-arrow-right ml-2" aria-hidden="true"></i></button>
-</div>
 

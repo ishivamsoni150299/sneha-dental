@@ -103,3 +103,25 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
   .patient-faq{margin-top:40px;padding:24px 20px}.patient-faq h2{font-size:27px}.mobile-booking-bar{display:flex}.mobile-booking-bar>span{flex:1;min-width:0;font-size:11px}.mobile-booking-bar .primary{flex:none;white-space:nowrap;font-size:12px;padding-inline:12px}
 }
 @media(prefers-reduced-motion:reduce){.status-orbit{animation:none}}
+
+@media(max-width:767px){
+  .directory-wrap{padding-inline:16px}
+  .discovery-hero{padding-top:24px;background:var(--ui-surface-muted)}
+  h1{font-size:32px;line-height:1.12;letter-spacing:-.035em}
+  .hero-description{font-size:14px;line-height:1.5;margin-top:10px}
+  .consultation-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:16px;background:var(--ui-surface)}
+  .consultation-switch button{justify-content:center;padding:10px 6px;font-size:12px;border-color:transparent}
+  .consultation-switch button[aria-pressed=true]{box-shadow:var(--ui-shadow-xs)}
+  .search-bar{margin-top:14px;border-radius:20px;box-shadow:var(--ui-shadow-sm)}
+  .search-field{padding:8px 12px}
+  .search-submit{border-radius:14px}
+  .problems{margin-right:-16px;padding-right:16px}
+  .problems button{flex-direction:column;gap:6px;min-width:96px;min-height:76px;border-radius:16px;font-size:12px}
+  .results-section{scroll-margin-top:76px}
+  .results-heading h2{font-size:24px}
+  .results-heading{padding-top:24px}
+  .quick-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px}
+  .quick-filters button,.quick-filters select{flex:0 0 auto;border-radius:999px}
+  .filter-dialog::before{content:'';display:block;width:40px;height:4px;margin:10px auto 0;border-radius:999px;background:var(--ui-line-strong)}
+  .patient-faq{padding:20px;border-radius:20px}
+}

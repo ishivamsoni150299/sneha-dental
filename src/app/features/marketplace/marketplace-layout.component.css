@@ -96,6 +96,7 @@
 
 .marketplace-shell .professional-menu { display: none; }
 .marketplace-shell main { min-height: 65vh; }
+.patient-tab-bar { display: none; }
 html:has(.filter-dialog[open]) { overflow: hidden; }
 
 @media (max-width: 63.9375rem) {
@@ -128,9 +129,33 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
 }
 
 @media (max-width: 47.9375rem) {
+  .marketplace-shell { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-shell:has(.profile-booking-bar) { padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-shell .profile-booking-bar { bottom: calc(73px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-header {
+    min-height: calc(60px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 16px 0;
+    flex-wrap: nowrap;
+  }
+  .marketplace-header .patient-navigation { display: none; }
+  .patient-tab-bar {
+    @apply fixed inset-x-0 bottom-0 grid grid-cols-2 gap-2 border-t border-gray-200 bg-white px-4 pt-2;
+    z-index: 40;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: var(--ui-shadow-md);
+  }
+  .patient-tab-bar a {
+    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-semibold text-gray-500;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .patient-tab-bar svg { width: 22px; height: 22px; }
+  .patient-tab-bar a.active { @apply bg-blue-100 text-blue-700; }
+  .patient-tab-bar a:active { @apply bg-gray-100; }
+  .marketplace-shell :is(input, select, textarea) { font-size: 16px; }
+  .marketplace-shell :is(button, summary) { touch-action: manipulation; }
   .marketplace-shell footer {
     flex-direction: column;
-    padding: 2rem 1.25rem calc(7rem + env(safe-area-inset-bottom));
+    padding: 1.5rem 1.25rem;
   }
 }
 
