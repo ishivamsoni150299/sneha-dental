@@ -54,6 +54,12 @@ public class AuthUserRepository {
             passwordHash, false, false, true, false);
     }
 
+    public AuthUser createPatientSignup(String email, String passwordHash) {
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update("insert into users (id, role, email, password_hash) values (?, 'patient', ?, ?)", id, email, passwordHash);
+        return new AuthUser(id, null, UserRole.PATIENT, email, null, passwordHash, false, false, true, false);
+    }
+
     public AuthUser createProfessionalSignup(String email, String passwordHash, String fullName) {
         UUID userId = UUID.randomUUID();
         UUID providerId = UUID.randomUUID();

@@ -1,13 +1,23 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade, AuthRole } from '../../../core/services/auth-facade.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-password-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (accountCreated()) {
+      <section class="space-y-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <h2 class="font-bold text-gray-900">Save your recovery code</h2>
+        <p class="text-sm text-gray-700">Keep this privately in your password manager. It lets you reset your password without email or SMS. It is shown only once.</p>
+        @if (recoveryCode()) { <textarea readonly aria-label="Recovery code" class="w-full rounded-lg border border-gray-300 p-3 font-mono text-sm" [value]="recoveryCode()" (focus)="$any($event.target).select()"></textarea> }
+        @if (error()) { <p role="alert" class="text-sm text-red-700">Your account was created. Generate a recovery code from Account recovery after signing in.</p> }
+        <button type="button" (click)="continueAfterSignup()" class="min-h-12 w-full rounded-xl bg-blue-600 px-4 font-semibold text-white">{{ recoveryCode() ? 'I saved my code — continue' : 'Continue to my account' }}</button>
+      </section>
+    } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
       @if (signup() && portal() === 'dentist') {
         <label class="block text-sm font-semibold text-gray-900">Full name
@@ -28,16 +38,20 @@ import { AuthFacade, AuthRole } from '../../../core/services/auth-facade.service
       }
       @if (error()) { <p role="alert" class="rounded-xl bg-red-50 p-3 text-sm text-red-700">{{ error() }}</p> }
       <button type="submit" [disabled]="busy()" class="min-h-12 w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60">{{ busy() ? 'Please wait…' : signup() ? 'Create account' : 'Sign in' }}</button>
-      @if (!signup()) { <p class="text-sm text-gray-500">Previously used an email link, or forgot your password? Contact the platform owner to set up or recover your password.</p> }
+      @if (!signup()) { <a routerLink="/account/recovery" class="block text-sm font-semibold text-blue-700">Forgot password? Use your recovery code</a> }
     </form>
+    }
   `,
 })
 export class PasswordLoginComponent {
-  readonly portal = input<'clinic' | 'dentist' | 'platform'>('clinic');
+  readonly portal = input<'clinic' | 'dentist' | 'platform' | 'patient'>('clinic');
   readonly signup = input(false);
   readonly authenticated = output<AuthRole>();
   readonly busy = signal(false);
   readonly error = signal('');
+  readonly recoveryCode = signal('');
+  readonly accountCreated = signal(false);
+  continueAfterSignup(): void { this.authenticated.emit(this.auth.role()!); }
   private readonly auth = inject(AuthFacade);
   readonly form = inject(FormBuilder).nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -55,9 +69,11 @@ export class PasswordLoginComponent {
       await this.auth.authReady;
       if (this.signup()) {
         if (this.portal() === 'platform') throw new Error('Platform accounts are created by the operator.');
-        if (this.portal() === 'dentist') await this.auth.createProfessionalAccount(v.name.trim(), v.email.trim(), v.password);
+        if (this.portal() === 'patient') await this.auth.createPatientAccount(v.email.trim(), v.password);
+        else if (this.portal() === 'dentist') await this.auth.createProfessionalAccount(v.name.trim(), v.email.trim(), v.password);
         else await this.auth.createAccountWithEmail(v.email.trim(), v.password);
-        this.authenticated.emit(this.auth.role()!);
+        this.accountCreated.set(true);
+        this.recoveryCode.set(await this.auth.generateRecoveryCode(v.password));
       } else {
         const role = this.portal() === 'dentist'
           ? await this.auth.signInProfessional(v.email.trim(), v.password)

@@ -83,7 +83,7 @@ export class LoginComponent implements OnInit {
 
   async onOtpAuthenticated(role: AuthRole): Promise<void> { await this.routeResolvedUser(role, true); }
 
-  private async routeResolvedUser(role: AuthRole, fromAttempt: boolean): Promise<void> {
+  private async routeResolvedUser(role: AuthRole, _fromAttempt: boolean): Promise<void> {
     const returnUrl = this.safeReturnUrl();
 
     if (role === 'dentist') {

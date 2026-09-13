@@ -20,7 +20,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
       <header class="sticky top-0 z-20 border-b border-gray-200 bg-white">
         <div class="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-4">
           <a routerLink="/professional/profile" class="inline-flex min-h-11 items-center text-sm font-semibold text-blue-700">← My profile</a>
-          <span class="text-sm font-bold text-gray-900">Dentist workspace</span>
+          <a routerLink="/account/recovery" class="inline-flex min-h-11 items-center text-sm font-semibold text-blue-700">Account recovery</a>
         </div>
       </header>
       <main class="mx-auto max-w-6xl px-4 py-6 sm:py-10">

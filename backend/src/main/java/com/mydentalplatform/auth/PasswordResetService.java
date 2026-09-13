@@ -26,13 +26,26 @@ public class PasswordResetService {
     }
     public void request(String rawEmail) {
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-            "Contact the platform owner to recover your password. Automated email recovery is not configured.");
+            "Use your saved recovery code to reset your password. No email will be sent.");
     }
     @Transactional
     public void complete(String rawEmail, String token, String password) {
         String email = rawEmail.trim().toLowerCase();
         String tokenHash = hash(token);
         Instant now = clock.instant();
+        List<UUID> recovery = jdbcTemplate.queryForList("""
+            select r.user_id from account_recovery_codes r join users u on u.id = r.user_id
+            where lower(u.email) = ? and u.enabled and r.code_hash = ? and r.consumed_at is null
+            for update of r, u
+            """, UUID.class, email, tokenHash);
+        if (!recovery.isEmpty()) {
+            UUID userId = recovery.getFirst();
+            jdbcTemplate.update("update users set password_hash = ?, password_migration_required = false, updated_at = now() where id = ?", passwordEncoder.encode(password), userId);
+            jdbcTemplate.update("update account_recovery_codes set consumed_at = now() where user_id = ?", userId);
+            jdbcTemplate.update("update refresh_tokens set revoked_at = now() where user_id = ? and revoked_at is null", userId);
+            jdbcTemplate.update("update auth_challenges set consumed_at = now() where user_id = ? and consumed_at is null", userId);
+            return;
+        }
         List<UUID> challenges = jdbcTemplate.query("""
             select id from auth_challenges
             where destination = ? and purpose = 'password_reset' and secret_hash = ?
@@ -40,13 +53,13 @@ public class PasswordResetService {
             order by created_at desc limit 1 for update
             """, (resultSet, row) -> resultSet.getObject("id", UUID.class), email, tokenHash, now);
         if (challenges.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This reset link is invalid or has expired.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This recovery code is invalid, expired or already used.");
         }
         List<UUID> users = jdbcTemplate.query(
             "select user_id from auth_challenges where id = ?",
             (resultSet, row) -> resultSet.getObject("user_id", UUID.class), challenges.getFirst());
         if (users.isEmpty() || users.getFirst() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This reset link is invalid or has expired.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This recovery code is invalid, expired or already used.");
         }
         UUID userId = users.getFirst();
         jdbcTemplate.update("""

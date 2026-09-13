@@ -7,6 +7,7 @@ import {
 } from '../../core/services/patient-appointment-api.service';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { PatientAppointmentsComponent } from './patient-appointments.component';
+import { AuthFacade } from '../../core/services/auth-facade.service';
 
 function patientAuth(signedIn: boolean) {
   return {
@@ -52,6 +53,7 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
         },
       },
       { provide: PatientAuthService, useValue: auth },
+      { provide: AuthFacade, useValue: { authReady: Promise.resolve(), currentUser: signal(null), role: signal(null) } },
       { provide: PatientAppointmentApiService, useValue: api },
     ],
   }).compileComponents();
@@ -63,12 +65,12 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
 }
 
 describe('PatientAppointmentsComponent', () => {
-  it('requires OTP verification before loading a guest appointment history', async () => {
+  it('requires a password account before loading patient appointment history', async () => {
     const { fixture, api } = await createFixture();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Enter your mobile number');
-    expect(text).not.toContain('No OTP is sent');
-    expect(text).toContain('Send verification code');
+    expect(text).toContain('Sign in to your appointments');
+    expect(text).toContain('Email address');
+    expect(text).not.toContain('Send verification code');
     expect(api.session).not.toHaveBeenCalled();
   });
 

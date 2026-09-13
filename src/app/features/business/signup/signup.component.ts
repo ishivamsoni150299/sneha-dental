@@ -458,6 +458,10 @@ export class SignupComponent implements OnInit {
   }
 
   private async routeAuthenticatedUser(user: PlatformUser, role: AuthRole): Promise<void> {
+    if (role === 'dentist') {
+      await this.router.navigate(['/professional/workspace']);
+      return;
+    }
     if (role === 'patient') {
       await this.router.navigate(['/appointments']);
       return;

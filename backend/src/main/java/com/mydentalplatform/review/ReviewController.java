@@ -141,17 +141,17 @@ public class ReviewController {
         @PathVariable UUID appointmentId,
         @Valid @RequestBody PublicReviewRequest request
     ) {
-        com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone());
+        UUID accountId = patientAccount(jwt);
         List<Map<String, Object>> appointments = jdbcTemplate.queryForList("""
             select clinic_id, patient_name, phone_e164 from appointments
             where id = ? and status = 'completed'
-              and right(regexp_replace(phone_e164, '[^0-9]', '', 'g'), 10) = ?
+              and patient_id = ?
             for update
-            """, appointmentId, normalizePhone(request.phone()));
+            """, appointmentId, accountId);
         if (appointments.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "A completed appointment matching this phone number was not found.");
         Map<String, Object> appointment = appointments.getFirst();
-        UUID patientId = patientId(String.valueOf(appointment.get("phone_e164")));
+        UUID patientId = accountId;
         UUID reviewId = UUID.randomUUID();
         String patientName = String.valueOf(appointment.get("patient_name"));
         String alias = request.anonymous() ? "Anonymous patient" : patientName.split("\\s+")[0];
@@ -177,16 +177,16 @@ public class ReviewController {
         @PathVariable UUID reviewId,
         @Valid @RequestBody PublicReportRequest request
     ) {
-        String phone = com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, request.phone());
+        UUID accountId = patientAccount(jwt);
         List<UUID> eligibleClinics = jdbcTemplate.queryForList("""
             select distinct r.clinic_id from appointment_reviews r
             join appointments a on a.clinic_id = r.clinic_id
             where r.id = ? and a.status = 'completed'
-              and right(regexp_replace(a.phone_e164, '[^0-9]', '', 'g'), 10) = ?
-            """, UUID.class, reviewId, normalizePhone(phone));
+              and a.patient_id = ?
+            """, UUID.class, reviewId, accountId);
         if (eligibleClinics.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "A completed appointment is required to report this review.");
-        UUID reporterId = patientId(phone);
+        UUID reporterId = accountId;
         try {
             jdbcTemplate.update("""
                 insert into appointment_review_reports (review_id, reporter_id, reason, details)
@@ -196,6 +196,12 @@ public class ReviewController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already reported this review.", error);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    private UUID patientAccount(Jwt jwt) {
+        if (jwt == null || !"patient".equals(jwt.getClaimAsString("role")))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sign in with your patient account.");
+        return UUID.fromString(jwt.getSubject());
     }
 
     private UUID patientId(String phone) {

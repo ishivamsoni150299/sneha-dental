@@ -71,7 +71,7 @@ public class MarketplaceApiController {
     }
 
     @PostMapping("/appointments")
-    BookingResponse book(@Valid @RequestBody BookingRequest request) {
+    BookingResponse book(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, @Valid @RequestBody BookingRequest request) {
         MarketplaceApiService.BookingContext context = marketplace.validateBooking(
             request.dentistSlug(), request.serviceId(), request.doctorId(), request.date(), request.time());
         String bookingRef = appointments.book(new AppointmentController.BookingRequest(
@@ -80,7 +80,7 @@ public class MarketplaceApiController {
             request.doctorId(), request.message(), "marketplace",
             OffsetDateTime.now(MarketplaceApiService.INDIA).plusHours(2), "2026-09-06",
             Map.of("marketplaceSlug", request.dentistSlug(), "channel", "chatgpt_or_public_api"), "in_person"
-        ));
+        ), jwt != null && "patient".equals(jwt.getClaimAsString("role")) ? UUID.fromString(jwt.getSubject()) : null);
         return new BookingResponse(bookingRef, "pending",
             "Appointment request sent. The clinic will confirm the requested time.",
             "/appointments?claim=" + bookingRef);

@@ -16,6 +16,7 @@ export interface PatientAppointmentReview {
 }
 
 export interface PatientAppointmentSummary {
+  phone?: string;
   consultationMode?: 'in_person' | 'video';
   id: string;
   clinicId: string;
@@ -54,7 +55,7 @@ export class PatientAppointmentApiService {
   private readonly cache = new Map<string, PatientAppointmentSummary>();
 
   async session(): Promise<PatientSession> {
-    const session = await this.request<PatientSession>('/api/patient/session');
+    const session = await this.request<PatientSession>('/api/patient/account/session');
     this.cache.clear();
     for (const appointment of session.appointments) this.cache.set(appointment.id, appointment);
     return session;
@@ -69,7 +70,7 @@ export class PatientAppointmentApiService {
   }
 
   async cancel(appointmentId: string): Promise<PatientAppointmentSummary> {
-    await this.request(`/api/public/appointments/${encodeURIComponent(appointmentId)}/cancel`, {
+    await this.request(`/api/patient/account/appointments/${encodeURIComponent(appointmentId)}/cancel`, {
       method: 'POST',
       body: JSON.stringify({ phone: this.phone() }),
     });
@@ -86,7 +87,7 @@ export class PatientAppointmentApiService {
 
   async reschedule(appointmentId: string, date: string, time: string): Promise<PatientAppointmentSummary> {
     const appointment = this.requireCached(appointmentId);
-    await this.request(`/api/public/appointments/${encodeURIComponent(appointmentId)}`, {
+    await this.request(`/api/patient/account/appointments/${encodeURIComponent(appointmentId)}`, {
       method: 'PATCH',
       body: JSON.stringify({ phone: this.phone(), date, time }),
     });
@@ -101,7 +102,7 @@ export class PatientAppointmentApiService {
   ): Promise<PatientAppointmentReview> {
     return this.request<PatientAppointmentReview>(`/api/public/appointments/${encodeURIComponent(appointmentId)}/review`, {
       method: 'POST',
-      body: JSON.stringify({ phone: this.phone(), rating, text, anonymous }),
+      body: JSON.stringify({ phone: this.cache.get(appointmentId)?.phone ?? this.phone(), rating, text, anonymous }),
     });
   }
 
@@ -113,7 +114,7 @@ export class PatientAppointmentApiService {
   }
 
   private async lookup(bookingRef: string, phone: string): Promise<PatientAppointmentSummary> {
-    const appointment = await this.request<PatientAppointmentSummary>('/api/public/appointments/lookup-any', {
+    const appointment = await this.request<PatientAppointmentSummary>('/api/patient/account/lookup', {
       method: 'POST',
       body: JSON.stringify({ bookingRef, phone }),
     });
@@ -133,8 +134,7 @@ export class PatientAppointmentApiService {
 
   private phone(): string {
     const phone = this.patientAuth.user()?.phoneNumber;
-    if (!phone) throw new Error('Enter the mobile number used for the booking.');
-    return phone;
+    return phone ?? 'account';
   }
 
   private references(): string[] {

@@ -17,7 +17,7 @@ describe('VideoConsultationService', () => {
   it('sends patient access credentials only in a POST body', async () => {
     await service.join('appointment-1', false, 'BK-ABCDEFGH', '9999999999');
     const [url, init] = api.fetch.calls.mostRecent().args;
-    expect(url).toBe('/api/public/appointments/appointment-1/video/join');
+    expect(url).toBe('/api/patient/account/appointments/appointment-1/video/join');
     expect(JSON.parse(init!.body as string)).toEqual({bookingRef:'BK-ABCDEFGH',phone:'9999999999'});
     expect(fetchSpy).not.toHaveBeenCalled();
   });

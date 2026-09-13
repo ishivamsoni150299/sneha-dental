@@ -5,6 +5,7 @@ import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-
 import { dentistGuard } from './core/guards/dentist.guard';
 
 export const routes: Routes = [
+  { path: 'account/recovery', loadComponent: () => import('./features/professional/account-recovery.component').then(m => m.AccountRecoveryComponent), data: { noIndex: true } },
   { path: 'video-test', loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Private Video Test', noIndex: true } },
 
   // Independent dentist identity and professional workspace.
@@ -279,7 +280,7 @@ export const routes: Routes = [
       {
         path: 'my-appointment',
         loadComponent: () =>
-          import('./features/my-appointment/my-appointment.component').then(m => m.MyAppointmentComponent),
+          import('./features/marketplace/patient-appointments.component').then(m => m.PatientAppointmentsComponent),
         data: {
           title: 'Manage Appointment',
           description: 'View, reschedule, or cancel your appointment with your booking reference.',

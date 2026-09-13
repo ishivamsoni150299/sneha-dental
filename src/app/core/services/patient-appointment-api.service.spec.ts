@@ -24,7 +24,7 @@ describe('PatientAppointmentApiService', () => {
 
     await service.claim('SC-ABCDEFGH');
 
-    expect(fetchSpy).toHaveBeenCalledWith('/api/public/appointments/lookup-any', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/api/patient/account/lookup', jasmine.objectContaining({
       method: 'POST',
       body: JSON.stringify({ bookingRef: 'SC-ABCDEFGH', phone: '+919876543210' }),
     }));
@@ -41,7 +41,7 @@ describe('PatientAppointmentApiService', () => {
     await service.claim('SC-ABCDEFGH');
 
     await expectAsync(service.cancel('appointment-1')).toBeResolved();
-    expect(fetchSpy).toHaveBeenCalledWith('/api/public/appointments/appointment-1/cancel', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/api/patient/account/appointments/appointment-1/cancel', jasmine.objectContaining({
       body: JSON.stringify({ phone: '+919876543210' }),
     }));
   });

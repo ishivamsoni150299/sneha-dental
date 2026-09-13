@@ -52,8 +52,6 @@ public class ClinicLoginService {
             throw new PasswordMigrationRequiredException();
         }
 
-        if (user.role() == UserRole.PATIENT) throw new AuthException("Use mobile verification to sign in.");
-
         return verifiedLogin(user, userAgent);
     }
 
@@ -80,6 +78,14 @@ public class ClinicLoginService {
     }
 
     @Transactional
+    public LoginResult signupPatient(String email, String password, String userAgent) {
+        String normalized = email.trim().toLowerCase(java.util.Locale.ROOT);
+        if (userRepository.findByEmail(normalized).isPresent())
+            throw new AuthConflictException("An account already exists for this email. Sign in or use your recovery code.");
+        return verifiedLogin(userRepository.createPatientSignup(normalized, passwordEncoder.encode(password)), userAgent);
+    }
+
+    @Transactional
     public LoginResult refresh(String refreshTokenValue, String userAgent) {
         if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
             throw new AuthException("Refresh token is required.");
@@ -93,7 +99,7 @@ public class ClinicLoginService {
             });
         AuthUser user = session.user();
         if (!user.enabled() || user.passwordMigrationRequired() ||
-            (user.role() == UserRole.PATIENT ? !user.phoneVerified() : user.passwordHash() == null)) {
+            (user.passwordHash() == null && !(user.role() == UserRole.PATIENT && user.phoneVerified()))) {
             throw new AuthException("This session is no longer valid.");
         }
 

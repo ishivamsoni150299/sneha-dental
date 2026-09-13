@@ -4,7 +4,8 @@ import { PasswordLoginComponent } from './password-login.component';
 
 describe('PasswordLoginComponent', () => {
   const setup = (signup = false, portal = 'clinic') => {
-    const auth = jasmine.createSpyObj('AuthFacade', ['signInWithEmail', 'signInProfessional', 'createAccountWithEmail', 'createProfessionalAccount', 'role', 'logout'], { authReady: Promise.resolve() });
+    const auth = jasmine.createSpyObj('AuthFacade', ['signInWithEmail', 'signInProfessional', 'createAccountWithEmail', 'createProfessionalAccount', 'generateRecoveryCode', 'role', 'logout'], { authReady: Promise.resolve() });
+    auth.generateRecoveryCode.and.resolveTo('private-recovery-code');
     auth.signInWithEmail.and.resolveTo('clinic-admin');
     auth.createAccountWithEmail.and.resolveTo({});
     auth.role.and.returnValue('incomplete-signup');
@@ -29,6 +30,8 @@ describe('PasswordLoginComponent', () => {
     const emit = spyOn(component.authenticated, 'emit');
     await component.submit();
     expect(auth.createAccountWithEmail).toHaveBeenCalled();
+    expect(component.recoveryCode()).toBe('private-recovery-code');
+    component.continueAfterSignup();
     expect(emit).toHaveBeenCalledWith('incomplete-signup');
   });
   it('rejects mismatched passwords before making a request', async () => {

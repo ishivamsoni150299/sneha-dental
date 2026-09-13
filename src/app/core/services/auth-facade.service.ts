@@ -78,6 +78,21 @@ export class AuthFacade {
     return this.currentUser()!;
   }
 
+  async createPatientAccount(email: string, password: string): Promise<PlatformUser> {
+    await this.authReady;
+    this.applySession(await this.authRequest('/api/auth/patient/signup', { email, password }));
+    return this.currentUser()!;
+  }
+
+  async generateRecoveryCode(password: string): Promise<string> {
+    const token = await this.getFreshIdToken();
+    const response = await fetch('/api/auth/recovery-code', { method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ password }) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.detail || 'Could not generate a recovery code.');
+    return data.recoveryCode;
+  }
+
   async signInProfessional(email: string, password: string): Promise<AuthRole> {
     await this.authReady;
     return this.applySession(await this.authRequest('/api/auth/login', { email, password }));

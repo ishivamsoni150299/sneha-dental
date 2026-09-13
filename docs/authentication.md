@@ -1,6 +1,6 @@
 # Production authentication
 
-Clinic owners, dentists and platform administrators sign in with email and password.
+Patients, clinic owners, dentists and platform administrators sign in with email and password.
 Spring Security issues a short-lived JWT and an HttpOnly Secure refresh cookie.
 Supabase login and email magic links are retired.
 
@@ -24,13 +24,21 @@ recovery. Set AUTH_RECOVERY_ID to a fresh UUID, AUTH_RECOVERY_EMAIL to the exist
 account and AUTH_RECOVERY_PASSWORD to a strong 12–72 byte password. Restart once
 and remove those variables. Recovery preserves the role and profile and revokes
 prior sessions. Never place these values in Git.
-Automated password-reset email delivery is currently unavailable.
+New signups receive a private recovery code before continuing. Existing signed-in
+users can generate one at /account/recovery after confirming their current password.
+Only the code hash is stored. A reset consumes the code once, changes the password
+and revokes existing sessions. Generate a new code after resetting. A lost password
+and lost code require operator identity verification; email alone cannot reset an account.
 
-Patient phone verification requires an SMS delivery integration, currently
-unconfigured. Only the explicitly enabled, expiring operator test number can use
-the test OTP flow. Never mark arbitrary unverified phones as verified.
-This limitation does not affect email/password accounts or private video test
-invitations, which use expiring signed invitation tokens.
+No email/SMS delivery or third-party identity provider is needed for login, signup
+or code-based recovery. The legacy operator test OTP is not used by patient pages.
+Email ownership is not asserted by password registration. Patients access only
+appointments bound to their authenticated user ID; knowing another person's phone
+or booking reference does not expose their records. Guest booking contact emails
+are stored on appointments, not reserved as password-account identities.
+Sign in before booking to associate the appointment with your account. Video
+booking requires a patient session. Old guest appointments require clinic-assisted
+ownership verification before account association.
 
 Regression checks cover the real password encoder, BCrypt compatibility, token
 rotation/revocation, role authorization, concurrent browser refresh, logout during

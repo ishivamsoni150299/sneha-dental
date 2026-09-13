@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
+import { AuthRole } from '../../core/services/auth-facade.service';
 import {
   PatientAppointmentApiService,
   type PatientAppointmentSummary,
@@ -15,11 +17,17 @@ type VerificationStep = 'phone' | 'code' | 'appointments';
 @Component({
   selector: 'app-patient-appointments',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, VideoConsultationComponent],
+  imports: [ReactiveFormsModule, RouterLink, VideoConsultationComponent, PasswordLoginComponent],
   templateUrl: './patient-appointments.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PatientAppointmentsComponent implements OnInit, OnDestroy {
+  readonly signup = signal(false);
+  private readonly router = inject(Router);
+  async authenticated(role: AuthRole): Promise<void> {
+    if (role === 'patient') { await this.loadSession(); return; }
+    await this.router.navigateByUrl(role === 'dentist' ? '/professional/workspace' : role === 'platform-admin' ? '/business/clinics' : role === 'clinic-admin' ? '/business/clinic/dashboard' : '/business/signup');
+  }
   readonly resendCooldown = signal(0);
   private resendTimer?: ReturnType<typeof setInterval>;
   private readonly fb = inject(FormBuilder);

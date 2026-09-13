@@ -55,6 +55,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         if (method.equals("POST") && path.equals("/api/auth/login")) {
             rule = new LimitRule(10, 60);
         }
+        if (method.equals("POST") && path.equals("/api/auth/patient/signup")) rule = new LimitRule(5, 60);
+        if (method.equals("POST") && (path.equals("/api/auth/recovery-code") || path.equals("/api/auth/password-reset/complete")))
+            rule = new LimitRule(5, 600);
         if (method.equals("POST") && path.startsWith("/api/auth/otp/")) {
             rule = new LimitRule(path.endsWith("/request") ? 10 : 30, 600);
         }
@@ -62,6 +65,11 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             boolean join = path.endsWith("/join");
             rule = new LimitRule(join ? 12 : 60, join ? 60 : 600);
             ruleKey = join ? "POST:video-join" : "POST:video-access";
+        }
+        if (method.equals("POST") && path.matches("/api/patient/account/appointments/[^/]+/video/(join|access)")) {
+            boolean join = path.endsWith("/join");
+            rule = new LimitRule(join ? 12 : 60, join ? 60 : 600);
+            ruleKey = join ? "POST:patient-video-join" : "POST:patient-video-access";
         }
         for (Map.Entry<String, LimitRule> entry : RULES.entrySet()) {
             if (rule != null) break;

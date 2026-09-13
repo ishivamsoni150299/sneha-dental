@@ -38,8 +38,11 @@ public class AppointmentController {
     }
 
     @PostMapping("/public/appointments")
-    Map<String, String> book(@Valid @RequestBody BookingRequest request) {
-        return Map.of("bookingRef", appointmentService.book(request));
+    Map<String, String> book(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody BookingRequest request) {
+        UUID account = jwt != null && "patient".equals(jwt.getClaimAsString("role")) ? UUID.fromString(jwt.getSubject()) : null;
+        if ("video".equals(request.consultationMode()) && account == null)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Sign in to your patient account before booking a video consultation.");
+        return Map.of("bookingRef", appointmentService.book(request, account));
     }
 
     @PostMapping("/public/appointments/hold-slot")

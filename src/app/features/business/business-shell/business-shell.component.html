@@ -31,6 +31,7 @@
         </a>
         <span class="mx-2 h-7 w-px bg-ui-line" aria-hidden="true"></span>
         <span class="hidden max-w-[150px] truncate text-xs text-ui-ink-muted lg:block">{{ auth.currentUser()?.email }}</span>
+        <a routerLink="/account/recovery" class="ui-btn ui-btn-ghost ui-btn-sm">Account recovery</a>
         <button type="button" (click)="logout()" class="ui-btn ui-btn-ghost ui-btn-sm">Sign out</button>
       </nav>
 

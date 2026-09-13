@@ -15,6 +15,12 @@
       <h1 class="clinic-workflow-title mt-4 text-gray-950">
         Book your appointment
       </h1>
+      @if (!patientAuth.isSignedIn()) {
+        <p class="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+          <a routerLink="/appointments" class="font-semibold underline">Sign in or create a patient account</a>
+          to manage your visits online. A patient account is required for video consultations.
+        </p>
+      }
       <p class="clinic-workflow-lede mt-3 max-w-2xl text-sm leading-6 text-gray-600 md:mx-auto md:text-base">
         Choose a convenient time. The clinic will confirm your request {{ isClinicOpenNow ? 'within two working hours' : confirmationWindowLabel.toLowerCase() }}.
       </p>

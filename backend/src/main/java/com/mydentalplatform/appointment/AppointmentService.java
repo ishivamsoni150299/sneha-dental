@@ -54,6 +54,11 @@ public class AppointmentService {
 
     @Transactional
     public String book(AppointmentController.BookingRequest request) {
+        return book(request, null);
+    }
+
+    @Transactional
+    public String book(AppointmentController.BookingRequest request, UUID accountId) {
         String mode = request.consultationMode() == null ? "in_person" : request.consultationMode();
         if (!List.of("in_person", "video").contains(mode)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid consultation mode.");
         if ("video".equals(mode)) validateVideoBooking(request);
@@ -82,12 +87,12 @@ public class AppointmentService {
                 insert into appointments (
                     id, clinic_id, doctor_id, provider_id, booking_ref, patient_name, phone_e164, email,
                     service, appointment_date, appointment_time, status, source, message,
-                    confirmation_deadline, consent_version, consent_at, attribution, consultation_mode
-                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb), ?)
+                    confirmation_deadline, consent_version, consent_at, attribution, consultation_mode, patient_id
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, now(), cast(? as jsonb), ?, ?)
                 """, appointmentId, request.clinicId(), selectedDoctorId, selectedDoctorId, bookingRef,
                 request.name().trim(), "+91" + phone, blankToNull(request.email()), request.service().trim(),
                 request.date(), request.time(), request.source(), blankToNull(request.message()),
-                request.confirmationDeadline(), request.consentVersion(), json(request.attribution()), mode);
+                request.confirmationDeadline(), request.consentVersion(), json(request.attribution()), mode, accountId);
             jdbcTemplate.update("""
                 insert into appointment_slots (
                     clinic_id, doctor_id, appointment_id, appointment_date, appointment_time
@@ -106,22 +111,23 @@ public class AppointmentService {
                     request.clinicId(), bookingRef, request.name().trim(), "+91" + phone,
                     request.service().trim(), request.date(), request.time(), request.source());
             }
-            try {
+            if (accountId == null) try {
                 String phoneE164 = "+91" + phone;
-                String patientEmail = blankToNull(request.email());
                 List<UUID> existing = jdbcTemplate.queryForList(
                     "SELECT id FROM users WHERE phone_e164 = ? AND role = 'patient' LIMIT 1",
                     UUID.class, phoneE164);
                 UUID patientId;
-                if (!existing.isEmpty()) {
+                if (accountId != null) {
+                    patientId = accountId;
+                } else if (!existing.isEmpty()) {
                     patientId = existing.getFirst();
                 } else {
                     UUID candidateId = UUID.randomUUID();
                     jdbcTemplate.update("""
-                        INSERT INTO users (id, role, phone_e164, email, enabled)
-                        VALUES (?, 'patient'::user_role, ?, ?, true)
+                        INSERT INTO users (id, role, phone_e164, enabled)
+                        VALUES (?, 'patient'::user_role, ?, true)
                         ON CONFLICT DO NOTHING
-                        """, candidateId, phoneE164, patientEmail);
+                        """, candidateId, phoneE164);
                     patientId = jdbcTemplate.queryForObject(
                         "SELECT id FROM users WHERE phone_e164 = ? AND role = 'patient' LIMIT 1",
                         UUID.class, phoneE164);

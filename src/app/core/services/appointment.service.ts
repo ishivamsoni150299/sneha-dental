@@ -4,6 +4,7 @@ import type { ClinicHours } from '../config/clinic.config';
 import type { Doctor } from './doctor.service';
 import { isBookableDateTime, normalizeTimeValue } from './doctor.service';
 import { AuthenticatedApiService } from './authenticated-api.service';
+import { AuthFacade } from './auth-facade.service';
 
 type Unsubscribe = () => void;
 
@@ -188,6 +189,7 @@ export interface Appointment {
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
+  private readonly auth = inject(AuthFacade);
   private readonly clinic = inject(ClinicConfigService);
   private readonly api = inject(AuthenticatedApiService);
 
@@ -291,7 +293,9 @@ export class AppointmentService {
 
     const clinicId = context?.clinicId ?? this.clinicId;
     const normalizedTime = normalizeTimeValue(data.time);
-    const response = await fetch('/api/public/appointments', {
+    await this.auth.authReady;
+    const book = this.auth.role() === 'patient' ? this.api.fetch.bind(this.api) : globalThis.fetch.bind(globalThis);
+    const response = await book('/api/public/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

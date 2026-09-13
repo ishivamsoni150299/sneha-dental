@@ -33,7 +33,7 @@ public class VerifiedSessionFilter extends OncePerRequestFilter {
                       and replace(u.role::text, '_', '-') = ? and u.clinic_id is not distinct from ?::uuid
                       and rt.family_id = ? and rt.revoked_at is null and least(rt.expires_at, rt.family_expires_at) > now()
                       and ((u.role = 'patient' and u.phone_verified and u.phone_e164 = ?)
-                        or (u.role <> 'patient' and u.password_hash is not null and not u.password_migration_required and lower(u.email) = lower(?))))
+                        or (u.password_hash is not null and not u.password_migration_required and lower(u.email) = lower(?))))
                     """, Boolean.class, UUID.fromString(jwt.getSubject()),
                     testPhoneOtp.permits(jwt.getClaimAsString("phone"), jwt.getClaimAsString("role")),
                     com.mydentalplatform.auth.TestPhoneOtp.PHONE, jwt.getClaimAsString("role"),

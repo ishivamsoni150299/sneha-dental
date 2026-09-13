@@ -56,7 +56,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   private readonly router             = inject(Router);
   private readonly route              = inject(ActivatedRoute);
   private readonly doctorSvc          = inject(DoctorService);
-  private readonly patientAuth        = inject(PatientAuthService);
+  readonly patientAuth        = inject(PatientAuthService);
   private readonly analytics          = inject(AnalyticsService);
   readonly clinic            = inject(ClinicConfigService);
   readonly config            = this.clinic.config;
@@ -505,6 +505,10 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async onSubmit() {
+    if (this.bookingContext?.consultationMode === 'video' && !this.patientAuth.isSignedIn()) {
+      this.error.set('Sign in to your patient account before booking a video consultation.');
+      return;
+    }
     if (this.submitting()) {
       return;
     }

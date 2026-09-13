@@ -18,7 +18,7 @@ export class PatientAuthService {
   private readonly authFacade = inject(AuthFacade);
   private pendingPhone: string | null = null;
 
-  readonly user = computed(() => this.authFacade.role() === 'patient' && this.authFacade.currentUser()?.phoneNumber ? this.authFacade.currentUser() : null);
+  readonly user = computed(() => this.authFacade.role() === 'patient' ? this.authFacade.currentUser() : null);
   readonly isSignedIn = computed(() => this.user() !== null);
   readonly role = this.authFacade.role.asReadonly();
   readonly ready = this.authFacade.authReady;

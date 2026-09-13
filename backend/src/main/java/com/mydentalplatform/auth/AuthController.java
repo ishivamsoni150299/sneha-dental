@@ -83,6 +83,11 @@ public class AuthController {
         return loginResponse(result);
     }
 
+    @PostMapping("/patient/signup")
+    ResponseEntity<LoginResponse> patientSignup(@Valid @RequestBody SignupRequest request, HttpServletRequest servletRequest) {
+        return loginResponse(loginService.signupPatient(request.email(), request.password(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
+    }
+
     @PostMapping("/login")
     ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
         return loginResponse(loginService.login(request.email().trim(), request.password(),

@@ -10,7 +10,7 @@ public class SpaRoutingConfig implements WebMvcConfigurer {
         "/business", "/business/**", "/professional", "/professional/**",
         "/dentists", "/dentists/**", "/dentist/**", "/clinic/**",
         "/services", "/about", "/appointment", "/appointment/**",
-        "/appointments", "/platform/login", "/coming-soon", "/video-test",
+        "/appointments", "/account/recovery", "/platform/login", "/coming-soon", "/video-test",
         "/admin", "/admin/**",
         "/gallery", "/testimonials", "/contact", "/my-appointment",
         "/privacy", "/terms"
