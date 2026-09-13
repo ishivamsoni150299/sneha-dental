@@ -6,7 +6,7 @@ import com.mydentalplatform.lead.LeadController;
 import com.mydentalplatform.review.ReviewController;
 import com.mydentalplatform.video.VideoConsultationController;
 import com.mydentalplatform.video.VideoConsultationService;
-import com.mydentalplatform.video.DailyVideoClient;
+import com.mydentalplatform.video.VideoRoomClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -119,6 +119,6 @@ class DeploymentSecurityTest {
         @Bean JdbcTemplate jdbcTemplate() { return mock(JdbcTemplate.class); }
         @Bean ObjectMapper objectMapper() { return new ObjectMapper(); }
         @Bean VideoConsultationService videoConsultationService() { return mock(VideoConsultationService.class); }
-        @Bean DailyVideoClient dailyVideoClient() { return mock(DailyVideoClient.class); }
+        @Bean VideoRoomClient dailyVideoClient() { return mock(VideoRoomClient.class); }
     }
 }

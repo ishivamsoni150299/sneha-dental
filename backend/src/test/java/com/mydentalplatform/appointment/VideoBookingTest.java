@@ -3,7 +3,7 @@ package com.mydentalplatform.appointment;
 import java.time.*;
 import java.util.Map;
 import java.util.UUID;
-import com.mydentalplatform.video.DailyVideoClient;
+import com.mydentalplatform.video.VideoRoomClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,7 +29,7 @@ class VideoBookingTest {
 
     @Test void rejectsInvasiveServicesAndClinicsWithoutVideoOptIn() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         when(daily.configured()).thenReturn(true);
         var service = new AppointmentService(jdbc, new ObjectMapper(), null, daily);
         assertThrows(ResponseStatusException.class, () -> service.book(request("video", "Root Canal Treatment")));
@@ -39,7 +39,7 @@ class VideoBookingTest {
 
     @Test void storesVideoModeAndUsesTheSameAtomicSlotReservation() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         when(daily.configured()).thenReturn(true);
         when(jdbc.queryForObject(contains("select exists"), eq(Boolean.class), any(Object[].class))).thenReturn(true);
         String day = LocalDate.now().plusDays(2).getDayOfWeek().name().substring(0, 3).toLowerCase(java.util.Locale.ROOT);

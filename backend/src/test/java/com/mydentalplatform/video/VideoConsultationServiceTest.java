@@ -36,7 +36,7 @@ class VideoConsultationServiceTest {
 
     @Test void doesNotIssueProviderTokensForUnknownOrWrongTenantAppointment() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         var service = new VideoConsultationService(jdbc, daily);
         UUID appointment = UUID.randomUUID(), clinic = UUID.randomUUID();
         when(jdbc.query(anyString(), any(RowMapper.class), any(Object[].class))).thenReturn(List.of());
@@ -48,7 +48,7 @@ class VideoConsultationServiceTest {
 
     @Test void patientMustSupplyBothReferenceAndPhone() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         var service = new VideoConsultationService(jdbc, daily);
         assertThrows(ResponseStatusException.class, () -> service.join(UUID.randomUUID(), null, "", "9999999999"));
         assertThrows(ResponseStatusException.class, () -> service.join(UUID.randomUUID(), null, "BK-ABCDEFGH", ""));
@@ -57,7 +57,7 @@ class VideoConsultationServiceTest {
 
     @Test void clinicCannotEnableVideoWithoutProviderSetup() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         var service = new VideoConsultationService(jdbc, daily);
         assertThrows(ResponseStatusException.class, () -> service.saveSettings(UUID.randomUUID(), true, 500));
         verifyNoInteractions(jdbc);

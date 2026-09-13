@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, InjectionToken, OnDestroy, inject, input, signal, viewChild } from '@angular/core';
 import type { DailyCall } from '@daily-co/daily-js';
-import { VideoAccessError, VideoConsultationService } from '../../../core/services/video-consultation.service';
+import { VideoAccessError, VideoConsultationService, VideoSession } from '../../../core/services/video-consultation.service';
+import { NativeVideoRoomComponent } from './native-video-room.component';
 import { AnalyticsService } from '../../../core/services/analytics.service';
 
 export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => Promise<DailyCall>>('Video frame factory', {
@@ -11,21 +12,22 @@ export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => 
 });
 
 @Component({
-  selector: 'app-video-consultation', standalone: true, changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-video-consultation', standalone: true, imports: [NativeVideoRoomComponent], changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button type="button" (click)="join()" [disabled]="loading()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
       <i class="ph ph-video-camera" aria-hidden="true"></i> {{ staff() ? 'Start video consultation' : 'Join video consultation' }}
     </button>
     <dialog #dialog class="video-room" aria-label="Private video consultation" (cancel)="close()">
       <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
-        <div><h2 class="font-semibold text-gray-900">Your video consultation</h2><p class="mt-1 text-xs text-gray-500">Allow camera and microphone access when prompted.</p></div>
+        <div><h2 class="font-semibold text-gray-900">Your video consultation</h2><p class="mt-1 text-xs text-gray-500">A private space for you and your dentist.</p></div>
         <button type="button" (click)="close()" class="min-h-11 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700">Leave room</button>
       </header>
       @if (loading()) {<p role="status" class="p-6 text-center text-sm text-gray-600">Preparing your private room…</p>}
       @if (error()) {
         <div role="alert" class="mx-auto max-w-lg p-6 text-center"><i class="ph ph-video-camera-slash text-4xl text-blue-600" aria-hidden="true"></i><p class="mt-4 text-sm leading-6 text-gray-700">{{ error() }}</p><button type="button" (click)="join()" class="mt-5 min-h-11 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Try again</button></div>
       }
-      <div #frame class="call-frame" [class.hidden]="!!error()"></div>
+      @if (nativeSession(); as session) { <app-native-video-room [session]="session" [refreshSession]="refreshSession" (joined)="trackJoined()" (closed)="close()" /> }
+      <div #frame class="call-frame" [class.hidden]="!!error() || !!nativeSession()"></div>
     </dialog>
   `,
   styles: [`
@@ -45,6 +47,8 @@ export class VideoConsultationComponent implements OnDestroy {
   readonly dentist = input(false);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly nativeSession = signal<VideoSession | null>(null);
+  readonly refreshSession = () => this.video.join(this.appointmentId(), this.staff(), this.bookingRef(), this.phone(), this.dentist());
   private readonly video = inject(VideoConsultationService);
   private readonly analytics = inject(AnalyticsService);
   private readonly createFrame = inject(VIDEO_FRAME_FACTORY);
@@ -71,6 +75,9 @@ export class VideoConsultationComponent implements OnDestroy {
       await this.destroyCall();
       const session = await this.video.join(this.appointmentId(), this.staff(), this.bookingRef(), this.phone(), this.dentist());
       if (attempt !== this.generation) return;
+      if (session.provider === 'livekit') {
+        this.nativeSession.set(session); this.loading.set(false); this.verifyAccess(attempt); return;
+      }
       const call = await this.createFrame(this.frame()!.nativeElement);
       if (attempt !== this.generation) { await call.destroy(); return; }
       this.call = call;
@@ -101,9 +108,11 @@ export class VideoConsultationComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void { this.close(); }
+  trackJoined(): void { this.analytics.trackVideoRoomJoined({ appointment_id: this.appointmentId(), is_staff: this.staff() }); }
 
   private async destroyCall(): Promise<void> {
     clearTimeout(this.accessTimer);
+    this.nativeSession.set(null);
     const call = this.call;
     this.call = null;
     if (call) {
@@ -120,7 +129,7 @@ export class VideoConsultationComponent implements OnDestroy {
   private async checkAccess(attempt: number): Promise<void> {
       try {
         await this.video.checkAccess(this.appointmentId(), this.staff(), this.bookingRef(), this.phone(), this.dentist());
-        if (attempt === this.generation && this.call) this.verifyAccess(attempt);
+        if (attempt === this.generation && (this.call || this.nativeSession())) this.verifyAccess(attempt);
       } catch (error) {
         if (attempt !== this.generation) return;
         this.error.set(error instanceof VideoAccessError ? error.message : 'Could not verify this appointment. Reconnect to continue your consultation.');

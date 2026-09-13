@@ -1,7 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthenticatedApiService } from './authenticated-api.service';
 
-export interface VideoSession { url: string; token: string; expiresAt: string }
+export interface VideoSession { url: string; token: string; expiresAt: string; provider?: 'daily' | 'livekit' }
+export function validateVideoSession(session: VideoSession): VideoSession {
+  const url = new URL(session.url);
+  const valid = session.provider === 'livekit'
+    ? url.protocol === 'wss:' && !!url.hostname && url.pathname === '/' && !url.search && !url.hash && Number.isFinite(Date.parse(session.expiresAt))
+    : (!session.provider || session.provider === 'daily') && url.protocol === 'https:' && url.hostname.endsWith('.daily.co') && !url.port;
+  if (!valid || url.username || url.password || !session.token) throw new Error('The video room could not be opened. Please contact the clinic.');
+  return session;
+}
 export interface VideoSettings { providerReady: boolean; enabled: boolean; fee: string | number | null }
 export class VideoAccessError extends Error {}
 
@@ -16,11 +24,7 @@ export class VideoConsultationService {
     const path = `${prefix}${encodeURIComponent(id)}/video/join`;
     const response = await this.api.fetch(path, request);
     const session = await this.read<VideoSession>(response);
-    const url = new URL(session.url);
-    if (url.protocol !== 'https:' || !url.hostname.endsWith('.daily.co') || url.username || url.password || url.port) {
-      throw new Error('The video room could not be opened. Please contact the clinic.');
-    }
-    return session;
+    return validateVideoSession(session);
   }
 
   async settings(): Promise<VideoSettings> {

@@ -32,7 +32,7 @@ public class AppointmentService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
-    private final com.mydentalplatform.video.DailyVideoClient video;
+    private final com.mydentalplatform.video.VideoRoomClient video;
     private final SecureRandom random = new SecureRandom();
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +40,7 @@ public class AppointmentService {
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
         NotificationService notificationService,
-        com.mydentalplatform.video.DailyVideoClient video
+        com.mydentalplatform.video.VideoRoomClient video
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;

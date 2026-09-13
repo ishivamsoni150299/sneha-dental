@@ -49,7 +49,7 @@ public class PatientAccountController {
         return summary(row);
     }
     @PostMapping("/appointments/{id}/video/join")
-    public ResponseEntity<DailyVideoClient.Session> join(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+    public ResponseEntity<VideoRoomClient.Session> join(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         var row = owned(jwt, id);
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(video.join(id, null, (String)row.get("booking_ref"), (String)row.get("phone_e164")));
     }

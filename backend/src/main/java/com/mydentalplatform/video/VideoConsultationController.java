@@ -14,8 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api")
 public class VideoConsultationController {
     private final VideoConsultationService video;
-    private final DailyVideoClient daily;
-    public VideoConsultationController(VideoConsultationService video, DailyVideoClient daily) {
+    private final VideoRoomClient daily;
+    public VideoConsultationController(VideoConsultationService video, VideoRoomClient daily) {
         this.video = video;
         this.daily = daily;
     }
@@ -24,14 +24,14 @@ public class VideoConsultationController {
     Map<String, Boolean> status() { return Map.of("available", daily.configured()); }
 
     @PostMapping("/public/appointments/{id}/video/join")
-    ResponseEntity<DailyVideoClient.Session> patient(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @Valid @RequestBody PatientAccess access) {
+    ResponseEntity<VideoRoomClient.Session> patient(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @Valid @RequestBody PatientAccess access) {
         com.mydentalplatform.auth.PatientIdentity.requirePhone(jwt, access.phone());
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
             .body(video.join(id, null, access.bookingRef(), access.phone()));
     }
 
     @PostMapping("/clinics/current/appointments/{id}/video/join")
-    ResponseEntity<DailyVideoClient.Session> clinic(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    ResponseEntity<VideoRoomClient.Session> clinic(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(video.join(id, clinicId(jwt), null, null));
     }
 
@@ -52,7 +52,7 @@ public class VideoConsultationController {
     }
 
     @PostMapping("/providers/me/appointments/{id}/video/join")
-    ResponseEntity<DailyVideoClient.Session> providerJoin(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    ResponseEntity<VideoRoomClient.Session> providerJoin(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(video.joinForProvider(id, dentistUserId(jwt)));
     }
 

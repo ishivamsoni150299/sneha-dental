@@ -1,0 +1,8 @@
+# Merge this section into the LiveKit VM generator's livekit.yaml before deployment.
+# Mandatory: closed rooms must not be recreated by previously issued join tokens.
+room:
+  auto_create: false
+  max_participants: 2
+  empty_timeout: 300
+  departure_timeout: 60
+  enable_remote_unmute: false

@@ -4,7 +4,7 @@ import java.time.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import com.mydentalplatform.video.DailyVideoClient;
+import com.mydentalplatform.video.VideoRoomClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,7 +48,7 @@ class IndependentDentistEligibilityTest {
     @Test
     void independentDentistAllowsVideoConsultation() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         when(daily.configured()).thenReturn(true);
 
         UUID providerId = UUID.randomUUID();
@@ -84,7 +84,7 @@ class IndependentDentistEligibilityTest {
     @Test
     void clinicDentistAllowsBothInPersonAndVideo() {
         var jdbc = mock(JdbcTemplate.class);
-        var daily = mock(DailyVideoClient.class);
+        var daily = mock(VideoRoomClient.class);
         when(daily.configured()).thenReturn(true);
 
         UUID doctorId = UUID.randomUUID();

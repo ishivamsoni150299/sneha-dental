@@ -12,14 +12,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class VideoConsultationService {
     private static final ZoneId INDIA = ZoneId.of("Asia/Kolkata");
     private final JdbcTemplate jdbc;
-    private final DailyVideoClient daily;
+    private final VideoRoomClient daily;
 
-    public VideoConsultationService(JdbcTemplate jdbc, DailyVideoClient daily) {
+    public VideoConsultationService(JdbcTemplate jdbc, VideoRoomClient daily) {
         this.jdbc = jdbc;
         this.daily = daily;
     }
 
-    public DailyVideoClient.Session join(UUID appointmentId, UUID clinicId, String bookingRef, String phone) {
+    public VideoRoomClient.Session join(UUID appointmentId, UUID clinicId, String bookingRef, String phone) {
         Visit visit = requireVisit(appointmentId, clinicId, bookingRef, phone);
         Instant start = visit.date().atTime(visit.time()).atZone(INDIA).toInstant();
         String room = "mdp-" + appointmentId.toString().replace("-", "") + "-" + start.getEpochSecond();
@@ -30,7 +30,7 @@ public class VideoConsultationService {
         requireVisit(appointmentId, clinicId, bookingRef, phone);
     }
 
-    public DailyVideoClient.Session joinForProvider(UUID appointmentId, UUID dentistUserId) {
+    public VideoRoomClient.Session joinForProvider(UUID appointmentId, UUID dentistUserId) {
         Visit visit = requireProviderVisit(appointmentId, dentistUserId);
         Instant start = visit.date().atTime(visit.time()).atZone(INDIA).toInstant();
         String room = "mdp-" + appointmentId.toString().replace("-", "") + "-" + start.getEpochSecond();

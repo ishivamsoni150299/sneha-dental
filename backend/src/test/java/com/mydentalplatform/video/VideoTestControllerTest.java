@@ -13,7 +13,7 @@ import static org.mockito.ArgumentMatchers.*;
 
 class VideoTestControllerTest {
     final JdbcTemplate jdbc = mock(JdbcTemplate.class);
-    final DailyVideoClient daily = mock(DailyVideoClient.class);
+    final VideoRoomClient daily = mock(VideoRoomClient.class);
     final VideoTestController controller = new VideoTestController(jdbc, daily, "test-only-secret-with-at-least-32-bytes");
     final UUID user = UUID.randomUUID();
     Jwt jwt(String role) { return Jwt.withTokenValue("test").header("alg", "HS256").subject(user.toString()).claim("role", role).build(); }
@@ -26,15 +26,18 @@ class VideoTestControllerTest {
     @Test void hostAndGuestUseSamePrivateRoomWithDifferentPrivileges() {
         when(jdbc.queryForObject(anyString(), eq(Boolean.class), eq(user))).thenReturn(true);
         when(daily.createSession(anyString(), any(), any(), anyBoolean()))
-            .thenReturn(new DailyVideoClient.Session("https://test.daily.co/private", "test-token", Instant.now().plusSeconds(3600).toString()));
+            .thenReturn(new VideoRoomClient.Session("https://test.daily.co/private", "test-token", Instant.now().plusSeconds(3600).toString()));
         Map<String, Object> result = controller.start(jwt("dentist")).getBody();
         assertNotNull(result);
         String token = (String) result.get("guestToken");
         controller.guest(Map.of("token", token));
+        controller.refresh(jwt("dentist"), Map.of("token", token));
         var room = org.mockito.ArgumentCaptor.forClass(String.class);
-        verify(daily).createSession(room.capture(), any(), any(), eq(true));
+        verify(daily, times(2)).createSession(room.capture(), any(), any(), eq(true));
         verify(daily).createSession(eq(room.getValue()), any(), any(), eq(false));
         assertTrue(room.getValue().startsWith("mdp-test-"));
+        Jwt other = Jwt.withTokenValue("test").header("alg", "HS256").subject(UUID.randomUUID().toString()).claim("role", "dentist").build();
+        assertThrows(ResponseStatusException.class, () -> controller.refresh(other, Map.of("token", token)));
         assertThrows(ResponseStatusException.class, () -> controller.guest(Map.of("token", token + "tampered")));
         when(jdbc.queryForObject(anyString(), eq(Boolean.class), eq(user))).thenReturn(false);
         assertThrows(ResponseStatusException.class, () -> controller.guest(Map.of("token", token)));

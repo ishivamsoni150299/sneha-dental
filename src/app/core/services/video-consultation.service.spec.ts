@@ -30,4 +30,14 @@ describe('VideoConsultationService', () => {
     api.fetch.and.resolveTo(new Response(JSON.stringify({...session,url:'https://daily.co.example.com/room'}),{status:200}));
     await expectAsync(service.join('appointment-1',false,'BK-ABCDEFGH','9999999999')).toBeRejected();
   });
+  it('accepts the configured self-hosted secure WebSocket origin', async () => {
+    api.fetch.and.resolveTo(new Response(JSON.stringify({ ...session, provider: 'livekit', url: 'wss://video.example.com' }), { status: 200 }));
+    expect((await service.join('appointment-1', false, '', '')).provider).toBe('livekit');
+  });
+  it('rejects insecure self-hosted endpoints and tokens embedded in URLs', async () => {
+    for (const url of ['ws://video.example.com', 'wss://user:pass@video.example.com', 'wss://video.example.com?token=secret']) {
+      api.fetch.and.resolveTo(new Response(JSON.stringify({ ...session, provider: 'livekit', url }), { status: 200 }));
+      await expectAsync(service.join('appointment-1', false, '', '')).toBeRejected();
+    }
+  });
 });

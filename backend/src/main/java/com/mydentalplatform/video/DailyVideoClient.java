@@ -15,7 +15,8 @@ import tools.jackson.databind.ObjectMapper;
 
 /** Server-only Daily API adapter. Room tokens are never persisted or logged. */
 @Component
-public class DailyVideoClient {
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "VIDEO_PROVIDER", havingValue = "daily", matchIfMissing = true)
+public class DailyVideoClient implements VideoRoomClient {
     private final String apiKey;
     private final ObjectMapper mapper;
     private final HttpClient http;
@@ -90,5 +91,4 @@ public class DailyVideoClient {
             "Video consultations are temporarily unavailable. Please contact the clinic or try again.");
     }
 
-    public record Session(String url, String token, String expiresAt) {}
 }

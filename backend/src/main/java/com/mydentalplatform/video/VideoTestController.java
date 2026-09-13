@@ -21,9 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api")
 public class VideoTestController {
     private final JdbcTemplate jdbc;
-    private final DailyVideoClient daily;
+    private final VideoRoomClient daily;
     private final byte[] signingKey;
-    public VideoTestController(JdbcTemplate jdbc, DailyVideoClient daily, @Value("${platform.auth.secret}") String key) {
+    public VideoTestController(JdbcTemplate jdbc, VideoRoomClient daily, @Value("${platform.auth.secret}") String key) {
         this.jdbc = jdbc; this.daily = daily; this.signingKey = key.getBytes(StandardCharsets.UTF_8);
     }
 
@@ -42,7 +42,20 @@ public class VideoTestController {
     }
 
     @PostMapping("/public/video-tests/join")
-    public ResponseEntity<DailyVideoClient.Session> guest(@RequestBody Map<String, String> request) {
+    public ResponseEntity<VideoRoomClient.Session> guest(@RequestBody Map<String, String> request) {
+        String[] parts = invitation(request);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(session(UUID.fromString(parts[0]), Long.parseLong(parts[1]), false));
+    }
+
+    @PostMapping("/providers/me/video-test/refresh")
+    public ResponseEntity<VideoRoomClient.Session> refresh(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
+        if (jwt == null || !"dentist".equals(jwt.getClaimAsString("role"))) throw forbidden();
+        String[] parts = invitation(request);
+        if (!parts[0].equals(jwt.getSubject())) throw forbidden();
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(session(UUID.fromString(parts[0]), Long.parseLong(parts[1]), true));
+    }
+
+    private String[] invitation(Map<String, String> request) {
         String token = request.getOrDefault("token", "");
         if (token == null || token.length() > 180) throw forbidden();
         String[] parts = token.split("\\.");
@@ -54,11 +67,11 @@ public class VideoTestController {
             long now = Instant.now().getEpochSecond();
             if (expires <= now || expires > now + 3600) throw forbidden();
             requireVerified(user);
-            return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(session(user, expires, false));
+            return parts;
         } catch (IllegalArgumentException error) { throw forbidden(); }
     }
 
-    private DailyVideoClient.Session session(UUID user, long expires, boolean host) {
+    private VideoRoomClient.Session session(UUID user, long expires, boolean host) {
         return daily.createSession("mdp-test-" + user.toString().replace("-", "") + "-" + expires,
             Instant.ofEpochSecond(expires - 3600), Instant.ofEpochSecond(expires), host);
     }
