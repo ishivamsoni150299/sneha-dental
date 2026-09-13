@@ -12,13 +12,15 @@ import { PasswordLoginComponent } from '../../shared/components/password-login/p
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="border-b border-gray-200 bg-white"><div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4"><a routerLink="/professional"><app-platform-brand /></a><a routerLink="/professional/login" class="text-sm font-semibold text-blue-700">Sign in</a></div></header>
-    <main class="min-h-[calc(100vh-4rem)] bg-gray-50 px-4 py-12">
-      <section class="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-        <p class="text-sm font-bold uppercase tracking-wider text-blue-700">Independent dentist profile</p>
-        <h1 class="mt-3 text-3xl font-bold text-gray-950">Join the dentist directory</h1>
-        <p class="mt-2 text-sm leading-6 text-gray-600">No clinic website or clinic subscription is required.</p>
+    <main class="auth-page px-4 py-8 sm:py-14">
+      <section class="auth-card mx-auto max-w-lg">
+        <span class="auth-icon" aria-hidden="true"><i class="ph ph-tooth"></i></span>
+        <p class="mt-6 text-xs font-semibold uppercase tracking-widest text-blue-700">For independent dentists</p>
+        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">Make room for your practice.</h1>
+        <p class="mt-3 text-sm leading-6 text-gray-500">Create your account, build your profile and submit it for verification. No clinic subscription required.</p>
         @if (error()) { <p class="mt-5 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700" role="alert">{{ error() }}</p> }
 <div class="mt-6"><app-password-login [signup]="true" portal="dentist" (authenticated)="onOtpAuthenticated()" /></div>
+        <p class="mt-6 border-t border-gray-100 pt-5 text-center text-sm text-gray-500">Already have an account? <a routerLink="/professional/login" class="auth-link">Sign in</a></p>
       </section>
     </main>
   `,

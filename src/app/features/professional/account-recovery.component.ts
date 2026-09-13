@@ -7,30 +7,30 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
   selector: 'app-account-recovery', standalone: true, imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="min-h-screen bg-gray-50 px-4 py-12">
-      <section class="mx-auto max-w-lg space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <main class="auth-page px-4 py-8 sm:py-14">
+      <section class="auth-card mx-auto max-w-lg space-y-5">
         <a routerLink="/business/login" class="text-sm font-semibold text-blue-700">Back to sign in</a>
-        <h1 class="text-2xl font-bold text-gray-900">Account recovery</h1>
-        <p class="text-sm text-gray-600">Your password and recovery code are managed by My Dental Platform. No email or SMS service is required.</p>
+        <div><span class="auth-icon mb-5" aria-hidden="true"><i class="ph ph-key"></i></span><h1 class="text-3xl font-semibold tracking-tight text-gray-900">Account recovery</h1></div>
+        <p class="text-sm text-gray-600">Get back to your account with the recovery code you saved when you signed up.</p>
         @if (auth.currentUser()) {
           <form [formGroup]="generateForm" (ngSubmit)="generate()" class="space-y-4">
             <p class="text-sm text-gray-600">Generate a replacement recovery code. Your previous code will stop working.</p>
-            <label class="block text-sm font-semibold">Current password<input type="password" autocomplete="current-password" formControlName="password" class="mt-2 min-h-12 w-full rounded-xl border border-gray-300 px-3"></label>
-            <button [disabled]="busy()" class="min-h-12 rounded-xl bg-blue-600 px-5 font-semibold text-white">Generate recovery code</button>
+            <label class="block text-sm font-semibold">Current password<input type="password" autocomplete="current-password" formControlName="password" class="auth-field"></label>
+            <button [disabled]="busy()" class="auth-primary">Generate recovery code</button>
           </form>
           @if (code()) { <p class="text-sm text-gray-700">Save this privately. It is shown only once.</p><textarea readonly aria-label="Recovery code" [value]="code()" class="w-full rounded-lg border p-3 font-mono text-sm" (focus)="$any($event.target).select()"></textarea> }
         } @else {
           <form [formGroup]="form" (ngSubmit)="reset()" class="space-y-4">
-            <label class="block text-sm font-semibold">Email address<input type="email" autocomplete="username" formControlName="email" class="mt-2 min-h-12 w-full rounded-xl border border-gray-300 px-3"></label>
-            <label class="block text-sm font-semibold">Saved recovery code<input autocomplete="off" formControlName="code" class="mt-2 min-h-12 w-full rounded-xl border border-gray-300 px-3"></label>
-            <label class="block text-sm font-semibold">New password<input type="password" autocomplete="new-password" formControlName="password" class="mt-2 min-h-12 w-full rounded-xl border border-gray-300 px-3"></label>
-            <label class="block text-sm font-semibold">Confirm new password<input type="password" autocomplete="new-password" formControlName="confirm" class="mt-2 min-h-12 w-full rounded-xl border border-gray-300 px-3"></label>
-            <button [disabled]="busy()" class="min-h-12 w-full rounded-xl bg-blue-600 px-5 font-semibold text-white">Reset password</button>
+            <label class="block text-sm font-semibold">Email address<input type="email" autocomplete="username" formControlName="email" class="auth-field"></label>
+            <label class="block text-sm font-semibold">Saved recovery code<input autocomplete="off" formControlName="code" class="auth-field"></label>
+            <label class="block text-sm font-semibold">New password<input type="password" autocomplete="new-password" formControlName="password" class="auth-field"></label>
+            <label class="block text-sm font-semibold">Confirm new password<input type="password" autocomplete="new-password" formControlName="confirm" class="auth-field"></label>
+            <button [disabled]="busy()" class="auth-primary">Reset password</button>
           </form>
-          <p class="text-sm text-gray-500">Lost both your password and recovery code, or previously used an email link? Contact the platform owner to verify your identity and recover the account.</p>
+          <p class="rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-500">Lost both your password and recovery code, or previously used an email link? Contact the platform owner to verify your identity and recover the account.</p>
         }
-        @if (error()) { <p role="alert" class="text-sm text-red-700">{{ error() }}</p> }
-        @if (message()) { <p role="status" class="text-sm text-green-700">{{ message() }}</p> }
+        @if (error()) { <p role="alert" class="rounded-xl border border-red-100 bg-red-50 p-4 text-sm leading-6 text-red-700">{{ error() }}</p> }
+        @if (message()) { <p role="status" class="rounded-xl border border-green-100 bg-green-50 p-4 text-sm leading-6 text-green-700">{{ message() }}</p> }
       </section>
     </main>
   `,
