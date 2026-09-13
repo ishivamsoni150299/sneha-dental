@@ -5,12 +5,14 @@ import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-
 import { dentistGuard } from './core/guards/dentist.guard';
 
 export const routes: Routes = [
+  { path: 'video-test', loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Private Video Test', noIndex: true } },
 
   // Independent dentist identity and professional workspace.
   {
     path: 'professional',
     canActivate: [platformOnlyGuard],
     children: [
+      { path: 'video-test', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Test Video Consultation', noIndex: true, host: true } },
       { path: '', pathMatch: 'full', loadComponent: () => import('./features/professional/professional-landing.component').then(m => m.ProfessionalLandingComponent), data: { title: 'List Your Dentist Profile', description: 'Create an independent verified dentist profile, add practice locations, publish availability, and receive appointments.' } },
       { path: 'signup', loadComponent: () => import('./features/professional/professional-signup.component').then(m => m.ProfessionalSignupComponent), data: { title: 'Create Dentist Profile', noIndex: true } },
       { path: 'login', loadComponent: () => import('./features/professional/professional-login.component').then(m => m.ProfessionalLoginComponent), data: { title: 'Dentist Sign In', noIndex: true } },

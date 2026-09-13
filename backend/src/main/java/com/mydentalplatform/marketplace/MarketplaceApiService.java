@@ -75,6 +75,16 @@ public class MarketplaceApiService {
     }
 
     public AvailabilityResponse availability(String slug, LocalDate from, int days) {
+        var providerRows = jdbcTemplate.queryForList("""
+            SELECT p.id, p.full_name, m.schedule::text AS schedule
+            FROM providers p JOIN provider_marketplace_listings ml ON ml.provider_id = p.id
+            JOIN provider_location_memberships m ON m.provider_id = p.id
+            JOIN practice_locations l ON l.id = m.location_id
+            WHERE p.slug = ? AND p.legacy_doctor_id IS NULL AND p.active AND p.verification_status = 'verified'
+                AND ml.publication_status = 'published' AND m.status = 'active' AND m.accepting_new_patients AND l.active
+            ORDER BY l.city, l.name, l.id LIMIT 1
+            """, slug);
+        if (!providerRows.isEmpty()) return providerAvailability(slug, providerRows.getFirst(), from, days);
         Map<String, Object> clinic = requireClinic(slug);
         UUID clinicId = UUID.fromString(text(clinic.get("id")));
         Set<UUID> verifiedIds = verifiedDoctorIds(clinic);
@@ -111,6 +121,31 @@ public class MarketplaceApiService {
                 }
             }
             slots.sort(Comparator.comparing(AvailabilitySlot::time).thenComparing(AvailabilitySlot::doctorName));
+            result.add(new AvailabilityDay(date, slots));
+        }
+        return new AvailabilityResponse(slug, INDIA.getId(), result);
+    }
+
+    private AvailabilityResponse providerAvailability(String slug, Map<String, Object> provider, LocalDate from, int days) {
+        UUID id = (UUID) provider.get("id");
+        LocalDate today = LocalDate.now(INDIA);
+        LocalDate start = from == null || from.isBefore(today) ? today : from;
+        int range = Math.max(1, Math.min(days, 14));
+        var reserved = new LinkedHashSet<>(jdbcTemplate.queryForList("""
+            SELECT appointment_date::text || ' ' || to_char(appointment_time, 'HH24:MI') FROM appointment_slots
+            WHERE doctor_id = ? AND appointment_date BETWEEN ? AND ?
+            """, String.class, id, start, start.plusDays(range - 1)));
+        Map<String, Object> schedule = json((String) provider.get("schedule"));
+        List<AvailabilityDay> result = new ArrayList<>();
+        var now = java.time.LocalDateTime.now(INDIA);
+        for (int i = 0; i < range; i++) {
+            LocalDate date = start.plusDays(i);
+            List<AvailabilitySlot> slots = new ArrayList<>();
+            for (LocalTime time : com.mydentalplatform.appointment.ScheduleRules.slots(schedule, date)) {
+                if (!date.atTime(time).isAfter(now) || reserved.contains(date + " " + time)) continue;
+                slots.add(new AvailabilitySlot(id, text(provider.get("full_name")), time,
+                    date.atTime(time).atZone(INDIA).toOffsetDateTime().toString()));
+            }
             result.add(new AvailabilityDay(date, slots));
         }
         return new AvailabilityResponse(slug, INDIA.getId(), result);

@@ -31,7 +31,7 @@ describe('VideoConsultationComponent', () => {
   it('joins with the patient credentials and destroys media on close', async () => {
     const view = fixture();
     await view.componentInstance.join();
-    expect(video.join).toHaveBeenCalledWith('appointment-1', false, 'BK-ABCDEFGH', '9999999999');
+    expect(video.join).toHaveBeenCalledWith('appointment-1', false, 'BK-ABCDEFGH', '9999999999', false);
     expect(call.join).toHaveBeenCalledWith({ url: session.url, token: session.token });
     view.componentInstance.close();
     expect(call.destroy).toHaveBeenCalled();

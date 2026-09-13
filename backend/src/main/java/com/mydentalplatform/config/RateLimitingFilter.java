@@ -29,6 +29,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private record LimitRule(int maxRequests, long windowSeconds) {}
 
     private static final Map<String, LimitRule> RULES = Map.of(
+        "POST:/api/public/video-tests/join", new LimitRule(10, 60),
         "POST:/api/auth/clinic/login", new LimitRule(10, 60),
         "POST:/api/auth/clinic/signup", new LimitRule(5, 60),
         "POST:/api/auth/professional/signup", new LimitRule(5, 60),

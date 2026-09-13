@@ -4,6 +4,14 @@ Video appointments use Daily Prebuilt with private, appointment-specific rooms. 
 
 ## Enable production
 
+### Instant two-device test for an approved dentist
+
+Sign in at `/professional/login`, then open `/professional/video-test` (also available as **Test video call now** in the workspace). Select **Start test call**, allow camera and microphone access, and copy the temporary invitation to a second device. The second device selects **Join test call**; it does not need an account. Use headphones to avoid feedback.
+
+This private test room accepts two participants and expires in 30–60 minutes. Repeated starts reuse the room for the current half-hour window. Invitations are signed, limited to test rooms, and recheck the dentist's verified/enabled state. Test calls do not create patient appointments or open unscheduled booking slots.
+
+Independent dentists must save working hours under `/professional/workspace` → **Availability** before patients can select slots. Empty schedules expose no availability. Patient calls require a confirmed video booking and use the existing join window. The fee shown on the independent profile comes from its saved practice location. No payment is collected by the test room.
+
 1. In the Daily dashboard, create or select the account/domain used for this platform and obtain its server API key. Review the account's terms and data-processing settings for your practice before accepting real consultations.
 2. Set `DAILY_API_KEY` as a secret environment variable on the Render backend service, then redeploy. Never put this key in Angular environment files, Git, chat, or the browser. No Daily domain or browser API key is required.
 3. Sign in as a clinic administrator. Open **Clinic Settings → Services → Video consultations**, set the fee, enable requests, and save. A clinic also needs marketplace verification, accepting-new-patients status, and an available verified dentist with a schedule.

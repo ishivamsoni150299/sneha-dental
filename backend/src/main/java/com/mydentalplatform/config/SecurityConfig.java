@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/public/**", "/api/marketplace/**", "/api/v1/**", "/openapi.yaml").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/contacts").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/public/video-tests/join").permitAll()
                 .requestMatchers("/api/public/appointments/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/appointments").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()

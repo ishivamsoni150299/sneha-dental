@@ -8,6 +8,7 @@ import { clinicHasPlatformFeature } from '../config/platform-entitlements';
 import { MARKETPLACE_DENTAL_SERVICES } from '../config/marketplace.config';
 
 export interface MarketplaceClinic extends ClinicConfig {
+  providerSchedule?: Record<string, unknown>;
   id: string;
   averageRating?: number;
   ratingCount?: number;
@@ -129,18 +130,22 @@ export class MarketplaceService {
         id: string; slug: string; fullName: string; qualification?: string; speciality?: string;
         biography?: string; phoneE164?: string; city?: string; locality?: string;
         experienceYears?: number; consultationFee?: number; acceptingNewPatients?: boolean;
-        services?: string[]; languages?: string[];
+        services?: (string | {service_id: string})[]; languages?: string[];
+        practiceLocations?: { city: string; locality: string; addressLine1: string; consultationFee: number | null;
+          acceptingNewPatients: boolean; schedule: Record<string, unknown> }[];
       };
+      const practice = provider.practiceLocations?.[0];
       return {
         id: String(provider.id),
         name: provider.fullName,
         tagline: provider.speciality || 'Independent Dental Professional',
         doctorName: provider.fullName,
         doctorQualification: provider.qualification || '',
-        doctorBio: provider.biography || '',
+        doctorBio: provider.biography ? [provider.biography] : [],
         phone: provider.phoneE164 || '',
         phoneE164: provider.phoneE164 || '',
-        city: provider.city || 'Delhi NCR',
+        city: practice?.city || provider.city || '',
+        addressLine1: practice?.addressLine1 || '',
         bookingRefPrefix: 'MDP',
         isIndependent: true,
         eligibleForInClinic: false,
@@ -150,24 +155,25 @@ export class MarketplaceService {
         marketplaceStatus: 'verified',
         marketplaceProfile: {
           region: 'delhi-ncr',
-          locality: provider.locality || 'Delhi NCR',
+          locality: practice?.locality || provider.locality || '',
           speciality: provider.speciality,
           experienceYears: provider.experienceYears,
-          consultationFee: provider.consultationFee,
-          videoConsultationFee: provider.consultationFee,
+          consultationFee: practice?.consultationFee ?? provider.consultationFee,
+          videoConsultationFee: practice?.consultationFee ?? provider.consultationFee,
           videoConsultationEnabled: true,
-          acceptingNewPatients: provider.acceptingNewPatients ?? true,
-          serviceIds: provider.services || ['video-consultation'],
+          acceptingNewPatients: practice?.acceptingNewPatients ?? false,
+          serviceIds: (provider.services ?? []).map(s => typeof s === 'string' ? s : s.service_id),
           languages: provider.languages || [],
         },
         services: [{
           name: 'Video Consultation',
-          price: provider.consultationFee ? `₹${provider.consultationFee}` : undefined,
+          price: practice?.consultationFee != null ? `₹${practice.consultationFee}` : undefined,
           duration: '30 mins',
           description: 'Remote video consultation with verified independent dentist',
         }],
         testimonials: [],
-        hours: [{ days: 'Mon-Sat', time: '09:00 AM - 07:00 PM' }],
+        hours: [],
+        providerSchedule: practice?.schedule ?? {},
         marketplaceVerifiedDoctorIds: [String(provider.id)],
       } as unknown as MarketplaceClinic;
     } catch {

@@ -9,8 +9,8 @@ export class VideoAccessError extends Error {}
 export class VideoConsultationService {
   private readonly api = inject(AuthenticatedApiService);
 
-  async join(id: string, staff: boolean, bookingRef: string, phone: string): Promise<VideoSession> {
-    const prefix = staff ? '/api/clinics/current/appointments/' : '/api/public/appointments/';
+  async join(id: string, staff: boolean, bookingRef: string, phone: string, dentist = false): Promise<VideoSession> {
+    const prefix = dentist ? '/api/providers/me/appointments/' : staff ? '/api/clinics/current/appointments/' : '/api/public/appointments/';
     const request: RequestInit = { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(staff ? {} : { bookingRef, phone }) };
     const path = `${prefix}${encodeURIComponent(id)}/video/join`;
@@ -27,8 +27,8 @@ export class VideoConsultationService {
     return this.read<VideoSettings>(await this.api.fetch('/api/clinics/current/video-settings'));
   }
 
-  async checkAccess(id: string, staff: boolean, bookingRef: string, phone: string): Promise<void> {
-    const path = `${staff ? '/api/clinics/current' : '/api/public'}/appointments/${encodeURIComponent(id)}/video/access`;
+  async checkAccess(id: string, staff: boolean, bookingRef: string, phone: string, dentist = false): Promise<void> {
+    const path = `${dentist ? '/api/providers/me' : staff ? '/api/clinics/current' : '/api/public'}/appointments/${encodeURIComponent(id)}/video/access`;
     const init = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(staff ? {} : { bookingRef, phone }) };
     const response = await this.api.fetch(path, init);
     if (!response.ok) await this.read(response);

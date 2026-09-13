@@ -47,6 +47,18 @@ function clinic(overrides: Partial<MarketplaceClinic> = {}): MarketplaceClinic {
 describe('MarketplaceService public URLs', () => {
   const service = new MarketplaceService();
 
+  it('uses the independent practice fee and schedule without inventing hours', async () => {
+    spyOn(window, 'fetch').and.resolveTo(new Response(JSON.stringify({
+      id: 'sneha', slug: 'sneha', fullName: 'Sneha Soni', services: [],
+      practiceLocations: [{ city: 'Noida', locality: 'Sector 53', addressLine1: 'Noida', consultationFee: 200, acceptingNewPatients: true, schedule: {} }],
+    })));
+    const profile = await service.getVerifiedProviderBySlug('sneha');
+    expect(profile?.marketplaceProfile?.videoConsultationFee).toBe(200);
+    expect(profile?.providerSchedule).toEqual({});
+    expect(profile?.hours).toEqual([]);
+    expect(profile?.city).toBe('Noida');
+  });
+
   it('uses the hosted site for Free clinics even when a custom domain value exists', () => {
     expect(service.clinicWebsiteUrl(clinic())).toBe('https://smilecare.mydentalplatform.com');
   });

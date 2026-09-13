@@ -4,7 +4,7 @@ import {
   isClinicOpenAt,
   type BookingClinicContext,
 } from '../../core/services/appointment.service';
-import { DoctorService, DEFAULT_SCHEDULE, type Doctor } from '../../core/services/doctor.service';
+import { DoctorService, type Doctor } from '../../core/services/doctor.service';
 import {
   AppointmentComponent,
   type BookingSubmission,
@@ -72,7 +72,7 @@ export class MarketplaceBookingComponent implements OnInit {
           qualification: clinic.doctorQualification || 'Dental Surgeon',
           speciality: clinic.marketplaceProfile?.speciality || 'General Dentistry',
           available: true,
-          schedule: { ...DEFAULT_SCHEDULE },
+          schedule: (clinic.providerSchedule ?? {}) as Doctor['schedule'],
         }];
       } else {
         const verifiedDoctorIds = new Set(clinic.marketplaceVerifiedDoctorIds ?? []);

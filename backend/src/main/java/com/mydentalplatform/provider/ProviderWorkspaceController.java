@@ -85,14 +85,16 @@ public class ProviderWorkspaceController {
         @Valid @RequestBody ScheduleRequest request) {
         UUID user = userId(jwt);
         ScheduleRules.validate(request.schedule());
+        jdbc.queryForList("SELECT id FROM providers WHERE user_id = ? AND legacy_doctor_id IS NULL FOR UPDATE", UUID.class, user);
         // Match the booking engine's doctor lock before changing its availability.
         jdbc.queryForList("""
-            SELECT d.id FROM doctors d JOIN providers p ON p.legacy_doctor_id = d.id
-            JOIN practice_locations l ON l.clinic_id = d.clinic_id
+            SELECT d.id FROM doctors d JOIN providers p ON coalesce(p.legacy_doctor_id, p.id) = d.id
+            JOIN practice_locations l ON coalesce(l.clinic_id, l.owner_provider_id) = d.clinic_id
             WHERE p.user_id = ? AND l.id = ? FOR UPDATE OF d
             """, UUID.class, user, id);
         List<Map<String, Object>> memberships = jdbc.queryForList("""
-            SELECT p.id AS provider_id, p.legacy_doctor_id, l.clinic_id
+            SELECT p.id AS provider_id, coalesce(p.legacy_doctor_id, p.id) AS legacy_doctor_id,
+                coalesce(l.clinic_id, p.id) AS clinic_id
             FROM provider_location_memberships m JOIN providers p ON p.id = m.provider_id
             JOIN practice_locations l ON l.id = m.location_id
             WHERE p.user_id = ? AND m.location_id = ? AND p.active AND m.status = 'active' AND l.active

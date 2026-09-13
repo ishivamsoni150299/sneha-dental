@@ -42,6 +42,7 @@ export class VideoConsultationComponent implements OnDestroy {
   readonly bookingRef = input('');
   readonly phone = input('');
   readonly staff = input(false);
+  readonly dentist = input(false);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   private readonly video = inject(VideoConsultationService);
@@ -68,7 +69,7 @@ export class VideoConsultationComponent implements OnDestroy {
     this.error.set(null);
     try {
       await this.destroyCall();
-      const session = await this.video.join(this.appointmentId(), this.staff(), this.bookingRef(), this.phone());
+      const session = await this.video.join(this.appointmentId(), this.staff(), this.bookingRef(), this.phone(), this.dentist());
       if (attempt !== this.generation) return;
       const call = await this.createFrame(this.frame()!.nativeElement);
       if (attempt !== this.generation) { await call.destroy(); return; }
@@ -118,7 +119,7 @@ export class VideoConsultationComponent implements OnDestroy {
 
   private async checkAccess(attempt: number): Promise<void> {
       try {
-        await this.video.checkAccess(this.appointmentId(), this.staff(), this.bookingRef(), this.phone());
+        await this.video.checkAccess(this.appointmentId(), this.staff(), this.bookingRef(), this.phone(), this.dentist());
         if (attempt === this.generation && this.call) this.verifyAccess(attempt);
       } catch (error) {
         if (attempt !== this.generation) return;

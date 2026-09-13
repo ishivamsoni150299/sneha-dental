@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthenticatedApiService } from '../../core/services/authenticated-api.service';
+import { VideoConsultationComponent } from '../../shared/components/video-consultation/video-consultation.component';
 
 interface Visit {
   id: string; booking_ref: string; patient_name: string; phone_e164: string;
@@ -12,7 +13,7 @@ interface Day { enabled: boolean; start: string; end: string; breaks: { start: s
 interface Practice { id: string; name: string; city: string; status: string; schedule: string | Record<string, unknown> }
 
 @Component({
-  selector: 'app-professional-workspace', standalone: true, imports: [FormsModule, RouterLink],
+  selector: 'app-professional-workspace', standalone: true, imports: [FormsModule, RouterLink, VideoConsultationComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen bg-gray-50 pb-10">
@@ -24,6 +25,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
       </header>
       <main class="mx-auto max-w-6xl px-4 py-6 sm:py-10">
         <h1 class="text-3xl font-bold text-gray-900">Your practice, at a glance</h1>
+        <a routerLink="/professional/video-test" class="mt-4 inline-flex min-h-12 items-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Test video call now</a>
         <p class="mt-2 text-sm text-gray-500">Manage assigned appointments and your hours at each practice. Times are in India Standard Time.</p>
         <nav class="mt-6 flex gap-2 rounded-2xl border border-gray-200 bg-white p-1" aria-label="Workspace">
           <button (click)="tab.set('appointments')" [attr.aria-pressed]="tab() === 'appointments'" [class.bg-blue-100]="tab() === 'appointments'" class="min-h-12 flex-1 rounded-xl px-3 font-semibold text-blue-700">Appointments</button>
@@ -68,7 +70,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                   <div class="mt-3 flex flex-wrap gap-2">
                     <button (click)="updateVisit(visit, 'checked_in')" [disabled]="busy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Mark checked in</button>
                     @if (visit.consultation_mode === 'video' || visit.service.toLowerCase().includes('video')) {
-                      <button (click)="joinVideo(visit)" [disabled]="busy()" class="min-h-11 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">Join video call</button>
+                      <app-video-consultation [appointmentId]="visit.id" [staff]="true" [dentist]="true" />
                     }
                   </div>
                 }
@@ -76,7 +78,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                   <div class="mt-3 flex flex-wrap gap-2">
                     <button (click)="updateVisit(visit, 'completed')" [disabled]="busy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Complete visit</button>
                     @if (visit.consultation_mode === 'video' || visit.service.toLowerCase().includes('video')) {
-                      <button (click)="joinVideo(visit)" [disabled]="busy()" class="min-h-11 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700">Join video call</button>
+                      <app-video-consultation [appointmentId]="visit.id" [staff]="true" [dentist]="true" />
                     }
                   </div>
                 }
@@ -210,25 +212,5 @@ export class ProfessionalWorkspaceComponent implements OnInit {
       this.message.set('Availability saved. Existing appointments are unchanged.');
     } catch (e) { this.error.set((e as Error).message); }
     finally { this.saving.set(false); }
-  }
-  async joinVideo(visit: Visit): Promise<void> {
-    if (this.busy()) return;
-    this.busy.set(true); this.error.set(null);
-    try {
-      const response = await this.api.fetch(`/api/providers/me/appointments/${visit.id}/video/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json() as { roomUrl?: string; token?: string; message?: string; detail?: string };
-      if (!response.ok) throw new Error(data.detail || data.message || 'Could not join video consultation.');
-      if (data.roomUrl) {
-        const fullUrl = data.token ? `${data.roomUrl}?t=${encodeURIComponent(data.token)}` : data.roomUrl;
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
-      }
-    } catch (e) {
-      this.error.set((e as Error).message);
-    } finally {
-      this.busy.set(false);
-    }
   }
 }
