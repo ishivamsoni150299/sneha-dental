@@ -2,8 +2,6 @@ package com.mydentalplatform.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +16,6 @@ import org.springframework.http.HttpStatus;
 public class PasswordResetService {
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
-    private final Clock clock = Clock.systemUTC();
 
     public PasswordResetService(JdbcTemplate jdbcTemplate, PasswordEncoder passwordEncoder) {
         this.jdbcTemplate = jdbcTemplate;
@@ -30,9 +27,8 @@ public class PasswordResetService {
     }
     @Transactional
     public void complete(String rawEmail, String token, String password) {
-        String email = rawEmail.trim().toLowerCase();
+        String email = rawEmail.trim().toLowerCase(java.util.Locale.ROOT);
         String tokenHash = hash(token);
-        Instant now = clock.instant();
         List<UUID> recovery = jdbcTemplate.queryForList("""
             select r.user_id from account_recovery_codes r join users u on u.id = r.user_id
             where lower(u.email) = ? and u.enabled and r.code_hash = ? and r.consumed_at is null
@@ -46,29 +42,7 @@ public class PasswordResetService {
             jdbcTemplate.update("update auth_challenges set consumed_at = now() where user_id = ? and consumed_at is null", userId);
             return;
         }
-        List<UUID> challenges = jdbcTemplate.query("""
-            select id from auth_challenges
-            where destination = ? and purpose = 'password_reset' and secret_hash = ?
-              and consumed_at is null and expires_at > ?
-            order by created_at desc limit 1 for update
-            """, (resultSet, row) -> resultSet.getObject("id", UUID.class), email, tokenHash, now);
-        if (challenges.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This recovery code is invalid, expired or already used.");
-        }
-        List<UUID> users = jdbcTemplate.query(
-            "select user_id from auth_challenges where id = ?",
-            (resultSet, row) -> resultSet.getObject("user_id", UUID.class), challenges.getFirst());
-        if (users.isEmpty() || users.getFirst() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This recovery code is invalid, expired or already used.");
-        }
-        UUID userId = users.getFirst();
-        jdbcTemplate.update("""
-            update users set password_hash = ?, password_migration_required = false, updated_at = ? where id = ?
-            """, passwordEncoder.encode(password), now, userId);
-        jdbcTemplate.update("update auth_challenges set consumed_at = ? where id = ?", now, challenges.getFirst());
-        jdbcTemplate.update("""
-            update refresh_tokens set revoked_at = ? where user_id = ? and revoked_at is null
-            """, now, userId);
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This recovery code is invalid or already used.");
     }
 
     private String hash(String value) {

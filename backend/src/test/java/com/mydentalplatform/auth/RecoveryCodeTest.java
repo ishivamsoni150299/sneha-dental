@@ -42,7 +42,9 @@ class RecoveryCodeTest {
 
     @Test void invalidOrConsumedCodeCannotChangePassword() {
         var jdbc = mock(JdbcTemplate.class); var encoder = mock(PasswordEncoder.class);
-        assertThrows(ResponseStatusException.class, () -> new PasswordResetService(jdbc, encoder).complete("patient@example.com", "invalid", "new-password"));
+        var error = assertThrows(ResponseStatusException.class, () -> new PasswordResetService(jdbc, encoder).complete("patient@example.com", "invalid", "new-password"));
+        assertEquals(400, error.getStatusCode().value());
+        assertEquals(1, mockingDetails(jdbc).getInvocations().size(), "Do not fall through to retired email-link database queries");
         verifyNoInteractions(encoder);
         verify(jdbc, never()).update(anyString(), any(Object[].class));
     }
