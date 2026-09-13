@@ -52,16 +52,21 @@ class IndependentDentistEligibilityTest {
         when(daily.configured()).thenReturn(true);
 
         UUID providerId = UUID.randomUUID();
-        UUID clinicId = UUID.randomUUID();
+        UUID clinicId = providerId;
 
         when(jdbc.queryForObject(contains("legacy_doctor_id IS NULL"), eq(Boolean.class), eq(providerId)))
             .thenReturn(true);
         when(jdbc.queryForObject(contains("p.active = true"), eq(Boolean.class), eq(providerId)))
             .thenReturn(true);
-        when(jdbc.queryForList(contains("SELECT id, slug, full_name FROM providers"), eq(providerId)))
-            .thenReturn(List.of(Map.of("id", providerId, "slug", "dr-independent", "full_name", "Dr. Independent")));
+        String day = LocalDate.now().plusDays(3).getDayOfWeek().name().substring(0, 3).toLowerCase(java.util.Locale.ROOT);
+        var week = new java.util.LinkedHashMap<String, Object>();
+        for (String weekday : List.of("mon", "tue", "wed", "thu", "fri", "sat", "sun"))
+            week.put(weekday, Map.of("enabled", weekday.equals(day), "start", "09:00", "end", "18:00"));
+        String schedule = new ObjectMapper().writeValueAsString(week);
+        when(jdbc.queryForList(contains("SELECT p.id, p.slug, p.full_name"), eq(providerId)))
+            .thenReturn(List.of(Map.of("id", providerId, "slug", "dr-independent", "full_name", "Dr. Independent", "schedule", schedule)));
         when(jdbc.queryForList(contains("select d.schedule::text from doctors d"), eq(String.class), any(Object[].class)))
-            .thenReturn(List.of());
+            .thenReturn(List.of(schedule));
         when(jdbc.queryForList(contains("select m.schedule::text from provider_location_memberships m"), eq(String.class), any(Object[].class)))
             .thenReturn(List.of());
         when(jdbc.queryForObject(contains("providers where id = ? and active = true"), eq(Boolean.class), eq(providerId)))

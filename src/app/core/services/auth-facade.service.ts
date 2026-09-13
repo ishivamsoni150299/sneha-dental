@@ -49,7 +49,8 @@ export class AuthFacade {
   }
 
   async signInWithEmail(email: string, password: string): Promise<AuthRole> {
-    return this.applySession(await this.authRequest('/api/auth/clinic/login', { email, password }));
+    await this.authReady;
+    return this.applySession(await this.authRequest('/api/auth/login', { email, password }));
   }
 
   async signInWithGoogle(): Promise<AuthRole> {
@@ -57,6 +58,7 @@ export class AuthFacade {
   }
 
   async createAccountWithEmail(email: string, password: string): Promise<PlatformUser> {
+    await this.authReady;
     this.applySession(await this.authRequest('/api/auth/clinic/signup', { email, password }));
     return this.currentUser()!;
   }
@@ -71,12 +73,14 @@ export class AuthFacade {
   }
 
   async createProfessionalAccount(fullName: string, email: string, password: string): Promise<PlatformUser> {
+    await this.authReady;
     this.applySession(await this.authRequest('/api/auth/professional/signup', { fullName, email, password }));
     return this.currentUser()!;
   }
 
   async signInProfessional(email: string, password: string): Promise<AuthRole> {
-    return this.applySession(await this.authRequest('/api/auth/professional/login', { email, password }));
+    await this.authReady;
+    return this.applySession(await this.authRequest('/api/auth/login', { email, password }));
   }
 
   async createAccountWithGoogle(): Promise<{ user: PlatformUser; role: AuthRole }> {
@@ -99,17 +103,15 @@ export class AuthFacade {
     await this.passwordResetRequest('/api/auth/password-reset/complete', { email, token, password });
   }
 
-  async getFreshIdToken(): Promise<string> {
-    if (this.accessToken && Date.now() < this.accessTokenExpiresAt - 30_000) return this.accessToken;
-    if (!this.refreshRequest) {
-      this.refreshRequest = this.refreshSession().finally(() => { this.refreshRequest = null; });
-    }
-    return this.refreshRequest;
+  async getFreshIdToken(forceRefresh = false): Promise<string> {
+    await this.authReady;
+    if (!forceRefresh && this.accessToken && Date.now() < this.accessTokenExpiresAt - 30_000) return this.accessToken;
+    return this.refreshSession();
   }
 
   async resolveCurrentUser(): Promise<AuthRole | null> {
     try {
-      await this.refreshSession();
+      await this.getFreshIdToken(true);
       return this.role();
     } catch {
       this.clearSession();
@@ -119,6 +121,7 @@ export class AuthFacade {
 
   async logout(): Promise<void> {
     this.sessionGeneration++;
+    await this.refreshRequest?.catch(() => undefined);
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } finally {
@@ -141,7 +144,14 @@ export class AuthFacade {
     }
   }
 
-  private async refreshSession(): Promise<string> {
+  private refreshSession(): Promise<string> {
+    if (!this.refreshRequest) {
+      this.refreshRequest = this.performRefresh().finally(() => { this.refreshRequest = null; });
+    }
+    return this.refreshRequest;
+  }
+
+  private async performRefresh(): Promise<string> {
     const generation = this.sessionGeneration;
     const refresh = async () => {
       const response = await this.authRequest('/api/auth/refresh');
@@ -159,6 +169,7 @@ export class AuthFacade {
       credentials: 'include',
       headers: body ? { 'Content-Type': 'application/json' } : undefined,
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(30_000),
     });
     const data = await response.json().catch(() => ({})) as AuthResponse & { code?: string; message?: string };
     if (!response.ok) {
@@ -166,7 +177,9 @@ export class AuthFacade {
         data.code === 'password_migration_required' ? 'auth/password-migration-required' :
         'auth/invalid-credential';
       throw this.authError(response.status === 429 ? 'auth/too-many-requests' : code,
-        (data as { detail?: string }).detail ?? data.message ?? 'Authentication failed.');
+        response.status === 429
+          ? `Too many attempts. Try again in ${response.headers.get('Retry-After') ?? '60'} seconds.`
+          : (data as { detail?: string }).detail ?? data.message ?? 'Authentication failed.');
     }
     return data;
   }

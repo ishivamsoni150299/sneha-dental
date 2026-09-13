@@ -53,7 +53,8 @@ export class VideoTestComponent implements OnDestroy {
     const generation = ++this.generation;
     this.busy.set(true); this.error.set(null);
     try {
-      const response = await this.api.fetch(this.host ? '/api/providers/me/video-test' : '/api/public/video-tests/join', {
+      const request = this.host ? this.api.fetch.bind(this.api) : globalThis.fetch.bind(globalThis);
+      const response = await request(this.host ? '/api/providers/me/video-test' : '/api/public/video-tests/join', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.host ? {} : { token: this.guestToken }),
       });
       const data = await response.json();

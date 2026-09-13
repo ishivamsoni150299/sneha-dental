@@ -1,44 +1,37 @@
 # Production authentication
 
-The application uses Supabase Auth as the OTP provider and keeps application roles, tenant scope, and session families in the platform database.
+Clinic owners, dentists and platform administrators sign in with email and password.
+Spring Security issues a short-lived JWT and an HttpOnly Secure refresh cookie.
+Supabase login and email magic links are retired.
 
-## Render variables
+All email login pages use /api/auth/login and route by the role returned by the
+server. Backend authorization enforces the role, clinic and active session.
+New clinic accounts start as incomplete-signup; new dentist profiles await
+verification. Platform administrators cannot register publicly.
 
-Set these variables on the web service before enabling OTP in production:
+New passwords use Argon2id, requiring bcprov-jdk18on at runtime. Existing BCrypt
+hashes remain accepted with the existing password. Tokens are not persisted in
+browser storage. Refresh calls are shared per tab and serialized across tabs.
+Logout revokes the complete session family.
 
-- `SUPABASE_URL`: `https://bzdhowtdayekdusfpmbw.supabase.co`
-- `SUPABASE_PUBLISHABLE_KEY`: the Supabase project publishable key, stored as a secret environment variable
+Required configuration: JWT_SECRET (at least 32 decoded bytes),
+SECURE_COOKIES=true, PUBLIC_BASE_URL=https://mydentalplatform.com, and database
+credentials. BOOTSTRAP_ADMIN_EMAIL / BOOTSTRAP_ADMIN_PASSWORD create the first
+administrator only; they never overwrite existing accounts.
 
-The service never needs a Supabase service-role key. OTP requests are rate limited, provider errors are sanitized, and refresh-token families are revoked on replay or logout.
+Accounts from retired email links that have no local password require operator
+recovery. Set AUTH_RECOVERY_ID to a fresh UUID, AUTH_RECOVERY_EMAIL to the existing
+account and AUTH_RECOVERY_PASSWORD to a strong 12–72 byte password. Restart once
+and remove those variables. Recovery preserves the role and profile and revokes
+prior sessions. Never place these values in Git.
+Automated password-reset email delivery is currently unavailable.
 
-## Supabase email and phone OTP
+Patient phone verification requires an SMS delivery integration, currently
+unconfigured. Only the explicitly enabled, expiring operator test number can use
+the test OTP flow. Never mark arbitrary unverified phones as verified.
+This limitation does not affect email/password accounts or private video test
+invitations, which use expiring signed invitation tokens.
 
-Email OTP is used for clinic, dentist, and platform staff. Phone OTP is used for patients. In Supabase Dashboard, open **Authentication → Providers → Phone**, enable the provider, and configure Twilio with:
-
-- Twilio Account SID from the Twilio Console
-- Twilio Auth Token stored only in Supabase's provider settings
-- The Twilio phone number or Messaging Service SID used for SMS
-
-Do not add the Twilio token to Render, source control, browser code, or issue reports. Supabase's email provider must also be configured for production delivery; custom SMTP is recommended for branded messages and reliable delivery.
-
-Existing password sessions are intentionally invalidated by migration `V15__verified_authentication.sql`. Each user signs in once with an OTP to establish a verified Supabase identity and a new refresh-token family.
-
-## Supabase authentication URLs
-
-In **Authentication -> URL Configuration**, production must use:
-
-- Site URL: `https://mydentalplatform.com`
-- Redirect URLs: `https://mydentalplatform.com/professional/signup`, `https://mydentalplatform.com/business/signup`, `https://mydentalplatform.com/business/login`, and `https://mydentalplatform.com/platform/login`
-
-The backend calls GoTrue directly, so email requests must use
-`POST /auth/v1/otp?redirect_to=<encoded callback URL>`. The SDK's `emailRedirectTo`
-option is not a JSON body field in this REST endpoint. Supabase falls back to the
-Site URL if the redirect is missing or not allowed, leaving users on the homepage
-without an application session. Platform staff must return to `/platform/login`
-so verification uses the platform portal.
-
-After deploying a redirect fix, request a fresh email: previously issued links
-keep their original destination and may already be consumed. Clinic and platform
-callbacks exchange the provider token automatically; new dentist profiles also
-ask for a professional name. Error fragments are cleared and shown as an expired
-link message, with an option to request another link.
+Regression checks cover the real password encoder, BCrypt compatibility, token
+rotation/revocation, role authorization, concurrent browser refresh, logout during
+refresh, and guest video access without a login cookie.

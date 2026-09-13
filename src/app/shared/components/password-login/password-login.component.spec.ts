@@ -38,11 +38,11 @@ describe('PasswordLoginComponent', () => {
     expect(auth.createAccountWithEmail).not.toHaveBeenCalled();
     expect(component.error()).toContain('do not match');
   });
-  it('logs out accounts without platform access', async () => {
+  it('returns the actual role for routing without destroying a valid session', async () => {
     const { component, auth } = setup(false, 'platform');
     const emit = spyOn(component.authenticated, 'emit');
     await component.submit();
-    expect(auth.logout).toHaveBeenCalled();
-    expect(emit).not.toHaveBeenCalled();
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(emit).toHaveBeenCalledWith('clinic-admin');
   });
 });

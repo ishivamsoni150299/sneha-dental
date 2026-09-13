@@ -52,6 +52,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String ruleKey = method + ":" + path;
 
         LimitRule rule = null;
+        if (method.equals("POST") && path.equals("/api/auth/login")) {
+            rule = new LimitRule(10, 60);
+        }
         if (method.equals("POST") && path.startsWith("/api/auth/otp/")) {
             rule = new LimitRule(path.endsWith("/request") ? 10 : 30, 600);
         }

@@ -58,4 +58,33 @@ describe('AuthFacade', () => {
     expect(service.currentUser()?.clinicId).toBe('clinic-1');
     expect(service.isAuthenticated).toBeTrue();
   });
+
+  it('shares one refresh between concurrent callers and role resolution', async () => {
+    fetchSpy.calls.reset();
+    fetchSpy.and.callFake(async () => new Response(JSON.stringify({
+      accessToken: 'rotated-token', expiresIn: 900,
+      user: { id: 'dentist', role: 'dentist', clinicId: null, email: 'dentist@example.com' },
+    })));
+    const result = await Promise.all([service.getFreshIdToken(), service.getFreshIdToken(), service.resolveCurrentUser()]);
+    expect(result).toEqual(['rotated-token', 'rotated-token', 'dentist']);
+    expect(fetchSpy.calls.count()).toBe(1);
+  });
+
+  it('does not restore a session after logout starts during a refresh', async () => {
+    let respond!: (response: Response) => void;
+    let started!: () => void;
+    const pending = new Promise<void>(resolve => { started = resolve; });
+    fetchSpy.and.callFake((path: string) => {
+      if (path.endsWith('/logout')) return Promise.resolve(new Response(null, { status: 204 }));
+      started();
+      return new Promise<Response>(resolve => { respond = resolve; });
+    });
+    const refresh = service.getFreshIdToken().catch(() => 'expired');
+    await pending;
+    const logout = service.logout();
+    respond(new Response(JSON.stringify({ accessToken: 'stale', expiresIn: 900,
+      user: { id: 'dentist', role: 'dentist', clinicId: null, email: 'dentist@example.com' } })));
+    await Promise.all([refresh, logout]);
+    expect(service.currentUser()).toBeNull();
+  });
 });

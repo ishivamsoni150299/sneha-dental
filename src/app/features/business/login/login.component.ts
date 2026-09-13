@@ -86,6 +86,11 @@ export class LoginComponent implements OnInit {
   private async routeResolvedUser(role: AuthRole, fromAttempt: boolean): Promise<void> {
     const returnUrl = this.safeReturnUrl();
 
+    if (role === 'dentist') {
+      await this.router.navigateByUrl('/professional/workspace', { replaceUrl: true });
+      return;
+    }
+
     if (role === 'patient') {
       await this.router.navigateByUrl('/appointments', { replaceUrl: true });
       return;
@@ -107,25 +112,8 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    if (this.isPlatform()) {
-      if (!fromAttempt) {
-        if (role === 'clinic-admin') {
-          await this.router.navigateByUrl('/business/clinic/dashboard', { replaceUrl: true });
-        } else {
-          await this.router.navigate(['/business/signup'], {
-            queryParams: { resume: 'true' },
-            replaceUrl: true,
-          });
-        }
-        return;
-      }
-      await this.auth.logout();
-      this.error.set('This account does not have platform access. Use your authorised staff account.');
-      return;
-    }
-
     if (role === 'clinic-admin') {
-      await this.router.navigateByUrl(returnUrl || '/business/clinic/dashboard', { replaceUrl: true });
+      await this.router.navigateByUrl((!this.isPlatform() && returnUrl) || '/business/clinic/dashboard', { replaceUrl: true });
       return;
     }
 

@@ -64,15 +64,15 @@ describe('LoginComponent', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/patients', { replaceUrl: true });
   });
 
-  it('does not accept a clinic account on the platform staff entry', async () => {
+  it('routes a clinic account to its own workspace from the platform entry', async () => {
     const component = create('platform');
     auth.signInWithEmail.and.resolveTo('clinic-admin');
     component.form.setValue({ email: 'owner@example.com', password: 'password123' });
 
     await component.signInWithEmail();
 
-    expect(auth.logout).toHaveBeenCalled();
-    expect(component.error()).toContain('does not have platform access');
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
   });
 
   it('returns an existing clinic owner away from the platform staff entry', async () => {

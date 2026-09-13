@@ -62,10 +62,6 @@ export class PasswordLoginComponent {
         const role = this.portal() === 'dentist'
           ? await this.auth.signInProfessional(v.email.trim(), v.password)
           : await this.auth.signInWithEmail(v.email.trim(), v.password);
-        if (this.portal() === 'platform' && role !== 'platform-admin') {
-          await this.auth.logout();
-          throw new Error('This account does not have platform access.');
-        }
         this.authenticated.emit(role);
       }
     } catch (error) { this.error.set(error instanceof Error ? error.message : 'Sign-in failed. Please try again.'); }

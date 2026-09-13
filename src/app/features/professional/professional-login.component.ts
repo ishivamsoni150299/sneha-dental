@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthFacade } from '../../core/services/auth-facade.service';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthFacade, AuthRole } from '../../core/services/auth-facade.service';
 import { PlatformBrandComponent } from '../../shared/components/platform-brand/platform-brand.component';
 import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
 
@@ -14,19 +14,27 @@ import { PasswordLoginComponent } from '../../shared/components/password-login/p
     <main class="min-h-[calc(100vh-4rem)] bg-gray-50 px-4 py-12"><section class="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
       <p class="text-sm font-bold uppercase tracking-wider text-blue-700">Dentist portal</p><h1 class="mt-3 text-3xl font-bold text-gray-950">Sign in</h1>
       @if (error()) { <p class="mt-5 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">{{ error() }}</p> }
-<div class="mt-6"><app-password-login portal="dentist" (authenticated)="onOtpAuthenticated()" /></div>
+<div class="mt-6"><app-password-login portal="dentist" (authenticated)="onOtpAuthenticated($event)" /></div>
     </section></main>
   `,
 })
 export class ProfessionalLoginComponent {
-  async onOtpAuthenticated(): Promise<void> { await this.router.navigateByUrl('/professional/profile'); }
+  private readonly route = inject(ActivatedRoute);
+  async onOtpAuthenticated(role: AuthRole): Promise<void> {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const destination = role === 'dentist'
+      ? (returnUrl?.startsWith('/professional/') && !returnUrl.includes('\\') ? returnUrl : '/professional/workspace')
+      : role === 'platform-admin' ? '/business/clinics'
+        : role === 'clinic-admin' ? '/business/clinic/dashboard' : '/business/signup';
+    await this.router.navigateByUrl(destination);
+  }
   private readonly fb = inject(FormBuilder); private readonly auth = inject(AuthFacade); private readonly router = inject(Router);
   readonly loading = signal(false); readonly error = signal<string | null>(null);
   readonly form = this.fb.nonNullable.group({ email: ['', [Validators.required, Validators.email]], password: ['', Validators.required] });
   async submit(): Promise<void> {
     this.form.markAllAsTouched(); if (this.form.invalid || this.loading()) return;
     this.loading.set(true); this.error.set(null);
-    try { const v = this.form.getRawValue(); await this.auth.signInProfessional(v.email.trim(), v.password); await this.router.navigateByUrl('/professional/profile'); }
+    try { const v = this.form.getRawValue(); const role = await this.auth.signInProfessional(v.email.trim(), v.password); await this.onOtpAuthenticated(role); }
     catch (error) { this.error.set((error as Error).message || 'Could not sign in.'); }
     finally { this.loading.set(false); }
   }
