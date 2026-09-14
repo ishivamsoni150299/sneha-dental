@@ -4,6 +4,8 @@ Video appointments use the existing working-hours schedule, slot reservation and
 
 ## Independent deployment
 
+LiveKit Cloud is also supported with the same four environment variables and the native consultation UI. Follow the [free Build plan setup](../deploy/video/LIVEKIT-CLOUD.md). Cloud mode revokes patient and dentist tokens before room deletion; self-hosted deployments instead require the server room policy below.
+
 Set `VIDEO_PROVIDER=livekit` to run calls through your own LiveKit server. No managed video account is used in that mode. See [the server deployment guide](../deploy/video/README.md) and [backend environment template](../deploy/video/backend.env.example). It requires a public VPS, trusted TLS and TURN connectivity. Deployment and a two-device media check are required before claiming production readiness.
 
 The default remains `daily` for existing deployments. Daily Prebuilt remains supported with `DAILY_API_KEY` during migration; it is never used as an automatic fallback in self-hosted mode.

@@ -80,4 +80,41 @@ class LiveKitVideoClientTest {
         client.closeInvalidRooms();
         verify(jdbc).update("DELETE FROM video_room_leases WHERE room_name = ?", room);
     }
+    @Test void cloudCleanupRevokesBothIdentitiesBeforeDeletingRoom() throws Exception {
+        var cloud = new LiveKitVideoClient("wss://project.livekit.cloud", "operator-key", secret, new ObjectMapper(), jdbc, http);
+        when(jdbc.queryForList(anyString(), eq(String.class))).thenReturn(List.of(room));
+        HttpResponse<Void> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(200);
+        when(http.send(any(), any(HttpResponse.BodyHandler.class))).thenReturn(response);
+        cloud.closeInvalidRooms();
+        var requests = org.mockito.ArgumentCaptor.forClass(HttpRequest.class);
+        verify(http, times(3)).send(requests.capture(), any(HttpResponse.BodyHandler.class));
+        var calls = requests.getAllValues();
+        assertTrue(calls.get(0).uri().getPath().endsWith("/RemoveParticipant"));
+        assertTrue(calls.get(1).uri().getPath().endsWith("/RemoveParticipant"));
+        assertTrue(calls.get(2).uri().getPath().endsWith("/DeleteRoom"));
+        for (int index = 0; index < 2; index++) {
+            var body = new java.io.ByteArrayOutputStream();
+            calls.get(index).bodyPublisher().orElseThrow().subscribe(new java.util.concurrent.Flow.Subscriber<java.nio.ByteBuffer>() {
+                public void onSubscribe(java.util.concurrent.Flow.Subscription subscription) { subscription.request(Long.MAX_VALUE); }
+                public void onNext(java.nio.ByteBuffer buffer) { byte[] bytes = new byte[buffer.remaining()]; buffer.get(bytes); body.writeBytes(bytes); }
+                public void onError(Throwable error) { fail(error); }
+                public void onComplete() {}
+            });
+            var payload = new ObjectMapper().readTree(body.toString(StandardCharsets.UTF_8));
+            assertEquals(index == 0 ? "dentist" : "patient", payload.path("identity").asText());
+            assertTrue(payload.path("revoke_token_ts").asLong() >= Instant.now().minusSeconds(2).getEpochSecond());
+        }
+        verify(jdbc).update("DELETE FROM video_room_leases WHERE room_name = ?", room);
+    }
+    @Test void cloudRevocationFailureKeepsLeaseForRetryAndDoesNotDeleteRoom() throws Exception {
+        var cloud = new LiveKitVideoClient("wss://project.livekit.cloud", "operator-key", secret, new ObjectMapper(), jdbc, http);
+        when(jdbc.queryForList(anyString(), eq(String.class))).thenReturn(List.of(room));
+        HttpResponse<Void> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(503);
+        when(http.send(any(), any(HttpResponse.BodyHandler.class))).thenReturn(response);
+        cloud.closeInvalidRooms();
+        verify(http).send(any(), any(HttpResponse.BodyHandler.class));
+        verify(jdbc, never()).update(anyString(), eq(room));
+    }
 }

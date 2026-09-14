@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
 
-/** Talks only to the operator's media server. Credentials and room tokens stay server-side/in memory. */
+/** Supports LiveKit Cloud and operator-hosted servers. Credentials and room tokens stay server-side/in memory. */
 @Component
 @ConditionalOnProperty(name = "VIDEO_PROVIDER", havingValue = "livekit")
 public class LiveKitVideoClient implements VideoRoomClient {
@@ -71,8 +71,11 @@ public class LiveKitVideoClient implements VideoRoomClient {
     String joinToken(String room, Instant opens, Instant expires, boolean host) {
         return token(Map.of("room", room, "roomJoin", true, "canPublish", true, "canSubscribe", true,
             "canPublishData", false, "canUpdateOwnMetadata", false, "canPublishSources", List.of("camera", "microphone")),
-            host ? "dentist" : "patient", opens, expires.isBefore(Instant.now().plusSeconds(120)) ? expires : Instant.now().plusSeconds(120));
+            host ? "dentist" : "patient", cloudHosted() ? Instant.now() : opens,
+            expires.isBefore(Instant.now().plusSeconds(120)) ? expires : Instant.now().plusSeconds(120));
     }
+
+    private boolean cloudHosted() { return URI.create(url).getHost().endsWith(".livekit.cloud"); }
 
     private String token(Map<String, Object> grant, String identity, Instant opens, Instant expires) {
         var encoder = NimbusJwtEncoder.withSecretKey(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"))
@@ -111,6 +114,15 @@ public class LiveKitVideoClient implements VideoRoomClient {
             """, String.class);
         for (String name : names) {
             try {
+                if (cloudHosted()) {
+                    // Cloud can auto-create rooms. Revoke both identities, including departed or never-joined callers,
+                    // before deleting the room so cached/refreshed tokens cannot reopen it.
+                    for (String identity : List.of("dentist", "patient")) {
+                        request("RemoveParticipant", Map.of("room", name, "identity", identity,
+                            "revoke_token_ts", Instant.now().plusSeconds(1).getEpochSecond()),
+                            Map.of("roomAdmin", true, "room", name));
+                    }
+                }
                 request("DeleteRoom", Map.of("room", name), Map.of("roomCreate", true));
                 jdbc.update("DELETE FROM video_room_leases WHERE room_name = ?", name);
             } catch (ResponseStatusException error) {

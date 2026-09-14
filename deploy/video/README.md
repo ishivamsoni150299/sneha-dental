@@ -1,5 +1,7 @@
 # Independent video server
 
+For LiveKit Cloud's free Build plan, use [the Cloud setup guide](LIVEKIT-CLOUD.md). The VPS instructions below apply only to self-hosting.
+
 The app supports an operator-hosted LiveKit media server. This is open-source software running on your infrastructure; no LiveKit Cloud or Daily account is used in `VIDEO_PROVIDER=livekit` mode. The Java API issues access tokens and the Angular interface renders the call. Your VPS handles media and TURN relay traffic.
 
 ## Provision the server
