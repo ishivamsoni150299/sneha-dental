@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, InjectionToken, OnDestroy, inject, input, output, signal, viewChild } from '@angular/core';
 import type { LocalTrack, Room, RemoteTrack } from 'livekit-client';
+import { CHAT_TOPIC, ConsultationChatComponent, ConsultationMessage } from './consultation-chat.component';
 import type { VideoSession } from '../../../core/services/video-consultation.service';
 
 export const LIVEKIT_SDK = new InjectionToken<() => Promise<typeof import('livekit-client')>>('Self-hosted video SDK', {
@@ -7,65 +8,14 @@ export const LIVEKIT_SDK = new InjectionToken<() => Promise<typeof import('livek
 });
 
 @Component({
-  selector: 'app-native-video-room', standalone: true, changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-native-video-room', standalone: true, imports: [ConsultationChatComponent], changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-0 flex-1 flex-col' },
-  template: `
-    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto bg-gray-50">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-white px-4 py-3">
-        <p class="flex items-center gap-2 text-sm font-semibold text-gray-900" role="status"><span class="h-2 w-2 rounded-full" [class.bg-green-500]="connected()" [class.bg-blue-500]="!connected()"></span>{{ status() }}</p>
-        <span class="text-xs tabular-nums text-gray-500">{{ elapsed() }} · Private room</span>
-      </div>
-      @if (error()) { <p role="alert" class="m-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">{{ error() }}</p> }
-      <div class="relative m-3 flex min-h-64 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-gray-900 sm:m-5">
-        <div #remote class="remote-media absolute inset-0" [class.hidden]="!hasRemoteVideo()"></div>
-        @if (!hasRemoteVideo() && (connected() || !cameraOn())) {
-          <div class="max-w-sm px-6 py-12 text-center text-white">
-            <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-800"><i class="ph ph-video-camera text-3xl" aria-hidden="true"></i></span>
-            <h3 class="text-xl font-semibold">{{ connected() ? (remotePresent() ? 'Camera is off' : 'You’re in the waiting room') : 'Ready for your consultation?' }}</h3>
-            <p class="mt-3 text-sm leading-6 text-gray-300">{{ connected() ? (remotePresent() ? 'You can still speak with each other.' : 'Stay here. The other person will appear when they join.') : 'Check your camera and microphone, then join when you’re ready.' }}</p>
-          </div>
-        }
-        <div class="absolute overflow-hidden rounded-xl bg-gray-800" [class.local-preview]="!connected()" [class.local-thumbnail]="connected()" [class.hidden]="!connected() && !cameraOn()">
-          <div #local class="local-media h-full w-full" [class.hidden]="!cameraOn()"></div>
-          @if (!cameraOn()) { <div class="flex h-full items-center justify-center text-gray-300"><i class="ph ph-video-camera-slash text-2xl" aria-label="Your camera is off"></i></div> }
-          <span class="absolute bottom-1 left-2 rounded bg-gray-900 px-1 text-xs text-white">You</span>
-        </div>
-      </div>
-      @if (!connected()) {
-        <div class="mx-auto w-full max-w-xl space-y-4 px-4 pb-5">
-          @if (devicesReady()) {
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label class="text-xs font-semibold text-gray-700">Camera<select aria-label="Camera" (change)="switchDevice('videoinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 text-sm">@for (device of cameras(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Camera' }}</option> }</select></label>
-              <label class="text-xs font-semibold text-gray-700">Microphone<select aria-label="Microphone" (change)="switchDevice('audioinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 text-sm">@for (device of microphones(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Microphone' }}</option> }</select></label>
-            </div>
-            <div class="flex items-center gap-3 text-xs text-gray-600"><span>Microphone level</span><meter min="0" max="100" [value]="micLevel()" aria-label="Microphone input level" class="h-3 flex-1"></meter></div>
-          } @else { <button type="button" (click)="prepare()" [disabled]="busy()" class="auth-primary">{{ busy() ? 'Checking devices…' : 'Check camera & microphone' }}</button> }
-          <p class="text-center text-xs leading-5 text-gray-500">Use headphones and a quiet space. You can join with your camera off.</p>
-        </div>
-      }
-      @if (audioBlocked()) { <button type="button" (click)="enableAudio()" class="mx-auto mb-3 min-h-11 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white">Tap to hear the call</button> }
-      <footer class="sticky bottom-0 flex flex-wrap items-center justify-center gap-2 border-t border-gray-200 bg-white px-3 py-4 sm:gap-3">
-        @if (connected() && !devicesReady()) { <button type="button" (click)="prepare()" [disabled]="busy()" class="min-h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">Enable devices</button> }
-        <button type="button" (click)="toggle('microphone')" [disabled]="busy() || !devicesReady()" [attr.aria-pressed]="micOn()" [attr.aria-label]="micOn() ? 'Mute microphone' : 'Unmute microphone'" class="flex min-h-12 min-w-16 flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-40"><i class="ph text-xl" [class.ph-microphone]="micOn()" [class.ph-microphone-slash]="!micOn()" aria-hidden="true"></i>{{ micOn() ? 'Mute' : 'Unmute' }}</button>
-        <button type="button" (click)="toggle('camera')" [disabled]="busy() || !devicesReady()" [attr.aria-pressed]="cameraOn()" [attr.aria-label]="cameraOn() ? 'Turn camera off' : 'Turn camera on'" class="flex min-h-12 min-w-16 flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 disabled:opacity-40"><i class="ph text-xl" [class.ph-video-camera]="cameraOn()" [class.ph-video-camera-slash]="!cameraOn()" aria-hidden="true"></i>Camera</button>
-        @if (!connected()) { <button type="button" (click)="join()" [disabled]="busy()" class="min-h-12 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{{ busy() ? 'Please wait…' : 'Join call' }}</button> }
-        <button type="button" (click)="leave()" class="min-h-12 rounded-xl bg-red-600 px-3 text-sm font-semibold text-white hover:bg-red-700 sm:px-5">{{ connected() ? 'Leave' : 'Cancel' }}</button>
-      </footer>
-      <div #audio class="hidden"></div>
-    </div>
-  `,
-  styles: [`
-    :host ::ng-deep .remote-media video, :host ::ng-deep .local-media video { width:100%;height:100%;object-fit:contain; }
-    :host ::ng-deep .local-media video { object-fit:cover;transform:scaleX(-1); }
-    .local-preview{inset:0}
-    .local-thumbnail{bottom:12px;right:12px;width:112px;height:96px}
-    @media(min-width:640px){.local-thumbnail{width:176px;height:128px}}
-    button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-    footer{padding-bottom:max(1rem,env(safe-area-inset-bottom))}
-  `],
+  templateUrl: './native-video-room.component.html',
+  styleUrl: './native-video-room.component.css',
 })
 export class NativeVideoRoomComponent implements OnDestroy {
   readonly session = input.required<VideoSession>();
+  readonly staff = input(false);
   readonly refreshSession = input<(() => Promise<VideoSession>) | null>(null);
   readonly closed = output<void>();
   readonly joined = output<void>();
@@ -81,8 +31,24 @@ export class NativeVideoRoomComponent implements OnDestroy {
   readonly cameras = signal<MediaDeviceInfo[]>([]);
   readonly microphones = signal<MediaDeviceInfo[]>([]);
   readonly error = signal('');
-  readonly status = signal('Camera & microphone check');
+  readonly status = signal('Ready to join');
   readonly elapsed = signal('00:00');
+  readonly chatOpen = signal(false);
+  readonly unread = signal(0);
+  private readonly chat = viewChild(ConsultationChatComponent);
+  private readonly chatToggle = viewChild<ElementRef<HTMLButtonElement>>('chatToggle');
+  private devicesAttempted = false;
+  readonly sendMessage = async (message: ConsultationMessage): Promise<void> => {
+    if (!this.room || !this.connected() || !this.remotePresent()) throw new Error('Not connected');
+    await this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(message)), { reliable: true, topic: CHAT_TOPIC });
+  };
+
+  toggleChat(open: boolean): void {
+    this.chatOpen.set(open);
+    if (open) { this.unread.set(0); setTimeout(() => this.chat()?.focus()); }
+    else this.chatToggle()?.nativeElement.focus();
+  }
+  onMessage(): void { if (!this.chatOpen()) this.unread.update(count => count + 1); }
   private readonly loadSdk = inject(LIVEKIT_SDK);
   private readonly local = viewChild<ElementRef<HTMLDivElement>>('local');
   private readonly remote = viewChild<ElementRef<HTMLDivElement>>('remote');
@@ -97,6 +63,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
 
   async prepare(): Promise<void> {
     if (this.busy() || this.destroyed) return;
+    this.devicesAttempted = true;
     this.busy.set(true); this.error.set('');
     const attempt = this.generation;
     try {
@@ -123,11 +90,14 @@ export class NativeVideoRoomComponent implements OnDestroy {
     finally { if (!this.destroyed) this.busy.set(false); }
   }
 
-  async join(): Promise<void> {
+  async join(listenOnly = false): Promise<void> {
     if (this.busy() || this.connected() || this.destroyed) return;
     if (Date.parse(this.session().expiresAt) <= Date.now()) { this.error.set('This room has ended. Close it and return to your appointments.'); return; }
     const attempt = this.generation;
-    this.busy.set(true); this.error.set(''); this.status.set('Connecting…');
+    if (!listenOnly && !this.devicesAttempted) await this.prepare();
+    if (this.destroyed || attempt !== this.generation) return;
+    if (listenOnly) { this.stopPreview(); this.cameraOn.set(false); this.micOn.set(false); this.devicesReady.set(false); }
+    this.busy.set(true); this.status.set('Connecting…');
     try {
       const sdk = await this.loadSdk();
       if (this.destroyed || attempt !== this.generation) return;
@@ -135,8 +105,13 @@ export class NativeVideoRoomComponent implements OnDestroy {
       if (this.destroyed || attempt !== this.generation) return;
       const room = new sdk.Room({ adaptiveStream: true, dynacast: true });
       this.room = room;
+      room.on(sdk.RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+        if (topic !== CHAT_TOPIC || !participant || payload.byteLength > 3000) return;
+        try { this.chat()?.receive(JSON.parse(new TextDecoder().decode(payload)), participant.identity === 'dentist'); } catch { /* Ignore unrelated or malformed data. */ }
+      });
       room.on(sdk.RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
         const element = track.attach();
+        if (element instanceof HTMLVideoElement) element.playsInline = true;
         (track.kind === 'video' ? this.remote() : this.audio())?.nativeElement.appendChild(element);
         this.updateRemote();
       });
@@ -170,7 +145,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
         this.elapsed.set(`${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`);
         if (Date.now() >= Date.parse(session.expiresAt)) this.leave();
       }, 1000);
-    } catch { if (!this.destroyed) { this.release(); this.status.set('Could not connect'); this.error.set('Check your internet connection and reopen the room to try again.'); } }
+    } catch { if (!this.destroyed) { this.release(); this.status.set('Could not connect'); this.error.set('Check your internet connection, then tap Join call to try again.'); } }
     finally { if (!this.destroyed) this.busy.set(false); }
   }
 
@@ -179,8 +154,18 @@ export class NativeVideoRoomComponent implements OnDestroy {
     this.busy.set(true);
     try {
       const enabled = !(kind === 'camera' ? this.cameraOn() : this.micOn());
-      const track = this.tracks.find(track => track.kind === (kind === 'camera' ? 'video' : 'audio'));
-      if (!track) { this.error.set('This device is unavailable. Allow access in your browser settings, then reopen the room to check your devices.'); return; }
+      let track = this.tracks.find(track => track.kind === (kind === 'camera' ? 'video' : 'audio'));
+      if (!track) {
+        const attempt = this.generation;
+        const sdk = await this.loadSdk();
+        if (this.destroyed || attempt !== this.generation) return;
+        const tracks = await sdk.createLocalTracks({ audio: kind === 'microphone', video: kind === 'camera' ? { facingMode: 'user' } : false });
+        if (this.destroyed || attempt !== this.generation) { tracks.forEach(item => item.stop()); return; }
+        this.tracks.push(...tracks);
+        for (const item of tracks) if (this.room && this.connected()) await this.room.localParticipant.publishTrack(item);
+        if (this.destroyed || attempt !== this.generation) return;
+        track = tracks[0]; this.devicesReady.set(this.tracks.length > 0); this.showPreview();
+      }
       if (track) { if (enabled) await track.unmute(); else await track.mute(); }
       if (!this.destroyed) (kind === 'camera' ? this.cameraOn : this.micOn).set(enabled);
     } catch (error) { this.error.set(this.deviceError(error)); }
@@ -201,7 +186,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   private showPreview(): void {
     this.local()?.nativeElement.replaceChildren();
     const track = this.tracks.find(track => track.kind === 'video');
-    if (track) { const element = track.attach(); element.muted = true; this.local()?.nativeElement.appendChild(element); }
+    if (track) { const element = track.attach(); element.muted = true; if (element instanceof HTMLVideoElement) element.playsInline = true; this.local()?.nativeElement.appendChild(element); }
   }
   private updateRemote(): void {
     const peers = [...(this.room?.remoteParticipants.values() || [])];
@@ -225,6 +210,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   private stopPreview(): void { this.stopMeter(); this.tracks.forEach(track => { track.detach().forEach(element => element.remove()); track.stop(); }); this.tracks = []; }
   private release(): void {
     this.generation++; clearInterval(this.timer); this.stopPreview();
+    this.devicesAttempted = false; this.chatOpen.set(false); this.audioBlocked.set(false); this.elapsed.set('00:00');
     const room = this.room; this.room = null;
     if (room) { room.removeAllListeners(); void room.disconnect().catch(() => undefined); }
     this.remote()?.nativeElement.replaceChildren(); this.audio()?.nativeElement.replaceChildren();

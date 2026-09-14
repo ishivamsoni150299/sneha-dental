@@ -1,0 +1,15 @@
+:host ::ng-deep .remote-media video, :host ::ng-deep .local-media video { width:100%;height:100%;object-fit:contain; }
+:host ::ng-deep .local-media video { object-fit:cover;transform:scaleX(-1); }
+.local-preview{inset:0}
+.local-thumbnail{bottom:12px;right:12px;width:88px;height:72px}
+.prejoin{max-height:48%}
+.chat-panel{display:none;width:100%;position:absolute;inset:0;z-index:10;background:white}
+.chat-panel.chat-visible{display:block}
+.call-control{display:flex;min-height:52px;min-width:60px;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:12px;padding:8px;font-size:11px;font-weight:600}
+button:focus-visible,select:focus-visible{outline:3px solid var(--accent, royalblue);outline-offset:2px}
+footer{padding-bottom:max(.75rem,env(safe-area-inset-bottom))}
+.call-shell>header{padding-top:max(.75rem,env(safe-area-inset-top));padding-left:max(1rem,env(safe-area-inset-left));padding-right:max(1rem,env(safe-area-inset-right))}
+@media(max-height:500px){.chat-active>header{display:none}.call-control{min-height:44px;padding:4px;gap:2px;line-height:1.2}.call-control i{line-height:1}footer{padding-top:4px;padding-bottom:max(4px,env(safe-area-inset-bottom))}}
+@media(min-width:640px){.local-thumbnail{width:144px;height:108px}.call-control{min-width:76px;font-size:12px}}
+@media(min-width:900px){.chat-panel{position:relative;inset:auto;width:340px;flex-shrink:0}}
+@media(max-height:500px) and (orientation:landscape){.local-thumbnail{width:80px;height:60px}.prejoin{max-width:280px;max-height:100%;padding-top:8px}.call-content>div:first-child{flex-direction:row}.call-content>div:first-child>div:first-child{min-width:35%}.call-control{min-height:44px;padding:4px}footer{padding-top:4px}}

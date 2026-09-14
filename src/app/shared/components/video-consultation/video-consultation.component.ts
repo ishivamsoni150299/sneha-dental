@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, ElementRef, InjectionToken, OnDestroy, inject, input, signal, viewChild } from '@angular/core';
-import type { DailyCall } from '@daily-co/daily-js';
+import type { DailyCall, DailyEventObjectAppMessage } from '@daily-co/daily-js';
 import { VideoAccessError, VideoConsultationService, VideoSession } from '../../../core/services/video-consultation.service';
 import { NativeVideoRoomComponent } from './native-video-room.component';
 import { AnalyticsService } from '../../../core/services/analytics.service';
+import { ConsultationChatComponent, ConsultationMessage } from './consultation-chat.component';
+import { CallViewportDirective } from './call-viewport.directive';
 
 export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => Promise<DailyCall>>('Video frame factory', {
   providedIn: 'root', factory: () => async element => {
@@ -12,22 +14,28 @@ export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => 
 });
 
 @Component({
-  selector: 'app-video-consultation', standalone: true, imports: [NativeVideoRoomComponent], changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-video-consultation', standalone: true, imports: [NativeVideoRoomComponent, ConsultationChatComponent, CallViewportDirective], changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button type="button" (click)="join()" [disabled]="loading()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-      <i class="ph ph-video-camera" aria-hidden="true"></i> {{ staff() ? 'Start video consultation' : 'Join video consultation' }}
+      <i class="ph ph-video-camera" aria-hidden="true"></i> {{ loading() ? 'Opening…' : 'Join video call' }}
     </button>
-    <dialog #dialog class="video-room" aria-label="Private video consultation" (cancel)="close()">
-      <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
-        <div><h2 class="font-semibold text-gray-900">Your video consultation</h2><p class="mt-1 text-xs text-gray-500">A private space for you and your dentist.</p></div>
-        <button type="button" (click)="close()" class="min-h-11 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700">Leave room</button>
-      </header>
+    <dialog #dialog appCallViewport class="video-room" aria-label="Private video consultation" (cancel)="close()">
+      @if (!nativeSession()) {
+        <header class="flex items-center justify-between gap-2 border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <h2 class="text-sm font-semibold text-gray-900">Video consultation</h2>
+          <div class="flex gap-2">@if (dailyReady()) { <button type="button" (click)="toggleChat(!chatOpen())" [attr.aria-expanded]="chatOpen()" class="min-h-11 rounded-xl bg-blue-50 px-3 text-sm font-semibold text-blue-700">Chat {{ unread() ? '(' + unread() + ')' : '' }}</button> }
+          <button type="button" (click)="close()" aria-label="Close video consultation" class="flex h-11 w-11 items-center justify-center rounded-xl text-gray-600"><i class="ph ph-x text-xl" aria-hidden="true"></i></button></div>
+        </header>
+      }
       @if (loading()) {<p role="status" class="p-6 text-center text-sm text-gray-600">Preparing your private room…</p>}
       @if (error()) {
         <div role="alert" class="mx-auto max-w-lg p-6 text-center"><i class="ph ph-video-camera-slash text-4xl text-blue-600" aria-hidden="true"></i><p class="mt-4 text-sm leading-6 text-gray-700">{{ error() }}</p><button type="button" (click)="join()" class="mt-5 min-h-11 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Try again</button></div>
       }
-      @if (nativeSession(); as session) { <app-native-video-room [session]="session" [refreshSession]="refreshSession" (joined)="trackJoined()" (closed)="close()" /> }
-      <div #frame class="call-frame" [class.hidden]="!!error() || !!nativeSession()"></div>
+      @if (nativeSession(); as session) { <app-native-video-room [session]="session" [staff]="staff() || dentist()" [refreshSession]="refreshSession" (joined)="trackJoined()" (closed)="close()" /> }
+      <div class="relative flex min-h-0 flex-1" [class.hidden]="!!error() || !!nativeSession() || loading()">
+        <div #frame class="call-frame"></div>
+        @if (dailyReady()) { <aside class="daily-chat" [class.chat-visible]="chatOpen()" [attr.inert]="chatOpen() ? null : ''" [attr.aria-hidden]="!chatOpen()"><app-consultation-chat [canPrescribe]="staff() || dentist()" [available]="dailyPeer()" [transport]="sendMessage" (received)="onMessage()" (dismissed)="toggleChat(false)" /></aside> }
+      </div>
     </dialog>
   `,
   styles: [`
@@ -36,7 +44,10 @@ export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => 
     .video-room[open]{display:flex;flex-direction:column}
     .video-room header{flex-shrink:0}
     .call-frame{flex:1;min-height:0}
-    @media(max-width:640px){.video-room{width:100%;height:100dvh;border-radius:0}}
+    .daily-chat{display:none;position:absolute;inset:0;background:white}
+    .daily-chat.chat-visible{display:block}
+    @media(min-width:900px){.daily-chat{position:relative;inset:auto;width:340px;flex-shrink:0}}
+    @media(max-width:640px){.video-room{position:fixed;inset:var(--call-viewport-top,0px) 0 auto;margin:0;width:100%;height:var(--call-viewport-height,100dvh);border-radius:0}}
   `],
 })
 export class VideoConsultationComponent implements OnDestroy {
@@ -48,6 +59,22 @@ export class VideoConsultationComponent implements OnDestroy {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly nativeSession = signal<VideoSession | null>(null);
+  readonly dailyReady = signal(false);
+  readonly dailyPeer = signal(false);
+  readonly chatOpen = signal(false);
+  readonly unread = signal(0);
+  private readonly chat = viewChild(ConsultationChatComponent);
+  readonly sendMessage = async (message: ConsultationMessage): Promise<void> => {
+    if (!this.call || !this.dailyPeer()) throw new Error('Not connected');
+    this.call.sendAppMessage(message, '*');
+  };
+  toggleChat(open: boolean): void { this.chatOpen.set(open); if (open) { this.unread.set(0); setTimeout(() => this.chat()?.focus()); } }
+  onMessage(): void { if (!this.chatOpen()) this.unread.update(count => count + 1); }
+  private readonly appMessage = (event: DailyEventObjectAppMessage) => {
+    const participant = this.call?.participants()[event.fromId];
+    if (participant && !participant.local) this.chat()?.receive(event.data, participant.owner);
+  };
+  private readonly updatePeers = () => this.dailyPeer.set(Object.values(this.call?.participants() || {}).some(participant => !participant.local));
   readonly refreshSession = () => this.video.join(this.appointmentId(), this.staff(), this.bookingRef(), this.phone(), this.dentist());
   private readonly video = inject(VideoConsultationService);
   private readonly analytics = inject(AnalyticsService);
@@ -83,9 +110,14 @@ export class VideoConsultationComponent implements OnDestroy {
       this.call = call;
       this.call.on('left-meeting', this.leftMeeting);
       this.call.on('error', this.callError);
+      this.call.on('app-message', this.appMessage);
+      this.call.on('participant-joined', this.updatePeers);
+      this.call.on('participant-left', this.updatePeers);
       this.loading.set(false);
       this.verifyAccess(attempt);
       await call.join({ url: session.url, token: session.token });
+      if (attempt !== this.generation) return;
+      this.dailyReady.set(true); this.updatePeers();
       this.analytics.trackVideoRoomJoined({
         appointment_id: this.appointmentId(),
         is_staff: this.staff(),
@@ -113,11 +145,15 @@ export class VideoConsultationComponent implements OnDestroy {
   private async destroyCall(): Promise<void> {
     clearTimeout(this.accessTimer);
     this.nativeSession.set(null);
+    this.dailyReady.set(false); this.dailyPeer.set(false); this.chatOpen.set(false); this.unread.set(0);
     const call = this.call;
     this.call = null;
     if (call) {
       call.off('left-meeting', this.leftMeeting);
       call.off('error', this.callError);
+      call.off('app-message', this.appMessage);
+      call.off('participant-joined', this.updatePeers);
+      call.off('participant-left', this.updatePeers);
       await call.destroy().catch(() => undefined);
     }
   }

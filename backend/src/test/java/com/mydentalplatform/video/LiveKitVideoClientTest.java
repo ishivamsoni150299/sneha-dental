@@ -30,7 +30,7 @@ class LiveKitVideoClientTest {
         Map<String, Object> grant = decoded.getClaim("video");
         assertEquals(room, grant.get("room"));
         assertEquals(true, grant.get("roomJoin"));
-        assertEquals(false, grant.get("canPublishData"));
+        assertEquals(true, grant.get("canPublishData"));
         assertEquals(List.of("camera", "microphone"), grant.get("canPublishSources"));
         assertFalse(grant.containsKey("roomAdmin"));
         assertFalse(grant.containsKey("roomRecord"));

@@ -5,9 +5,10 @@ import { AuthenticatedApiService } from '../../core/services/authenticated-api.s
 import { VIDEO_FRAME_FACTORY } from '../../shared/components/video-consultation/video-consultation.component';
 import { VideoSession, validateVideoSession } from '../../core/services/video-consultation.service';
 import { NativeVideoRoomComponent } from '../../shared/components/video-consultation/native-video-room.component';
+import { CallViewportDirective } from '../../shared/components/video-consultation/call-viewport.directive';
 
 @Component({
-  selector: 'app-video-test', standalone: true, imports: [RouterLink, NativeVideoRoomComponent], changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-video-test', standalone: true, imports: [RouterLink, NativeVideoRoomComponent, CallViewportDirective], changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div class="mx-auto max-w-6xl">
@@ -26,11 +27,12 @@ import { NativeVideoRoomComponent } from '../../shared/components/video-consulta
           <button (click)="join()" [disabled]="busy() || joined()" class="min-h-12 rounded-xl bg-blue-600 px-5 font-semibold text-white disabled:opacity-50">{{ busy() ? 'Opening room…' : host ? 'Start test call' : 'Join test call' }}</button>
           @if (joined()) { <button (click)="leave()" class="min-h-12 rounded-xl border border-gray-300 px-5 font-semibold">Leave call</button> }
         </div>
-        @if (nativeSession(); as session) { <section class="flex min-h-[36rem] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white sm:h-[80dvh]"><app-native-video-room [session]="session" [refreshSession]="refreshSession" (closed)="leave()" /></section> }
+        @if (nativeSession(); as session) { <section appCallViewport class="test-room fixed inset-0 z-50 flex flex-col overflow-hidden bg-white sm:relative sm:inset-auto sm:h-[80dvh] sm:min-h-[28rem] sm:rounded-2xl sm:border sm:border-gray-200"><app-native-video-room [session]="session" [staff]="host" [refreshSession]="refreshSession" (closed)="leave()" /></section> }
         <div #frame class="overflow-hidden rounded-2xl border border-gray-200 bg-white" style="height: 65dvh; min-height: 360px" [class.hidden]="!!nativeSession() || (!joined() && !busy())"></div>
       </div>
     </main>
   `,
+  styles: [`@media(max-width:639px){.test-room{top:var(--call-viewport-top,0px);bottom:auto;height:var(--call-viewport-height,100dvh)}}`],
 })
 export class VideoTestComponent implements OnDestroy {
   readonly host = inject(ActivatedRoute).snapshot.data['host'] === true;

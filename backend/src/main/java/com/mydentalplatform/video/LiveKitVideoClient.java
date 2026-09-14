@@ -70,7 +70,7 @@ public class LiveKitVideoClient implements VideoRoomClient {
 
     String joinToken(String room, Instant opens, Instant expires, boolean host) {
         return token(Map.of("room", room, "roomJoin", true, "canPublish", true, "canSubscribe", true,
-            "canPublishData", false, "canUpdateOwnMetadata", false, "canPublishSources", List.of("camera", "microphone")),
+            "canPublishData", true, "canUpdateOwnMetadata", false, "canPublishSources", List.of("camera", "microphone")),
             host ? "dentist" : "patient", cloudHosted() ? Instant.now() : opens,
             expires.isBefore(Instant.now().plusSeconds(120)) ? expires : Instant.now().plusSeconds(120));
     }

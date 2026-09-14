@@ -11,7 +11,8 @@ describe('VideoConsultationComponent', () => {
     video = jasmine.createSpyObj('VideoConsultationService', ['join', 'checkAccess']);
     video.join.and.resolveTo(session);
     video.checkAccess.and.resolveTo();
-    call = jasmine.createSpyObj('DailyCall', ['join', 'destroy', 'on', 'off']);
+    call = jasmine.createSpyObj('DailyCall', ['join', 'destroy', 'on', 'off', 'participants', 'sendAppMessage']);
+    call.participants.and.returnValue({} as never);
     call.join.and.resolveTo({} as never);
     call.destroy.and.resolveTo();
     TestBed.configureTestingModule({ imports: [VideoConsultationComponent], providers: [
