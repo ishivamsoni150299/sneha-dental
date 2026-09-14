@@ -13,6 +13,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "eslint src --max-warnings 0",
+    "verify": "node scripts/verify.mjs",
+    "test:artifacts": "node scripts/e2e-smoke-test.mjs",
     "release:check": "node scripts/release-check.mjs",
     "test:e2e": "node scripts/e2e-smoke-test.mjs"
   },
@@ -33,9 +35,7 @@
     "@daily-co/daily-js": "^0.92.2",
     "@phosphor-icons/web": "^2.1.2",
     "@sentry/angular": "^10.50.0",
-    "@types/nodemailer": "^8.0.1",
     "livekit-client": "2.22.3",
-    "nodemailer": "^10.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

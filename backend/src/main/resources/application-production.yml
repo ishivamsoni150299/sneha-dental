@@ -5,10 +5,6 @@ spring:
     password: ${DATABASE_PASSWORD}
     hikari:
       connection-init-sql: SET search_path TO dental, public, extensions
-  jpa:
-    properties:
-      hibernate:
-        default_schema: dental
   flyway:
     default-schema: dental
     schemas: dental

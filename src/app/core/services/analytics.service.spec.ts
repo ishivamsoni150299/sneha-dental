@@ -3,107 +3,49 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { AnalyticsService } from './analytics.service';
 
-describe('AnalyticsService', () => {
-  let routerEvents$: Subject<unknown>;
-  let mockRouter: Partial<Router>;
-
+describe('AnalyticsService privacy boundary', () => {
+  let service: AnalyticsService;
+  let gtag: jasmine.Spy;
   beforeEach(() => {
-    routerEvents$ = new Subject<unknown>();
-    mockRouter = {
-      events: routerEvents$.asObservable() as any,
-    };
-    window.dataLayer = [];
-    window.gtag = jasmine.createSpy('gtag');
-
-    TestBed.configureTestingModule({
-      providers: [
-        AnalyticsService,
-        { provide: Router, useValue: mockRouter },
-      ],
-    });
-  });
-
-  afterEach(() => {
-    delete (window as any).gtag;
-    delete (window as any).dataLayer;
-  });
-
-  it('initializes service cleanly in browser environment', () => {
-    const service = TestBed.inject(AnalyticsService);
-    expect(service).toBeTruthy();
-  });
-
-  it('tracks custom event with parameter dictionary', () => {
-    const service = TestBed.inject(AnalyticsService);
-    // simulate initialised state
+    TestBed.configureTestingModule({ providers: [AnalyticsService, { provide: Router, useValue: { events: new Subject() } }] });
+    service = TestBed.inject(AnalyticsService);
     (service as any).initialised = true;
-
-    service.trackEvent('test_event', { key: 'value', number: 42 });
-    expect(window.gtag).toHaveBeenCalledWith('event', 'test_event', { key: 'value', number: 42 });
+    gtag = jasmine.createSpy('gtag');
+    window.gtag = gtag;
   });
+  afterEach(() => { delete window.gtag; delete window.dataLayer; });
 
-  it('tracks custom event with legacy category and label parameters', () => {
-    const service = TestBed.inject(AnalyticsService);
-    (service as any).initialised = true;
-
-    service.trackEvent('click', 'engagement', 'Hero Button', 10);
-    expect(window.gtag).toHaveBeenCalledWith('event', 'click', {
-      event_category: 'engagement',
-      event_label: 'Hero Button',
-      value: 10,
-    });
+  it('sends aggregate booking events without identities or treatment information', () => {
+    service.trackBookingSubmitted({ bookingRef: 'PRIVATE-123', service: 'Private treatment', clinicId: 'clinic-123', doctorName: 'Private name', consultationMode: 'video', isIndependent: true });
+    const sent = JSON.stringify(gtag.calls.allArgs());
+    for (const sensitive of ['PRIVATE-123', 'Private treatment', 'clinic-123', 'Private name']) expect(sent).not.toContain(sensitive);
+    expect(gtag).toHaveBeenCalledWith('event', 'appointment_booked', jasmine.objectContaining({ consultation_mode: 'video', is_independent: true }));
   });
-
-  it('tracks page views on manual trigger', () => {
-    const service = TestBed.inject(AnalyticsService);
-    (service as any).initialised = true;
-
-    service.trackPageView('/dentists/noida', 'Dentists in Noida');
-    expect(window.gtag).toHaveBeenCalledWith('event', 'page_view', {
-      page_path: '/dentists/noida',
-      page_title: 'Dentists in Noida',
-    });
+  it('drops unknown parameters and free text even from generic callers', () => {
+    service.trackEvent('search', { search_term: 'private@example.test', user_name: 'Secret', cta_label: 'Secret', consultation_mode: 'Secret', results_count: 4 });
+    const sent = JSON.stringify(gtag.calls.allArgs());
+    expect(sent).not.toContain('Secret');
+    expect(sent).not.toContain('private@example.test');
+    expect(gtag).toHaveBeenCalledWith('event', 'search', jasmine.objectContaining({ results_count: 4 }));
   });
-
-  it('tracks high-value booking submission conversion', () => {
-    const service = TestBed.inject(AnalyticsService);
-    (service as any).initialised = true;
-
-    service.trackBookingSubmitted({
-      bookingRef: 'SD-TEST99',
-      service: 'Root Canal Treatment',
-      clinicId: 'clinic-123',
-      consultationMode: 'video',
-      doctorName: 'Dr. Sharma',
-      isIndependent: true,
-    });
-
-    expect(window.gtag).toHaveBeenCalledWith('event', 'generate_lead', jasmine.objectContaining({
-      lead_type: 'appointment_booking',
-      booking_ref: 'SD-TEST99',
-      service: 'Root Canal Treatment',
-      consultation_mode: 'video',
-    }));
-
-    expect(window.gtag).toHaveBeenCalledWith('event', 'appointment_booked', jasmine.objectContaining({
-      booking_ref: 'SD-TEST99',
-      is_independent: true,
-    }));
+  it('removes query strings, fragments, referrers and arbitrary titles', () => {
+    service.trackPageView('/dentists?email=private#token', 'Private name');
+    expect(gtag).toHaveBeenCalledWith('event', 'page_view', jasmine.objectContaining({ page_path: '/dentists', page_location: `${window.location.origin  }/dentists`, page_referrer: '', page_title: 'My Dental Platform' }));
+    expect(JSON.stringify(gtag.calls.allArgs())).not.toContain('private');
   });
-
-  it('sets and updates multi-tenant clinic tracking ID', () => {
-    const service = TestBed.inject(AnalyticsService);
-    (service as any).initialised = true;
-
-    service.setClinicTrackingId('G-CLINIC123');
-    expect(window.gtag).toHaveBeenCalledWith('config', 'G-CLINIC123', { send_page_view: false });
+  it('does not track account, consultation or dynamic profile pages', () => {
+    for (const path of ['/my-appointment', '/video/private', '/business/admin', '/dentists/private-name']) service.trackPageView(path);
+    expect(gtag).not.toHaveBeenCalled();
   });
-
-  it('ignores invalid clinic tracking IDs', () => {
-    const service = TestBed.inject(AnalyticsService);
-    (service as any).initialised = true;
-
-    service.setClinicTrackingId('invalid-id');
-    expect((service as any).clinicTrackingId).toBeNull();
+  it('routes events only to the current tenant', () => {
+    service.setClinicTrackingId('G-FIRST');
+    service.setClinicTrackingId('G-SECOND');
+    gtag.calls.reset();
+    service.trackEvent('cta_click');
+    expect(gtag.calls.mostRecent().args[2].send_to).toContain('G-SECOND');
+    expect(gtag.calls.mostRecent().args[2].send_to).not.toContain('G-FIRST');
+    service.setClinicTrackingId(null);
+    service.trackEvent('cta_click');
+    expect(gtag.calls.mostRecent().args[2].send_to).not.toContain('G-SECOND');
   });
 });

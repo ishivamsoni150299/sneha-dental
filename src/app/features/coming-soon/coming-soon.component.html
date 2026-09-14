@@ -85,7 +85,7 @@
 </main>
 
 @defer (on idle) {
-  @if (clinic.isLoaded) {
+  @if (clinic.isLoaded && clinic.hasLiveVoice) {
     <app-voice-agent
       [voiceEnabled]="voiceAgentEnabled()"
       [clinicId]="config.clinicId || ''"

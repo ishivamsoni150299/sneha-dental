@@ -13,11 +13,15 @@ Browser -> Render Docker service -> Spring Boot -> Supabase PostgreSQL
                               |-> Resend (optional password email)
 ```
 
-Core features use the Spring API and Supabase PostgreSQL. Patients manage appointments with the booking reference and matching phone number. Optional AI and outbound-call routes return HTTP 503 until a provider integration is enabled.
+Core features use the Spring API and PostgreSQL. Patients sign in to manage appointments linked to their account. Legacy guest bookings use the existing lookup flow. Optional AI and outbound-call routes are unavailable; AI voice is excluded from paid-plan entitlements and patient launchers.
+
+The full marketplace release requirements and remaining live checks are maintained in [Launch readiness](docs/LAUNCH_READINESS.md).
 
 ## Local Development
 
-Prerequisites: Node 22, Java 25, and PostgreSQL 15 or newer.
+Prerequisites: Node 22, Java 25 or newer, and PostgreSQL. Automated database tests use disposable PostgreSQL 18.3 and do not need deployment credentials.
+
+For the simplest local setup, run `docker compose up --build` and open `http://localhost:8080`. This provisions the database and serves the Angular application through Spring. For frontend development, run `docker compose up -d db`, then the commands below with the Compose database password `mydentalplatform`. Compose credentials and HTTP settings are for local development only. Docker is not required to run the automated tests.
 
 ```powershell
 npm ci
@@ -35,15 +39,13 @@ Angular runs at `http://localhost:4200`; its `/api` requests are proxied to Spri
 ## Validation
 
 ```powershell
-npm run lint
-npm run build
-npx ng test --watch=false --browsers=ChromeHeadless
-
 $env:JAVA_HOME = 'C:\path\to\jdk-25'
-backend\mvnw.cmd -f backend/pom.xml -B test
+npm run verify
 ```
 
-After deployment, set the production variables locally and run `npm run release:check`.
+This is also the CI gate: lint, browser unit tests, production build, compiled-asset checks, backend tests, and real HTTP/database journeys. Java version validation runs first. The first backend run downloads a local PostgreSQL binary. Chrome must be available for frontend tests.
+
+After deployment, set only `PUBLIC_BASE_URL` and run `npm run release:check`. It performs read-only HTTP checks and does not read local secret files or certify a launch by itself.
 
 ## Free Deployment
 
@@ -131,10 +133,6 @@ Render health check: `/api/health`
 
 ```powershell
 $env:PUBLIC_BASE_URL = 'https://YOUR_DOMAIN'
-$env:JDBC_DATABASE_URL = 'configured'
-$env:DATABASE_USERNAME = 'configured'
-$env:DATABASE_PASSWORD = 'configured'
-$env:JWT_SECRET = 'configured'
 npm run release:check
 ```
 
@@ -151,7 +149,7 @@ try {
 
 This opt-in test applies pending Flyway migrations and runs configured startup actions, including administrator bootstrap when enabled. Use a fresh or backed-up database. It starts HTTP on a random local port, verifies database health, and shuts down; normal unit tests skip it.
 
-For built-frontend checks, run `npm run build`, copy `dist/mydentalplatform/browser/index.csr.html` to `index.html` in the same directory (as Docker does), and set `SPRING_WEB_RESOURCES_STATIC_LOCATIONS` to that directory's absolute `file:` URL with a trailing slash. To verify an existing administrator's login, refresh rotation, and logout, securely supply `DEPLOYMENT_ADMIN_EMAIL` and `DEPLOYMENT_ADMIN_PASSWORD`; the check creates and revokes test sessions. Remove these temporary variables after testing, and never commit or print their values.
+For built-frontend checks, run `npm run build` (which creates `index.html` automatically), and set `SPRING_WEB_RESOURCES_STATIC_LOCATIONS` to the browser output directory's absolute `file:` URL with a trailing slash. To verify an existing administrator's login, refresh rotation, and logout, securely supply `DEPLOYMENT_ADMIN_EMAIL` and `DEPLOYMENT_ADMIN_PASSWORD`; the check creates and revokes test sessions. Remove these temporary variables after testing, and never commit or print their values.
 
 ## Security and Operations
 

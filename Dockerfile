@@ -9,7 +9,7 @@ COPY src ./src
 ARG GOOGLE_MAPS_API_KEY=""
 ARG SENTRY_DSN=""
 ARG GA_TRACKING_ID=""
-RUN GA_TRACKING_ID="$GA_TRACKING_ID" npm run build && cp dist/mydentalplatform/browser/index.csr.html dist/mydentalplatform/browser/index.html
+RUN GA_TRACKING_ID="$GA_TRACKING_ID" npm run build
 
 FROM maven:3.9.11-eclipse-temurin-25 AS backend
 WORKDIR /workspace/backend

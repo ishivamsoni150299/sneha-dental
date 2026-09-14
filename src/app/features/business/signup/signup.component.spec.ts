@@ -6,7 +6,6 @@ import { SignupComponent } from './signup.component';
 
 describe('SignupComponent', () => {
   let router: jasmine.SpyObj<Router>;
-  let createAccountWithGoogle: jasmine.Spy;
 
   function create(role: AuthRole): SignupComponent {
     router = jasmine.createSpyObj(
@@ -17,10 +16,6 @@ describe('SignupComponent', () => {
     router.navigate.and.resolveTo(true);
     router.createUrlTree.and.returnValue({} as never);
     router.serializeUrl.and.returnValue('/');
-    createAccountWithGoogle = jasmine.createSpy('createAccountWithGoogle').and.resolveTo({
-      user: { uid: 'user-1', email: 'owner@example.com' } as PlatformUser,
-      role,
-    });
 
     TestBed.configureTestingModule({
       imports: [SignupComponent],
@@ -29,9 +24,9 @@ describe('SignupComponent', () => {
           provide: AuthFacade,
           useValue: {
             authReady: Promise.resolve(),
-            currentUser: () => null,
-            role: () => null,
-            createAccountWithGoogle,
+            currentUser: () => ({ uid: 'user-1', email: 'owner@example.com' } as PlatformUser),
+            role: () => role,
+
           },
         },
         { provide: Router, useValue: router },
@@ -52,7 +47,7 @@ describe('SignupComponent', () => {
   it('routes an existing clinic owner to the dashboard', async () => {
     const component = create('clinic-admin');
 
-    await component.createAccountWithGoogle();
+    await component.onAuthenticated('clinic-admin');
 
     expect(router.navigate).toHaveBeenCalledWith(['/business/clinic/dashboard']);
     expect(component.step()).toBe(0);
@@ -61,7 +56,7 @@ describe('SignupComponent', () => {
   it('keeps a patient identity out of clinic onboarding', async () => {
     const component = create('patient');
 
-    await component.createAccountWithGoogle();
+    await component.onAuthenticated('patient');
 
     expect(router.navigate).toHaveBeenCalledWith(['/appointments']);
     expect(component.step()).toBe(0);
@@ -70,7 +65,7 @@ describe('SignupComponent', () => {
   it('proceeds directly to step 1 for an incomplete signup', async () => {
     const component = create('incomplete-signup');
 
-    await component.createAccountWithGoogle();
+    await component.onAuthenticated('incomplete-signup');
 
     expect(router.navigate).not.toHaveBeenCalled();
     expect(component.step()).toBe(1);
@@ -79,7 +74,7 @@ describe('SignupComponent', () => {
   it('starts onboarding only for an identity without a workspace', async () => {
     const component = create('incomplete-signup');
 
-    await component.createAccountWithGoogle();
+    await component.onAuthenticated('incomplete-signup');
 
     expect(router.navigate).not.toHaveBeenCalled();
     expect(component.step()).toBe(1);

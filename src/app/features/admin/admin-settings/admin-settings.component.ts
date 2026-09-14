@@ -147,7 +147,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     { id: 'theme',        label: 'Theme' },
     { id: 'logo',         label: 'Logo' },
     { id: 'subscription', label: 'Plan' },
-    { id: 'voice',        label: 'Voice Agent' },
   ];
 
   readonly PLANS = (['trial', 'starter', 'pro'] as const).map(id => ({
@@ -259,7 +258,6 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       { label: 'Services listed',                done: c.services.length > 0,                                 tab: 'services',     hint: 'Used on the homepage, services page, and booking form' },
       { label: 'At least one testimonial',       done: c.testimonials.length > 0,                             tab: 'testimonials', hint: 'Social proof improves booking conversions' },
       { label: 'Logo uploaded',                  done: !!c.logoDataUrl,                                       tab: 'logo',         hint: 'Builds patient trust and improves brand recall' },
-      { label: 'Voice agent configured',         done: c.voiceAgentEnabled === true,                            tab: 'voice',        hint: 'Help website visitors by voice and book appointments' },
     ];
   }
 

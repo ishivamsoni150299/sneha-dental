@@ -1,0 +1,31 @@
+# Local development only. Production uses externally configured credentials and HTTPS.
+services:
+  db:
+    image: postgres:18.3
+    environment:
+      POSTGRES_DB: mydentalplatform
+      POSTGRES_USER: mydentalplatform
+      POSTGRES_PASSWORD: mydentalplatform
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mydentalplatform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DATABASE_HOST: db
+      PUBLIC_BASE_URL: http://localhost:8080
+      JWT_ISSUER: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  postgres-data:

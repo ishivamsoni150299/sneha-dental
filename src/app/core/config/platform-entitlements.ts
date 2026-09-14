@@ -64,7 +64,7 @@ export const PLATFORM_PLANS = {
   },
   pro: {
     label: 'Pro',
-    description: 'Add AI reception and deeper revenue insights.',
+    description: 'Add revenue insights and priority support.',
     monthly: 2499,
     yearly: 24999,
     features: [
@@ -77,7 +77,6 @@ export const PLATFORM_PLANS = {
       'customBranding',
       'removePlatformBranding',
       'customDomain',
-      'aiVoiceReceptionist',
       'revenueInsights',
       'prioritySupport',
     ],

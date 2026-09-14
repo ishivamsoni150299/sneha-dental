@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    name: Lint · Typecheck · Build
+    name: Marketplace verification
     runs-on: ubuntu-latest
 
     steps:
@@ -31,18 +31,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npx tsc --noEmit
-
-      - name: Test
-        run: npm test -- --watch=false --browsers=ChromeHeadless
-
-      - name: Build
-        run: npm run build
-
-      - name: Backend tests
-        working-directory: backend
-        run: mvn -B test
+      - name: Verify frontend, backend and PostgreSQL journeys
+        run: npm run verify

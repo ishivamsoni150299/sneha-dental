@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -130,6 +131,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
+        if (ex instanceof ErrorResponse error) {
+            return ResponseEntity.status(error.getStatusCode()).body(Map.of(
+                "status", error.getStatusCode().value(),
+                "message", "The request could not be handled.",
+                "timestamp", Instant.now().toString()));
+        }
         LOG.error("Unhandled server exception occurred", ex);
 
         Map<String, Object> body = new LinkedHashMap<>();

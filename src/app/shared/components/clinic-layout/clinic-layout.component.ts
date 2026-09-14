@@ -188,7 +188,7 @@ export class ClinicLayoutComponent implements OnInit, OnDestroy {
   readonly installPromptReady = signal(false);
   readonly currentUrl = signal('');
   readonly showMobileDock = computed(() => !this.currentUrl().startsWith('/appointment'));
-  readonly showVoiceAgent = computed(() => !this.currentUrl().startsWith('/appointment'));
+  readonly showVoiceAgent = computed(() => this.clinic.hasLiveVoice && !this.currentUrl().startsWith('/appointment'));
 
   readonly isIos = (() => {
     if (!this.isBrowser) {

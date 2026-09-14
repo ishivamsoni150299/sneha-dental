@@ -56,7 +56,7 @@ public class PatientService {
                 coalesce(sum(case when payment_status != 'paid' or payment_status is null then amount_charged else 0 end), 0) as pending_balance
             from appointments
             where clinic_id = ?
-              and (? is null or lower(patient_name) like ? or phone_e164 like ?)
+              and (cast(? as text) is null or lower(patient_name) like ? or phone_e164 like ?)
             group by phone_e164
             order by max(created_at) desc
             limit ? offset ?

@@ -44,14 +44,8 @@
           {{ isPlatform() ? 'Only authorised platform accounts can continue.' : 'Use the account connected to your clinic.' }}
         </p>
 
-        @if (error()) {
-          <div class="ui-alert ui-alert-danger mt-6" role="alert" aria-live="assertive">
-            <span class="ui-status-dot mt-1" aria-hidden="true"></span>
-            <p class="text-sm font-semibold">{{ error() }}</p>
-          </div>
-        }
 
-<div class="mt-7"><app-password-login [portal]="portal()" (authenticated)="onOtpAuthenticated($event)" /></div>
+<div class="mt-7"><app-password-login [portal]="portal()" (authenticated)="onAuthenticated($event)" /></div>
 
         @if (!isPlatform()) {
           <p class="ui-caption mt-7 text-center">

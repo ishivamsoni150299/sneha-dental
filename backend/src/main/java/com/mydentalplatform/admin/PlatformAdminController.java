@@ -74,6 +74,7 @@ public class PlatformAdminController {
     }
 
     @PostMapping("/clinics")
+    @Transactional
     Map<String, String> createClinic(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, Object> request) {
         requireAdmin(jwt);
         String name = text(request.get("name"));
@@ -98,6 +99,7 @@ public class PlatformAdminController {
     }
 
     @PatchMapping("/clinics/{clinicId}")
+    @Transactional
     ResponseEntity<Void> updateClinic(
         @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID clinicId,
@@ -131,6 +133,7 @@ public class PlatformAdminController {
     }
 
     @DeleteMapping("/clinics/{clinicId}")
+    @Transactional
     ResponseEntity<Void> deleteClinic(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID clinicId) {
         requireAdmin(jwt);
         try {

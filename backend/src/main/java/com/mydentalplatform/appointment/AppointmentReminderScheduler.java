@@ -28,7 +28,7 @@ public class AppointmentReminderScheduler {
     public void sendUpcomingAppointmentReminders() {
         LOG.info("Running daily upcoming appointment reminder job");
         try {
-            LocalDate tomorrow = LocalDate.now().plusDays(1);
+            LocalDate tomorrow = LocalDate.now(ScheduleRules.INDIA).plusDays(1);
             List<Map<String, Object>> upcoming = jdbcTemplate.queryForList("""
                 select a.id, a.clinic_id, a.booking_ref, a.patient_name, a.email,
                        a.phone_e164, a.service, a.appointment_date, a.appointment_time,
@@ -38,9 +38,10 @@ public class AppointmentReminderScheduler {
                 where a.status = 'confirmed'
                   and a.appointment_date = ?
                   and not exists (
-                      select 1 from notifications n
+                      select 1 from notification_outbox n
                       where n.appointment_id = a.id
                         and n.notification_type = 'appointment_reminder'
+                        and n.idempotency_key = 'apt_status_' || a.id || '_reminder_' || a.appointment_date
                   )
                 """, tomorrow);
 
@@ -59,16 +60,10 @@ public class AppointmentReminderScheduler {
                 if (patientEmail != null && !patientEmail.isBlank()) {
                     notificationService.notifyPatientStatusUpdate(
                         clinicId, appointmentId, bookingRef, patientName, patientEmail,
-                        "confirmed", date, time, "Reminder: Your appointment is tomorrow."
+                        "reminder", date, time, null
                     );
                 }
 
-                String idempotencyKey = "reminder_" + appointmentId + "_" + date;
-                jdbcTemplate.update("""
-                    insert into notifications (idempotency_key, clinic_id, appointment_id, notification_type, destination, status)
-                    values (?, ?, ?, 'appointment_reminder', ?, 'sent')
-                    on conflict (idempotency_key) do nothing
-                    """, idempotencyKey, clinicId, appointmentId, patientEmail != null ? patientEmail : (String) apt.get("phone_e164"));
             }
             LOG.info("Finished processing {} upcoming appointment reminders", upcoming.size());
         } catch (Exception error) {
@@ -80,8 +75,8 @@ public class AppointmentReminderScheduler {
     public void sendReviewInvitations() {
         LOG.info("Running daily review invitation job");
         try {
-            LocalDate windowStart = LocalDate.now().minusDays(7);
-            LocalDate windowEnd = LocalDate.now().minusDays(2);
+            LocalDate windowStart = LocalDate.now(ScheduleRules.INDIA).minusDays(7);
+            LocalDate windowEnd = LocalDate.now(ScheduleRules.INDIA).minusDays(2);
             List<Map<String, Object>> completed = jdbcTemplate.queryForList("""
                 SELECT a.id, a.clinic_id, a.booking_ref, a.patient_name, a.email,
                        a.appointment_date, c.name AS clinic_name
@@ -91,7 +86,7 @@ public class AppointmentReminderScheduler {
                   AND a.appointment_date BETWEEN ? AND ?
                   AND a.email IS NOT NULL AND a.email != ''
                   AND NOT EXISTS (
-                      SELECT 1 FROM notifications n
+                      SELECT 1 FROM notification_outbox n
                       WHERE n.appointment_id = a.id AND n.notification_type = 'review_invitation'
                   )
                   AND NOT EXISTS (
@@ -114,7 +109,7 @@ public class AppointmentReminderScheduler {
                 notificationService.sendReviewInvitation(
                     clinicId, appointmentId, bookingRef, patientName, patientEmail, clinicName, date);
             }
-            LOG.info("Sent {} review invitation emails", completed.size());
+            LOG.info("Queued {} review invitations", completed.size());
         } catch (Exception error) {
             LOG.error("Failed to process review invitations", error);
         }

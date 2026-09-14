@@ -53,9 +53,6 @@ export class AuthFacade {
     return this.applySession(await this.authRequest('/api/auth/login', { email, password }));
   }
 
-  async signInWithGoogle(): Promise<AuthRole> {
-    throw this.authError('auth/provider-disabled', 'Google sign-in is not enabled.');
-  }
 
   async createAccountWithEmail(email: string, password: string): Promise<PlatformUser> {
     await this.authReady;
@@ -98,17 +95,8 @@ export class AuthFacade {
     return this.applySession(await this.authRequest('/api/auth/login', { email, password }));
   }
 
-  async createAccountWithGoogle(): Promise<{ user: PlatformUser; role: AuthRole }> {
-    throw this.authError('auth/provider-disabled', 'Google sign-in is not enabled.');
-  }
 
-  async resendVerificationEmail(): Promise<void> {
-    throw this.authError('auth/provider-disabled', 'Email verification is not required for new accounts.');
-  }
 
-  async refreshVerificationStatus(): Promise<AuthRole> {
-    return (await this.resolveCurrentUser()) ?? 'incomplete-signup';
-  }
 
   async sendPasswordReset(email: string): Promise<void> {
     await this.passwordResetRequest('/api/auth/password-reset/request', { email });

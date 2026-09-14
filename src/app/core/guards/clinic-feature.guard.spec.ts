@@ -50,9 +50,9 @@ describe('clinicFeatureGuard', () => {
     expect(run('patientRecords', 'starter', 'pending')).not.toBeTrue();
   });
 
-  it('reserves AI voice and revenue insights for active Pro clinics', () => {
+  it('keeps unavailable AI voice disabled and reserves revenue insights for Pro', () => {
     expect(run('aiVoiceReceptionist', 'starter', 'active')).not.toBeTrue();
-    expect(run('aiVoiceReceptionist', 'pro', 'active')).toBeTrue();
+    expect(run('aiVoiceReceptionist', 'pro', 'active')).not.toBeTrue();
     expect(run('revenueInsights', 'pro', 'active')).toBeTrue();
   });
 });

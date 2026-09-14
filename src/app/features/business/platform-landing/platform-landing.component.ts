@@ -99,12 +99,12 @@ export class PlatformLandingComponent {
     },
     {
       eyebrow: 'High intent',
-      title: 'Pro for clinics that miss calls and leads',
-      summary: 'Add AI voice reception so patients can book after hours, during procedures, and when the front desk is busy.',
+      title: 'Pro for growing clinics',
+      summary: 'Track clinic revenue and payments, with priority support for your team.',
       outcome: 'Best for premium cases, multiple doctors, and higher inbound volume.',
       planId: 'pro' as const,
       cta: 'Choose Pro',
-      offer: 'After-hours booking capture',
+      offer: 'Revenue insights and priority support',
     },
   ];
 

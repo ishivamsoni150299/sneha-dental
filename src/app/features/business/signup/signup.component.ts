@@ -153,62 +153,12 @@ export class SignupComponent implements OnInit {
   });
 
   // ── Auth ─────────────────────────────────────────────────────────────────
-  readonly authLoading   = signal(false);
-  readonly googleLoading = signal(false);
-  readonly authError     = signal<string | null>(null);
-  readonly showPassword  = signal(false);
   private  authUser      = signal<PlatformUser | null>(null);
   readonly authEmail     = computed(() => this.authUser()?.email ?? '');
 
-  readonly step0 = this.fb.nonNullable.group({
-    email:    ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-  });
-
-  async createAccountAndContinue(): Promise<void> {
-    this.step0.markAllAsTouched();
-    if (this.step0.invalid) return;
-    this.authLoading.set(true);
-    this.authError.set(null);
-    const { email, password } = this.step0.getRawValue();
-    try {
-      const user = await this.auth.createAccountWithEmail(email.trim(), password);
-      await this.routeAuthenticatedUser(user, this.auth.role() ?? 'incomplete-signup');
-    } catch (e: unknown) {
-      const code = (e as { code?: string }).code ?? '';
-      if (code === 'auth/email-already-in-use') {
-        this.authError.set('An account already exists for this email. Sign in to continue.');
-      } else if (code === 'auth/weak-password') {
-        this.authError.set('Choose a stronger password with at least 8 characters.');
-      } else if (code === 'auth/network-request-failed') {
-        this.authError.set('Check your internet connection and try again.');
-      } else {
-        this.authError.set('We could not create your account. Please try again.');
-      }
-    } finally {
-      this.authLoading.set(false);
-    }
-  }
-
-  async onOtpAuthenticated(role: AuthRole): Promise<void> {
+  async onAuthenticated(role: AuthRole): Promise<void> {
     const user = this.auth.currentUser();
     if (user) await this.routeAuthenticatedUser(user, role);
-  }
-
-  async createAccountWithGoogle(): Promise<void> {
-    this.googleLoading.set(true);
-    this.authError.set(null);
-    try {
-      const { user, role } = await this.auth.createAccountWithGoogle();
-      await this.routeAuthenticatedUser(user, role);
-    } catch (e: unknown) {
-      const code = (e as { code?: string }).code ?? '';
-      if (!code.includes('popup-closed') && !code.includes('cancelled')) {
-        this.authError.set('Google sign-in failed. Please try again.');
-      }
-    } finally {
-      this.googleLoading.set(false);
-    }
   }
 
   // ── Theme ────────────────────────────────────────────────────────────────

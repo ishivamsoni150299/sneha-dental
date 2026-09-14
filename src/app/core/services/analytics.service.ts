@@ -87,7 +87,7 @@ export class AnalyticsService {
     this.clinicTrackingId = normalized;
 
     if (this.initialised) {
-      this.gtag('config', normalized, { send_page_view: false });
+      this.gtag('config', normalized, this.trackingConfig());
     } else {
       this.ensureScriptLoaded(normalized);
     }
@@ -116,27 +116,43 @@ export class AnalyticsService {
           ...(value !== undefined ? { value } : {}),
         };
 
-    if (!environment.production) {
-      console.info(`[GA4 Event] ${eventName}`, params);
-    }
-
     if (!this.initialised) return;
-    this.gtag('event', eventName, params);
+    // Never send free text, identities, booking references or treatment information.
+    const safe: Record<string, unknown> = {};
+    const enums: Record<string, readonly string[]> = {
+      consultation_mode: ['video', 'in_person'],
+      lead_type: ['appointment_booking', 'contact_enquiry'],
+      item_category: ['independent_dentist', 'clinic'],
+      user_role: ['patient', 'host'],
+      cta_action: ['book_appointment', 'whatsapp', 'call', 'directions', 'add_to_calendar'],
+    };
+    for (const [key, allowed] of Object.entries(enums)) {
+      if (typeof params[key] === 'string' && allowed.includes(params[key] as string)) safe[key] = params[key];
+    }
+    if (typeof params['is_independent'] === 'boolean') safe['is_independent'] = params['is_independent'];
+    if (typeof params['results_count'] === 'number' && Number.isFinite(params['results_count'])) safe['results_count'] = params['results_count'];
+    this.gtag('event', eventName, { ...safe, ...this.safeLocation(), send_to: this.destinations() });
   }
 
   /** Manually track a page view (auto-tracked on route change already). */
-  trackPageView(path: string, title?: string): void {
-    const pageParams = {
-      page_path: path,
-      page_title: title ?? (typeof document !== 'undefined' ? document.title : ''),
-    };
-
-    if (!environment.production) {
-      console.info('[GA4 PageView]', pageParams);
-    }
-
+  trackPageView(path: string, _title?: string): void {
     if (!this.initialised) return;
-    this.gtag('event', 'page_view', pageParams);
+    const pathname = path.split(/[?#]/)[0];
+    const publicPages = ['/', '/business', '/services', '/about', '/contact', '/gallery', '/testimonials', '/dentists'];
+    if (!publicPages.includes(pathname)) return;
+    this.gtag('event', 'page_view', { ...this.safeLocation(pathname), send_to: this.destinations() });
+  }
+
+  private destinations(): string[] {
+    return [...new Set([this.platformTrackingId, this.clinicTrackingId].filter((id): id is string => !!id))];
+  }
+
+  private safeLocation(path = '/'): Record<string, string> {
+    return { page_path: path, page_location: window.location.origin + path, page_referrer: '', page_title: 'My Dental Platform' };
+  }
+
+  private trackingConfig(): Record<string, unknown> {
+    return { ...this.safeLocation(), send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false };
   }
 
   // ── High-Value Conversion Helpers ──────────────────────────────────────────
@@ -271,7 +287,7 @@ export class AnalyticsService {
 
     // Google Consent Mode v2 standard defaults
     this.gtag('consent', 'default', {
-      analytics_storage: 'granted',
+      analytics_storage: 'denied',
       ad_storage: 'denied',
       ad_user_data: 'denied',
       ad_personalization: 'denied',
@@ -281,11 +297,11 @@ export class AnalyticsService {
 
     // Configure platform tracking ID if available
     if (this.platformTrackingId) {
-      this.gtag('config', this.platformTrackingId, { send_page_view: false });
+      this.gtag('config', this.platformTrackingId, this.trackingConfig());
     }
     // Configure clinic tracking ID if available
     if (this.clinicTrackingId && this.clinicTrackingId !== this.platformTrackingId) {
-      this.gtag('config', this.clinicTrackingId, { send_page_view: false });
+      this.gtag('config', this.clinicTrackingId, this.trackingConfig());
     }
 
     const loadId = this.platformTrackingId || initialId;

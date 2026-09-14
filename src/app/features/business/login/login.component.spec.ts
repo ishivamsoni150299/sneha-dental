@@ -56,20 +56,14 @@ describe('LoginComponent', () => {
 
   it('returns a clinic owner to the originally requested clinic page', async () => {
     const component = create('clinic', '/business/clinic/patients');
-    auth.signInWithEmail.and.resolveTo('clinic-admin');
-    component.form.setValue({ email: 'owner@example.com', password: 'password123' });
-
-    await component.signInWithEmail();
+    await component.onAuthenticated('clinic-admin');
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/patients', { replaceUrl: true });
   });
 
   it('routes a clinic account to its own workspace from the platform entry', async () => {
     const component = create('platform');
-    auth.signInWithEmail.and.resolveTo('clinic-admin');
-    component.form.setValue({ email: 'owner@example.com', password: 'password123' });
-
-    await component.signInWithEmail();
+    await component.onAuthenticated('clinic-admin');
 
     expect(auth.logout).not.toHaveBeenCalled();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
@@ -86,20 +80,14 @@ describe('LoginComponent', () => {
 
   it('ignores an external return URL', async () => {
     const component = create('clinic', '//malicious.example');
-    auth.signInWithEmail.and.resolveTo('clinic-admin');
-    component.form.setValue({ email: 'owner@example.com', password: 'password123' });
-
-    await component.signInWithEmail();
+    await component.onAuthenticated('clinic-admin');
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
   });
 
   it('routes an unverified or incomplete account to signup setup', async () => {
     const component = create('clinic');
-    auth.signInWithEmail.and.resolveTo('unverified');
-    component.form.setValue({ email: 'owner@example.com', password: 'password123' });
-
-    await component.signInWithEmail();
+    await component.onAuthenticated('unverified');
 
     expect(router.navigate).toHaveBeenCalledWith(['/business/signup'], {
       queryParams: { resume: 'true' },
