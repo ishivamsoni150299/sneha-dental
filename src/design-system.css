@@ -3516,19 +3516,19 @@ textarea.ui-field {
 }
 
 .clinic-home-title {
-  max-width: 11ch;
+  max-width: 18ch;
   margin: 1.25rem 0 0;
-  font-family: var(--ui-font-display);
-  font-size: 4.75rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  line-height: 0.98;
+  font-family: var(--ui-font-sans);
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 .clinic-home-title span {
   display: block;
-  color: #ffe2aa;
+  color: #bae6fd;
 }
 
 .clinic-home-intro {
@@ -3860,81 +3860,86 @@ textarea.ui-field {
 
 @media (max-width: 767px) {
   .clinic-home-hero {
-    min-height: 42rem;
+    min-height: auto;
   }
 
-  .clinic-home-hero-image { object-position: 62% center; }
+  .clinic-home-hero-image { object-position: center; }
 
   .clinic-home-hero-shade {
     background:
-      linear-gradient(0deg, rgba(8, 31, 35, 0.96) 0%, rgba(8, 31, 35, 0.78) 64%, rgba(8, 31, 35, 0.32) 100%);
+      linear-gradient(180deg, rgba(8, 31, 35, 0.86) 0%, rgba(8, 31, 35, 0.94) 72%, rgba(8, 31, 35, 0.98) 100%);
   }
 
   .clinic-home-hero-inner {
-    align-items: end;
-    padding-block: 3rem 6.5rem;
+    align-items: center;
+    padding-block: 2.75rem 3.5rem;
   }
 
   .clinic-home-title {
-    font-size: 3.25rem;
+    font-size: clamp(1.85rem, 6.5vw, 2.35rem);
+    line-height: 1.18;
   }
 
   .clinic-home-intro {
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     line-height: 1.55;
   }
 
   .clinic-home-actions {
     display: grid;
     grid-template-columns: 1fr;
+    width: 100%;
+    gap: 0.65rem;
   }
 
   .clinic-home-primary-action,
   .clinic-home-secondary-action {
     width: 100%;
+    min-height: 48px;
   }
 
   .clinic-home-proof {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
   }
-
-  .clinic-home-proof > div:nth-child(3) { display: none; }
 
   .clinic-home-treatments,
   .clinic-home-care,
   .clinic-home-review {
-    padding-block: 4rem;
+    padding-block: 3.5rem;
   }
 
   .clinic-home-section-head,
   .clinic-home-care-grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.75rem;
   }
 
   .clinic-home-section-head h2,
   .clinic-home-care-copy h2,
   .clinic-home-booking h2 {
-    font-size: 2.65rem;
+    font-size: 2rem;
+    line-height: 1.2;
   }
 
   .clinic-treatment-index {
-    margin-top: 2.5rem;
+    margin-top: 2rem;
     grid-template-columns: 1fr;
   }
 
-  .clinic-treatment-row { min-height: 6.5rem; }
+  .clinic-treatment-row { min-height: 5.5rem; }
   .clinic-treatment-row small { white-space: normal; }
 
   .clinic-home-care-image {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
   }
 
   .clinic-home-booking-inner {
     min-height: 0;
     flex-direction: column;
     align-items: flex-start;
-    gap: 2rem;
+    gap: 1.75rem;
   }
 
   .clinic-home-booking-action { width: 100%; }
@@ -4068,18 +4073,20 @@ textarea.ui-field {
 
 .clinic-mobile-menu {
   position: fixed;
+  top: var(--app-clinic-chrome-height, 4.5rem);
   right: 0.75rem;
-  bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
   left: 0.75rem;
   z-index: 60;
-  max-height: min(34rem, 76vh);
-  overflow: auto;
-  border: 1px solid var(--ui-line);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  background: color-mix(in srgb, var(--ui-surface) 96%, transparent);
-  box-shadow: var(--ui-shadow-lg);
-  backdrop-filter: blur(20px);
+  max-height: calc(100svh - var(--app-clinic-chrome-height, 4.5rem) - 1.5rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   animation: ui-menu-in var(--ui-duration) var(--ui-ease) both;
 }
 
@@ -4188,8 +4195,8 @@ textarea.ui-field {
 }
 
 @keyframes ui-menu-in {
-  from { opacity: 0; transform: translateY(1rem) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .platform-shell {

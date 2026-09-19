@@ -1,6 +1,6 @@
 import { Component, HostListener, PLATFORM_ID, computed, inject, signal, type OnDestroy, type OnInit } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import type { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
@@ -11,7 +11,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 @Component({
   selector: 'app-clinic-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent, FooterComponent, VoiceAgentComponent],
+  imports: [RouterOutlet, RouterLink, NavbarComponent, FooterComponent, VoiceAgentComponent],
   host: {
     class: 'clinic-theme-scope block',
   },
@@ -131,31 +131,45 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       }
 
       <!-- Mobile action dock — anchored flush to viewport bottom -->
-      <div class="fixed bottom-0 left-3 right-3 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));">
+      <div class="fixed bottom-0 left-2.5 right-2.5 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));">
         <div class="mobile-dock-shell">
-          <div class="mobile-dock-grid" [class.mobile-dock-grid-single]="!clinic.hasPhone">
+          <div class="mobile-dock-grid"
+               [class.mobile-dock-grid-three]="clinic.hasPhone && clinic.hasWhatsapp"
+               [class.mobile-dock-grid-single]="!clinic.hasPhone && !clinic.hasWhatsapp">
             @if (clinic.hasPhone) {
             <a [href]="'tel:+' + clinic.config.phoneE164"
                (click)="trackCallClick()"
                aria-label="Call clinic"
                class="mobile-dock-link min-w-0">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
+              <svg class="h-4 w-4 shrink-0 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
               </svg>
-              <span class="truncate leading-none">Call</span>
+              <span class="truncate">Call</span>
+            </a>
+            }
+
+            @if (clinic.hasWhatsapp) {
+            <a [href]="clinic.bookingWhatsappUrl"
+               (click)="trackWhatsappClick()"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Chat on WhatsApp"
+               class="mobile-dock-link mobile-dock-link-whatsapp min-w-0">
+              <svg class="h-4 w-4 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
+              </svg>
+              <span class="truncate">WhatsApp</span>
             </a>
             }
 
             <a routerLink="/appointment"
                (click)="trackBookClick()"
-               routerLinkActive="scale-[1.02]"
-               [routerLinkActiveOptions]="{ exact: true }"
                aria-label="Book appointment"
                class="mobile-dock-book min-w-0">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.85">
+              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
-              <span class="truncate leading-none">Book Appointment</span>
+              <span class="truncate font-bold">Book Appointment</span>
             </a>
 
           </div>

@@ -32,10 +32,13 @@ export class NavbarComponent {
   ];
 
   readonly mobileNavLinks: readonly NavLink[] = [
-    { label: 'Services', route: '/services',     exact: false },
-    { label: 'About',    route: '/about',        exact: false },
-    { label: 'Reviews',  route: '/testimonials', exact: false },
-    { label: 'Contact',  route: '/contact',      exact: false },
+    { label: 'Home',        route: '/',             exact: true  },
+    { label: 'Services',    route: '/services',     exact: false },
+    { label: 'About Clinic',route: '/about',        exact: false },
+    { label: 'Gallery',     route: '/gallery',      exact: false },
+    { label: 'Reviews',     route: '/testimonials', exact: false },
+    { label: 'Contact Us',  route: '/contact',      exact: false },
+    { label: 'My Booking',  route: '/my-appointment', exact: false },
   ];
 
   @HostListener('window:resize')

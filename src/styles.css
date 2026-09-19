@@ -747,18 +747,26 @@ body {
   .mobile-dock-shell {
     @apply box-border border p-1.5;
     width: 100%;
-    max-width: calc(100vw - 24px);
-    border-radius: 0.75rem;
-    border-color: color-mix(in srgb, var(--color-line) 86%, white);
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 12px 32px -22px rgba(15, 23, 42, 0.32);
-    backdrop-filter: blur(18px);
+    max-width: min(calc(100vw - 20px), 480px);
+    margin-inline: auto;
+    border-radius: 1.125rem;
+    border-color: rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.22), 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 
   .mobile-dock-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-    gap: 0.5rem;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 0.375rem;
+    align-items: center;
+  }
+
+  .mobile-dock-grid-three {
+    grid-template-columns: auto auto 1fr;
+    gap: 0.375rem;
   }
 
   .mobile-dock-grid-single {
@@ -766,9 +774,11 @@ body {
   }
 
   .mobile-dock-link {
-    @apply flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-semibold transition-all;
-    border-radius: 0.5rem;
-    color: var(--color-text-muted);
+    @apply flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold transition-all;
+    border-radius: 0.75rem;
+    color: var(--color-text-soft);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     min-height: 44px;
   }
 
@@ -779,20 +789,25 @@ body {
   }
 
   .mobile-dock-link:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 
   .mobile-dock-link-whatsapp {
-    color: var(--color-success);
-    background: var(--color-success-soft);
+    color: #047857;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
   }
 
   .mobile-dock-book {
-    @apply flex items-center justify-center gap-1.5 px-3 py-2.5 text-[11px] font-extrabold text-white transition-all;
+    @apply flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-white transition-all;
     min-height: 44px;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     background: var(--color-primary);
-    box-shadow: 0 12px 24px -16px var(--color-primary-shadow);
+    box-shadow: 0 8px 20px -6px var(--color-primary-shadow);
+  }
+
+  .mobile-dock-book:active {
+    transform: scale(0.97);
   }
 }
 
