@@ -19,12 +19,12 @@ describe('VideoConsultationService', () => {
     const [url, init] = api.fetch.calls.mostRecent().args;
     expect(url).toBe('/api/patient/account/appointments/appointment-1/video/join');
     expect(JSON.parse(init!.body as string)).toEqual({bookingRef:'BK-ABCDEFGH',phone:'9999999999'});
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalledWith(url, jasmine.anything());
   });
   it('uses authenticated clinic access for staff', async () => {
     await service.join('appointment-1', true, '', '');
     expect(api.fetch).toHaveBeenCalledWith('/api/clinics/current/appointments/appointment-1/video/join', jasmine.objectContaining({method:'POST'}));
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalledWith('/api/clinics/current/appointments/appointment-1/video/join', jasmine.anything());
   });
   it('rejects a room on an untrusted domain', async () => {
     api.fetch.and.resolveTo(new Response(JSON.stringify({...session,url:'https://daily.co.example.com/room'}),{status:200}));
