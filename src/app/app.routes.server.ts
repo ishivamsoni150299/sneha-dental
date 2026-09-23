@@ -31,6 +31,10 @@ export const serverRoutes: ServerRoute[] = [
     path: 'business',
     renderMode: RenderMode.Prerender,
   },
+  { path: 'business/privacy', renderMode: RenderMode.Prerender },
+  { path: 'business/terms', renderMode: RenderMode.Prerender },
+  { path: 'professional', renderMode: RenderMode.Prerender },
+  { path: 'professional/signup', renderMode: RenderMode.Prerender },
   {
     path: '**',
     renderMode: RenderMode.Client,

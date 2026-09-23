@@ -31,7 +31,7 @@ export class PlatformLandingComponent {
   readonly avgCaseValue = signal(3500);
   readonly leadCloseRate = signal(40);
 
-  // ── Curated showcase clinics (fictional — protects real client privacy) ────
+  // ── Fictional examples used only to demonstrate the product UI ───────────────
   readonly showcaseClinics = [
     {
       name: 'Sunrise Dental Care',
@@ -157,7 +157,7 @@ export class PlatformLandingComponent {
   );
 
   readonly recoveredBookings = computed(() =>
-    Math.max(1, Math.round(this.monthlyMissedLeads() * (this.leadCloseRate() / 100))),
+    this.monthlyMissedLeads() * (this.leadCloseRate() / 100),
   );
 
   readonly recoveredRevenue = computed(() =>
@@ -217,8 +217,8 @@ export class PlatformLandingComponent {
   ];
 
   readonly results = [
-    { value: '5×',     label: 'More online inquiries',   desc: 'Average increase in monthly appointment requests after going live' },
-    { value: '3 hrs',  label: 'Saved daily',             desc: 'Time saved on phone calls answering hours, pricing & location questions' },
+    { value: '5×',     label: 'Example inquiry growth',  desc: 'Illustrative outcome for a clinic improving its online discovery and booking flow' },
+    { value: '3 hrs',  label: 'Example time saving',      desc: 'Illustrative estimate when routine calls move to self-service information and booking' },
     { value: '< 24h',  label: 'To go live',              desc: 'From signup to a verified clinic listing with online booking enabled' },
     { value: '₹0',     label: 'Setup cost',              desc: 'No agency fees, no developer, no hidden charges. Ever.' },
   ];
@@ -233,7 +233,7 @@ export class PlatformLandingComponent {
 
   // ── Replace with your real details ───────────────────────────────────────
   readonly devWhatsapp = '919140210648';
-  readonly devEmail    = 'mydentalplatform@zohomail.in';
+  readonly devEmail    = 'clinics@mydentalplatform.com';
   // ─────────────────────────────────────────────────────────────────────────
 
   initials(name: string): string {
@@ -247,6 +247,10 @@ export class PlatformLandingComponent {
 
   setRoiPlan(planName: 'Basic' | 'Pro'): void {
     this.roiPlan.set(planName);
+  }
+
+  formatInr(value: number): string {
+    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(value);
   }
 
   signupQuery(plan: PlanId, source: string, campaign = 'sales-sprint', offer?: string): Record<string, string> {

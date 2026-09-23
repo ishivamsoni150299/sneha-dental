@@ -115,6 +115,13 @@
         <div><strong>Talk to a dentist from home.</strong><p>Book with a participating clinic. After confirmation, join your private video room from My appointments. An in-clinic examination or treatment may still be needed.</p></div>
       </div>
     }
+    @if (serviceId() === 'emergency-dental-care') {
+      <aside role="note" class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-950" aria-labelledby="emergency-guidance-heading">
+        <h2 id="emergency-guidance-heading" class="font-bold">Get urgent medical help when symptoms are severe</h2>
+        <p class="mt-1">Difficulty breathing or swallowing, rapidly spreading facial or neck swelling, uncontrolled bleeding, loss of consciousness, or major facial trauma can require emergency medical care. Call local emergency services or go to the nearest hospital emergency department now; do not wait for an online dental booking.</p>
+        <p class="mt-2">For a knocked-out adult tooth, hold it by the crown, avoid touching the root, keep it moist in milk or saline if possible, and seek urgent dental care.</p>
+      </aside>
+    }
     <dialog #filtersDialog id="advanced-filters" class="filter-dialog" aria-labelledby="filter-heading" (close)="isMobileFilterOpen.set(false)">
       <div class="filter-header"><div><h2 id="filter-heading">Make it your search</h2><p>A few details can help you find the right fit.</p></div><button type="button" (click)="closeFilters()" class="icon-button" aria-label="Close filters"><i class="ph ph-x" aria-hidden="true"></i></button></div>
       <div class="advanced-filters">
@@ -165,9 +172,9 @@
             <p class="mt-2 text-sm text-gray-500">{{ dentist.experienceYears ?? 'Not listed' }} years experience · {{ dentist.languages.join(', ') }}</p>
             <div class="mt-5 flex flex-wrap gap-3">
               @if (dentist.isIndependent) {
-                <a [routerLink]="['/dentists', dentist.slug, 'book']" [queryParams]="{ mode: 'video' }" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Book Video Consultation</a>
+                <a [routerLink]="['/dentists', dentist.slug, 'book']" [queryParams]="bookingQuery('video')" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Book Video Consultation</a>
               } @else {
-                <a [routerLink]="['/dentists', dentist.slug, 'book']" [queryParams]="{ mode: videoOnly() ? 'video' : 'in_person' }" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">Book Appointment</a>
+                <a [routerLink]="['/dentists', dentist.slug, 'book']" [queryParams]="bookingQuery(videoOnly() ? 'video' : 'in_person')" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">Book Appointment</a>
               }
               <a [routerLink]="['/dentist', dentist.slug]" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">View profile</a>
             </div>
@@ -176,6 +183,7 @@
         @for (clinic of filteredClinics(); track clinic.id) {
           <app-dentist-listing-card
             [videoOnly]="videoOnly()"
+            [bookingContext]="bookingContext()"
             [clinic]="clinic" [discoveryType]="discoveryType()" [slots]="slotsFor(clinic.id)"
             [availabilityError]="!!availabilityErrors()[clinic.id]" [distance]="distanceFor(clinic)"
             [rating]="ratingFor(clinic.id)" [reviewCount]="reviewCountFor(clinic.id)" [compared]="isCompared(clinic.id)"
@@ -187,7 +195,10 @@
               <span class="empty-label">{{ clinics().length + providers().length ? 'No exact matches' : 'Directory opening soon' }}</span>
               <h2>{{ clinics().length + providers().length ? 'Let’s widen your search.' : 'We’re verifying the first dentists.' }}</h2>
               <p>{{ clinics().length + providers().length ? 'Try all Delhi NCR, remove a filter, or choose another treatment.' : 'Every dentist must complete our checks before appearing here. You can still explore treatment costs while verified profiles are prepared.' }}</p>
-              @if (hasFilters()) {<button type="button" (click)="clearFilters()" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Clear filters</button>} @else {<a href="#cost-guide-heading" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Explore treatment costs</a>}
+              <div class="mt-5 flex flex-wrap justify-center gap-3">
+                @if (hasFilters()) {<button type="button" (click)="clearFilters()" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Expand to all Delhi NCR</button>} @else {<a href="#cost-guide-heading" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Explore treatment costs</a>}
+                <a [href]="demandRequestHref()" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-semibold text-blue-700">Request a dentist / notify me</a>
+              </div>
             </div>
             <div class="booking-steps" aria-label="How booking works">
               <span class="steps-kicker block mb-3 text-xs font-semibold uppercase tracking-wider text-blue-600">How it works</span>
@@ -206,6 +217,12 @@
       <section class="comparison mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-6" aria-label="Compare dentists"><h2>Your shortlist</h2><div class="compare-grid grid grid-cols-1 md:grid-cols-3 gap-6 text-sm leading-relaxed">@for (clinic of comparedClinics(); track clinic.id) {<div><h3>{{ clinic.doctorName || clinic.name }}</h3><p>{{ clinic.marketplaceProfile?.locality }}</p><p>Consultation: {{ clinic.marketplaceProfile?.consultationFee != null ? '₹' + clinic.marketplaceProfile?.consultationFee : 'Ask clinic' }}</p><p>{{ clinic.marketplaceProfile?.experienceYears ?? 'Not listed' }} years experience</p><a [routerLink]="profilePath(clinic)">View profile</a><button type="button" (click)="toggleCompare(clinic.id)">Remove</button></div>}</div></section>
     }
     <p class="fee-note mt-4 text-xs text-gray-500">Consultation fees are published by clinics. Treatment costs depend on your consultation.</p>
+    @if (localCareNote()) {
+      <section class="mt-6 rounded-2xl border border-gray-200 bg-white p-6" aria-labelledby="local-care-heading">
+        <h2 id="local-care-heading" class="text-lg font-bold text-gray-900">Choosing care for {{ currentBreadcrumbTreatment() || 'your dental needs' }}{{ locality() ? ' in ' + locality() : '' }}</h2>
+        <p class="mt-2 text-sm leading-6 text-gray-600">{{ localCareNote() }}</p>
+      </section>
+    }
 
     <app-treatment-guide [items]="treatmentCostGuide" (serviceSelected)="chooseService($event)" />
 

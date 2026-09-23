@@ -15,7 +15,7 @@ export const routes: Routes = [
     children: [
       { path: 'video-test', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Test Video Consultation', noIndex: true, host: true } },
       { path: '', pathMatch: 'full', loadComponent: () => import('./features/professional/professional-landing.component').then(m => m.ProfessionalLandingComponent), data: { title: 'List Your Dentist Profile', description: 'Create an independent verified dentist profile, add practice locations, publish availability, and receive appointments.' } },
-      { path: 'signup', loadComponent: () => import('./features/professional/professional-signup.component').then(m => m.ProfessionalSignupComponent), data: { title: 'Create Dentist Profile', noIndex: true } },
+      { path: 'signup', loadComponent: () => import('./features/professional/professional-signup.component').then(m => m.ProfessionalSignupComponent), data: { title: 'Create Your Dentist Profile', description: 'Create a dentist account, add your qualifications and practice locations, and submit your profile for verification.', noIndex: true } },
       { path: 'login', loadComponent: () => import('./features/professional/professional-login.component').then(m => m.ProfessionalLoginComponent), data: { title: 'Dentist Sign In', noIndex: true } },
       { path: 'profile', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-profile.component').then(m => m.ProfessionalProfileComponent), data: { title: 'Dentist Profile', noIndex: true } },
       { path: 'workspace', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-workspace.component').then(m => m.ProfessionalWorkspaceComponent), data: { title: 'Dentist Appointments and Availability', noIndex: true } },
@@ -42,27 +42,27 @@ export const routes: Routes = [
       {
         path: 'noida',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Best Dentists in Noida', description: 'Find verified dentists in Noida, compare fees and check live appointment availability.', initialLocation: 'Noida' },
+        data: { title: 'Dental Care Directory for Noida', description: 'Explore dental care information for Noida. Verified dentist profiles, fees and appointment times appear as local providers join.', initialLocation: 'Noida' },
       },
       {
         path: 'delhi',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Best Dentists in Delhi', description: 'Find verified dentists in Delhi, compare fees and check live appointment availability.', initialLocation: 'Delhi' },
+        data: { title: 'Dental Care Directory for Delhi', description: 'Explore dental care information for Delhi. Verified dentist profiles, fees and appointment times appear as local providers join.', initialLocation: 'Delhi' },
       },
       {
         path: 'gurugram',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Best Dentists in Gurugram', description: 'Find verified dentists in Gurugram, compare fees and check live appointment availability.', initialLocation: 'Gurugram' },
+        data: { title: 'Dental Care Directory for Gurugram', description: 'Explore dental care information for Gurugram. Verified dentist profiles, fees and appointment times appear as local providers join.', initialLocation: 'Gurugram' },
       },
       {
         path: 'ghaziabad',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Best Dentists in Ghaziabad', description: 'Find verified dentists in Ghaziabad, compare fees and check live appointment availability.', initialLocation: 'Ghaziabad' },
+        data: { title: 'Dental Care Directory for Ghaziabad', description: 'Explore dental care information for Ghaziabad. Verified dentist profiles, fees and appointment times appear as local providers join.', initialLocation: 'Ghaziabad' },
       },
       {
         path: 'faridabad',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Best Dentists in Faridabad', description: 'Find verified dentists in Faridabad, compare fees and check live appointment availability.', initialLocation: 'Faridabad' },
+        data: { title: 'Dental Care Directory for Faridabad', description: 'Explore dental care information for Faridabad. Verified dentist profiles, fees and appointment times appear as local providers join.', initialLocation: 'Faridabad' },
       },
       {
         path: 'noida/sector-75',
@@ -132,17 +132,17 @@ export const routes: Routes = [
       {
         path: 'emergency/delhi',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Emergency Dentists in Delhi', description: 'Find verified emergency dental clinics in Delhi with same-day appointments for acute toothache relief.', initialLocation: 'Delhi', initialServiceId: 'emergency-dental-care' },
+        data: { title: 'Emergency Dental Care Guide for Delhi', description: 'Review urgent dental guidance for Delhi and see verified appointment availability when participating clinics publish it.', initialLocation: 'Delhi', initialServiceId: 'emergency-dental-care' },
       },
       {
         path: 'emergency/noida',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Emergency Dentists in Noida', description: 'Find verified emergency dental clinics in Noida with same-day appointments for urgent dental care.', initialLocation: 'Noida', initialServiceId: 'emergency-dental-care' },
+        data: { title: 'Emergency Dental Care Guide for Noida', description: 'Review urgent dental guidance for Noida and see verified appointment availability when participating clinics publish it.', initialLocation: 'Noida', initialServiceId: 'emergency-dental-care' },
       },
       {
         path: 'delhi/south-delhi',
         loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent),
-        data: { title: 'Dentists in South Delhi', description: 'Find top-rated verified dentists in South Delhi including South Extension, GK, and Saket.', initialLocation: 'South Delhi' },
+        data: { title: 'Dental Care Directory for South Delhi', description: 'Explore dental care information for South Delhi, including South Extension, GK and Saket, as verified providers join.', initialLocation: 'South Delhi' },
       },
       {
         path: 'gurugram/cyber-city',
@@ -237,7 +237,7 @@ export const routes: Routes = [
           import('./features/home/home.component').then(m => m.HomeComponent),
         data: {
           title: 'Pain-Free Dental Care',
-          description: 'Gentle, pain-free dental care with modern equipment and transparent pricing. Book your appointment today.',
+          description: 'Gentle dental care with modern equipment, pain-control options, and transparent pricing. Book your appointment today.',
         },
       },
       {

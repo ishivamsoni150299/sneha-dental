@@ -5,19 +5,19 @@
       <app-platform-brand size="lg" />
     </a>
     <details #professionalMenu class="professional-menu" (keydown.escape)="professionalMenu.open = false">
-      <summary>For clinics <i class="ph ph-caret-down" aria-hidden="true"></i></summary>
-      <div><a routerLink="/professional" (click)="professionalMenu.open = false">For dentists <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a><a routerLink="/business" (click)="professionalMenu.open = false">For clinic owners <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a></div>
+      <summary>Professionals <i class="ph ph-caret-down" aria-hidden="true"></i></summary>
+      <div><a routerLink="/professional" (click)="professionalMenu.open = false">Dentists <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a><a routerLink="/business" (click)="professionalMenu.open = false">Clinics <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a></div>
     </details>
     <nav class="patient-navigation" aria-label="Patient navigation">
       <a routerLink="/dentists" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-magnifying-glass" aria-hidden="true"></i>Find a dentist</a>
       <a routerLink="/appointments" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-calendar-blank" aria-hidden="true"></i>My appointments</a>
-      <a routerLink="/professional" class="clinic-nav">For dentists</a>
-      <a routerLink="/business" class="clinic-nav">For clinics</a>
+      <a routerLink="/professional" class="clinic-nav">Dentists</a>
+      <a routerLink="/business" class="clinic-nav">Clinics</a>
     </nav>
   </header>
   <main id="marketplace-content"><router-outlet /></main>
   <nav class="patient-tab-bar" aria-label="Mobile patient navigation">
-    <a routerLink="/dentists" routerLinkActive="active" ariaCurrentWhenActive="page">
+    <a [routerLink]="currentDirectoryUrl()" routerLinkActive="active" ariaCurrentWhenActive="page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5" stroke-linecap="round"/></svg>
       <span>Book Appointment</span>
     </a>

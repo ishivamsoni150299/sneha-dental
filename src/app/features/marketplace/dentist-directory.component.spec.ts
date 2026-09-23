@@ -340,7 +340,7 @@ describe('DentistDirectoryComponent', () => {
     fixture.detectChanges();
 
     expect(component.pageHeading()).toBe('Root Canal Treatment in Noida');
-    expect(component.pageKicker()).toBe('Specialist Care · Verified Clinics in Noida');
+    expect(component.pageKicker()).toBe('Specialist Care · Noida Directory');
     expect(component.pageLead()).toContain('Noida');
 
     component.locality.set('');

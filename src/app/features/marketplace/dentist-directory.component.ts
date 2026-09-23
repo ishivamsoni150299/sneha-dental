@@ -3,6 +3,7 @@ import { TreatmentGuideComponent, type TreatmentCostGuideItem } from './treatmen
 import { DentistListingCardComponent } from './dentist-listing-card.component';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Meta } from '@angular/platform-browser';
 import { MARKETPLACE_DENTAL_SERVICES } from '../../core/config/marketplace.config';
 import type { MarketplaceDentalServiceId } from '../../core/config/marketplace.config';
 import {
@@ -30,6 +31,7 @@ export class DentistDirectoryComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly route = inject(ActivatedRoute);
   private readonly analytics = inject(AnalyticsService);
+  private readonly meta = inject(Meta);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly isDiscoveryHome = !this.route.snapshot.data['initialLocation'] && !this.route.snapshot.data['initialServiceId'];
   readonly routeHeading = this.route.snapshot.data['initialLocation']
@@ -53,7 +55,7 @@ export class DentistDirectoryComponent implements OnInit {
       return `${serviceLabel} Specialists in Delhi NCR`;
     }
     if (loc) {
-      return `Best Dentists in ${loc}`;
+      return `Dental Care Directory for ${loc}`;
     }
     return routeTitle?.replace(/ \| mydentalplatform$/, '') || 'Find the Right Dentist Near You in Delhi NCR';
   });
@@ -62,13 +64,13 @@ export class DentistDirectoryComponent implements OnInit {
     const service = this.serviceId();
     const loc = this.locality();
     if (service && loc) {
-      return `Specialist Care · Verified Clinics in ${loc}`;
+      return `Specialist Care · ${loc} Directory`;
     }
     if (service) {
       return 'Specialist Dental Care · Verified Delhi NCR Clinics';
     }
     if (loc) {
-      return `Verified Dental Clinics · ${loc}`;
+      return `Dental Clinic Coverage · ${loc}`;
     }
     return 'Delhi NCR Dental Discovery · Verified Clinics';
   });
@@ -78,14 +80,14 @@ export class DentistDirectoryComponent implements OnInit {
     const loc = this.locality();
     if (service && loc) {
       const label = this.marketplace.serviceLabel(service as MarketplaceDentalServiceId);
-      return `Compare verified ${label.toLowerCase()} specialists in ${loc}. View clinic safety checks, transparent consultation fees, and book available appointment slots online with zero booking fees.`;
+      return `Learn what to consider for ${label.toLowerCase()} in ${loc}. Verified profiles, published fees and appointment times will appear here as local dentists complete our checks.`;
     }
     if (service) {
       const label = this.marketplace.serviceLabel(service as MarketplaceDentalServiceId);
-      return `Compare top-rated ${label.toLowerCase()} clinics across Delhi, Noida, Gurugram, Ghaziabad, and Faridabad. DCI-registered specialists, transparent fees, and same-day slots.`;
+      return `Explore ${label.toLowerCase()} guidance across Delhi NCR. Dentist profiles, fees and appointment times appear only after verification and may not yet be available in every area.`;
     }
     if (loc) {
-      return `Discover top-rated, DCI-registered dentists and dental clinics across ${loc}. Compare consultation fees, check real-time availability, and request your appointment with zero booking fees.`;
+      return `We are building verified dental coverage in ${loc}. When approved profiles are available, you can compare published fees and appointment times here with zero platform booking fees.`;
     }
     return 'Tell us what you need. Compare verified dentists and dental clinics across Delhi NCR, check real-time appointment availability, and request a booking in 60 seconds with zero convenience fees.';
   });
@@ -114,7 +116,7 @@ export class DentistDirectoryComponent implements OnInit {
       specialty: 'Endodontics',
       priceRange: '₹2,500 – ₹7,500',
       sittings: '1 – 2 Sittings',
-      overview: 'Pain-free rotary nerve cleaning and biocompatible gutta-percha sealing. Crown charges separate.',
+      overview: 'Root canal treatment is usually performed with local anaesthesia; comfort, number of visits and crown needs vary after examination.',
     },
     {
       treatment: 'Dental Implants',
@@ -283,7 +285,7 @@ export class DentistDirectoryComponent implements OnInit {
       return [
         {
           question: 'Is a root canal treatment painful?',
-          answer: 'No. Modern rotary root canal treatment is performed under profound local anesthesia, making the entire procedure virtually pain-free. Most patients report feeling no more discomfort than a routine filling.',
+          answer: 'Local anaesthesia is commonly used to reduce discomfort, but experiences vary. Your dentist can explain pain control, expected soreness and after-care after examining the tooth.',
         },
         {
           question: 'How much does a root canal cost in Delhi NCR?',
@@ -291,7 +293,7 @@ export class DentistDirectoryComponent implements OnInit {
         },
         {
           question: 'Can a root canal be completed in a single sitting?',
-          answer: 'Yes. In cases without acute apical abscess or severe infection, single-sitting rotary RCT is safe, clinically proven, and completed within 45 to 60 minutes.',
+          answer: 'Some cases may be suitable for one visit, while infection, anatomy and restoration needs can require more. Only the treating dentist can estimate the number and length of visits after examination.',
         },
         {
           question: 'Is a dental crown always necessary after RCT?',
@@ -319,6 +321,33 @@ export class DentistDirectoryComponent implements OnInit {
     }
     return this.faqs;
   });
+
+  readonly bookingContext = computed<Record<string, string>>(() => {
+    const context: Record<string, string> = {};
+    if (this.serviceId()) context['treatment'] = this.serviceId();
+    if (this.locality()) context['location'] = this.locality();
+    return context;
+  });
+
+  readonly localCareNote = computed(() => {
+    const location = this.locality();
+    const service = this.serviceId();
+    if (!location && !service) return '';
+    const treatment = service ? this.marketplace.serviceLabel(service as MarketplaceDentalServiceId) : 'dental care';
+    return location
+      ? `For ${treatment.toLowerCase()} in ${location}, ask about the dentist's relevant experience, total expected fees, follow-up visits and the clinic's plan for urgent complications before you confirm.`
+      : `For ${treatment.toLowerCase()}, compare the clinician's relevant experience, the full treatment estimate and the follow-up plan—not only the first consultation fee.`;
+  });
+
+  readonly demandRequestHref = computed(() => {
+    const subject = `Dentist request${this.locality() ? ` in ${this.locality()}` : ''}`;
+    const body = `Please notify me when a verified dentist is available.\nTreatment: ${this.currentBreadcrumbTreatment() || 'Not specified'}\nLocation: ${this.locality() || 'Delhi NCR'}`;
+    return `mailto:support@mydentalplatform.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+
+  bookingQuery(mode: 'video' | 'in_person'): Record<string, string> {
+    return { mode, ...this.bookingContext() };
+  }
 
   readonly localities = computed(() => [...new Set(
     this.clinics()
@@ -435,6 +464,10 @@ export class DentistDirectoryComponent implements OnInit {
     }
     this.serviceId.set(String(this.route.snapshot.data['initialServiceId'] ?? ''));
     if (!this.isBrowser) {
+      if (!this.isDiscoveryHome) {
+        this.meta.updateTag({ name: 'robots', content: 'noindex,follow' });
+        this.meta.updateTag({ name: 'googlebot', content: 'noindex,follow' });
+      }
       this.loading.set(false);
       return;
     }

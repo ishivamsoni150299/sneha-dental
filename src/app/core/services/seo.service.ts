@@ -214,9 +214,9 @@ export class SeoService {
           },
         })
       : undefined;
-    const dentistItemList = path === '/dentists' || path.startsWith('/dentists/')
-      ? this.buildDentistItemList(path, title, description, origin, url)
-      : undefined;
+    // Do not publish a synthetic ItemList. Directory entries must come from
+    // verified live supply rather than treatment or location marketing copy.
+    const dentistItemList: undefined = undefined;
     const dentistFaq = path === '/dentists' || path.startsWith('/dentists/')
       ? this.buildDentistFaq(path, url)
       : undefined;
@@ -807,13 +807,13 @@ export class SeoService {
           url: `${origin}/dentists/braces/delhi`,
         },
         {
-          name: 'Best Dentists in Noida & Sector 75',
-          description: 'Verified dental clinics and specialists in Noida with live appointment availability.',
+          name: 'Dental Care Directory for Noida & Sector 75',
+          description: 'Dental care information for Noida with verified profiles and appointment availability shown when providers publish it.',
           url: `${origin}/dentists/noida`,
         },
         {
-          name: 'Best Dentists in Delhi & Gurugram',
-          description: 'Top-rated dental clinics and dentists across South Delhi, Central Delhi, and Gurugram.',
+          name: 'Dental Care Directory for Delhi & Gurugram',
+          description: 'Dental care information for South Delhi, Central Delhi and Gurugram as verified providers join the directory.',
           url: `${origin}/dentists/delhi`,
         },
       ];
@@ -841,9 +841,9 @@ export class SeoService {
 
     if (lower.includes('root-canal')) {
       qaList = [
-        ['Is a root canal treatment painful?', 'No. Modern rotary root canal treatment is performed under profound local anesthesia, making the entire procedure virtually pain-free. Most patients report feeling no more discomfort than a routine filling.'],
+        ['Is a root canal treatment painful?', 'Local anaesthesia is commonly used to reduce discomfort, but experiences vary. A dentist can explain pain control and expected soreness after examining the tooth.'],
         ['How much does a root canal cost in Delhi NCR?', 'Root canal therapy typically ranges between ₹2,500 and ₹7,500 depending on tooth location (anterior vs. molar) and whether rotary micro-endodontics is required. Post-RCT dental crowns are priced separately.'],
-        ['Can a root canal be completed in a single sitting?', 'Yes. In cases without acute apical abscess or severe infection, single-sitting rotary RCT is safe, clinically proven, and completed within 45 to 60 minutes.'],
+        ['Can a root canal be completed in a single sitting?', 'Some cases may be suitable for one visit, while infection, anatomy and restoration needs can require more. The treating dentist can estimate this after examination.'],
         ['Is a dental crown always necessary after RCT?', 'For premolars and molars that endure heavy chewing forces, a crown (ceramic or zirconia) is strongly recommended to prevent the brittle tooth from fracturing.'],
       ];
     } else if (lower.includes('dental-implants')) {
@@ -866,7 +866,7 @@ export class SeoService {
         ['How do I request a dental appointment?', 'Select a dentist or clinic, choose your preferred available time slot, and submit your request. The clinic confirms your booking directly with no prepayment required.'],
         ['Which Delhi NCR areas are covered?', 'The directory covers Delhi (South, Central, West, East), Noida (Sector 18, 62, 75, 76, 137), Gurugram (Cyber City, Sector 56, Golf Course Rd), Ghaziabad, and Faridabad.'],
         ['Are there any booking or convenience fees?', 'No. Booking on mydentalplatform is 100% free for patients. All consultation and treatment fees are paid directly at the dental clinic.'],
-        ['Can I find same-day or emergency dental appointments?', 'Yes. Filter by "Available Today" to view clinics offering immediate appointment slots today for toothaches, chipped teeth, and urgent dental care.'],
+        ['Can I find same-day or emergency dental appointments?', 'Use the "Available Today" filter to check whether a participating clinic has published a suitable time. Availability is not guaranteed; severe symptoms may require a hospital emergency department.'],
       ];
     }
 

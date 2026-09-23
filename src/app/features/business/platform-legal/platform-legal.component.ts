@@ -82,7 +82,7 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
         <div class="mt-12 flex flex-wrap gap-3 border-t border-ui-line pt-6">
           <a routerLink="/business/privacy" class="ui-btn ui-btn-secondary" [attr.aria-current]="isPrivacy ? 'page' : null">Privacy</a>
           <a routerLink="/business/terms" class="ui-btn ui-btn-secondary" [attr.aria-current]="!isPrivacy ? 'page' : null">Terms</a>
-          <a href="mailto:mydentalplatform@zohomail.in" class="ui-btn ui-btn-ghost">Contact support</a>
+          <a href="mailto:support@mydentalplatform.com" class="ui-btn ui-btn-ghost">Contact support</a>
         </div>
       </main>
     </div>

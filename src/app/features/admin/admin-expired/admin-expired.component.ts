@@ -110,7 +110,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
           </p>
           <p class="text-xs text-gray-400">
             Questions? Email
-            <a href="mailto:mydentalplatform@zohomail.in" class="text-blue-500 hover:underline">mydentalplatform&#64;zohomail.in</a>
+            <a href="mailto:support@mydentalplatform.com" class="text-blue-500 hover:underline">support&#64;mydentalplatform.com</a>
             and we will help quickly.
           </p>
         </div>

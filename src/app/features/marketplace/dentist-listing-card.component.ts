@@ -21,6 +21,7 @@ export class DentistListingCardComponent {
   readonly reviewCount = input(0);
   readonly compared = input(false);
   readonly videoOnly = input(false);
+  readonly bookingContext = input<Record<string, string>>({});
   readonly consultationFee = computed(() => this.videoOnly()
     ? this.clinic().marketplaceProfile?.videoConsultationFee : this.clinic().marketplaceProfile?.consultationFee);
   readonly compareToggled = output<void>();
@@ -31,6 +32,9 @@ export class DentistListingCardComponent {
   readonly serviceLabels = computed(() => this.clinic().marketplaceProfile?.serviceIds.map(id => this.marketplace.serviceLabel(id)) ?? []);
   readonly initials = computed(() => (this.clinic().doctorName || this.clinic().name)
     .replace(/^dr\.?\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase());
+  bookingQuery(mode: 'video' | 'in_person', extra: Record<string, string> = {}): Record<string, string> {
+    return { mode, ...this.bookingContext(), ...extra };
+  }
   slotLabel(slot: MarketplaceAvailabilitySlot): string {
     return new Date(slot.startsAt).toLocaleTimeString('en-IN', {
       hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata',

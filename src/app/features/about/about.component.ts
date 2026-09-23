@@ -18,7 +18,7 @@ export class AboutComponent {
     { text: 'Sterilised instruments — every patient, every time' },
     { text: 'No unnecessary procedures recommended — ever' },
     { text: 'Same-day emergency appointments available' },
-    { text: 'Gentle techniques so treatment is pain-free' },
+    { text: 'Gentle techniques and pain-control options for a more comfortable visit' },
     { text: 'Full explanation before every procedure' },
   ];
 
