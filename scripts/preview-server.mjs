@@ -491,9 +491,9 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`=======================================================`);
-  console.log(` My Dental Platform — Live Preview API Server`);
+  console.log(` My Dental Platform — Mock Preview API Server`);
   console.log(` Listening on http://${HOST}:${PORT}`);
-  console.log(` Ready to handle all Angular frontend /api requests!`);
+  console.log(` Demo fixtures only; data resets on restart. No real authentication or integrations.`);
   console.log(`=======================================================`);
 });
 

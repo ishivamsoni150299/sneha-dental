@@ -1,10 +1,12 @@
-// Comprehensive end-to-end live testing against http://127.0.0.1:4200 with proxied backend
+// Mock-preview contract checks against Angular and scripts/preview-server.mjs.
+// These fixtures do not exercise Spring, PostgreSQL, authentication or real providers.
 import assert from 'node:assert/strict';
 
 const BASE_URL = 'http://127.0.0.1:4200';
 
 async function testSuite() {
-  console.log('--- STARTING LIVE FUNCTIONALITY TESTS ON ' + BASE_URL + ' ---\n');
+  console.log('--- MOCK PREVIEW CHECKS ON ' + BASE_URL + ' ---\n');
+  console.log('Use npm run verify for the real Spring/PostgreSQL integration tests.\n');
 
   let passed = 0;
   let failed = 0;

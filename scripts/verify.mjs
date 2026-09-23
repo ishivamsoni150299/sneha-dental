@@ -12,6 +12,7 @@ if (Number(process.versions.node.split('.')[0]) !== 22) throw new Error('Use Nod
 const backend = path.join(root, 'backend');
 const wrapper = process.platform === 'win32' ? 'mvnw.cmd' : './mvnw';
 run(wrapper, ['-B', 'validate'], backend);
+run(process.execPath, ['--test', 'scripts/release-check.test.mjs']);
 run(process.execPath, ['node_modules/eslint/bin/eslint.js', 'src', '--max-warnings', '0']);
 run(process.execPath, ['scripts/sync-public-env.mjs', 'development']);
 run(process.execPath, ['node_modules/@angular/cli/bin/ng.js', 'test', '--watch=false', '--browsers=ChromeHeadless']);

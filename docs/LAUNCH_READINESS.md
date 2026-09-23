@@ -8,9 +8,11 @@ The application is a modular monolith: one Angular frontend, one Spring Boot API
 
 Use Node 22, Java 25+ and Chrome, then `npm ci` and `npm run verify`. CI runs the same command. Tests create and destroy their own PostgreSQL database; they do not read production credentials, send email, charge cards, or create real video rooms.
 
-Database journeys cover fresh migrations, health, administrator login, patient signup, clinic signup/onboarding, stale-session rejection, role isolation, patient listing with and without search, doctor scheduling, booking, duplicate-slot rejection, appointment ownership, independent dentist signup/workspace, and public directory queries. Email queue checks cover transaction rollback, duplicate suppression and delivery through a mocked transport.
+Database journeys cover fresh migrations, health, administrator login, patient signup, clinic signup/onboarding, stale-session rejection, role isolation, patient listing with and without search, doctor scheduling, booking, slot-hold ownership/expiry/release, reserved-slot reschedule rejection, duplicate-slot rejection, appointment ownership, independent dentist signup/workspace, and public directory queries. Email queue checks cover transaction rollback, duplicate suppression and delivery through a mocked transport.
 
 `npm run test:artifacts` checks compiled assets only. The legacy `test:e2e` alias runs the same artifact check; it is not a browser journey test. `PUBLIC_BASE_URL=... npm run release:check` is a read-only deployment HTTP check.
+
+`npm run preview:api` serves in-memory demo fixtures. The legacy `npm run test:live` command checks those fixtures through Angular's local proxy; passing it is not evidence that the production Spring APIs, authentication or database work. Use `npm run verify` for the real backend integration gate.
 
 ## Local setup
 

@@ -83,12 +83,40 @@ class MarketplaceLaunchTest {
                 booking.put("name", "Launch Patient"); booking.put("phone", "9999999998");
                 booking.put("service", "General Dentistry"); booking.put("source", "marketplace");
                 booking.put("date", date); booking.put("time", "09:00");
+                var heldSlot = Map.of("clinicId", clinicId, "doctorId", doctor, "date", date, "time", "09:00");
+                String hold = request("POST", "/api/public/appointments/hold-slot", heldSlot, null, 200).path("holdToken").asText();
+                request("POST", "/api/public/appointments/hold-slot", heldSlot, null, 409);
+                // A competing checkout cannot bypass a reservation by omitting or inventing a token.
+                request("POST", "/api/public/appointments", booking, patient, 409);
+                booking.put("holdToken", "not-the-reservation-token");
+                request("POST", "/api/public/appointments", booking, patient, 409);
+                // A valid token is only valid for its original doctor/date/time.
+                booking.put("holdToken", hold);
+                booking.put("time", "09:30");
+                request("POST", "/api/public/appointments", booking, patient, 409);
+                booking.put("time", "09:00");
                 request("POST", "/api/public/appointments", booking, patient, 200);
                 request("POST", "/api/public/appointments", booking, patient, 409);
+                request("POST", "/api/public/appointments/hold-slot", heldSlot, null, 409);
                 JsonNode visits = request("GET", "/api/patient/account/session", null, patient, 200).path("appointments");
                 assertEquals(1, visits.size(), "A duplicate request must not leave a partial booking");
                 var jdbc = app.getBean(JdbcTemplate.class);
                 UUID appointmentId = jdbc.queryForObject("select id from appointments where clinic_id = ?", UUID.class, UUID.fromString(clinicId));
+                var reservedNext = Map.of("clinicId", clinicId, "doctorId", doctor, "date", date, "time", "09:30");
+                String nextHold = request("POST", "/api/public/appointments/hold-slot", reservedNext, null, 200).path("holdToken").asText();
+                request("PATCH", "/api/clinics/current/appointments/" + appointmentId + "/reschedule",
+                    Map.of("doctorId", doctor, "date", date, "time", "09:30"), owner, 409);
+                request("PATCH", "/api/patient/account/appointments/" + appointmentId,
+                    Map.of("phone", "9999999998", "date", date, "time", "09:30"), patient, 409);
+                assertEquals("09:00", jdbc.queryForObject("select to_char(appointment_time, 'HH24:MI') from appointments where id = ?", String.class, appointmentId));
+                jdbc.update("update appointment_slot_holds set expires_at = now() - interval '1 minute' where hold_token = ?", nextHold);
+                booking.put("time", "09:30");
+                booking.put("holdToken", nextHold);
+                request("POST", "/api/public/appointments", booking, patient, 409);
+                String renewedHold = request("POST", "/api/public/appointments/hold-slot", reservedNext, null, 200).path("holdToken").asText();
+                assertNotEquals(nextHold, renewedHold);
+                request("DELETE", "/api/public/appointments/hold-slot/" + renewedHold, null, null, 204);
+                assertEquals(0, jdbc.queryForObject("select count(*) from appointment_slot_holds where hold_token = ?", Integer.class, renewedHold));
                 var notifications = app.getBean(com.mydentalplatform.notification.NotificationService.class);
                 var transaction = new org.springframework.transaction.support.TransactionTemplate(app.getBean(org.springframework.transaction.PlatformTransactionManager.class));
                 transaction.executeWithoutResult(status -> {

@@ -18,7 +18,9 @@ for (const [route, expected, kind] of checks) {
     if (kind === 'json' || kind === 'health') {
       if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('expected JSON');
       const body = await response.json();
-      if (kind === 'health' && body.status !== 'ok') throw new Error('database health is not ok');
+      if (kind === 'health' && (body.status !== 'ok' || body.service !== 'mydentalplatform-java' || body.database !== 'postgresql')) {
+        throw new Error('expected healthy Spring/PostgreSQL backend; mock preview responses do not qualify');
+      }
     }
     if (kind === 'html' && !(await response.text()).includes('<app-root')) throw new Error('missing application shell');
     console.log('PASS ' + route);
