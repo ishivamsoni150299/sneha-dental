@@ -33,4 +33,23 @@ describe('ProfessionalWorkspaceComponent', () => {
     expect(component.hours[0].enabled).toBeTrue();
     expect(component.saving()).toBeFalse();
   });
+  it('opens profile setup for an unverified dentist', async () => {
+    api.fetch.and.callFake(async url => new Response(
+      url === '/api/providers/me' ? JSON.stringify({ verificationStatus: 'draft', locations: [] }) : '[]',
+      { headers: { 'Content-Type': 'application/json' } },
+    ));
+    const component = TestBed.createComponent(ProfessionalWorkspaceComponent).componentInstance;
+    await component.ngOnInit();
+    expect(component.tab()).toBe('profile');
+    expect(component.hasBookableHours()).toBeFalse();
+  });
+  it('opens appointments for a verified dentist', async () => {
+    api.fetch.and.callFake(async url => new Response(
+      url === '/api/providers/me' ? JSON.stringify({ verificationStatus: 'verified', locations: [] }) : '[]',
+      { headers: { 'Content-Type': 'application/json' } },
+    ));
+    const component = TestBed.createComponent(ProfessionalWorkspaceComponent).componentInstance;
+    await component.ngOnInit();
+    expect(component.tab()).toBe('appointments');
+  });
 });
