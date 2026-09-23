@@ -185,4 +185,16 @@ describe('MarketplaceBookingComponent', () => {
     fixture.componentInstance.chooseMode('in_person'); fixture.detectChanges();
     expect(fixture.componentInstance.videoUnavailable()).toBeFalse();
   });
+
+  it('does not offer independent video booking when the provider is unavailable', async () => {
+    const provider = clinic();
+    provider.isIndependent = true;
+    provider.marketplaceProfile!.videoConsultationEnabled = true;
+    const fixture = await createStateFixture(provider, false);
+    expect(fixture.componentInstance.consultationMode()).toBe('video');
+    expect(fixture.componentInstance.videoUnavailable()).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Video consultations are unavailable');
+    expect(fixture.nativeElement.querySelector('app-slot-picker')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button[aria-pressed="true"]')?.disabled).toBeTrue();
+  });
 });

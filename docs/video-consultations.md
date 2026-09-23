@@ -38,6 +38,8 @@ A verified dentist can open `/professional/video-test`, select **Start test call
 
 ## Release verification
 
+For LiveKit, set `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` in the local process environment and run `npm run test:video:media`. This creates a temporary two-person room, connects two isolated Chrome contexts, verifies that each receives video frames and an audio signal, and deletes the room. Set `CHROME_BIN` when Chrome is outside the default Windows path; on other systems install Playwright's Chromium. This checks the media provider, while the appointment and login flow still requires the application tests below.
+
 Run the Angular video tests and backend video/access tests. On the deployed media server, test two browsers/devices, microphone and camera both ways, permission denial, mute, leaving during device prompts, expired invitations, reconnection, unauthorized access, cancellation and rescheduling. Verify chat in both directions, unread counts, failed-send retry and saving a prescription. Check 320px mobile, Android Chrome, iPhone Safari (including the keyboard), tablet, laptop and desktop in portrait and landscape. Repeat using mobile data and forced TURN/TLS. Confirm cleanup survives a backend restart.
 
 References: [LiveKit deployment](https://docs.livekit.io/transport/self-hosting/vm/), [access grants](https://docs.livekit.io/frontends/reference/tokens-grants/), [JavaScript SDK](https://docs.livekit.io/reference/client-sdk-js/).

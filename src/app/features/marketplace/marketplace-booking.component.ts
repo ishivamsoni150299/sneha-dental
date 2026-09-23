@@ -122,7 +122,7 @@ export class MarketplaceBookingComponent implements OnInit {
       }
       if (clinic.isIndependent || this.route.snapshot.queryParamMap.get('mode') === 'video') {
         this.consultationMode.set('video');
-        this.videoUnavailable.set(!clinic.isIndependent && (!clinic.marketplaceProfile?.videoConsultationEnabled || !this.videoReady()));
+        this.videoUnavailable.set(!this.videoReady() || (!clinic.isIndependent && !clinic.marketplaceProfile?.videoConsultationEnabled));
       }
       this.context.set({
         clinicId: clinic.id,
@@ -162,7 +162,7 @@ export class MarketplaceBookingComponent implements OnInit {
 
   chooseMode(mode: 'in_person' | 'video'): void {
     if (mode === 'in_person' && this.isIndependent()) return;
-    if (mode === 'video' && !this.isIndependent() && (!this.videoReady() || !this.clinic()?.marketplaceProfile?.videoConsultationEnabled)) return;
+    if (mode === 'video' && (!this.videoReady() || (!this.isIndependent() && !this.clinic()?.marketplaceProfile?.videoConsultationEnabled))) return;
     if (mode !== this.consultationMode()) {
       this.selectedSlot.set(null);
       this.slotPicker()?.selectedSlotKey.set(null);

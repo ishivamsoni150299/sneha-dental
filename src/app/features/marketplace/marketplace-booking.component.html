@@ -101,7 +101,7 @@
               </span>
             </button>
             <button type="button" (click)="chooseMode('video')"
-              [disabled]="!videoReady() && !isIndependent()"
+              [disabled]="!videoReady() || (!isIndependent() && !clinic()!.marketplaceProfile?.videoConsultationEnabled)"
               [attr.aria-pressed]="consultationMode() === 'video'"
               [class.border-blue-600]="consultationMode() === 'video'"
               [class.bg-blue-50]="consultationMode() === 'video'"
@@ -110,7 +110,7 @@
               <span>
                 <strong class="block text-sm text-gray-900">Video consultation</strong>
                 <span class="mt-1 block text-sm text-gray-500">
-                  {{ isIndependent() ? 'Direct video consultation with independent practitioner.' : (videoReady() ? 'A private video call from your device.' : 'Not currently available at this clinic.') }}
+                  {{ !videoReady() ? 'Video consultations are temporarily unavailable.' : (isIndependent() ? 'Direct video consultation with independent practitioner.' : 'A private video call from your device.') }}
                 </span>
                 <span class="mt-2 block text-sm font-semibold text-blue-700">
                   {{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with practitioner' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee }}
@@ -119,13 +119,13 @@
             </button>
           </div>
         </fieldset>
-        @if (isIndependent()) {
+        @if (videoUnavailable()) {
+          <p role="alert" class="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">Video consultations are unavailable right now. @if (!isIndependent()) { Choose an in-clinic visit above or }<a routerLink="/dentists" class="font-semibold underline">browse other dentists</a>.</p>
+        } @else if (isIndependent()) {
           <p class="mt-4 rounded-xl border border-purple-200 bg-purple-50 p-4 text-sm leading-6 text-purple-900">
             <i class="ph ph-info font-bold text-purple-700 mr-1.5" aria-hidden="true"></i>
             <strong>Independent Dentist Profile:</strong> This practitioner conducts tele-dentistry video consultations exclusively. If you require in-person dental treatments or physical procedures, please select a verified dental clinic.
           </p>
-        } @else if (videoUnavailable()) {
-          <p role="alert" class="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">Video consultations are unavailable for this clinic right now. Choose an in-clinic visit above or <a routerLink="/dentists" [queryParams]="{mode:'video'}" class="font-semibold underline">find another video dentist</a>.</p>
         } @else {
         @if (consultationMode() === 'video') {<p class="mt-4 rounded-xl bg-blue-50 p-4 text-sm leading-6 text-blue-900">Your dentist will discuss your concerns on a private video call. A physical examination or treatment may still require a clinic visit. Join from My appointments 10 minutes before your confirmed time.</p>}
         <ol class="my-7 grid grid-cols-3 gap-3 border-y border-gray-200 py-5 text-xs sm:text-sm" aria-label="Booking progress">

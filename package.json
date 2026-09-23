@@ -18,7 +18,8 @@
     "release:check": "node scripts/release-check.mjs",
     "preview:api": "node scripts/preview-server.mjs",
     "test:live": "node scripts/test-live-integration.mjs",
-    "test:e2e": "node scripts/e2e-smoke-test.mjs"
+    "test:e2e": "node scripts/e2e-smoke-test.mjs",
+    "test:video:media": "node scripts/livekit-media-smoke.mjs"
   },
   "private": true,
   "engines": {
@@ -64,6 +65,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "playwright": "1.63.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.7.2",

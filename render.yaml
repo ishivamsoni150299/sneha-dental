@@ -27,5 +27,11 @@ services:
         value: production
       - key: PUBLIC_BASE_URL
         value: https://mydentalplatform.com
-      - key: DAILY_API_KEY
+      - key: VIDEO_PROVIDER
+        value: livekit
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
         sync: false
