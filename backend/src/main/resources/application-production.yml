@@ -8,6 +8,11 @@ spring:
   flyway:
     default-schema: dental
     schemas: dental
+    # Render instances can encounter a transient Supavisor connection reset
+    # while the database is waking up. Retry the startup connection without
+    # weakening TLS validation or hiding persistent configuration errors.
+    connect-retries: 6
+    connect-retries-interval: 5
 
 platform:
   public-base-url: ${PUBLIC_BASE_URL:${RENDER_EXTERNAL_URL}}
