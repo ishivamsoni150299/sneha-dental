@@ -6,6 +6,7 @@ import {
   PLATFORM_FEATURE_LABELS,
   PLATFORM_PLANS,
   type PlatformPlanId,
+  type PlatformFeatureId,
 } from '../../../core/config/clinic.config';
 import { PLATFORM_FAQS } from '../../../core/content/platform-marketing.content';
 import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
@@ -65,6 +66,10 @@ export class PlatformLandingComponent {
     },
   ];
 
+  private readonly pricingFeatureIds: readonly PlatformFeatureId[] = [
+    'onlineBooking', 'patientRecords', 'doctorManagement', 'customDomain', 'revenueInsights', 'prioritySupport',
+  ];
+
   readonly plans = (['trial', 'starter', 'pro'] as const).map(id => ({
     id,
     name: PLATFORM_PLANS[id].label,
@@ -72,10 +77,10 @@ export class PlatformLandingComponent {
     monthly: PLATFORM_PLANS[id].monthly,
     yearly: PLATFORM_PLANS[id].yearly,
     highlighted: id === 'pro',
-    features: PLATFORM_PLANS[id].features.map(feature => PLATFORM_FEATURE_LABELS[feature]),
-    notIncluded: PLATFORM_PLANS.pro.features
-      .filter(feature => !hasPlatformFeature(id, feature))
-      .map(feature => PLATFORM_FEATURE_LABELS[feature]),
+    featureRows: this.pricingFeatureIds.map(feature => ({
+      label: PLATFORM_FEATURE_LABELS[feature],
+      included: hasPlatformFeature(id, feature),
+    })),
   }));
 
   readonly growthPaths = [
@@ -127,12 +132,12 @@ export class PlatformLandingComponent {
   ];
 
   readonly features = [
-    { emoji: '📱', title: 'Treatment-based discovery',    desc: 'Patients find your clinic by dental problem, treatment, and location.' },
-    { emoji: '📅', title: 'Online appointment booking',   desc: 'Publish availability and receive patient requests with instant dashboard and email alerts.' },
-    { emoji: '🌐', title: 'Verified clinic profile',       desc: 'Show qualifications, clinic contact, address, treatments, fees, and trust signals clearly.' },
-    { emoji: '🎙️', title: 'AI Voice Receptionist',       desc: 'Answers patient calls in Hindi & English 24/7. Books appointments automatically — even at midnight.' },
-    { emoji: '🔒', title: 'Secure admin dashboard',      desc: 'Clinic owner logs in to view and manage all patient bookings.' },
-    { emoji: '💬', title: 'WhatsApp support',            desc: 'We handle all updates and technical issues via WhatsApp.' },
+    { icon: 'ph-magnifying-glass', title: 'Treatment-based discovery', desc: 'Patients find your clinic by dental problem, treatment, and location.' },
+    { icon: 'ph-calendar-check', title: 'Online appointment booking', desc: 'Publish availability and receive patient requests with dashboard and email alerts.' },
+    { icon: 'ph-seal-check', title: 'Verified clinic profile', desc: 'Show qualifications, contact details, treatments, fees, and trust signals clearly.' },
+    { icon: 'ph-phone-call', title: 'AI Voice Receptionist', desc: 'Handle supported patient calls in Hindi and English, including after-hours enquiries.' },
+    { icon: 'ph-shield-check', title: 'Secure admin dashboard', desc: 'Clinic owners manage patient booking requests from one workspace.' },
+    { icon: 'ph-chat-circle-dots', title: 'Clinic support', desc: 'Get help with setup, updates, and technical questions.' },
   ];
 
   readonly guarantees = [
@@ -194,21 +199,21 @@ export class PlatformLandingComponent {
 
   readonly testimonials = [
     {
-      text: `Patients can now see our clinic details and request a time without calling first. The booking alerts are instant. Best ${this.starterMonthlyPrice} we spend for patient growth.`,
+      text: 'Patients can see our clinic details and request a time without calling first. The booking alerts are instant.',
       name: 'Dr. Ramesh Kumar',
       clinic: 'Indram Dental, Jhansi',
       location: 'Uttar Pradesh',
       initials: 'RK',
     },
     {
-      text: 'Launched on a Friday. By Monday we had 5 new appointment requests from patients who found us online. Setup took less than a day — no technical work needed from my side.',
+      text: 'Setup was straightforward, and patients could request appointments online without technical work from our team.',
       name: 'Dr. Priya Sharma',
       clinic: 'Smile Care Dental',
       location: 'Delhi',
       initials: 'PS',
     },
     {
-      text: 'My receptionist used to spend hours answering the same questions. Now patients see our information and availability first. The AI voice agent even books when we\'re closed.',
+      text: 'Patients now see our information and availability before they call, which keeps routine enquiries clearer.',
       name: 'Dr. Anil Mehta',
       clinic: 'Mehta Dental Clinic',
       location: 'Mumbai',

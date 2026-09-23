@@ -26,16 +26,11 @@ export interface TreatmentCostGuideItem {
       <div id="treatment-options" class="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @for (item of visibleItems(); track item.treatment) {
           <article class="flex flex-col rounded-2xl border border-gray-200 bg-white p-5">
-            <span class="text-xs font-medium text-gray-500">{{ item.specialty }}</span>
-            <h3 class="mt-2 min-h-12 text-base font-semibold leading-6 text-gray-900">{{ item.treatment }}</h3>
+            <h3 class="min-h-12 text-base font-semibold leading-6 text-gray-900">{{ item.treatment }}</h3>
             <p class="mt-4 text-xl font-semibold tracking-tight text-blue-700">{{ item.priceRange }}</p>
             <p class="mt-1 flex items-center gap-2 text-xs text-gray-500"><i class="ph ph-clock" aria-hidden="true"></i>{{ item.sittings }}</p>
-            <details class="my-4 border-t border-gray-100 pt-2 text-sm text-gray-600">
-              <summary class="min-h-11 cursor-pointer py-3 font-medium focus-visible:outline-blue-600">About this treatment</summary>
-              <p class="pb-3 text-sm leading-6">{{ item.overview }}</p>
-            </details>
-            <button type="button" class="mt-auto flex min-h-11 items-center justify-between rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100 focus-visible:outline-blue-600"
-              [attr.aria-label]="'Find dentists for ' + item.treatment" (click)="serviceSelected.emit(item.serviceId)">Find Dentists<i class="ph ph-arrow-up-right" aria-hidden="true"></i></button>
+            <button type="button" class="mt-5 flex min-h-11 items-center justify-between rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline-blue-600"
+              [attr.aria-label]="'View dentists for ' + item.treatment" (click)="serviceSelected.emit(item.serviceId)">View dentists<i class="ph ph-arrow-right" aria-hidden="true"></i></button>
           </article>
         }
       </div>

@@ -4,7 +4,7 @@
   <div class="platform-announcement bg-gray-900 text-white text-center py-1.5 sm:py-2 px-4 text-[11px] sm:text-xs font-medium leading-snug">
     Join the patient booking network — no credit card needed
     <span class="hidden sm:inline"> · Publish your clinic profile today</span>
-    <a routerLink="/business/signup" class="underline font-bold ml-2 hover:text-gray-300">Start free →</a>
+    <a routerLink="/business/signup" class="underline font-bold ml-2 hover:text-gray-300">Start Free</a>
   </div>
 
   <!-- ── Top Nav ──────────────────────────────────────────────────────────── -->
@@ -26,7 +26,7 @@
         <a routerLink="/business/signup"
            [queryParams]="signupQuery('trial', 'top-nav', 'sales-sprint', 'free clinic launch')"
            class="hidden md:inline-flex text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm">
-          Get started free
+          Start Free
         </a>
         <a routerLink="/business/login"
            class="hidden lg:inline-flex text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200
@@ -66,7 +66,7 @@
           <a routerLink="/business/signup"
              [queryParams]="signupQuery('trial', 'mobile-menu', 'sales-sprint', 'free clinic launch')"
              (click)="mobileMenuOpen.set(false)"
-             class="ui-btn ui-btn-primary">Start free</a>
+             class="ui-btn ui-btn-primary">Start Free</a>
         </div>
       </div>
     }
@@ -102,13 +102,13 @@
                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
                       text-white font-bold px-7 py-4 sm:py-3.5 rounded-xl transition-all
                       hover:shadow-xl hover:-translate-y-0.5 text-sm shadow-lg shadow-blue-200">
-              List your clinic free →
+              Start Free
             </a>
-            <button (click)="scrollTo('portfolio')"
+            <button (click)="scrollTo('pricing')"
                     class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 border border-gray-200
                            hover:border-gray-300 bg-white text-gray-700 hover:text-gray-900 font-medium
                            px-6 py-4 sm:py-3.5 rounded-xl transition-all hover:shadow-md text-sm">
-              See how it works ↓
+              View Pricing
             </button>
           </div>
 
@@ -164,7 +164,7 @@
                 <div class="border border-white/30 text-white text-xs px-4 py-2 rounded-xl">View Profile</div>
               </div>
               <div class="grid grid-cols-3 gap-2">
-                @for (s of ['Example\ncredentials', 'Sample\nreview layout', 'Example\navailability']; track s) {
+                @for (s of ['Example\ncredentials', 'Sample\nreview layout', 'Online\nbooking']; track s) {
                   <div class="bg-white/10 backdrop-blur rounded-xl p-2.5 text-center">
                     <div class="text-[10px] font-semibold leading-tight whitespace-pre-line">{{ s }}</div>
                   </div>
@@ -291,7 +291,7 @@
            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold
                   px-7 py-3.5 rounded-xl transition-all hover:shadow-xl hover:-translate-y-0.5
                   shadow-lg shadow-blue-200 text-sm">
-          Start for free — your clinic live in 24h →
+          Start Free
         </a>
         <p class="text-xs text-gray-400 mt-3">No credit card · No setup fees · Cancel anytime</p>
       </div>
@@ -299,6 +299,7 @@
   </section>
 
   <!-- ── Problem section ───────────────────────────────────────────────────── -->
+  @if (false) {
   <section class="platform-sales-paths py-20 bg-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col gap-4 text-center mb-12">
@@ -379,6 +380,7 @@
   </section>
 
   <!-- ── Features ─────────────────────────────────────────────────────────── -->
+  }
   <section id="features" class="platform-features bg-gray-50 py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -388,8 +390,8 @@
       <div class="platform-mobile-rail platform-feature-rail grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         @for (f of features; track f.title) {
           <div class="bg-white rounded-2xl border border-gray-200 hover:border-blue-200 hover:shadow-lg p-4 sm:p-5 flex gap-3 sm:gap-4 transition-all group">
-            <div class="w-11 h-11 bg-blue-50 group-hover:bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl transition-colors">
-              {{ f.emoji }}
+            <div class="w-11 h-11 bg-blue-50 group-hover:bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl text-blue-700 transition-colors">
+              <i [class]="'ph ' + f.icon" aria-hidden="true"></i>
             </div>
             <div>
               <p class="font-semibold text-gray-900 text-sm">{{ f.title }}</p>
@@ -402,6 +404,7 @@
   </section>
 
   <!-- ── Results / Outcomes ───────────────────────────────────────────────── -->
+  @if (false) {
   <section class="platform-results py-16 bg-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
@@ -423,6 +426,7 @@
     </div>
   </section>
 
+  }
   <section id="roi" class="platform-roi py-20 bg-slate-950 text-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] gap-8 items-start">
@@ -514,7 +518,7 @@
                      [value]="monthlyMissedLeads()"
                      (input)="monthlyMissedLeads.set(+$any($event.target).value)"
                      class="w-full accent-blue-600">
-              <p class="mt-2 text-xs text-slate-500">Phone calls after hours, Instagram DMs, missed WhatsApp chats and people who cannot find your clinic online.</p>
+              <span class="mt-2 inline-flex items-center gap-1 text-xs text-slate-500" title="Includes after-hours calls, missed messages and enquiries from patients who cannot find your clinic online"><i class="ph ph-info" aria-hidden="true"></i> What counts?</span>
             </div>
 
             <div>
@@ -526,7 +530,7 @@
                      [value]="avgCaseValue()"
                      (input)="avgCaseValue.set(+$any($event.target).value)"
                      class="w-full accent-blue-600">
-              <p class="mt-2 text-xs text-slate-500">Use your usual first-visit or accepted-case revenue, not the biggest treatment in the clinic.</p>
+              <span class="mt-2 inline-flex items-center gap-1 text-xs text-slate-500" title="Use your typical first-visit or accepted-case revenue"><i class="ph ph-info" aria-hidden="true"></i> How to estimate</span>
             </div>
 
             <div>
@@ -538,7 +542,7 @@
                      [value]="leadCloseRate()"
                      (input)="leadCloseRate.set(+$any($event.target).value)"
                      class="w-full accent-blue-600">
-              <p class="mt-2 text-xs text-slate-500">A conservative model for how many saved enquiries convert once patients can book properly.</p>
+              <span class="mt-2 inline-flex items-center gap-1 text-xs text-slate-500" title="Use a conservative estimate for how many saved enquiries become bookings"><i class="ph ph-info" aria-hidden="true"></i> How to estimate</span>
             </div>
 
             <div class="rounded-3xl bg-slate-950 text-white p-5">
@@ -562,9 +566,9 @@
               </div>
             </div>
 
-            <button (click)="whatsappEnquiry(roiPlan())"
+            <button (click)="scrollTo('pricing')"
                     class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3.5 rounded-2xl transition-all hover:shadow-lg text-sm">
-              Discuss this ROI for my clinic
+              View Pricing
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
               </svg>
@@ -576,6 +580,7 @@
   </section>
 
   <!-- ── Voice Agent Highlight ────────────────────────────────────────────── -->
+  @if (false) {
   <section class="platform-voice py-20 bg-white overflow-hidden">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="bg-gradient-to-br from-violet-600 to-purple-700 rounded-3xl p-8 sm:p-12 relative overflow-hidden">
@@ -677,6 +682,7 @@
   </section>
 
   <!-- ── Portfolio / Live clinics ──────────────────────────────────────────── -->
+  }
   <section id="portfolio" class="platform-portfolio py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -694,8 +700,8 @@
             <div class="px-5 py-5 text-white" [style.background]="clinic.gradient">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-xs font-bold">
-                    {{ clinic.name[0] }}
+                   <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-base" aria-hidden="true">
+                    <i class="ph ph-tooth"></i>
                   </div>
                   <span class="text-sm font-bold">{{ clinic.name }}</span>
                 </div>
@@ -713,8 +719,8 @@
             <!-- Body -->
             <div class="bg-white p-5">
               <div class="flex items-center gap-2.5 mb-4 pb-4 border-b border-gray-100">
-                <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-600 flex-shrink-0">
-                  {{ initials(clinic.doctor) }}
+                 <div class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-lg text-blue-700 flex-shrink-0" aria-hidden="true">
+                   <i class="ph ph-user-circle"></i>
                 </div>
                 <div>
                   <p class="text-xs font-semibold text-gray-900">{{ clinic.doctor }}</p>
@@ -733,7 +739,7 @@
               <a routerLink="/business/signup"
                  class="block w-full text-center bg-gray-900 group-hover:bg-gray-700 text-white
                         font-semibold py-2.5 rounded-xl text-xs transition-colors">
-                Get this for your clinic →
+                Start Free
               </a>
             </div>
           </div>
@@ -741,7 +747,9 @@
 
         <!-- "Your clinic here" card -->
         <div class="rounded-2xl border-2 border-dashed border-blue-200 p-8 text-center flex flex-col items-center justify-center bg-blue-50/40 min-h-[280px]">
-          <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl mb-4">🏥</div>
+          <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-4" aria-hidden="true">
+            <i class="ph ph-buildings text-2xl text-blue-700"></i>
+          </div>
           <p class="font-bold text-gray-800 text-base">Your clinic next</p>
           <p class="text-gray-400 text-xs mt-2 max-w-[180px] leading-relaxed">
             Your brand. Your domain. Patients booking online — in 24 hours.
@@ -749,7 +757,7 @@
           <a routerLink="/business/signup"
              class="mt-5 inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700
                     text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-xs shadow-sm">
-            Start free — no card needed →
+            Start Free
           </a>
         </div>
       </div>
@@ -757,6 +765,7 @@
   </section>
 
   <!-- ── Included in every plan ────────────────────────────────────────────── -->
+  @if (false) {
   <section class="platform-guarantees bg-gray-50 py-16">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
@@ -775,7 +784,8 @@
   </section>
 
   <!-- ── Comparison ───────────────────────────────────────────────────────── -->
-  <section class="platform-comparison py-16">
+  }
+  <section id="plan-comparison" class="platform-comparison py-16">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
         <h2 class="text-2xl font-bold text-gray-900">Why not rely on calls and WhatsApp alone?</h2>
@@ -795,29 +805,19 @@
           </thead>
           <tbody>
             @for (row of [
-              ['Live in 24 hours',           true,  false, false],
-              ['Dental booking system',       true,  false, false],
-              ['WhatsApp integration',        true,  false, false],
-              ['Patient admin dashboard',     true,  false, false],
-              ['No technical knowledge',      true,  true,  false],
-              [starterMonthlyPrice + ' total cost', true, false, false],
-              ['WhatsApp support included',   true,  false, false],
-              ['Built for dental clinics',     true,  false, false]
+              ['Live in 24 hours', 'Yes', 'No', 'Limited'],
+              ['Dental booking system', 'Yes', 'No', 'Limited'],
+              ['WhatsApp integration', 'Yes', 'Limited', 'Limited'],
+              ['Patient admin dashboard', 'Yes', 'No', 'Limited'],
+              ['No technical knowledge', 'Yes', 'Limited', 'No'],
+              ['Dental-specific setup', 'Yes', 'No', 'No']
             ]; track row[0]) {
               <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                 <td class="p-4 text-gray-700 text-xs font-medium">{{ row[0] }}</td>
                 @for (val of [row[1], row[2], row[3]]; track $index) {
-                      <td class="p-4 text-center" [attr.aria-label]="$any(val) ? 'Included' : 'Not included'">
-                        <span class="sr-only">{{ $any(val) ? 'Included' : 'Not included' }}</span>
-                    @if (val) {
-                      <svg class="w-4 h-4 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                      </svg>
-                    } @else {
-                      <svg class="w-4 h-4 text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                    }
+                      <td class="p-4 text-center" [attr.aria-label]="$any(val)">
+                        <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold"
+                              [class]="$any(val) === 'Yes' ? 'bg-green-50 text-green-700' : $any(val) === 'Limited' ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'">{{ val }}</span>
                   </td>
                 }
               </tr>
@@ -877,16 +877,17 @@
             }
 
             <div>
-              <p class="text-xs font-medium uppercase tracking-wide" [class]="plan.highlighted ? 'text-blue-400' : 'text-gray-400'">{{ plan.tag }}</p>
+              @if (plan.monthly > 0) {<p class="text-xs font-medium uppercase tracking-wide" [class]="plan.highlighted ? 'text-blue-400' : 'text-gray-400'">{{ plan.tag }}</p>}
               <p class="text-xl font-bold mt-1" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">{{ plan.name }}</p>
             </div>
 
             <div class="border-t border-b py-4 space-y-1" [class]="plan.highlighted ? 'border-gray-700' : 'border-gray-100'">
               @if (plan.monthly === 0) {
                 <div class="flex items-baseline gap-1">
-                  <span class="text-3xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">Free</span>
+                  <span class="text-3xl font-extrabold" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">₹0</span>
+                  <span class="text-xs text-gray-400">/month</span>
                 </div>
-                <p class="text-xs text-gray-400">Free forever · no card needed</p>
+                <p class="text-xs text-gray-400">No card needed</p>
               } @else {
                 <div class="flex items-baseline gap-1">
                   <span class="text-3xl font-extrabold transition-all duration-300" [class]="plan.highlighted ? 'text-white' : 'text-gray-900'">
@@ -904,45 +905,20 @@
             </div>
 
             <ul class="space-y-2.5 flex-1">
-              @for (feat of plan.features; track feat) {
-                <li class="flex items-start gap-2 text-xs">
-                  <!-- Usage-based badge for voice overage line -->
-                  @if (feat.includes('₹20/min')) {
-                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    <span class="text-amber-300">{{ feat }}
-                      <span class="ml-1 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-semibold">usage-based</span>
-                    </span>
-                  } @else {
-                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
-                         [class]="plan.highlighted ? 'text-blue-400' : 'text-green-500'"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <span [class]="plan.highlighted ? 'text-gray-300' : 'text-gray-600'"><span class="sr-only">Included: </span>{{ feat }}</span>
-                  }
+              @for (feat of plan.featureRows; track feat.label) {
+                <li class="flex items-start gap-2 text-xs" [class.opacity-60]="!feat.included">
+                  <span class="w-5 flex-none font-bold" [class]="feat.included ? (plan.highlighted ? 'text-blue-400' : 'text-green-600') : 'text-gray-400'" aria-hidden="true">{{ feat.included ? '✓' : '—' }}</span>
+                  <span [class]="feat.included ? (plan.highlighted ? 'text-gray-200' : 'text-gray-700') : (plan.highlighted ? 'text-gray-400' : 'text-gray-500')"><strong class="font-semibold">{{ feat.included ? 'Included' : 'Not included' }}:</strong> {{ feat.label }}</span>
                 </li>
               }
-              <!-- Not included section -->
-              @if (plan.notIncluded && plan.notIncluded.length > 0) {
-                <li class="pt-2 border-t" [class]="plan.highlighted ? 'border-gray-700' : 'border-gray-100'"></li>
-                @for (item of plan.notIncluded; track item) {
-                  <li class="flex items-start gap-2 text-xs opacity-50">
-                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    <span [class]="plan.highlighted ? 'text-gray-500' : 'text-gray-400'"><span class="sr-only">Not included: </span>{{ item }}</span>
-                  </li>
-                }
-              }
             </ul>
+            <a href="#plan-comparison" class="text-center text-xs font-semibold underline underline-offset-4" [class]="plan.highlighted ? 'text-blue-300' : 'text-blue-700'">Compare all features</a>
 
             <a routerLink="/business/signup"
                [queryParams]="signupQuery(plan.id, 'pricing-card', billingYearly() ? 'yearly-pricing' : 'monthly-pricing', plan.name + ' pricing')"
                class="w-full font-semibold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                [class]="plan.highlighted ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-md' : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md'">
-              @if (plan.monthly === 0) { Start free — no card needed } @else { Get started → }
+               Start Free
             </a>
           </div>
         }
@@ -1014,6 +990,7 @@
   </section>
 
   <!-- ── How it works ──────────────────────────────────────────────────────── -->
+  @if (false) {
   <section class="platform-how-it-works py-16">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-2xl font-bold text-gray-900 mb-12">From clinic signup to online bookings in 3 steps</h2>
@@ -1037,6 +1014,7 @@
   </section>
 
   <!-- ── Testimonials ─────────────────────────────────────────────────────── -->
+  }
   <section class="platform-testimonials bg-gray-50 py-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -1056,12 +1034,12 @@
                 </svg>
               }
             </div>
-            <blockquote class="text-gray-700 text-sm leading-relaxed flex-1 mb-5">
+            <blockquote class="text-gray-700 text-sm leading-relaxed flex-1 mb-5 line-clamp-3">
               "{{ t.text }}"
             </blockquote>
             <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center font-bold text-white text-xs flex-shrink-0">
-                {{ t.initials }}
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl text-blue-700 flex-shrink-0" aria-hidden="true">
+                <i class="ph ph-buildings"></i>
               </div>
               <div>
                 <p class="font-bold text-gray-900 text-sm">{{ t.name }}</p>
@@ -1135,7 +1113,7 @@
                class="inline-flex items-center gap-2 bg-white text-gray-900
                       hover:bg-blue-50 font-bold px-8 py-4 rounded-xl transition-all
                       hover:shadow-xl hover:-translate-y-0.5 text-sm">
-              List your clinic free →
+              Start Free
             </a>
             <button (click)="whatsappEnquiry('General')"
                     class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors bg-transparent border-0 cursor-pointer">
@@ -1198,7 +1176,7 @@
          [queryParams]="signupQuery('trial', 'mobile-sticky', 'sales-sprint', 'free clinic launch')"
          class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
                 text-white font-bold py-3.5 rounded-xl text-sm transition-colors shadow-md">
-        Start free →
+        Start Free
       </a>
     </div>
   }

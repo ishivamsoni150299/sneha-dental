@@ -30,7 +30,7 @@
     </nav>
     <span class="hero-kicker">{{ pageKicker() }}</span>
     }
-    <div class="hero-intro">
+    <div class="hero-intro hero-intro-search-first">
       <div>
         @if (isDiscoveryHome) {
           <span class="hero-kicker">Your dental care, closer to home</span>
@@ -41,15 +41,6 @@
         </h1>
         <p class="hero-description">{{ isDiscoveryHome ? 'From a routine check-up to a new smile. Compare verified dentists across Delhi NCR and request a time that works for you.' : pageLead() }}</p>
       </div>
-      <aside class="hero-guide" aria-label="Your path to an appointment">
-        <div class="guide-heading flex items-center gap-3 text-sm leading-relaxed"><span class="guide-icon grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-blue-50 text-3xl text-blue-600"><i class="ph ph-tooth" aria-hidden="true"></i></span><span>Good care starts<br><strong>with a clear next step.</strong></span></div>
-        <ol class="guide-journey">
-          <li><span>01</span><div><strong>Find your fit</strong><p>Search by treatment and location.</p></div><i class="ph ph-magnifying-glass" aria-hidden="true"></i></li>
-          <li><span>02</span><div><strong>Get to know your dentist</strong><p>Compare profiles, fees and experience.</p></div><i class="ph ph-seal-check" aria-hidden="true"></i></li>
-          <li><span>03</span><div><strong>Choose a time</strong><p>Send your request directly to the clinic.</p></div><i class="ph ph-calendar-check" aria-hidden="true"></i></li>
-        </ol>
-        <p class="guide-note flex gap-2 border-t border-gray-200 pt-4 text-xs leading-relaxed text-gray-500"><i class="ph ph-check-circle" aria-hidden="true"></i> No platform booking fee. No account needed to request.</p>
-      </aside>
     </div>
     <div class="consultation-switch mt-6 flex flex-wrap gap-2" role="group" aria-label="Consultation format">
       <button type="button" (click)="videoOnly.set(false)" [attr.aria-pressed]="!videoOnly()" [class.bg-blue-50]="!videoOnly()" [class.border-blue-600]="!videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-hospital" aria-hidden="true"></i> In-clinic visit</button>
@@ -86,12 +77,24 @@
       }
     </div>
     <div class="trust-strip" aria-label="Why patients can book with confidence">
-      <span><i class="ph ph-seal-check" aria-hidden="true"></i> Registration checked</span>
-      <span><i class="ph ph-currency-inr" aria-hidden="true"></i> No booking fee</span>
-      <span><i class="ph ph-calendar-check" aria-hidden="true"></i> Direct clinic requests</span>
+      <span title="Dentist registration is checked before a profile appears"><i class="ph ph-seal-check" aria-hidden="true"></i><b>Checked</b></span>
+      <span title="mydentalplatform does not add a patient booking fee"><i class="ph ph-currency-inr" aria-hidden="true"></i><b>No fee</b></span>
+      <span title="Appointment requests go directly to the practice"><i class="ph ph-calendar-check" aria-hidden="true"></i><b>Direct</b></span>
     </div>
   </div>
 </section>
+@if (locationHighlights().length) {
+  <section [class]="'location-identity location-' + locality().toLowerCase()" [attr.aria-label]="'Finding dental care in ' + locality()">
+    <div class="directory-wrap">
+      <div class="location-identity-heading"><span>{{ locality() }}</span><strong>Local details worth checking before you book</strong></div>
+      <div class="location-highlight-grid">
+        @for (item of locationHighlights(); track item.title) {
+          <div><i [class]="'ph ' + item.icon" aria-hidden="true"></i><p><strong>{{ item.title }}</strong><span>{{ item.text }}</span></p></div>
+        }
+      </div>
+    </div>
+  </section>
+}
 <section id="marketplace-results" class="results-section" tabindex="-1" aria-label="Dentist search results">
   <div class="directory-wrap">
     <div class="results-heading">
@@ -195,18 +198,11 @@
               <span class="empty-label">{{ clinics().length + providers().length ? 'No exact matches' : 'Directory opening soon' }}</span>
               <h2>{{ clinics().length + providers().length ? 'Let’s widen your search.' : 'We’re verifying the first dentists.' }}</h2>
               <p>{{ clinics().length + providers().length ? 'Try all Delhi NCR, remove a filter, or choose another treatment.' : 'Every dentist must complete our checks before appearing here. You can still explore treatment costs while verified profiles are prepared.' }}</p>
-              <div class="mt-5 flex flex-wrap justify-center gap-3">
-                @if (hasFilters()) {<button type="button" (click)="clearFilters()" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Expand to all Delhi NCR</button>} @else {<a href="#cost-guide-heading" class="primary inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Explore treatment costs</a>}
-                <a [href]="demandRequestHref()" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-semibold text-blue-700">Request a dentist / notify me</a>
+              <div class="empty-actions mt-5 flex flex-wrap justify-center gap-3">
+                <button type="button" (click)="changeLocation()" class="primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"><i class="ph ph-map-pin" aria-hidden="true"></i> Change location</button>
+                @if (hasFilters()) {<button type="button" (click)="clearFilters()" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Clear filters</button>}
+                <a [href]="demandRequestHref()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-bell" aria-hidden="true"></i> Notify me</a>
               </div>
-            </div>
-            <div class="booking-steps" aria-label="How booking works">
-              <span class="steps-kicker block mb-3 text-xs font-semibold uppercase tracking-wider text-blue-600">How it works</span>
-              <ol>
-                <li><b>1</b><span><strong>Tell us what hurts</strong><small>Choose a problem or treatment.</small></span></li>
-                <li><b>2</b><span><strong>Compare trusted dentists</strong><small>Review fees, experience and availability.</small></span></li>
-                <li><b>3</b><span><strong>Book your time</strong><small>Request a slot with no platform fee.</small></span></li>
-              </ol>
             </div>
             <p class="provider-invite">Dental professional? <a routerLink="/professional/signup">Create your independent profile</a></p>
           </div>

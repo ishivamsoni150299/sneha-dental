@@ -4456,6 +4456,33 @@ textarea.ui-field {
   font-size: 0.6875rem;
 }
 
+/* Shared public conversion controls: one height, radius and focus treatment. */
+.platform-landing .platform-hero-actions :is(a, button),
+.platform-landing .platform-pricing a,
+.platform-landing .platform-final-cta a {
+  min-height: 48px;
+  border-radius: 12px;
+}
+
+.platform-landing :is(a, button):focus-visible {
+  outline: 3px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+.location-identity { border-block: 1px solid var(--ui-line); background: linear-gradient(135deg, var(--ui-primary-soft), var(--ui-surface)); }
+.location-identity .directory-wrap { display: grid; grid-template-columns: 260px 1fr; gap: 32px; padding-block: 26px; }
+.location-identity-heading { display: flex; flex-direction: column; gap: 5px; }
+.location-identity-heading span { color: var(--ui-primary); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.location-identity-heading strong { font-size: 18px; line-height: 1.35; }
+.location-highlight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.location-highlight-grid > div { display: flex; gap: 10px; padding: 13px; border-radius: 14px; background: rgb(255 255 255 / 78%); }
+.location-highlight-grid i { color: var(--ui-primary); font-size: 21px; }
+.location-highlight-grid p { display: flex; flex-direction: column; gap: 3px; font-size: 12px; line-height: 1.45; }
+.location-highlight-grid span { color: var(--ui-ink-muted); }
+.location-delhi { background: linear-gradient(135deg, #eff6ff, #fff7ed); }
+.location-noida { background: linear-gradient(135deg, #eff6ff, #f0fdfa); }
+.location-gurugram { background: linear-gradient(135deg, #eef2ff, #faf5ff); }
+
 .clinic-admin-shell {
   --admin-content: 76rem;
   min-height: 100vh;

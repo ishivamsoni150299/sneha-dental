@@ -252,6 +252,27 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly locationChoices = ['All Delhi NCR', 'Noida', 'Delhi', 'Gurugram', 'Ghaziabad', 'Faridabad'];
 
+  readonly locationHighlights = computed(() => {
+    const highlights: Record<string, { icon: string; title: string; text: string }[]> = {
+      Noida: [
+        { icon: 'ph-buildings', title: 'Neighbourhood coverage', text: 'Search across established residential sectors and central Noida.' },
+        { icon: 'ph-car', title: 'Plan the journey', text: 'Check the clinic address and travel time before requesting a slot.' },
+        { icon: 'ph-clock', title: 'Published availability', text: 'Only times supplied by participating practices are shown.' },
+      ],
+      Delhi: [
+        { icon: 'ph-map-trifold', title: 'Area-by-area search', text: 'Narrow a large city by locality, treatment and practical travel distance.' },
+        { icon: 'ph-train', title: 'Transport matters', text: 'Compare the clinic location with your preferred road or Metro route.' },
+        { icon: 'ph-clock', title: 'Published availability', text: 'Only times supplied by participating practices are shown.' },
+      ],
+      Gurugram: [
+        { icon: 'ph-buildings', title: 'Work and home', text: 'Consider clinics near your office corridor or residential sector.' },
+        { icon: 'ph-car', title: 'Travel-aware choice', text: 'Allow for peak-hour travel when choosing an appointment time.' },
+        { icon: 'ph-clock', title: 'Published availability', text: 'Only times supplied by participating practices are shown.' },
+      ],
+    };
+    return highlights[this.locality()] ?? [];
+  });
+
   readonly faqs = [
     {
       question: 'How are dentists verified on mydentalplatform?',
@@ -271,7 +292,7 @@ export class DentistDirectoryComponent implements OnInit {
     },
     {
       question: 'Can I find same-day dental appointments for emergencies?',
-      answer: 'Yes. Toggle the "Available Today" filter to instantly discover clinics offering real-time open slots today for urgent toothache relief, trauma, or swollen gums.',
+      answer: 'Use the "Available Today" filter to check whether a participating clinic has published a suitable time. Availability is not guaranteed; severe symptoms may require a hospital emergency department.',
     },
     {
       question: 'Which areas in Delhi NCR are covered?',
@@ -673,6 +694,13 @@ export class DentistDirectoryComponent implements OnInit {
     const search = document.getElementById('dentist-search');
     search?.scrollIntoView({ block: 'center' });
     search?.focus({ preventScroll: true });
+  }
+
+  changeLocation(): void {
+    if (!this.isBrowser) return;
+    const location = document.getElementById('dentist-locality');
+    location?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    location?.focus({ preventScroll: true });
   }
 
   openCompareModal(): void {

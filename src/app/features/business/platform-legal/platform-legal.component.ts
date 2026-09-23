@@ -8,17 +8,16 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
   imports: [RouterLink, PlatformBrandComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="platform-auth-shell">
-      <header class="platform-auth-topbar">
-        <div class="ui-container flex h-16 items-center justify-between gap-4">
+    <div class="min-h-screen bg-white text-gray-900">
+      <header class="border-b border-gray-200 bg-white">
+        <div class="mx-auto flex h-16 max-w-3xl items-center px-5 sm:px-8">
           <a routerLink="/business" class="flex items-center gap-2.5" aria-label="mydentalplatform home">
             <app-platform-brand />
           </a>
-          <a routerLink="/business/signup" class="ui-btn ui-btn-secondary ui-btn-sm">Start free</a>
         </div>
       </header>
 
-      <main id="main-content" class="ui-container-reading py-12 sm:py-16">
+      <main id="main-content" class="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-16">
         <p class="ui-eyebrow">Legal</p>
         <h1 class="ui-heading mt-3">{{ isPrivacy ? 'Platform privacy policy' : 'Platform terms of service' }}</h1>
         <p class="ui-caption mt-3">Effective 1 September 2026</p>
@@ -79,10 +78,10 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
           </div>
         }
 
-        <div class="mt-12 flex flex-wrap gap-3 border-t border-ui-line pt-6">
-          <a routerLink="/business/privacy" class="ui-btn ui-btn-secondary" [attr.aria-current]="isPrivacy ? 'page' : null">Privacy</a>
-          <a routerLink="/business/terms" class="ui-btn ui-btn-secondary" [attr.aria-current]="!isPrivacy ? 'page' : null">Terms</a>
-          <a href="mailto:support@mydentalplatform.com" class="ui-btn ui-btn-ghost">Contact support</a>
+        <div class="mt-12 flex flex-wrap gap-5 border-t border-gray-200 pt-6 text-sm font-semibold">
+          <a routerLink="/business/privacy" class="text-blue-700 hover:underline" [attr.aria-current]="isPrivacy ? 'page' : null">Privacy</a>
+          <a routerLink="/business/terms" class="text-blue-700 hover:underline" [attr.aria-current]="!isPrivacy ? 'page' : null">Terms</a>
+          <a href="mailto:support@mydentalplatform.com" class="text-blue-700 hover:underline">Contact support</a>
         </div>
       </main>
     </div>

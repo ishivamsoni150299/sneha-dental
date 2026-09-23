@@ -386,7 +386,7 @@ describe('DentistDirectoryComponent', () => {
     (guide.querySelector('button[aria-controls="treatment-options"]') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(guide.querySelectorAll('article').length).toBe(component.treatmentCostGuide.length);
-    (guide.querySelector('button[aria-label="Find dentists for Teeth Whitening"]') as HTMLButtonElement).click();
+    (guide.querySelector('button[aria-label="View dentists for Teeth Whitening"]') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(component.serviceId()).toBe('teeth-whitening');
   });

@@ -139,7 +139,8 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   }
   .marketplace-header .patient-navigation { display: none; }
   .patient-tab-bar {
-    @apply fixed inset-x-0 bottom-0 grid grid-cols-2 gap-2 border-t border-gray-200 bg-white px-4 pt-2;
+    @apply fixed inset-x-0 bottom-0 grid gap-2 border-t border-gray-200 bg-white px-4 pt-2;
+    grid-template-columns: 1.4fr .8fr;
     z-index: 40;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     box-shadow: var(--ui-shadow-md);
@@ -148,6 +149,8 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
     @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-semibold text-gray-500;
     -webkit-tap-highlight-color: transparent;
   }
+  .patient-tab-bar a:first-child { @apply bg-blue-600 text-white; }
+  .patient-tab-bar a:first-child.active { @apply bg-blue-700 text-white; }
   .patient-tab-bar svg { width: 22px; height: 22px; }
   .patient-tab-bar a.active { @apply bg-blue-100 text-blue-700; }
   .patient-tab-bar a:active { @apply bg-gray-100; }
