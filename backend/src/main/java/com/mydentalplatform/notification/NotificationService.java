@@ -33,6 +33,17 @@ public class NotificationService {
     private final String emailFrom;
     private final String publicBaseUrl;
 
+    public boolean canSendEmail() { return resendApiKey != null && !resendApiKey.isBlank(); }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void notifyAppointmentClaim(UUID clinicId, UUID appointmentId, String destination, String code, UUID challengeId) {
+        if (!canSendEmail()) throw new IllegalStateException("Email delivery is not configured.");
+        String html = "<p>Use this code to link your appointment to your patient account: <strong>" + code
+            + "</strong></p><p>The code expires in 10 minutes. If you did not request this, ignore this email.</p>";
+        dispatchEmail(clinicId, appointmentId, "appointment_claim", destination,
+            "Your appointment linking code", html, "appointment_claim_" + challengeId);
+    }
+
     @org.springframework.beans.factory.annotation.Autowired
     public NotificationService(
         JdbcTemplate jdbcTemplate,

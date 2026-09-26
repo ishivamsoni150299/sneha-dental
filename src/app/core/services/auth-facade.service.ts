@@ -1,4 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ClinicConfigService } from './clinic-config.service';
 
 export type AuthRole = 'patient' | 'dentist' | 'clinic-admin' | 'platform-admin' | 'incomplete-signup' | 'unverified';
@@ -28,6 +29,7 @@ interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
   private readonly clinicConfig = inject(ClinicConfigService);
+  private readonly platformId = inject(PLATFORM_ID);
   private accessToken: string | null = null;
   private accessTokenExpiresAt = 0;
   private readyResolved = false;
@@ -41,7 +43,8 @@ export class AuthFacade {
   readonly authReady = new Promise<void>(resolve => { this.resolveReady = resolve; });
 
   constructor() {
-    void this.restoreSession();
+    if (isPlatformBrowser(this.platformId)) void this.restoreSession();
+    else this.finishReady();
   }
 
   get isAuthenticated(): boolean {
@@ -58,15 +61,6 @@ export class AuthFacade {
     await this.authReady;
     this.applySession(await this.authRequest('/api/auth/clinic/signup', { email, password }));
     return this.currentUser()!;
-  }
-
-  async requestOtp(identity: string, portal: 'patient' | 'clinic' | 'platform' | 'dentist'): Promise<void> {
-    await this.passwordResetRequest('/api/auth/otp/request', { identity, portal });
-  }
-
-  async verifyOtp(identity: string, portal: 'patient' | 'clinic' | 'platform' | 'dentist', code: string, fullName?: string): Promise<AuthRole> {
-    await this.authReady;
-    return this.applySession(await this.authRequest('/api/auth/otp/verify', { identity, portal, code, fullName }));
   }
 
   async createProfessionalAccount(fullName: string, email: string, password: string): Promise<PlatformUser> {
@@ -139,12 +133,15 @@ export class AuthFacade {
     } catch {
       this.clearSession();
     } finally {
-      if (!this.readyResolved) {
-        this.readyResolved = true;
-        this.ready.set(true);
-        this.resolveReady();
-      }
+      this.finishReady();
     }
+  }
+
+  private finishReady(): void {
+    if (this.readyResolved) return;
+    this.readyResolved = true;
+    this.ready.set(true);
+    this.resolveReady();
   }
 
   private refreshSession(): Promise<string> {

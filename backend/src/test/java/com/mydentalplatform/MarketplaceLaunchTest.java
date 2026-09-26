@@ -43,7 +43,7 @@ class MarketplaceLaunchTest {
                 "--platform.auth.test-phone-otp-enabled=false",
                 "--platform.bootstrap-admin.email=launch-admin@example.test",
                 "--platform.bootstrap-admin.password=" + password,
-                "--platform.email.resend-api-key=", "--platform.billing.razorpay-key-id=",
+                "--platform.email.resend-api-key=test-only-key", "--platform.billing.razorpay-key-id=",
                 "--platform.billing.razorpay-key-secret=", "--platform.billing.razorpay-webhook-secret=",
                 "--VIDEO_PROVIDER=daily", "--DAILY_API_KEY=")) {
                 base = "http://127.0.0.1:" + app.getEnvironment().getRequiredProperty("local.server.port");
@@ -141,6 +141,29 @@ class MarketplaceLaunchTest {
                 assertTrue(emailRequest.getValue().headers().firstValue("Idempotency-Key").isPresent());
                 String stranger = token(request("POST", "/api/auth/patient/signup", Map.of("email", "stranger@example.test", "password", password), null, 200));
                 assertEquals(0, request("GET", "/api/patient/account/session", null, stranger, 200).path("appointments").size());
+
+                // A guest booking stays unowned even if the phone matches another account.
+                var guestSlot = Map.of("clinicId", clinicId, "doctorId", doctor, "date", date, "time", "10:00");
+                var guestBooking = new java.util.LinkedHashMap<>(booking);
+                guestBooking.put("time", "10:00");
+                guestBooking.put("email", "guest@example.test");
+                guestBooking.put("holdToken", request("POST", "/api/public/appointments/hold-slot", guestSlot, null, 200).path("holdToken").asText());
+                String guestRef = request("POST", "/api/public/appointments", guestBooking, null, 200).path("bookingRef").asText();
+                assertEquals(0, request("GET", "/api/patient/account/session", null, stranger, 200).path("appointments").size());
+                assertNull(jdbc.queryForObject("select patient_id from appointments where booking_ref = ?", UUID.class, guestRef));
+                String challenge = request("POST", "/api/patient/account/claim/request", Map.of("bookingRef", guestRef), stranger, 200)
+                    .path("challengeId").asText();
+                String html = jdbc.queryForObject("select payload ->> 'html' from notification_outbox where idempotency_key = ?",
+                    String.class, "appointment_claim_" + challenge);
+                assertNotNull(html);
+                jdbc.update("update notification_outbox set status = 'sent' where idempotency_key = ?", "appointment_claim_" + challenge);
+                var codeMatch = java.util.regex.Pattern.compile("<strong>([0-9]{8})</strong>").matcher(html);
+                assertTrue(codeMatch.find());
+                String wrongCode = "00000000".equals(codeMatch.group(1)) ? "11111111" : "00000000";
+                request("POST", "/api/patient/account/claim/complete", Map.of("challengeId", challenge, "code", wrongCode), stranger, 404);
+                request("POST", "/api/patient/account/claim/complete", Map.of("challengeId", challenge, "code", codeMatch.group(1)), stranger, 200);
+                assertEquals(1, request("GET", "/api/patient/account/session", null, stranger, 200).path("appointments").size());
+                request("POST", "/api/patient/account/claim/complete", Map.of("challengeId", challenge, "code", codeMatch.group(1)), stranger, 404);
 
                 String dentist = token(request("POST", "/api/auth/professional/signup", Map.of("email", "dentist@example.test", "password", password, "fullName", "Independent Dentist"), null, 200));
                 request("GET", "/api/providers/me", null, dentist, 200);

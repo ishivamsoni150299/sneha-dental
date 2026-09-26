@@ -16,9 +16,30 @@ export interface SubscriptionResult {
   amount: number;
 }
 
+export interface SubscriptionStatus {
+  subscriptionId?: string | null;
+  status?: string;
+  cancellationEffectiveAt?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BillingService {
   private readonly api = inject(AuthenticatedApiService);
+
+  async currentSubscription(): Promise<SubscriptionStatus> {
+    const res = await this.api.fetch('/api/billing/subscriptions/current');
+    if (!res.ok) throw new Error('Could not load subscription status.');
+    return res.json() as Promise<SubscriptionStatus>;
+  }
+
+  async cancelSubscription(id: string): Promise<{ status: string; effectiveAt: string }> {
+    const res = await this.api.fetch(`/api/billing/subscriptions/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({})) as { detail?: string; message?: string };
+      throw new Error(error.detail || error.message || 'Could not schedule cancellation.');
+    }
+    return res.json() as Promise<{ status: string; effectiveAt: string }>;
+  }
 
   async createSubscription(
     clinicId: string,

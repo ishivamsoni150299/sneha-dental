@@ -8,7 +8,7 @@ export const PLATFORM_FEATURE_LABELS = {
   customBranding: 'Custom logo and theme controls',
   removePlatformBranding: 'Remove mydentalplatform branding',
   customDomain: 'Custom domain with SSL',
-  aiVoiceReceptionist: 'AI voice receptionist with 30 min/month',
+  aiVoiceReceptionist: 'AI voice receptionist (coming soon)',
   revenueInsights: 'Revenue and payment insights',
   prioritySupport: 'Priority support',
 } as const;

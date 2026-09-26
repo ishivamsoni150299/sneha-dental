@@ -2,6 +2,9 @@ package com.mydentalplatform.appointment;
 
 import java.util.*;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,15 +21,28 @@ public class PatientAccountController {
     private final JdbcTemplate jdbc;
     private final AppointmentService appointments;
     private final VideoConsultationService video;
-    public PatientAccountController(JdbcTemplate jdbc, AppointmentService appointments, VideoConsultationService video) {
-        this.jdbc = jdbc; this.appointments = appointments; this.video = video;
+    private final AppointmentClaimService claims;
+    public PatientAccountController(JdbcTemplate jdbc, AppointmentService appointments, VideoConsultationService video,
+        AppointmentClaimService claims) {
+        this.jdbc = jdbc; this.appointments = appointments; this.video = video; this.claims = claims;
     }
     @GetMapping("/session")
     public Map<String, Object> session(@AuthenticationPrincipal Jwt jwt) {
         UUID user = user(jwt);
         var rows = jdbc.queryForList("select booking_ref, phone_e164 from appointments where patient_id = ? order by appointment_date desc limit 100", user);
         var visits = rows.stream().map(row -> appointments.lookupAny((String)row.get("booking_ref"), (String)row.get("phone_e164"))).toList();
-        return Map.of("profile", Map.of("phoneMasked", jwt.getClaimAsString("email") == null ? "Patient account" : jwt.getClaimAsString("email")), "appointments", visits);
+        return Map.of("profile", Map.of("accountLabel", jwt.getClaimAsString("email") == null ? "Patient account" : jwt.getClaimAsString("email")), "appointments", visits);
+    }
+    @PostMapping("/claim/request")
+    public Map<String, String> requestClaim(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody ClaimRequest request) {
+        return Map.of("challengeId", claims.request(user(jwt), request.bookingRef()).toString());
+    }
+    @PostMapping("/claim/complete")
+    public Map<String, Object> completeClaim(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody ClaimComplete request) {
+        UUID userId = user(jwt);
+        UUID appointmentId = claims.complete(userId, request.challengeId(), request.code());
+        if (appointmentId == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid or expired linking code.");
+        return summary(owned(jwt, appointmentId));
     }
     @PostMapping("/lookup")
     public Map<String, Object> lookup(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
@@ -74,4 +90,7 @@ public class PatientAccountController {
     private ResponseStatusException unavailable() {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "This appointment is not linked to your account. For an older guest booking, contact the clinic to verify ownership.");
     }
+
+    public record ClaimRequest(@NotBlank @Pattern(regexp = "[A-Za-z0-9]{1,20}-[A-Za-z0-9]{8}") String bookingRef) {}
+    public record ClaimComplete(@NotNull UUID challengeId, @NotBlank @Pattern(regexp = "[0-9]{8}") String code) {}
 }

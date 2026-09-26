@@ -18,7 +18,7 @@
     "release:check": "node scripts/release-check.mjs",
     "preview:api": "node scripts/preview-server.mjs",
     "test:live": "node scripts/test-live-integration.mjs",
-    "test:e2e": "node scripts/e2e-smoke-test.mjs",
+    "test:e2e": "node scripts/browser-e2e.mjs",
     "test:video:media": "node scripts/livekit-media-smoke.mjs"
   },
   "private": true,

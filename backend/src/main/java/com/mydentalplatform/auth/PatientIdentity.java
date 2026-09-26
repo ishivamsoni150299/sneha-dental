@@ -10,8 +10,7 @@ public final class PatientIdentity {
         if (jwt == null || !"patient".equals(jwt.getClaimAsString("role")) || !Boolean.TRUE.equals(jwt.getClaim("phone_verified")))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Verify your mobile number to continue.");
         String phone = jwt.getClaimAsString("phone");
-        String supplied = suppliedPhone == null ? "" : suppliedPhone.replaceAll("[^0-9]", "");
-        if (phone == null || supplied.length() < 10 || !phone.endsWith(supplied.substring(supplied.length() - 10)))
+        if (phone == null || !IndianPhoneNumber.parse(phone).e164().equals(IndianPhoneNumber.parse(suppliedPhone).e164()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Use the mobile number verified for this session.");
         return phone;
     }

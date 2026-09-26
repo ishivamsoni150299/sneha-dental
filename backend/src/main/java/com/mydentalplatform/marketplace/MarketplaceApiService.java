@@ -47,6 +47,8 @@ public class MarketplaceApiService {
         String normalizedLocality = text(locality);
         String normalizedService = text(serviceId);
 
+        // GUARD: demo and non-verified clinics/providers are excluded from public results.
+        // Clinics require marketplace_status = 'verified'; providers require verification_status = 'verified'.
         List<DentistSummary> dentists = clinics.findMarketplace(
                 normalizedRegion, normalizedLocality, normalizedService,
                 acceptingNewPatients, normalizedQuery, limit, offset
@@ -75,6 +77,8 @@ public class MarketplaceApiService {
     }
 
     public AvailabilityResponse availability(String slug, LocalDate from, int days) {
+        // GUARD: demo and non-verified clinics/providers are excluded from public results.
+        // Clinics require marketplace_status = 'verified'; providers require verification_status = 'verified'.
         var providerRows = jdbcTemplate.queryForList("""
             SELECT p.id, p.full_name, m.schedule::text AS schedule
             FROM providers p JOIN provider_marketplace_listings ml ON ml.provider_id = p.id

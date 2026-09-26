@@ -36,9 +36,9 @@ function appointmentSummary(): PatientAppointmentSummary {
 async function createFixture(options: { signedIn?: boolean; claim?: string } = {}) {
   const auth = patientAuth(options.signedIn === true);
   const api = jasmine.createSpyObj<PatientAppointmentApiService>('PatientAppointmentApiService', [
-    'session', 'claim', 'cancel', 'availability', 'reschedule', 'submitReview', 'reportReview',
+    'session', 'requestClaim', 'completeClaim', 'cancel', 'availability', 'reschedule', 'submitReview', 'reportReview',
   ]);
-  api.session.and.resolveTo({ profile: { phoneMasked: '+91 ••••••3210' }, appointments: [] });
+  api.session.and.resolveTo({ profile: { accountLabel: 'patient@example.com' }, appointments: [] });
   api.availability.and.resolveTo([]);
   await TestBed.configureTestingModule({
     imports: [PatientAppointmentsComponent],
@@ -77,7 +77,7 @@ describe('PatientAppointmentsComponent', () => {
   it('loads safe appointment history for a signed-in patient', async () => {
     const { fixture, api } = await createFixture({ signedIn: true });
     api.session.and.resolveTo({
-      profile: { phoneMasked: '+91 ••••••3210' },
+      profile: { accountLabel: 'patient@example.com' },
       appointments: [appointmentSummary()],
     });
 

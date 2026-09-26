@@ -16,17 +16,17 @@ describe('PatientAppointmentApiService', () => {
     ] });
   });
 
-  it('claims a booking through the public Spring lookup', async () => {
+  it('requests a one-time challenge for a guest booking', async () => {
     const fetchSpy = spyOn(globalThis, 'fetch').and.resolveTo(jsonResponse({
-      id: 'appointment-1', bookingRef: 'SC-ABCDEFGH', clinicId: 'clinic-1', status: 'pending',
+      challengeId: 'challenge-1',
     }));
     const service = TestBed.inject(PatientAppointmentApiService);
 
-    await service.claim('SC-ABCDEFGH');
+    await service.requestClaim('SC-ABCDEFGH');
 
-    expect(fetchSpy).toHaveBeenCalledWith('/api/patient/account/lookup', jasmine.objectContaining({
+    expect(fetchSpy).toHaveBeenCalledWith('/api/patient/account/claim/request', jasmine.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ bookingRef: 'SC-ABCDEFGH', phone: '+919876543210' }),
+      body: JSON.stringify({ bookingRef: 'SC-ABCDEFGH' }),
     }));
   });
 
@@ -38,7 +38,7 @@ describe('PatientAppointmentApiService', () => {
       Promise.resolve(new Response(null, { status: 204 })),
     );
     const service = TestBed.inject(PatientAppointmentApiService);
-    await service.claim('SC-ABCDEFGH');
+    await service.completeClaim('challenge-1', '12345678');
 
     await expectAsync(service.cancel('appointment-1')).toBeResolved();
     expect(fetchSpy).toHaveBeenCalledWith('/api/patient/account/appointments/appointment-1/cancel', jasmine.objectContaining({
@@ -46,7 +46,7 @@ describe('PatientAppointmentApiService', () => {
     }));
   });
 
-  it('submits a review with phone ownership proof', async () => {
+  it('submits a review using the authenticated account', async () => {
     const fetchSpy = spyOn(globalThis, 'fetch').and.resolveTo(jsonResponse({ id: 'review-1', rating: 5 }));
     const service = TestBed.inject(PatientAppointmentApiService);
 
@@ -54,7 +54,7 @@ describe('PatientAppointmentApiService', () => {
 
     expect(fetchSpy).toHaveBeenCalledWith('/api/public/appointments/appointment-1/review', jasmine.objectContaining({
       body: JSON.stringify({
-        phone: '+919876543210', rating: 5, text: 'Kind and clear care.', anonymous: true,
+        rating: 5, text: 'Kind and clear care.', anonymous: true,
       }),
     }));
   });

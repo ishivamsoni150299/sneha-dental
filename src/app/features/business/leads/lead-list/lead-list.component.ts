@@ -5,6 +5,7 @@ import {
   LeadApiService, StoredLead, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-api.service';
 import { LeadAiCallService } from '../../../../core/services/lead-ai-call.service';
+import { DEMO_WEBSITE_URL, DEMO_VIDEO_URL } from '../../../../core/content/demo-content';
 
 interface ImportStats {
   imported:    number;
@@ -52,8 +53,6 @@ const SENDER_PHONE    = '9140210648';
 const PLATFORM_URL    = 'https://www.mydentalplatform.com';
 const SENDER_SIG      = `\n\n— Shivam\n📞 ${SENDER_PHONE}\n🌐 ${PLATFORM_URL}`;
 
-const DEMO_WEBSITE_URL = 'https://arogyamdental.mydentalplatform.com';
-const DEMO_VIDEO_URL   = 'https://youtu.be/cJGhGCDmyAk?si=lzHGpFTOp9WtMxMX';
 const SETUP_VIDEO_URL  = 'https://youtu.be/R7d1KqfdH6U?si=LM69y0o5dr5P132S';
 const AI_CALL_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
@@ -1296,9 +1295,9 @@ Your website will be live within 24 hours.${SENDER_SIG}`,
 Hope things are going well at *${clinic}*${locationLine}.
 
 I know we spoke a while back — just wanted to check in. A few things have improved since then:
-• Same-day setup — your clinic can be live today
-• AI receptionist that handles patient queries after clinic hours
-• Several clinics in ${city} are already live and getting online bookings
+• Create your clinic profile and submit it for verification
+• Publish availability and manage appointment requests from the clinic workspace
+• Patients can find verified listings in ${city} as local supply grows
 • Free plan available with no expiry
 ${referredBy ? `\n${referredBy} had mentioned your clinic earlier so I wanted to reconnect.` : ''}
 

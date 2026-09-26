@@ -44,7 +44,7 @@ export interface PatientAppointmentSummary {
 }
 
 export interface PatientSession {
-  profile: { phoneMasked: string };
+  profile: { accountLabel: string };
   appointments: PatientAppointmentSummary[];
 }
 
@@ -61,8 +61,18 @@ export class PatientAppointmentApiService {
     return session;
   }
 
-  async claim(bookingRef: string): Promise<PatientAppointmentSummary> {
-    const appointment = await this.lookup(bookingRef, this.phone());
+  async requestClaim(bookingRef: string): Promise<string> {
+    const result = await this.request<{ challengeId: string }>('/api/patient/account/claim/request', {
+      method: 'POST', body: JSON.stringify({ bookingRef }),
+    });
+    return result.challengeId;
+  }
+
+  async completeClaim(challengeId: string, code: string): Promise<PatientAppointmentSummary> {
+    const appointment = await this.request<PatientAppointmentSummary>('/api/patient/account/claim/complete', {
+      method: 'POST', body: JSON.stringify({ challengeId, code }),
+    });
+    this.cache.set(appointment.id, appointment);
     const references = new Set(this.references());
     references.add(appointment.bookingRef);
     globalThis.localStorage?.setItem('patient-booking-references', JSON.stringify([...references]));
@@ -102,14 +112,14 @@ export class PatientAppointmentApiService {
   ): Promise<PatientAppointmentReview> {
     return this.request<PatientAppointmentReview>(`/api/public/appointments/${encodeURIComponent(appointmentId)}/review`, {
       method: 'POST',
-      body: JSON.stringify({ phone: this.cache.get(appointmentId)?.phone ?? this.phone(), rating, text, anonymous }),
+      body: JSON.stringify({ rating, text, anonymous }),
     });
   }
 
   async reportReview(reviewId: string, reason: string, details: string): Promise<void> {
     await this.request(`/api/public/reviews/${encodeURIComponent(reviewId)}/reports`, {
       method: 'POST',
-      body: JSON.stringify({ phone: this.phone(), reason, details }),
+      body: JSON.stringify({ reason, details }),
     });
   }
 

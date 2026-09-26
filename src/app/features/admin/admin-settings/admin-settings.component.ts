@@ -20,7 +20,7 @@ import {
   formatPlatformPlanPrice,
   hasPlatformFeature,
 } from '../../../core/config/clinic.config';
-import { BillingService, BillingPlan, BillingCycle } from '../../../core/services/billing.service';
+import { BillingService, BillingPlan, BillingCycle, type SubscriptionStatus } from '../../../core/services/billing.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { VideoSettingsComponent } from './video-settings.component';
@@ -114,6 +114,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   loading            = signal(true);
   upgrading          = signal(false);
   upgradeError       = signal<string | null>(null);
+  subscriptionStatus = signal<SubscriptionStatus | null>(null);
+  cancellationError = signal<string | null>(null);
+  confirmingCancellation = signal(false);
+  cancellingSubscription = signal(false);
   selectedBillingCycle = signal<BillingCycle>('monthly');
   activeTab          = signal<TabId>('info');
   savingInfo         = signal(false);
@@ -306,6 +310,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   isTabDirty(tab: TabId) { return this.dirtyTabs().has(tab); }
 
   ngOnInit() {
+    if (this.isStarter || this.isPro) void this.loadSubscriptionStatus();
     const tab = this.route.snapshot.queryParamMap.get('tab') as TabId | null;
     if (tab && this.tabs.some(item => item.id === tab)) {
       this.activeTab.set(tab);
@@ -379,6 +384,37 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.voiceForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.markDirty('voice'));
+  }
+
+  async loadSubscriptionStatus(): Promise<void> {
+    try {
+      this.subscriptionStatus.set(await this.billing.currentSubscription());
+    } catch (error) {
+      this.cancellationError.set(error instanceof Error ? error.message : 'Could not load subscription status.');
+    }
+  }
+
+  async cancelCurrentSubscription(): Promise<void> {
+    const id = this.subscriptionStatus()?.subscriptionId;
+    if (!id || !this.confirmingCancellation() || this.cancellingSubscription()) return;
+    this.cancellingSubscription.set(true);
+    this.cancellationError.set(null);
+    try {
+      const result = await this.billing.cancelSubscription(id);
+      this.subscriptionStatus.update(current => ({ ...(current ?? {}), cancellationEffectiveAt: result.effectiveAt }));
+      this.confirmingCancellation.set(false);
+      this.showToast('Cancellation scheduled. Paid access continues until the current cycle ends.', 'success');
+    } catch (error) {
+      this.cancellationError.set(error instanceof Error ? error.message : 'Could not schedule cancellation.');
+    } finally {
+      this.cancellingSubscription.set(false);
+    }
+  }
+
+  cancellationEffectiveLabel(): string {
+    const value = this.subscriptionStatus()?.cancellationEffectiveAt;
+    if (!value) return '';
+    return new Intl.DateTimeFormat('en-IN', { dateStyle: 'long', timeZone: 'Asia/Kolkata' }).format(new Date(value));
   }
 
   ngOnDestroy() {
@@ -651,11 +687,9 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
 
   private guardVoiceAccess(): boolean {
-    if (this.canManageVoice) return true;
-
     this.activeTab.set('subscription');
-    this.upgradeError.set('Upgrade to Pro to unlock the AI Voice Receptionist.');
-    this.showToast('Upgrade to Pro to unlock AI Voice Receptionist.', 'error');
+    this.upgradeError.set('AI Voice is coming soon and is not available in any current plan.');
+    this.showToast('AI Voice is coming soon.', 'error');
     return false;
   }
 

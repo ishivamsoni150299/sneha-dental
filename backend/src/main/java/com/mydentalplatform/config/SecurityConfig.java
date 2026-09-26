@@ -61,8 +61,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/public/**", "/api/marketplace/**", "/api/v1/**", "/openapi.yaml").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/contacts").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/video-tests/join").permitAll()
+                // NOTE: permitAll at filter level, but lookup, cancel, update, review, and video
+                // endpoints enforce patient JWT via PatientIdentity.requirePhone() at the controller.
+                // Authenticated equivalents: /api/patient/account/**. Future: migrate to /api/v1/patient/.
                 .requestMatchers("/api/public/appointments/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/appointments").permitAll()
+                // NOTE: review and report POST endpoints enforce patient JWT via patientAccount().
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**",
                     "/media/**", "/fonts/**", "/**/*.woff2", "/**/*.woff", "/**/*.ttf", "/**/*.svg").permitAll()
@@ -71,8 +75,9 @@ public class SecurityConfig {
                     "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
                 .requestMatchers(
                     "/api/auth/otp/request", "/api/auth/otp/verify", "/api/auth/otp/exchange-link",
-                    "/api/auth/login", "/api/auth/patient/signup", "/api/auth/clinic/login", "/api/auth/clinic/signup",
-                    "/api/auth/professional/login", "/api/auth/professional/signup",
+                    "/api/auth/login", "/api/auth/patient/signup",
+                    "/api/auth/clinic/login", "/api/auth/clinic/signup",       // DEPRECATED: clinic/login unused by frontend
+                    "/api/auth/professional/login", "/api/auth/professional/signup", // DEPRECATED: professional/login unused by frontend
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()
                 .requestMatchers("/webhooks/**").permitAll()
                 .anyRequest().authenticated())

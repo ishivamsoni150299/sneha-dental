@@ -47,7 +47,7 @@ public class ContactController {
             insert into contacts (clinic_id, name, phone, email, message, status, consent_version, consent_at)
             values (?, ?, ?, ?, ?, 'unread', ?, now())
             """, request.clinicId(), request.name().trim(), request.phone(), emptyToNull(request.email()),
-            request.message().trim(), request.consentVersion());
+            request.message().trim(), com.mydentalplatform.config.LegalPolicyVersions.CONTACT);
 
         notificationService.notifyClinicNewContact(
             request.clinicId(),

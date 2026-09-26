@@ -19,6 +19,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
 
+/**
+ * Provider workspace for dentist appointment management and schedule updates.
+ *
+ * <p><strong>Compatibility note:</strong> This controller contains dual-write logic and
+ * OR-fallback joins that bridge the legacy {@code doctors} table with the canonical
+ * {@code providers} model. These are marked with {@code // COMPAT(legacy-doctor)} and
+ * can be removed once migration V23 is confirmed deployed in all environments and
+ * {@code SELECT count(*) FROM appointments WHERE provider_id IS NULL AND doctor_id IS NOT NULL}
+ * returns zero. See {@code backend/LEGACY_COMPATIBILITY.md}.</p>
+ */
 @RestController
 @RequestMapping("/api/providers/me")
 public class ProviderWorkspaceController {
@@ -53,6 +63,7 @@ public class ProviderWorkspaceController {
                 a.status::text AS status, a.source, c.name AS location_name, a.cancellation_reason,
                 a.consultation_mode
             FROM appointments a JOIN clinics c ON c.id = a.clinic_id
+            -- // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
             JOIN providers p ON (a.provider_id = p.id OR (a.provider_id IS NULL AND a.doctor_id = p.legacy_doctor_id))
             WHERE p.user_id = ? AND p.active
             """ + filter + (view.equals("history") ? " ORDER BY a.appointment_date DESC, a.appointment_time DESC" : " ORDER BY a.appointment_date, a.appointment_time")
@@ -71,6 +82,7 @@ public class ProviderWorkspaceController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A reason is required.");
         List<UUID> clinics = jdbc.queryForList("""
             SELECT a.clinic_id FROM appointments a
+            -- // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
             JOIN providers p ON (a.provider_id = p.id OR (a.provider_id IS NULL AND a.doctor_id = p.legacy_doctor_id))
             WHERE a.id = ? AND p.user_id = ? AND p.active FOR UPDATE OF a
             """, UUID.class, id, user);
@@ -85,14 +97,18 @@ public class ProviderWorkspaceController {
         @Valid @RequestBody ScheduleRequest request) {
         UUID user = userId(jwt);
         ScheduleRules.validate(request.schedule());
+        // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
         jdbc.queryForList("SELECT id FROM providers WHERE user_id = ? AND legacy_doctor_id IS NULL FOR UPDATE", UUID.class, user);
+        // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
         // Match the booking engine's doctor lock before changing its availability.
         jdbc.queryForList("""
+            -- // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
             SELECT d.id FROM doctors d JOIN providers p ON coalesce(p.legacy_doctor_id, p.id) = d.id
             JOIN practice_locations l ON coalesce(l.clinic_id, l.owner_provider_id) = d.clinic_id
             WHERE p.user_id = ? AND l.id = ? FOR UPDATE OF d
             """, UUID.class, user, id);
         List<Map<String, Object>> memberships = jdbc.queryForList("""
+            -- // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
             SELECT p.id AS provider_id, coalesce(p.legacy_doctor_id, p.id) AS legacy_doctor_id,
                 coalesce(l.clinic_id, p.id) AS clinic_id
             FROM provider_location_memberships m JOIN providers p ON p.id = m.provider_id
@@ -104,6 +120,7 @@ public class ProviderWorkspaceController {
         Map<String, Object> membership = memberships.getFirst();
         List<Map<String, Object>> bookings = jdbc.queryForList("""
             SELECT appointment_date, appointment_time FROM appointments
+            -- // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
             WHERE (provider_id = ? OR (provider_id IS NULL AND doctor_id = ?))
                 AND (practice_location_id = ? OR (practice_location_id IS NULL AND clinic_id = ?))
                 AND status IN ('pending','confirmed','checked_in')
@@ -119,6 +136,7 @@ public class ProviderWorkspaceController {
             UPDATE provider_location_memberships SET schedule = cast(? AS jsonb), updated_at = now()
             WHERE provider_id = ? AND location_id = ?
             """, json, membership.get("provider_id"), id);
+        // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
         jdbc.update("""
             UPDATE doctors SET schedule = cast(? AS jsonb), updated_at = now() WHERE id = ? AND clinic_id = ?
             """, json, membership.get("legacy_doctor_id"), membership.get("clinic_id"));

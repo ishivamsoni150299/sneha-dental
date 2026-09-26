@@ -33,6 +33,7 @@ export class PlatformLandingComponent {
   readonly leadCloseRate = signal(40);
 
   // ── Fictional examples used only to demonstrate the product UI ───────────────
+  // TODO: migrate to DEMO_SHOWCASE_CLINICS from demo-content.ts once property names are aligned
   readonly showcaseClinics = [
     {
       name: 'Sunrise Dental Care',
@@ -73,7 +74,7 @@ export class PlatformLandingComponent {
   readonly plans = (['trial', 'starter', 'pro'] as const).map(id => ({
     id,
     name: PLATFORM_PLANS[id].label,
-    tag: id === 'trial' ? 'Free forever' : id === 'starter' ? 'For growing clinics' : 'AI-powered',
+    tag: id === 'trial' ? 'Free forever' : id === 'starter' ? 'For growing clinics' : 'Advanced insights',
     monthly: PLATFORM_PLANS[id].monthly,
     yearly: PLATFORM_PLANS[id].yearly,
     highlighted: id === 'pro',
@@ -135,7 +136,7 @@ export class PlatformLandingComponent {
     { icon: 'ph-magnifying-glass', title: 'Treatment-based discovery', desc: 'Patients find your clinic by dental problem, treatment, and location.' },
     { icon: 'ph-calendar-check', title: 'Online appointment booking', desc: 'Publish availability and receive patient requests with dashboard and email alerts.' },
     { icon: 'ph-seal-check', title: 'Verified clinic profile', desc: 'Show qualifications, contact details, treatments, fees, and trust signals clearly.' },
-    { icon: 'ph-phone-call', title: 'AI Voice Receptionist', desc: 'Handle supported patient calls in Hindi and English, including after-hours enquiries.' },
+    { icon: 'ph-phone-call', title: 'AI Voice Receptionist — coming soon', desc: 'This optional feature is not available or included in any plan yet.' },
     { icon: 'ph-shield-check', title: 'Secure admin dashboard', desc: 'Clinic owners manage patient booking requests from one workspace.' },
     { icon: 'ph-chat-circle-dots', title: 'Clinic support', desc: 'Get help with setup, updates, and technical questions.' },
   ];

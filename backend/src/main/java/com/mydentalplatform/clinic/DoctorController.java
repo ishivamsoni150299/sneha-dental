@@ -105,7 +105,9 @@ public class DoctorController {
         String slug = request.name().trim().toLowerCase(java.util.Locale.ROOT)
             .replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "")
             + "-" + id.toString().substring(0, 8);
+        // COMPAT(legacy-doctor): dual-write to providers on legacy doctor creation
         jdbcTemplate.update("""
+            -- // COMPAT(legacy-doctor): dual-write to providers on legacy doctor creation
             insert into providers (id, legacy_doctor_id, slug, full_name, qualification, speciality, active)
             values (?, ?, ?, ?, ?, ?, ?)
             """, id, id, slug, request.name().trim(), request.qualification(), request.speciality(), request.available());
@@ -148,8 +150,10 @@ public class DoctorController {
             """, request.name().trim(), request.qualification(), request.speciality(), request.available(),
             json(request.schedule()), doctorId, clinicId(jwt));
         if (updated == 1) {
+            // COMPAT(legacy-doctor): dual-write update to providers table by legacy_doctor_id
             jdbcTemplate.update("""
                 update providers set full_name = ?, qualification = ?, speciality = ?, active = ?, updated_at = now()
+                -- // COMPAT(legacy-doctor): dual-write update to providers table by legacy_doctor_id
                 where legacy_doctor_id = ?
                 """, request.name().trim(), request.qualification(), request.speciality(), request.available(), doctorId);
             jdbcTemplate.update("""

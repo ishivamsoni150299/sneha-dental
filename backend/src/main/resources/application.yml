@@ -30,8 +30,8 @@ platform:
     razorpay-key-id: ${RAZORPAY_KEY_ID:}
     razorpay-key-secret: ${RAZORPAY_KEY_SECRET:}
     razorpay-webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
-    starter-plan-id: ${RAZORPAY_PLAN_STARTER_MONTHLY:plan_ShGxRJzXZynEts}
-    pro-plan-id: ${RAZORPAY_PLAN_PRO_MONTHLY:plan_ShGumDVvGT5kJz}
+    starter-plan-id: ${RAZORPAY_PLAN_STARTER_MONTHLY:}
+    pro-plan-id: ${RAZORPAY_PLAN_PRO_MONTHLY:}
     manual-payment-url: ${PUBLIC_RAZORPAY_ME_URL:}
   email:
     resend-api-key: ${RESEND_API_KEY:}

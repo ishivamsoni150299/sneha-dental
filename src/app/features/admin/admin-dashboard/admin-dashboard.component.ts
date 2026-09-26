@@ -437,14 +437,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (this.isStarter) {
       return [
         {
-          icon: 'mic',
-          color: 'purple',
-          plan: 'Pro',
-          title: 'AI Voice Receptionist',
-          desc: 'Speaks with website visitors in Hindi and English, answers questions, and submits appointment requests.',
-          cta: 'Unlock with Pro',
-        },
-        {
           icon: 'badge',
           color: 'emerald',
           plan: 'Pro',
@@ -457,7 +449,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           color: 'teal',
           plan: 'Pro',
           title: 'Priority Support',
-          desc: 'Get priority help for your clinic website, booking flow, and AI receptionist.',
+          desc: 'Get priority help for your clinic website and booking flow.',
           cta: 'Get Pro Support',
         },
       ];

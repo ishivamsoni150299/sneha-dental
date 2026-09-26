@@ -1121,7 +1121,7 @@
                 <p class="text-red-600 text-xs mt-1">Your website is currently hidden from patients. Upgrade now to restore it.</p>
               }
               @if (isStarter) {
-                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro for the AI Voice Receptionist and clinic revenue insights.</p>
+                <p class="text-gray-500 text-xs mt-1">Upgrade to Pro for clinic revenue insights and priority support. AI Voice is coming soon.</p>
               }
               @if (isPro) {
                 <p class="text-purple-700 text-xs mt-1">You're on the best plan. All features are unlocked.</p>
@@ -1168,6 +1168,24 @@
               </button>
             </div>
           </div>
+
+          @if (subscriptionStatus()?.subscriptionId) {
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <h3 class="text-sm font-bold text-gray-900">Manage subscription</h3>
+              @if (subscriptionStatus()?.cancellationEffectiveAt) {
+                <p role="status" class="mt-2 text-sm text-gray-700">Cancellation scheduled for {{ cancellationEffectiveLabel() }}. Your paid features remain available through the current billing cycle.</p>
+              } @else if (confirmingCancellation()) {
+                <p class="mt-2 text-sm text-gray-700">Stop renewal at the end of this billing cycle? Your paid features remain available until then.</p>
+                <div class="mt-4 flex flex-wrap gap-3">
+                  <button type="button" (click)="cancelCurrentSubscription()" [disabled]="cancellingSubscription()" class="min-h-11 rounded-xl bg-red-700 px-4 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">{{ cancellingSubscription() ? 'Scheduling...' : 'Confirm cancellation' }}</button>
+                  <button type="button" (click)="confirmingCancellation.set(false)" class="min-h-11 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-700">Keep plan</button>
+                </div>
+              } @else {
+                <button type="button" (click)="confirmingCancellation.set(true)" class="mt-3 min-h-11 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel subscription</button>
+              }
+              @if (cancellationError()) { <p role="alert" class="mt-3 text-sm text-red-700">{{ cancellationError() }}</p> }
+            </div>
+          }
 
           <!-- Plan comparison cards -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1253,7 +1271,7 @@
             <p class="text-sm font-bold text-gray-900 mb-1">Is it worth it?</p>
             <p class="text-xs text-gray-500 leading-relaxed">
               One extra patient booking per week = ~₹2,500-₹5,000 revenue. Pro costs ₹2,499/month.
-              The AI Voice Receptionist alone pays for itself if it turns even <strong class="text-gray-700">one voice enquiry</strong> into a booking each month.
+              Compare the plan cost with your clinic's own appointment and revenue data.
             </p>
           </div>
 
@@ -1261,7 +1279,7 @@
       }
 
       <!-- ── Voice Agent ─────────────────────────────────────────────────── -->
-      @if (activeTab() === 'voice') {
+      @if (false && activeTab() === 'voice') {
         <div class="space-y-6">
 
           <!-- Header -->

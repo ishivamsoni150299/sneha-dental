@@ -143,13 +143,13 @@ public class ReviewController {
     ) {
         UUID accountId = patientAccount(jwt);
         List<Map<String, Object>> appointments = jdbcTemplate.queryForList("""
-            select clinic_id, patient_name, phone_e164 from appointments
+            select clinic_id, patient_name from appointments
             where id = ? and status = 'completed'
               and patient_id = ?
             for update
             """, appointmentId, accountId);
         if (appointments.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "A completed appointment matching this phone number was not found.");
+            "A completed appointment linked to your account was not found.");
         Map<String, Object> appointment = appointments.getFirst();
         UUID patientId = accountId;
         UUID reviewId = UUID.randomUUID();
@@ -202,21 +202,6 @@ public class ReviewController {
         if (jwt == null || !"patient".equals(jwt.getClaimAsString("role")))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sign in with your patient account.");
         return UUID.fromString(jwt.getSubject());
-    }
-
-    private UUID patientId(String phone) {
-        return jdbcTemplate.queryForObject("""
-            insert into users (role, phone_e164, phone_verified)
-            values ('patient', ?, false)
-            on conflict (phone_e164) do update set updated_at = now()
-            returning id
-            """, UUID.class, phone);
-    }
-
-    private String normalizePhone(String phone) {
-        String digits = phone == null ? "" : phone.replaceAll("[^0-9]", "");
-        if (digits.length() < 10) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A valid phone is required.");
-        return digits.substring(digits.length() - 10);
     }
 
     private Map<String, Object> review(ResultSet resultSet) throws SQLException {
@@ -297,13 +282,11 @@ public class ReviewController {
     record ReportRequest(@Pattern(regexp = "resolved|dismissed") String status, boolean rejectReview) {}
     record ResponseRequest(@NotBlank @Size(min = 2, max = 600) String response) {}
     record PublicReviewRequest(
-        @NotBlank String phone,
         @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(5) int rating,
         @Size(max = 1200) String text,
         boolean anonymous
     ) {}
     record PublicReportRequest(
-        @NotBlank String phone,
         @Pattern(regexp = "privacy|abuse|misleading|other") String reason,
         @Size(max = 500) String details
     ) {}

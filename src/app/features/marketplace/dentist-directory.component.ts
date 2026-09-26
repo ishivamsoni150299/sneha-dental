@@ -509,6 +509,12 @@ export class DentistDirectoryComponent implements OnInit {
       this.providers.set(providers);
       this.clinics.set(response.dentists);
       this.totalCount.set(response.totalCount);
+      // Supply-aware noindex: pages with zero verified supply are noindexed to avoid
+      // thin-content penalties. Once supply appears, the page restores indexability.
+      if (!this.isDiscoveryHome && this.providers().length === 0 && this.clinics().length === 0) {
+        this.meta.updateTag({ name: 'robots', content: 'noindex,follow' });
+        this.meta.updateTag({ name: 'googlebot', content: 'noindex,follow' });
+      }
       this.analytics.trackMarketplaceSearch({
         search_term: this.searchTerm().trim() || undefined,
         locality: this.locality() || undefined,

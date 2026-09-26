@@ -23,6 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,6 +31,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,7 +47,7 @@ public class BillingController {
     private static final Map<String, Integer> AMOUNTS = Map.of("starter", 999, "pro", 2499);
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
-    private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+    private final HttpClient httpClient;
     private final String keyId;
     private final String keySecret;
     private final String webhookSecret;
@@ -52,24 +55,111 @@ public class BillingController {
     private final String proPlan;
     private final String manualPaymentUrl;
 
+    @Autowired
     public BillingController(
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
         @Value("${platform.billing.razorpay-key-id:}") String keyId,
         @Value("${platform.billing.razorpay-key-secret:}") String keySecret,
         @Value("${platform.billing.razorpay-webhook-secret:}") String webhookSecret,
-        @Value("${platform.billing.starter-plan-id:plan_ShGxRJzXZynEts}") String starterPlan,
-        @Value("${platform.billing.pro-plan-id:plan_ShGumDVvGT5kJz}") String proPlan,
+        @Value("${platform.billing.starter-plan-id:}") String starterPlan,
+        @Value("${platform.billing.pro-plan-id:}") String proPlan,
         @Value("${platform.billing.manual-payment-url:}") String manualPaymentUrl
     ) {
+        this(jdbcTemplate, objectMapper, keyId, keySecret, webhookSecret, starterPlan, proPlan,
+            manualPaymentUrl, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build());
+    }
+
+    BillingController(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, String keyId, String keySecret,
+        String webhookSecret, String starterPlan, String proPlan, String manualPaymentUrl, HttpClient httpClient) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.httpClient = httpClient;
         this.keyId = keyId;
         this.keySecret = keySecret;
         this.webhookSecret = webhookSecret;
         this.starterPlan = starterPlan;
         this.proPlan = proPlan;
         this.manualPaymentUrl = manualPaymentUrl;
+        if (!keyId.isBlank() || !keySecret.isBlank()) {
+            if (keyId.isBlank() || keySecret.isBlank() || starterPlan.isBlank() || proPlan.isBlank()) {
+                throw new IllegalStateException("Razorpay billing requires credentials and explicit Basic/Pro plan IDs.");
+            }
+        }
+    }
+
+    @GetMapping("/api/billing/subscriptions/current")
+    Map<String, Object> current(@AuthenticationPrincipal Jwt jwt) {
+        UUID clinicId = clinicOwner(jwt);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select a.razorpay_subscription_id, c.subscription_status,
+                   a.billing_config ->> 'cancellationEffectiveAt' as cancellation_effective_at
+            from clinic_private_accounts a join clinics c on c.id = a.clinic_id
+            where a.clinic_id = ?
+            """, clinicId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        if (rows.isEmpty()) return result;
+        var row = rows.getFirst();
+        result.put("subscriptionId", row.get("razorpay_subscription_id"));
+        result.put("status", row.get("subscription_status"));
+        result.put("cancellationEffectiveAt", row.get("cancellation_effective_at"));
+        return result;
+    }
+
+    /** Cancels auto-renewal while retaining paid access through the current cycle. */
+    @PostMapping("/api/billing/subscriptions/{id}/cancel")
+    @Transactional
+    Map<String, Object> cancel(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        UUID clinicId = clinicOwner(jwt);
+        if (id == null || !id.matches("sub_[A-Za-z0-9]+"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid subscription ID.");
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+            select razorpay_subscription_id,
+                   billing_config ->> 'cancellationEffectiveAt' as cancellation_effective_at
+            from clinic_private_accounts where clinic_id = ? for update
+            """, clinicId);
+        if (rows.size() != 1 || !id.equals(rows.getFirst().get("razorpay_subscription_id")))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription not found for this clinic.");
+        Object existing = rows.getFirst().get("cancellation_effective_at");
+        if (existing != null) return Map.of("status", "scheduled", "effectiveAt", existing);
+        if (keyId.isBlank() || keySecret.isBlank()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+            "Self-service cancellation is unavailable for this payment method. Contact billing support.");
+        HttpRequest providerRequest = HttpRequest.newBuilder(URI.create("https://api.razorpay.com/v1/subscriptions/" + id + "/cancel"))
+            .timeout(Duration.ofSeconds(20))
+            .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(
+                (keyId + ":" + keySecret).getBytes(StandardCharsets.UTF_8)))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString("{\"cancel_at_cycle_end\":1}"))
+            .build();
+        Map<String, Object> provider;
+        try {
+            HttpResponse<String> response = httpClient.send(providerRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300)
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Razorpay could not schedule cancellation.");
+            provider = parse(response.body());
+        } catch (InterruptedException error) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Razorpay cancellation was interrupted.", error);
+        } catch (java.io.IOException error) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Razorpay is unavailable.", error);
+        }
+        if (!id.equals(provider.get("id")) || !(provider.get("current_end") instanceof Number cycleEnd))
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Razorpay returned incomplete cancellation details.");
+        String effectiveAt = java.time.Instant.ofEpochSecond(cycleEnd.longValue()).toString();
+        jdbcTemplate.update("""
+            update clinic_private_accounts set
+                billing_config = billing_config || jsonb_build_object(
+                    'cancellationRequestedAt', now()::text, 'cancellationEffectiveAt', ?),
+                updated_at = now()
+            where clinic_id = ? and razorpay_subscription_id = ?
+            """, effectiveAt, clinicId, id);
+        return Map.of("status", "scheduled", "effectiveAt", effectiveAt);
+    }
+
+    private UUID clinicOwner(Jwt jwt) {
+        if (jwt == null || !"clinic-admin".equals(jwt.getClaimAsString("role")) || jwt.getClaimAsString("clinic_id") == null)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Clinic owner access is required.");
+        return UUID.fromString(jwt.getClaimAsString("clinic_id"));
     }
 
     @PostMapping({"/api/billing/subscriptions", "/api/create-subscription"})
@@ -184,7 +274,11 @@ public class BillingController {
             values (?, case when ? = 'active' then ? else null end, jsonb_build_object('billingCycle', ?))
             on conflict (clinic_id) do update set
                 razorpay_subscription_id = case when ? = 'active' then ? else clinic_private_accounts.razorpay_subscription_id end,
-                billing_config = clinic_private_accounts.billing_config || excluded.billing_config,
+                billing_config = (case
+                    when excluded.razorpay_subscription_id is not null
+                     and excluded.razorpay_subscription_id is distinct from clinic_private_accounts.razorpay_subscription_id
+                    then clinic_private_accounts.billing_config - 'cancellationRequestedAt' - 'cancellationEffectiveAt'
+                    else clinic_private_accounts.billing_config end) || excluded.billing_config,
                 updated_at = now()
             """, clinicId, status, subscriptionId, String.valueOf(notes.getOrDefault("billingCycle", "monthly")),
             status, subscriptionId);

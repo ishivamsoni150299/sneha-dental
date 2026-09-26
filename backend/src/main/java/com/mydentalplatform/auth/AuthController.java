@@ -59,6 +59,8 @@ public class AuthController {
         return loginResponse(otp.exchangeMagicLink(request.accessToken(), request.portal(), request.fullName(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
     }
 
+    /** @deprecated Unused by frontend. All login flows use {@code /api/auth/login}. Scheduled for removal. */
+    @Deprecated(since = "2026.10", forRemoval = true)
     @PostMapping("/clinic/login")
     ResponseEntity<LoginResponse> clinicLogin(
         @Valid @RequestBody LoginRequest request,
@@ -94,6 +96,8 @@ public class AuthController {
             servletRequest.getHeader(HttpHeaders.USER_AGENT)));
     }
 
+    /** @deprecated Unused by frontend. All login flows use {@code /api/auth/login}. Scheduled for removal. */
+    @Deprecated(since = "2026.10", forRemoval = true)
     @PostMapping("/professional/login")
     ResponseEntity<LoginResponse> professionalLogin(
         @Valid @RequestBody LoginRequest request,

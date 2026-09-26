@@ -41,10 +41,12 @@ public class VideoConsultationService {
         requireProviderVisit(appointmentId, dentistUserId);
     }
 
+    // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
     private Visit requireProviderVisit(UUID appointmentId, UUID dentistUserId) {
         var rows = jdbc.query("""
             select a.consultation_mode, a.status::text, a.appointment_date, a.appointment_time
             from appointments a
+            -- // COMPAT(legacy-doctor): remove once V23 migration is confirmed in all environments
             join providers p on (a.provider_id = p.id or (a.provider_id is null and a.doctor_id = p.legacy_doctor_id))
             where a.id = ? and p.user_id = ? and p.active = true
             """, (rs, row) -> new Visit(rs.getString("consultation_mode"), rs.getString("status"),

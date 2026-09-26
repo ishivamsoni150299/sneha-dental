@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.dao.DuplicateKeyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,6 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class AppointmentService {
-    private static final Logger LOG = LoggerFactory.getLogger(AppointmentService.class);
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
     private static final String BOOKING_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final JdbcTemplate jdbcTemplate;
@@ -93,7 +90,7 @@ public class AppointmentService {
                 """, appointmentId, request.clinicId(), selectedDoctorId, selectedDoctorId, bookingRef,
                 request.name().trim(), "+91" + phone, blankToNull(request.email()), request.service().trim(),
                 request.date(), request.time(), request.source(), blankToNull(request.message()),
-                request.confirmationDeadline(), request.consentVersion(), json(request.attribution()), mode, accountId);
+                request.confirmationDeadline(), com.mydentalplatform.config.LegalPolicyVersions.BOOKING, json(request.attribution()), mode, accountId);
             jdbcTemplate.update("""
                 insert into appointment_slots (
                     clinic_id, doctor_id, appointment_id, appointment_date, appointment_time
@@ -106,33 +103,6 @@ public class AppointmentService {
                 notificationService.notifyClinicNewAppointment(
                     request.clinicId(), bookingRef, request.name().trim(), "+91" + phone,
                     request.service().trim(), request.date(), request.time(), request.source());
-            }
-            if (accountId == null) try {
-                String phoneE164 = "+91" + phone;
-                List<UUID> existing = jdbcTemplate.queryForList(
-                    "SELECT id FROM users WHERE phone_e164 = ? AND role = 'patient' LIMIT 1",
-                    UUID.class, phoneE164);
-                UUID patientId;
-                if (accountId != null) {
-                    patientId = accountId;
-                } else if (!existing.isEmpty()) {
-                    patientId = existing.getFirst();
-                } else {
-                    UUID candidateId = UUID.randomUUID();
-                    jdbcTemplate.update("""
-                        INSERT INTO users (id, role, phone_e164, enabled)
-                        VALUES (?, 'patient'::user_role, ?, true)
-                        ON CONFLICT DO NOTHING
-                        """, candidateId, phoneE164);
-                    patientId = jdbcTemplate.queryForObject(
-                        "SELECT id FROM users WHERE phone_e164 = ? AND role = 'patient' LIMIT 1",
-                        UUID.class, phoneE164);
-                }
-                jdbcTemplate.update("UPDATE appointments SET patient_id = ? WHERE id = ?",
-                    patientId, appointmentId);
-            } catch (Exception patientError) {
-                // Best-effort — never block a booking
-                LOG.warn("Patient linking skipped for appointment {}", appointmentId, patientError);
             }
             return bookingRef;
         } catch (DuplicateKeyException error) {
@@ -752,9 +722,7 @@ public class AppointmentService {
     }
 
     private String normalizePhone(String phone) {
-        String digits = phone == null ? "" : phone.replaceAll("[^0-9]", "");
-        if (digits.length() < 10) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A valid phone is required.");
-        return digits.substring(digits.length() - 10);
+        return com.mydentalplatform.auth.IndianPhoneNumber.parse(phone).national();
     }
 
     private String blankToNull(String value) {

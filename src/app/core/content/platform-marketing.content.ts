@@ -19,18 +19,14 @@ export const PLATFORM_FAQS: readonly ClinicFaq[] = [
   },
   {
     q: 'Is there a contract or lock-in?',
-    a: 'No lock-in. Monthly subscription — cancel anytime. Your domain and content always belong to you.',
+    a: 'Paid plans bill monthly. Razorpay subscribers can stop renewal from clinic settings; paid access continues through the current billing cycle. Your domain and content remain yours.',
   },
   {
     q: 'Do you support multiple doctors or clinic branches?',
     a: 'Basic and Pro support multiple verified doctor profiles and schedules. Each clinic workspace represents one location; multi-location groups can manage separate listings for each branch.',
   },
   {
-    q: 'What is the early adopter pricing guarantee?',
-    a: 'First 20 clinics get their signup price locked for 12 months from activation date. This applies only to the plan you select at signup — upgrading moves you to current pricing. Downgrading forfeits the benefit. After 12 months, you get 30-day advance notice before any price change. Yearly subscribers get their price locked for the full subscription year regardless.',
-  },
-  {
-    q: 'How does the AI Voice Receptionist billing work?',
-    a: 'Pro plan includes 30 voice minutes/month at no extra cost. After that, it\'s ₹20/min usage-based — you only pay for what you use. You can set a monthly overage budget cap (default ₹1,000) so there are never any surprises. When your limit is reached, the AI politely connects patients to your clinic number directly.',
+    q: 'Is the AI Voice Receptionist included?',
+    a: 'No. AI Voice is coming soon and is not available or included in any current paid plan.',
   },
 ];

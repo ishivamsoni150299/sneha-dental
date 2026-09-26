@@ -134,6 +134,15 @@ export interface ClinicConfig {
   onboardingDismissed?:     boolean;  // admin dismissed the setup checklist
   onboardingSharedWebsite?: boolean;  // admin confirmed they shared the website
 
+  // ── Multi-Branch & Staff ──────────────────────────────────────────────────
+  branches?: ClinicBranch[];
+  staffMembers?: ClinicStaffMember[];
+  notificationPreferences?: ClinicNotificationPreferences;
+  voiceEscalationNumber?: string;
+  voiceSameDayNoticeHours?: number;
+  voiceDiagnosisDisclaimer?: boolean;
+  voiceSpendLimit?: number; // Configurable monthly spend limit in ₹
+
   // ── Brand ─────────────────────────────────────────────────────────────────
   theme: ClinicTheme;            // default color theme for this deployment
   bookingRefPrefix: string;       // e.g. "SD" → generates "SD-A1B2C3D4"
@@ -187,6 +196,37 @@ export const clinicConfig: ClinicConfig = {
   plans:        [],
   testimonials: [],
 };
+
+export interface ClinicBranch {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  phone: string;
+  isMain?: boolean;
+}
+
+export type ClinicStaffRole = 'owner' | 'manager' | 'dentist' | 'receptionist';
+
+export interface ClinicStaffMember {
+  id: string;
+  name: string;
+  email: string;
+  role: ClinicStaffRole;
+  doctorId?: string;
+  active: boolean;
+  phone?: string;
+  createdAt?: string;
+}
+
+export interface ClinicNotificationPreferences {
+  emailBookingAlerts: boolean;
+  emailDailySummary: boolean;
+  whatsappStaffAlerts: boolean;
+  dashboardAudioAlerts: boolean;
+  alertRecipientEmail?: string;
+  alertRecipientPhone?: string;
+}
 
 // Re-exported here to preserve existing imports while keeping plan access rules
 // framework-neutral for Angular and tests.

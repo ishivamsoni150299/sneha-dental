@@ -449,7 +449,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     for (const fieldName of fields) {
       if (!this.form.get(fieldName)?.invalid) continue;
 
-      const field = this.document.getElementById(`appointment-${fieldName}`);
+      const field = document.getElementById(`appointment-${fieldName}`);
       if (!field) continue;
 
       field.closest('details')?.setAttribute('open', '');
@@ -460,7 +460,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private scrollToBookingForm(): void {
-    this.document.getElementById('appointment-booking-form')?.scrollIntoView({
+    document.getElementById('appointment-booking-form')?.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
     });

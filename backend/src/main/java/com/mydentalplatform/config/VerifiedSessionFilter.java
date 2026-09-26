@@ -9,7 +9,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Live authorization: disabled users, changed roles and revoked sessions stop immediately. */
+/**
+ * Live authorization: disabled users, changed roles and revoked sessions stop immediately.
+ *
+ * <p>Every authenticated request performs a database query against {@code users} and
+ * {@code refresh_tokens} to verify the session is still valid. This provides immediate
+ * revocation semantics — a disabled user or revoked session is blocked within one request
+ * cycle, with no stale JWT window.</p>
+ *
+ * <p><strong>Scaling plan:</strong> At high QPS (&gt;5 000), introduce a short-TTL (30–60 s)
+ * Caffeine or Redis cache keyed by {@code (user_id, family_id)}. Cache-bust on password
+ * change, role change, or explicit revocation via a {@code session_version} column on
+ * {@code users}. See {@code backend/SESSION_CACHING_PLAN.md} for details.</p>
+ */
 public class VerifiedSessionFilter extends OncePerRequestFilter {
     private final JdbcTemplate jdbc;
     private final com.mydentalplatform.auth.TestPhoneOtp testPhoneOtp;

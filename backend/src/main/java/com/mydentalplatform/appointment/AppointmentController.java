@@ -163,7 +163,7 @@ public class AppointmentController {
         @NotNull UUID clinicId,
         @Size(max = 12) String bookingRefPrefix,
         @NotBlank @Size(max = 120) String name,
-        @NotBlank @Pattern(regexp = ".*[0-9]{10}.*") String phone,
+        @NotBlank @Pattern(regexp = "(?:\\+91)?[6-9][0-9]{9}") String phone,
         @Email @Size(max = 254) String email,
         @NotBlank @Size(max = 160) String service,
         @NotNull LocalDate date,
@@ -210,7 +210,7 @@ public class AppointmentController {
 
     public record LookupRequest(
         @NotBlank @Size(max = 32) String bookingRef,
-        @NotBlank @Pattern(regexp = ".*[0-9]{10}.*") String phone
+        @NotBlank @Pattern(regexp = "(?:\\+91)?[6-9][0-9]{9}") String phone
     ) {}
 
     public record StatusRequest(

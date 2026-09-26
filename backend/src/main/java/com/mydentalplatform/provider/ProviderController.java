@@ -89,6 +89,7 @@ public class ProviderController {
                    m.consultation_fee, m.accepting_new_patients,
                    (SELECT coalesce(jsonb_agg(ps.service_id), '[]'::jsonb)::text
                     FROM provider_services ps WHERE ps.provider_id = p.id AND ps.active) AS service_ids,
+                   -- // COMPAT(legacy-doctor)
                    (p.legacy_doctor_id IS NULL AND l.clinic_id IS NULL) AS is_independent
             FROM providers p
             JOIN provider_marketplace_listings ml ON ml.provider_id = p.id
@@ -133,6 +134,7 @@ public class ProviderController {
                    l.address_line1, l.address_line2, l.locality, l.city, l.state, l.postal_code,
                    l.latitude, l.longitude, l.timezone, l.phone_e164,
                    m.consultation_fee, m.accepting_new_patients, m.schedule::text AS schedule,
+                   -- // COMPAT(legacy-doctor)
                    (p.legacy_doctor_id IS NULL AND l.clinic_id IS NULL) AS is_independent
             FROM providers p
             JOIN provider_marketplace_listings ml ON ml.provider_id = p.id AND ml.publication_status = 'published'

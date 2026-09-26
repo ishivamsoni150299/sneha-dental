@@ -78,7 +78,7 @@ public class MarketplaceApiController {
             context.clinicId(), context.bookingRefPrefix(), request.patientName(), request.phone(),
             request.email(), marketplace.serviceLabel(request.serviceId()), request.date(), request.time(),
             request.doctorId(), request.message(), "marketplace",
-            OffsetDateTime.now(MarketplaceApiService.INDIA).plusHours(2), "2026-09-06",
+            OffsetDateTime.now(MarketplaceApiService.INDIA).plusHours(2), com.mydentalplatform.config.LegalPolicyVersions.BOOKING,
             Map.of("marketplaceSlug", request.dentistSlug(), "channel", "chatgpt_or_public_api"), "in_person"
         ), jwt != null && "patient".equals(jwt.getClaimAsString("role")) ? UUID.fromString(jwt.getSubject()) : null);
         return new BookingResponse(bookingRef, "pending",
@@ -97,7 +97,7 @@ public class MarketplaceApiController {
         @NotNull LocalDate date,
         @NotNull LocalTime time,
         @NotBlank @Size(min = 2, max = 120) String patientName,
-        @NotBlank @Pattern(regexp = ".*[0-9]{10}.*") String phone,
+        @NotBlank @Pattern(regexp = "(?:\\+91)?[6-9][0-9]{9}") String phone,
         @Email @Size(max = 254) String email,
         @Size(max = 1000) String message,
         @AssertTrue(message = "Patient consent is required before sharing booking details.") boolean consentToShare

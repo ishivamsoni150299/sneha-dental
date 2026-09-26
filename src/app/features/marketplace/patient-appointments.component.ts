@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
@@ -12,7 +12,7 @@ import { formatSlotDisplay } from '../../core/services/doctor.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
 import { VideoConsultationComponent } from '../../shared/components/video-consultation/video-consultation.component';
 
-type VerificationStep = 'phone' | 'code' | 'appointments';
+type AccountStep = 'sign-in' | 'appointments';
 
 @Component({
   selector: 'app-patient-appointments',
@@ -21,27 +21,22 @@ type VerificationStep = 'phone' | 'code' | 'appointments';
   templateUrl: './patient-appointments.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PatientAppointmentsComponent implements OnInit, OnDestroy {
+export class PatientAppointmentsComponent implements OnInit {
   readonly signup = signal(false);
   private readonly router = inject(Router);
   async authenticated(role: AuthRole): Promise<void> {
     if (role === 'patient') { await this.loadSession(); return; }
     await this.router.navigateByUrl(role === 'dentist' ? '/professional/workspace' : role === 'platform-admin' ? '/business/clinics' : role === 'clinic-admin' ? '/business/clinic/dashboard' : '/business/signup');
   }
-  readonly resendCooldown = signal(0);
-  private resendTimer?: ReturnType<typeof setInterval>;
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   readonly patientAuth = inject(PatientAuthService);
   private readonly patientApi = inject(PatientAppointmentApiService);
-  readonly patientAccessEnabled = computed(() => !this.patientAuth.role() || this.patientAuth.isSignedIn());
-
-  readonly step = signal<VerificationStep>('phone');
-  readonly phoneMasked = signal('');
+  readonly step = signal<AccountStep>('sign-in');
+  readonly accountLabel = signal('');
+  readonly claimChallengeId = signal<string | null>(null);
   readonly appointments = signal<PatientAppointmentSummary[]>([]);
   readonly loading = signal(false);
-  readonly sendingCode = signal(false);
-  readonly verifyingCode = signal(false);
   readonly claiming = signal(false);
   readonly mutatingId = signal<string | null>(null);
   readonly confirmCancelId = signal<string | null>(null);
@@ -55,14 +50,11 @@ export class PatientAppointmentsComponent implements OnInit, OnDestroy {
   readonly minDate = formatLocalDateInput();
   private availabilityRequest = 0;
 
-  readonly phoneForm = this.fb.nonNullable.group({
-    phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
-  });
-  readonly codeForm = this.fb.nonNullable.group({
-    code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-  });
   readonly claimForm = this.fb.nonNullable.group({
     bookingRef: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9]{1,20}-[A-Za-z0-9]{8}$/)]],
+  });
+  readonly claimCodeForm = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
   });
   readonly rescheduleForm = this.fb.nonNullable.group({
     date: ['', Validators.required],
@@ -81,59 +73,12 @@ export class PatientAppointmentsComponent implements OnInit, OnDestroy {
     if (this.patientAuth.isSignedIn()) await this.loadSession();
   }
 
-  async sendCode(): Promise<void> {
-    this.phoneForm.markAllAsTouched();
-    if (this.phoneForm.invalid || this.sendingCode() || this.resendCooldown() > 0) return;
-    this.sendingCode.set(true);
-    this.error.set(null);
-    try {
-      this.phoneMasked.set(await this.patientAuth.sendVerificationCode(
-        this.phoneForm.controls.phone.value,
-        'patient-phone-recaptcha',
-      ));
-      this.step.set('code');
-      this.codeForm.reset();
-      this.resendCooldown.set(60);
-      clearInterval(this.resendTimer);
-      this.resendTimer = setInterval(() => { this.resendCooldown.update(n => Math.max(0, n - 1)); if (!this.resendCooldown()) clearInterval(this.resendTimer); }, 1000);
-    } catch (error) {
-      this.error.set(this.authError(error));
-    } finally {
-      this.sendingCode.set(false);
-    }
-  }
-
-  async verifyCode(): Promise<void> {
-    this.codeForm.markAllAsTouched();
-    if (this.codeForm.invalid || this.verifyingCode()) return;
-    this.verifyingCode.set(true);
-    this.error.set(null);
-    try {
-      await this.patientAuth.confirmVerificationCode(this.codeForm.controls.code.value);
-      await this.loadSession();
-    } catch (error) {
-      this.error.set(this.authError(error));
-    } finally {
-      this.verifyingCode.set(false);
-    }
-  }
-
-  resetVerification(): void {
-    clearInterval(this.resendTimer); this.resendCooldown.set(0);
-    this.patientAuth.resetVerification();
-    this.codeForm.reset();
-    this.error.set(null);
-    this.step.set('phone');
-  }
-
-  ngOnDestroy(): void { clearInterval(this.resendTimer); }
-
   async loadSession(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
       const session = await this.patientApi.session();
-      this.phoneMasked.set(session.profile.phoneMasked);
+      this.accountLabel.set(session.profile.accountLabel);
       this.appointments.set(session.appointments);
       this.step.set('appointments');
     } catch (error) {
@@ -157,10 +102,28 @@ export class PatientAppointmentsComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.claimMessage.set(null);
     try {
-      const appointment = await this.patientApi.claim(this.claimForm.controls.bookingRef.value);
+      this.claimChallengeId.set(await this.patientApi.requestClaim(this.claimForm.controls.bookingRef.value));
+      this.claimMessage.set('If this guest booking has an email address, we sent a linking code there. Enter it below. Otherwise, contact the clinic.');
+    } catch (error) {
+      this.error.set(this.errorMessage(error));
+    } finally {
+      this.claiming.set(false);
+    }
+  }
+
+  async completeClaim(): Promise<void> {
+    this.claimCodeForm.markAllAsTouched();
+    const challengeId = this.claimChallengeId();
+    if (!challengeId || this.claimCodeForm.invalid || this.claiming()) return;
+    this.claiming.set(true);
+    this.error.set(null);
+    try {
+      const appointment = await this.patientApi.completeClaim(challengeId, this.claimCodeForm.controls.code.value);
       this.replaceAppointment(appointment);
       this.claimForm.reset();
-      this.claimMessage.set('Appointment linked to this verified number.');
+      this.claimCodeForm.reset();
+      this.claimChallengeId.set(null);
+      this.claimMessage.set('Appointment linked to your account.');
     } catch (error) {
       this.error.set(this.errorMessage(error));
     } finally {
@@ -279,8 +242,8 @@ export class PatientAppointmentsComponent implements OnInit, OnDestroy {
   async logout(): Promise<void> {
     await this.patientAuth.logout();
     this.appointments.set([]);
-    this.phoneMasked.set('');
-    this.step.set('phone');
+    this.accountLabel.set('');
+    this.step.set('sign-in');
   }
 
   canManage(appointment: PatientAppointmentSummary): boolean {
@@ -320,15 +283,6 @@ export class PatientAppointmentsComponent implements OnInit, OnDestroy {
   private replaceAppointment(appointment: PatientAppointmentSummary): void {
     const next = this.appointments().filter(item => item.id !== appointment.id);
     this.appointments.set([appointment, ...next]);
-  }
-
-  private authError(error: unknown): string {
-    const code = (error as { code?: string }).code ?? '';
-    if (code === 'auth/invalid-verification-code') return 'That verification code is incorrect.';
-    if (code === 'auth/code-expired' || code === 'auth/session-expired') return 'That code expired. Request a new one.';
-    if (code === 'auth/too-many-requests' || code === 'auth/quota-exceeded') return 'Too many attempts. Please wait before trying again.';
-    if (code === 'auth/network-request-failed') return 'Check your connection and try again.';
-    return this.errorMessage(error);
   }
 
   private errorMessage(error: unknown): string {
