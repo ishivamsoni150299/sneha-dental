@@ -14,11 +14,14 @@ import {
   type MarketplaceClinic,
 } from '../../core/services/marketplace.service';
 import { SlotPickerComponent, type SelectedSlot } from '../../shared/components/slot-picker/slot-picker.component';
+import { PatientAuthService } from '../../core/services/patient-auth.service';
+import { AuthRole } from '../../core/services/auth-facade.service';
+import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
 
 @Component({
   selector: 'app-marketplace-booking',
   standalone: true,
-  imports: [AppointmentComponent, RouterLink, SlotPickerComponent],
+  imports: [AppointmentComponent, RouterLink, SlotPickerComponent, PasswordLoginComponent],
   templateUrl: './marketplace-booking.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -26,6 +29,10 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly route = inject(ActivatedRoute);
   private readonly marketplace = inject(MarketplaceService);
   private readonly doctors = inject(DoctorService);
+  readonly patientAuth = inject(PatientAuthService);
+  readonly accountReady = signal(false);
+  readonly signup = signal(false);
+  readonly accountError = signal('');
 
   readonly clinic = signal<MarketplaceClinic | null>(null);
   readonly context = signal<BookingClinicContext | null>(null);
@@ -54,6 +61,8 @@ export class MarketplaceBookingComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const slug = this.route.snapshot.paramMap.get('slug') ?? '';
     try {
+      await this.patientAuth.ready;
+      this.accountReady.set(this.patientAuth.isSignedIn());
       const clinic = await this.marketplace.getVerifiedClinicBySlug(slug);
       if (!clinic) {
         this.notFound.set(true);
@@ -154,6 +163,11 @@ export class MarketplaceBookingComponent implements OnInit {
   onBooked(submission: BookingSubmission): void {
     this.submission.set(submission);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  onAuthenticated(role: AuthRole): void {
+    this.accountReady.set(role === 'patient');
+    this.accountError.set(role === 'patient' ? '' : 'Please sign in with a patient account to book this consultation.');
   }
 
   onSlotSelected(slot: SelectedSlot): void {

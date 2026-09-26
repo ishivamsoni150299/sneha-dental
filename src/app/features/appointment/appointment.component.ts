@@ -24,7 +24,9 @@ import {
   filterBookableSlots,
   formatSlotDisplay,
   isPastDate,
+  normalizeTimeValue,
 } from '../../core/services/doctor.service';
+import { MarketplaceService } from '../../core/services/marketplace.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
@@ -56,6 +58,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   private readonly router             = inject(Router);
   private readonly route              = inject(ActivatedRoute);
   private readonly doctorSvc          = inject(DoctorService);
+  private readonly marketplace        = inject(MarketplaceService);
   readonly patientAuth        = inject(PatientAuthService);
   private readonly analytics          = inject(AnalyticsService);
   readonly clinic            = inject(ClinicConfigService);
@@ -303,9 +306,14 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedDoctorId.set(slot.doctorId);
     this.form.patchValue({ date: slot.date, time: '' }, { emitEvent: false });
     await this.refreshSlots();
-    if (this.preselectedSlot === slot && this.availableSlots().includes(slot.time)) {
-      this.form.patchValue({ time: slot.time });
+    const time = normalizeTimeValue(slot.time);
+    if (this.preselectedSlot === slot && this.availableSlots().includes(time)) {
+      this.form.patchValue({ time });
       this.validateScheduleFields();
+      if (this.bookingContext?.consultationMode === 'video') {
+        this.currentStep.set(1);
+        await this.nextStep();
+      }
     }
   }
 
@@ -370,9 +378,16 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
 
     this.slotsLoading.set(true);
     try {
-      const results = await Promise.all(doctors.map(doctor => this.doctorSvc.getAvailableSlots(
-        this.bookingContext?.clinicId ?? this.clinic.config.clinicId!, doctor, date
-      )));
+      const slug = this.bookingContext?.attribution?.marketplaceSlug;
+      const results = this.bookingContext?.source === 'marketplace' && typeof slug === 'string'
+        ? [(await this.marketplace.getAvailability(slug, 1, date)).days
+          .filter(day => day.date === date)
+          .flatMap(day => day.slots)
+          .filter(slot => doctors.some(doctor => doctor.id === slot.doctorId))
+          .map(slot => normalizeTimeValue(slot.time))]
+        : await Promise.all(doctors.map(doctor => this.doctorSvc.getAvailableSlots(
+          this.bookingContext?.clinicId ?? this.clinic.config.clinicId!, doctor, date
+        )));
       if (request === this.slotRequest) this.availableSlots.set([...new Set(results.flat())].sort());
     } catch {
       if (request === this.slotRequest) this.availableSlots.set([]);

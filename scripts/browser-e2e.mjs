@@ -18,29 +18,29 @@ async function waitFor(url) {
   throw new Error(`Timed out waiting for ${url}`);
 }
 
-async function post(path, payload, token) {
+async function post(path, payload, token, expectedStatus = 200) {
   const response = await fetch(apiUrl + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify(payload),
   });
-  assert.equal(response.status, 200, `${path} should accept the isolated test fixture`);
-  return response.json();
+  assert.equal(response.status, expectedStatus, `${path} should accept the isolated test fixture`);
+  return expectedStatus === 202 || expectedStatus === 204 ? null : response.json();
 }
 
-async function get(path) {
-  const response = await fetch(apiUrl + path);
+async function get(path, token) {
+  const response = await fetch(apiUrl + path, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
   assert.equal(response.status, 200, `${path} should be available in the isolated test`);
   return response.json();
 }
 
-async function patch(path, payload, token) {
+async function patch(path, payload, token, expectedStatus = 204) {
   const response = await fetch(apiUrl + path, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
-  assert.equal(response.status, 204, `${path} should update the isolated test fixture`);
+  assert.equal(response.status, expectedStatus, `${path} should update the isolated test fixture`);
 }
 
 await waitFor(apiUrl + '/api/health');
@@ -115,6 +115,51 @@ try {
   await page.reload();
   await page.getByText(booked.bookingReference, { exact: true }).waitFor();
   await page.getByRole('heading', { name: 'E2E Clinic' }).waitFor();
+
+  const dentist = await post('/api/auth/professional/signup', {
+    email: `dentist-${suffix}@example.test`, password, fullName: 'E2E Video Dentist',
+  });
+  await patch('/api/providers/me', {
+    fullName: 'E2E Video Dentist', qualification: 'BDS', speciality: 'General Dentistry',
+    registrationNumber: 'E2E-ONLY', registrationCouncil: 'Disposable test fixture',
+    phoneE164: '+919876543210', languages: ['English'],
+  }, dentist.accessToken);
+  await post('/api/providers/me/locations', {
+    name: 'E2E Video Practice', addressLine1: 'Disposable test address', city: 'Noida',
+    locality: 'Noida', consultationFee: 400, acceptingNewPatients: true, schedule,
+  }, dentist.accessToken, 201);
+  await post('/api/providers/me/submit-verification', {}, dentist.accessToken, 202);
+  const provider = await get('/api/providers/me', dentist.accessToken);
+  await post(`/api/admin/providers/${provider.id}/verify`, {}, admin.accessToken);
+
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await page.getByRole('heading', { name: 'Sign in to your appointments' }).waitFor();
+  await page.goto(`${appUrl}/dentists/${provider.slug}/book?mode=video`);
+  await page.getByRole('heading', { name: 'Book a video consultation', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /In-clinic visit/ }).count(), 0);
+  await page.locator('app-slot-picker').getByRole('button', { name: /E2E Video Dentist/ }).first().click();
+  await page.getByRole('heading', { name: 'Sign in to continue', exact: true }).waitFor();
+  await page.getByRole('textbox', { name: 'Email address' }).fill(patientEmail);
+  await page.locator('#auth-password').fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.locator('#appointment-name').fill('E2E Video Patient');
+  await page.locator('#appointment-phone').fill('9876543210');
+  await page.getByRole('button', { name: 'Review & Book', exact: true }).click();
+  await page.locator('#appointment-privacyAccepted').check();
+  await page.getByRole('button', { name: 'Send Appointment Request', exact: true }).click();
+  await page.getByRole('heading', { name: 'Your request was sent', exact: true }).waitFor();
+  await page.getByRole('link', { name: 'View my appointments', exact: true }).click();
+  await page.getByRole('heading', { name: 'E2E Video Dentist', exact: true }).waitFor();
+
+  const inbox = await get('/api/providers/me/appointments?view=pending', dentist.accessToken);
+  const videoAppointment = inbox.find(item => item.patient_name === 'E2E Video Patient');
+  assert.ok(videoAppointment, 'Independent dentist must receive the patient video request');
+  assert.equal(videoAppointment.consultation_mode, 'video');
+  await patch(`/api/providers/me/appointments/${videoAppointment.id}/status`, { status: 'confirmed' }, dentist.accessToken, 200);
+  await page.reload();
+  const videoCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'E2E Video Dentist', exact: true }) });
+  await videoCard.getByText('Confirmed', { exact: true }).waitFor();
+  console.log('PASS Playwright: independent video booking form, dentist inbox/confirmation, and patient-account visibility. Media transport is tested separately.');
   console.log('PASS Playwright: unverified exclusion, verified booking, and patient-account visibility against isolated Spring/PostgreSQL.');
 } finally {
   await browser.close();

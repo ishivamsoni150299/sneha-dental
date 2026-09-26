@@ -67,8 +67,8 @@ export const DEFAULT_BOOKING_SLOTS = generateSlots('09:00', '19:30');
 /** Normalize either "HH:MM" or "h:MM AM/PM" to canonical "HH:MM". */
 export function normalizeTimeValue(time: string): string {
   const value = time.trim();
-  if (/^\d{2}:\d{2}$/.test(value)) {
-    return value;
+  if (/^\d{2}:\d{2}(?::00(?:\.0+)?)?$/.test(value)) {
+    return value.slice(0, 5);
   }
 
   const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);

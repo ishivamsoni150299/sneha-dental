@@ -6,6 +6,8 @@ import type { MarketplaceClinic } from '../../core/services/marketplace.service'
 import { MarketplaceService } from '../../core/services/marketplace.service';
 import { AppointmentComponent } from '../appointment/appointment.component';
 import { MarketplaceBookingComponent } from './marketplace-booking.component';
+import { PatientAuthService } from '../../core/services/patient-auth.service';
+import { AppointmentService } from '../../core/services/appointment.service';
 
 function clinic(): MarketplaceClinic {
   return {
@@ -24,12 +26,16 @@ function clinic(): MarketplaceClinic {
 }
 
 describe('MarketplaceBookingComponent', () => {
-  async function createStateFixture(result: MarketplaceClinic | null, videoReady = false, mode = '') {
+  async function createStateFixture(result: MarketplaceClinic | null, videoReady = false, mode = '', signedIn = false) {
     const marketplace = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
-      'getVerifiedClinicBySlug', 'serviceLabel', 'videoAvailable',
+      'getVerifiedClinicBySlug', 'serviceLabel', 'videoAvailable', 'getAvailability',
     ]);
     marketplace.getVerifiedClinicBySlug.and.resolveTo(result);
     marketplace.videoAvailable.and.resolveTo(videoReady);
+    const date = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    marketplace.getAvailability.and.resolveTo({ dentistSlug: 'missing-clinic', timezone: 'Asia/Kolkata', days: [{
+      date, slots: [{ doctorId: result?.id ?? 'doctor-1', doctorName: 'Dr. Asha', time: '10:00:00', startsAt: `${date}T10:00:00+05:30` }],
+    }] });
     const doctors = jasmine.createSpyObj<DoctorService>('DoctorService', ['getDoctors']);
     doctors.getDoctors.and.resolveTo([]);
     await TestBed.configureTestingModule({
@@ -47,10 +53,14 @@ describe('MarketplaceBookingComponent', () => {
         },
         { provide: MarketplaceService, useValue: marketplace },
         { provide: DoctorService, useValue: doctors },
+        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => signedIn, user: () => null } },
+        { provide: AppointmentService, useValue: { holdSlot: async () => ({ holdToken: 'test-hold', expiresAt: `${date}T10:00:00Z` }), releaseHold: async () => undefined } },
       ],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(MarketplaceBookingComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -101,6 +111,7 @@ describe('MarketplaceBookingComponent', () => {
         },
         { provide: MarketplaceService, useValue: marketplace },
         { provide: DoctorService, useValue: doctors },
+        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => false, user: () => null } },
       ],
     }).compileComponents();
 
@@ -147,6 +158,7 @@ describe('MarketplaceBookingComponent', () => {
         },
         { provide: MarketplaceService, useValue: marketplace },
         { provide: DoctorService, useValue: doctors },
+        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => false, user: () => null } },
       ],
     }).compileComponents();
 
@@ -195,6 +207,36 @@ describe('MarketplaceBookingComponent', () => {
     expect(fixture.componentInstance.videoUnavailable()).toBeTrue();
     expect(fixture.nativeElement.textContent).toContain('Video consultations are unavailable');
     expect(fixture.nativeElement.querySelector('app-slot-picker')).toBeNull();
-    expect(fixture.nativeElement.querySelector('button[aria-pressed="true"]')?.disabled).toBeTrue();
+    expect(fixture.nativeElement.textContent).not.toContain('In-clinic visit');
+  });
+
+  it('lets an independent video patient select a real API slot and continue to details', async () => {
+    const provider = clinic();
+    provider.isIndependent = true;
+    provider.providerSchedule = {};
+    provider.marketplaceProfile!.videoConsultationEnabled = true;
+    const fixture = await createStateFixture(provider, true, 'video', true);
+    const picker = fixture.nativeElement.querySelector('app-slot-picker');
+    expect(picker).not.toBeNull();
+    const slot = Array.from(picker.querySelectorAll('button')).find(button => (button as HTMLButtonElement).textContent?.includes('10:00 AM')) as HTMLButtonElement;
+    expect(slot).toBeDefined();
+    slot.click(); fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    const form = fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance as AppointmentComponent;
+    expect(form.form.value.time).toBe('10:00');
+    expect(form.form.value.service).toBe('Video Consultation');
+    expect(form.currentStep()).toBe(2);
+    expect(form.bookingContext?.isIndependent).toBeTrue();
+    expect(fixture.nativeElement.textContent).not.toContain('Independent Dentist Profile:');
+  });
+
+  it('keeps the selected video slot while showing patient sign-in on the same page', async () => {
+    const provider = clinic(); provider.isIndependent = true;
+    const fixture = await createStateFixture(provider, true, 'video');
+    fixture.componentInstance.onSlotSelected({ doctorId: provider.id, doctorName: 'Dr. Asha', date: '2026-12-01', time: '10:00:00' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Sign in to continue');
+    expect(fixture.nativeElement.querySelector('app-password-login')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-appointment')).toBeNull();
+    expect(fixture.componentInstance.selectedSlot()?.time).toBe('10:00:00');
   });
 });

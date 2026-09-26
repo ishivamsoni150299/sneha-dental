@@ -64,6 +64,11 @@ jobs:
       E2E_ISOLATED_DB: '1'
       BOOTSTRAP_ADMIN_EMAIL: browser-admin@example.test
       BOOTSTRAP_ADMIN_PASSWORD: BrowserAdminOnlyPass123!
+      # Isolated booking/access tests only; no external media service is contacted.
+      VIDEO_PROVIDER: livekit
+      LIVEKIT_URL: wss://video.example.test
+      LIVEKIT_API_KEY: browser-video-fixture
+      LIVEKIT_API_SECRET: browser-video-fixture-secret-at-least-32-bytes
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

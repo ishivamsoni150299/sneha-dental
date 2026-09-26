@@ -189,9 +189,9 @@ export class MarketplaceService {
     return await response.json() as MarketplaceReview[];
   }
 
-  async getAvailability(slug: string, days = 7): Promise<MarketplaceAvailability> {
+  async getAvailability(slug: string, days = 7, from?: string): Promise<MarketplaceAvailability> {
     const response = await fetch(
-      `/api/v1/dentists/${encodeURIComponent(slug)}/availability?days=${days}`,
+      `/api/v1/dentists/${encodeURIComponent(slug)}/availability?days=${days}${from ? `&from=${encodeURIComponent(from)}` : ''}`,
     );
     if (!response.ok) throw new Error('Could not load appointment times.');
     return await response.json() as MarketplaceAvailability;
