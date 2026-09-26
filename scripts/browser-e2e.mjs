@@ -51,7 +51,7 @@ try {
   await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
   await page.locator('#dentist-search').fill('root canal');
   await page.locator('#dentist-locality').selectOption({ label: 'Noida' });
-  await page.getByRole('button', { name: /Find Dentists/i }).click();
+  await page.getByRole('button', { name: 'Find Dentists', exact: true }).click();
   await page.getByRole('heading', { name: /verifying the first dentists/i }).waitFor();
   assert.equal(await page.locator('app-dentist-listing-card').count(), 0,
     'Unverified fixture clinics must not appear in the patient marketplace');
