@@ -56,6 +56,9 @@ jobs:
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
       JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/postgres
+      SPRING_FLYWAY_DEFAULT_SCHEMA: dental
+      SPRING_FLYWAY_SCHEMAS: dental
+      SPRING_DATASOURCE_HIKARI_CONNECTION_INIT_SQL: SET search_path TO dental, public, extensions
       JWT_SECRET: browser-e2e-only-secret-with-at-least-32-bytes
       JWT_ISSUER: http://localhost:8080
       PUBLIC_BASE_URL: http://localhost:4200
