@@ -12,7 +12,7 @@ The default remains `daily` for existing deployments. Daily Prebuilt remains sup
 
 ## Simple call flow
 
-1. A verified dentist publishes working hours. A patient signs in, selects an available video slot and books. The clinic/dentist confirms the request.
+1. A verified dentist publishes working hours. A patient selects an available video slot, signs in or creates a patient account on the same booking page, and submits their details. The clinic/dentist confirms the request. Independent profiles show the video time picker directly without an in-clinic mode choice.
 2. The patient opens **My appointments**. The assigned dentist or authorized clinic administrator opens the appointment in their workspace. Select the video-call button during the join window.
 3. Select **Join call**. The native room requests camera and microphone access and connects in one action. A failed camera does not prevent using an available microphone. **Camera & microphone options** contains an optional preview, device selection, microphone meter and an option to join with both devices off.
 4. The other person appears when they join. Microphone, camera, chat and leave controls stay within reach on mobile. A disabled or unavailable device can be enabled individually using its call control, without reopening the room.
@@ -28,7 +28,7 @@ A verified dentist can open `/professional/video-test`, select **Start test call
 
 ## Access and lifecycle
 
-- Patient account calls require ownership of the appointment. Clinic and dentist calls require their existing authenticated access checks. The earlier guest appointment endpoint retains its booking-reference/phone checks.
+- Patient account calls require ownership of the appointment. Clinic and dentist calls require their existing authenticated access checks. The legacy appointment endpoint also requires an authenticated matching patient identity; a booking reference and unverified phone number alone do not authorize a call.
 - Pending, cancelled, declined, completed, expired and in-person appointments cannot mint video tokens. Rescheduling creates a new room after confirmation.
 - Java returns credentials with `Cache-Control: no-store`. Room identities are opaque, display identities are `patient` / `dentist`, and tokens stay in browser memory. Chat and prescription content is transported through the selected video provider; it is not logged or persisted by this application.
 - Self-hosted join tokens last at most two minutes. The call screen refreshes access after device setup, immediately before connecting. Participants cannot create rooms, record, change metadata or publish media besides camera/microphone tracks. Room-scoped data publishing is enabled for consultation chat; deploy the backend grant change alongside the frontend.
@@ -37,6 +37,8 @@ A verified dentist can open `/professional/video-test`, select **Start test call
 - `GET /api/public/video-consultations/status` reports configuration readiness. Creating a room additionally checks control-plane connectivity. Neither proves audio/video or TURN delivery; that needs a live media test.
 
 ## Release verification
+
+The disposable PostgreSQL browser CI journey covers independent-dentist verification, published slots, patient sign-in without leaving the booking page, submission through the video booking form, dentist inbox/confirmation and patient-account visibility. Its video configuration is a non-routable fixture for booking checks and does not prove media delivery. The LiveKit smoke test below is required separately.
 
 For LiveKit, set `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` in the local process environment and run `npm run test:video:media`. This creates a temporary two-person room, connects two isolated Chrome contexts, verifies that each receives video frames and an audio signal, and deletes the room. Set `CHROME_BIN` when Chrome is outside the default Windows path; on other systems install Playwright's Chromium. This checks the media provider, while the appointment and login flow still requires the application tests below.
 
