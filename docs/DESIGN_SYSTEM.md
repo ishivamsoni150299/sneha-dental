@@ -97,6 +97,11 @@ content gap; use `ui-auth-footer` for separated secondary actions. These are
 presentation patterns; authentication and role-specific routing stay in their
 existing components and services.
 
+Clinic onboarding pairs `ui-auth-layout` with `ui-onboarding-layout` while the
+desktop preview is present. Its three-stage progress list uses `ui-steps` and
+`ui-step`, `aria-current="step"` for the active stage, and
+`ui-step-complete` with accessible completion text for completed stages.
+
 Do not create a new `max-w-* + px-*` combination for each page. Use the
 container primitives and add a grid only where the content requires it.
 
@@ -306,3 +311,27 @@ creation, reset authorization, or production delivery. Clinic signup's full
 multi-step layout and the authenticated appointments workspace remain outside
 this layout migration. The existing `platform-auth-*` compatibility rules are
 still used by those older business templates and have not been removed.
+
+### Clinic onboarding shell and progress — 2026-09-27
+
+Clinic signup now uses the shared page shell, top bar, account card, interface
+headings, and primary/secondary actions. Its progress indicator is an ordered
+three-stage list with an accessible current/completed state. Clinic-hours rows
+wrap on narrow screens and use labeled shared time inputs and toggle buttons.
+The preview column is removed from the success layout rather than leaving an
+empty sidebar. Failed creation now displays the component's existing error
+message in a shared alert, allowing the user to understand and retry a failure.
+
+Production build, ESLint, and eight existing signup/password-login tests passed.
+Local Chrome checks covered account, clinic, services, plan, and success states
+at 320, 390, 768, and 1440 pixels without horizontal document overflow. Checked
+next/back navigation, edited hours surviving back navigation, the active step,
+disabled yearly billing, a monthly submission payload, and creation
+loading/error/retry/success with intercepted API fixtures. Reviewed mobile
+clinic/services and desktop plan screenshots.
+
+Actual provisioning, Google Places, payment checkout, and live delivery were
+not exercised. Theme/service/plan option styling, the website preview, and the
+success celebration remain existing implementations for a later pass; the
+entire onboarding UI is not yet fully migrated. `platform-auth-*` styles remain
+for the legacy password-recovery templates, not for clinic signup.

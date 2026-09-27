@@ -199,9 +199,36 @@ body {
 }
 
 @media (min-width: 1024px) {
+  .ui-onboarding-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    align-items: start;
+  }
+
   .ui-auth-layout-split {
     grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
   }
+}
+
+.ui-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ui-space-sm);
+  list-style: none;
+  padding: 0;
+}
+
+.ui-step {
+  border-top: 2px solid var(--ui-line);
+  padding-top: var(--ui-space-sm);
+  color: var(--ui-ink-soft);
+  font-size: var(--ui-text-sm);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.ui-step-complete { border-color: var(--ui-success); }
+.ui-step[aria-current='step'] {
+  border-color: var(--ui-primary);
+  color: var(--ui-primary-hover);
 }
 
 .ui-section {
