@@ -43,11 +43,11 @@
           >
             <span class="text-sm font-semibold">{{ formatDayLabel(day.date) }}</span>
             <span class="mt-1 text-xs">{{ formatDate(day.date) }}</span>
-            @if (day.slots.length > 0) {
+            @if (day.slots.length > 0 && !compact) {
               <span class="mt-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                 {{ day.slots.length }} {{ day.slots.length === 1 ? 'slot' : 'slots' }}
               </span>
-            } @else {
+            } @else if (day.slots.length === 0) {
               <span class="mt-1 text-[10px] text-gray-400">Full</span>
             }
           </button>
@@ -58,13 +58,14 @@
     @if (currentDay(); as day) {
       @if (day.slots.length > 0) {
         <div>
-          <p class="text-sm font-semibold text-gray-900">Choose a time that suits you</p>
+          <p class="text-sm font-semibold text-gray-900">{{ compact ? 'Available times' : 'Choose a time that suits you' }}</p>
           <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             @for (slot of day.slots; track slot.time + slot.doctorId) {
               <button
                 type="button"
                 (click)="selectSlot(slot, day)"
                 [attr.aria-pressed]="isSelected(day, slot)"
+                [attr.aria-label]="formatTime(slot.time) + ' · ' + slot.doctorName"
                 class="min-h-16 rounded-xl border px-3 py-3 text-center text-sm font-semibold transition-colors focus-visible:outline-blue-600"
                 [class.border-blue-600]="isSelected(day, slot)"
                 [class.bg-blue-600]="isSelected(day, slot)"
@@ -76,7 +77,7 @@
                 [class.hover:bg-blue-50]="!isSelected(day, slot)"
               >
                 <span class="block">{{ formatTime(slot.time) }}</span>
-                <span class="mt-1 block text-xs font-normal" [class.text-blue-100]="isSelected(day, slot)" [class.text-gray-500]="!isSelected(day, slot)">{{ slot.doctorName }}</span>
+                @if (!compact || multipleDoctors()) {<span class="mt-1 block text-xs font-normal" [class.text-blue-100]="isSelected(day, slot)" [class.text-gray-500]="!isSelected(day, slot)">{{ slot.doctorName }}</span>}
               </button>
             }
           </div>

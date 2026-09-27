@@ -249,6 +249,11 @@ describe('MarketplaceBookingComponent', () => {
     expect(fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance).toBe(form);
     expect(form.form.value.name).toBe('Saved patient');
     expect(form.form.value.phone).toBe('9876543210');
+    expect(fixture.nativeElement.querySelector('.booking-mobile-selection')).toBeNull();
+    form.currentStep.set(3); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.booking-mobile-promises')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Response in 2 working hrs');
+    expect(fixture.nativeElement.querySelector('#appointment-privacyAccepted')).not.toBeNull();
   });
 
   it('keeps the selected video slot while showing patient sign-in on the same page', async () => {
@@ -265,5 +270,17 @@ describe('MarketplaceBookingComponent', () => {
     changeTime.click(); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeFalse();
     expect(fixture.nativeElement.querySelector('[aria-labelledby="video-signin-heading"]').hidden).toBeTrue();
+  });
+
+  it('shows a concise video receipt with one next action and no confirmation promise', async () => {
+    const provider = clinic(); provider.isIndependent = true;
+    const fixture = await createStateFixture(provider, true, 'video', true);
+    fixture.componentInstance.onBooked({ consultationMode: 'video', ref: 'TEST-123', name: 'Patient', date: '2030-01-10', time: '10:00 AM', service: 'Video Consultation' });
+    fixture.detectChanges();
+    const receipt = fixture.nativeElement.querySelector('.video-receipt');
+    expect(receipt.textContent).toContain('Pending dentist confirmation');
+    expect(receipt.textContent).toContain('10 minutes before your call');
+    expect(receipt.querySelectorAll('a').length).toBe(1);
+    expect(receipt.textContent).not.toContain('two working hours');
   });
 });

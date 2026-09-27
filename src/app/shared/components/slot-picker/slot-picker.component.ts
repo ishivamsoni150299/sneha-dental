@@ -33,6 +33,7 @@ export class SlotPickerComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
 
   @Input({ required: true }) slug!: string;
+  @Input() compact = false;
   @Output() slotSelected = new EventEmitter<SelectedSlot>();
   @Output() slotCleared = new EventEmitter<void>();
 
@@ -45,6 +46,7 @@ export class SlotPickerComponent implements OnInit {
   readonly days = computed(() => this.availability()?.days ?? []);
   readonly currentDay = computed(() => this.days()[this.selectedDateIndex()] ?? null);
   readonly slots = computed(() => this.currentDay()?.slots ?? []);
+  readonly multipleDoctors = computed(() => new Set(this.slots().map(slot => slot.doctorId)).size > 1);
   readonly hasAnySlots = computed(() => this.days().some(day => day.slots.length > 0));
 
   async ngOnInit(): Promise<void> {

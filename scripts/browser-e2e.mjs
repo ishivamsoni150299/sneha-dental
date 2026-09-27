@@ -134,6 +134,7 @@ try {
 
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.getByRole('heading', { name: 'Sign in to your appointments' }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${appUrl}/dentists/${provider.slug}/book?mode=video`);
   await page.getByRole('heading', { name: 'Book a video consultation', exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: /In-clinic visit/ }).count(), 0);
@@ -151,9 +152,9 @@ try {
   await page.getByRole('button', { name: 'Keep this time', exact: true }).click();
   assert.equal(await page.locator('#appointment-name').inputValue(), 'E2E Video Patient');
   assert.equal(await page.locator('#appointment-phone').inputValue(), '9876543210');
-  await page.getByRole('button', { name: 'Review & Book', exact: true }).click();
+  await page.getByRole('button', { name: 'Review appointment', exact: true }).click();
   await page.locator('#appointment-privacyAccepted').check();
-  await page.getByRole('button', { name: 'Send Appointment Request', exact: true }).click();
+  await page.getByRole('button', { name: 'Send request', exact: true }).click();
   await page.getByRole('heading', { name: 'Your request was sent', exact: true }).waitFor();
   await page.getByRole('link', { name: 'View my appointments', exact: true }).click();
   await page.getByRole('heading', { name: 'E2E Video Dentist', exact: true }).waitFor();

@@ -407,11 +407,12 @@
                     <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Slot temporarily reserved for 10 minutes. Complete your details below to confirm.
+                    {{ compactVideoBooking ? 'Time held for 10 minutes.' : 'Slot temporarily reserved for 10 minutes. Complete your details below to confirm.' }}
                   </div>
                 }
 
                 <!-- Summary of step 1 selections -->
+                @if (!compactVideoBooking) {
                 <div class="booking-mobile-selection flex items-start gap-3 rounded-2xl border border-[var(--accent-bd)] bg-[var(--accent-lt)] px-4 py-3.5 xl:hidden">
                   <div class="w-8 h-8 bg-[var(--accent)] rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -436,6 +437,7 @@
                 </div>
 
                 <!-- Name -->
+                }
                 <div>
                   <label for="appointment-name" class="block text-sm font-semibold text-gray-700 mb-1.5">
                     Full Name <span class="text-red-500">*</span>
@@ -535,6 +537,7 @@
                 </div>
 
                 <!-- Inline info strip — 3 items side by side on all screen sizes -->
+                @if (!compactVideoBooking) {
                 <div class="booking-mobile-promises flex items-stretch gap-2">
                   <div class="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 text-center">
                     <p class="text-[10px] uppercase tracking-wide text-gray-400 leading-none">Confirm</p>
@@ -551,6 +554,7 @@
                 </div>
 
                 <!-- Optional fields — collapsed by default on mobile -->
+                }
                 <details class="group">
                   <summary class="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-500 list-none select-none hover:border-gray-300 hover:text-gray-700 transition-colors">
                     <span class="flex items-center gap-2">
@@ -624,6 +628,7 @@
                 </button>
 
                 <!-- Trust strip -->
+                @if (!compactVideoBooking) {
                 <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100">
                   <span class="flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-[var(--accent-md)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -641,6 +646,7 @@
                   </span>
                 </div>
 
+                }
                 @if (error()) {
                   <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="assertive">
                     <div class="flex items-start gap-3">

@@ -99,6 +99,42 @@
 .patient-tab-bar { display: none; }
 /* Checkout owns the mobile action dock; discovery navigation must not cover it. */
 .marketplace-shell:has(.video-booking) .patient-tab-bar { display: none; }
+
+/* A focused, phone-sized video checkout, including sign-in and receipt. */
+.marketplace-shell:has(.video-checkout) {
+  background: #fff;
+  padding-bottom: 0;
+}
+.marketplace-shell:has(.video-checkout) .marketplace-header {
+  min-height: 56px;
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  box-shadow: none;
+}
+.marketplace-shell:has(.video-checkout) :is(.patient-navigation, .professional-menu, .patient-tab-bar, footer) { display: none; }
+.video-checkout { display: block; }
+.video-checkout :is(h1, h2) { font-family: var(--ui-font-sans, inherit); }
+.video-checkout .video-booking { max-width: 32rem; padding: 8px 16px 16px; }
+.video-checkout .video-booking > .mt-5 { margin-top: 12px; }
+.video-checkout .booking-title { margin-top: 0; font-size: 22px; line-height: 1.3; letter-spacing: -.025em; }
+.video-checkout .booking-provider { margin-top: 8px; color: #374151; }
+.video-checkout #booking-time-picker { padding: 16px 0 0; border: 0; border-radius: 0; box-shadow: none; }
+.video-checkout #booking-time-picker > .mb-5 { margin-bottom: 16px; }
+.video-checkout #booking-time-picker h2 { font-size: 18px; }
+.video-checkout app-slot-picker [aria-label="Appointment dates"] { gap: 8px; }
+.video-checkout app-slot-picker [aria-label="Appointment dates"] button { min-width: 68px; padding: 10px 8px; }
+.video-checkout app-slot-picker .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.video-checkout app-slot-picker .grid button { min-height: 48px; padding: 10px 4px; }
+.video-checkout .video-signin { max-width: 32rem; margin: 0 auto 24px; padding: 8px 16px 24px; border: 0; border-radius: 0; }
+.video-checkout .booking-page { padding-top: 0; background: #fff; }
+.video-checkout .booking-page > div:first-child { max-width: 32rem; }
+.video-checkout #appointment-booking-form { border: 0; border-radius: 0; box-shadow: none; background: #fff; }
+.video-checkout #appointment-booking-form > div { padding: 12px 0; }
+.video-checkout #appointment-booking-fields { padding: 16px 0; }
+.video-checkout :is(button, a, input, textarea):focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.video-checkout [hidden] { display: none !important; }
+@media (max-width: 47.9375rem) {
+  .video-checkout .booking-mobile-dock { padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+}
 html:has(.filter-dialog[open]) { overflow: hidden; }
 
 @media (max-width: 63.9375rem) {

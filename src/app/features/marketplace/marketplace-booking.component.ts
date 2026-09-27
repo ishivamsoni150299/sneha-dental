@@ -23,6 +23,7 @@ import { PasswordLoginComponent } from '../../shared/components/password-login/p
   standalone: true,
   imports: [AppointmentComponent, RouterLink, SlotPickerComponent, PasswordLoginComponent],
   templateUrl: './marketplace-booking.component.html',
+  host: { '[class.video-checkout]': "consultationMode() === 'video'" },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
@@ -188,10 +189,10 @@ export class MarketplaceBookingComponent implements OnInit {
 
   formattedDate(value: string): string {
     return new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', {
-      weekday: 'long',
+      weekday: this.consultationMode() === 'video' ? 'short' : 'long',
       day: 'numeric',
-      month: 'long',
-      year: 'numeric',
+      month: this.consultationMode() === 'video' ? 'short' : 'long',
+      year: this.consultationMode() === 'video' ? undefined : 'numeric',
     });
   }
 }
