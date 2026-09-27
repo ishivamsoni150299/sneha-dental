@@ -34,7 +34,7 @@ try {
     if (path.endsWith('/video-consultations/status')) body = { available: true };
     return route.fulfill({ status: body ? 200 : 401, contentType: 'application/json', body: JSON.stringify(body ?? {}) });
   });
-  for (const width of [320, 390, 768]) {
+  for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(`http://127.0.0.1:${server.address().port}/dentists/mobile-fixture/book?mode=video`);
     const time = page.getByRole('button', { name: '10:00 AM · Dr. Test Dentist', exact: true });
@@ -45,10 +45,19 @@ try {
     assert.ok(box.y + box.height < 844, 'Available times are on the first screen');
     assert.equal(await page.locator('.patient-tab-bar').isVisible(), false);
     assert.equal(await page.locator('footer').isVisible(), false);
+    if (width >= 1024) {
+      const content = await page.locator('.video-booking').boundingBox();
+      assert.ok(content.width > 1000, 'Desktop checkout uses a broad profile-style canvas');
+    }
     await page.screenshot({ path: resolve(screenshots, `booking-${width}.png`), fullPage: true });
     await time.click();
     await page.getByRole('heading', { name: 'Sign in to continue', exact: true }).waitFor();
     assert.equal(await page.locator('#booking-time-picker').isVisible(), false);
+    if (width >= 1024) {
+      const summary = await page.locator('.video-booking').boundingBox();
+      const signin = await page.locator('.video-signin').boundingBox();
+      assert.ok(signin.x >= summary.x + summary.width, 'Desktop sign-in sits alongside the booking summary');
+    }
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Sign-in fits ${width}px`);
     await page.screenshot({ path: resolve(screenshots, `signin-${width}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Change time', exact: true }).click();

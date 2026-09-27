@@ -38,7 +38,7 @@ A verified dentist can open `/professional/video-test`, select **Start test call
 
 ## Release verification
 
-For isolated mobile layout checks, run `npm run build` then `node scripts/video-mobile-ui-smoke.mjs`. This serves the compiled frontend on loopback with synthetic API responses and checks 320px, 390px and 768px widths, first-screen availability, touch targets, inline sign-in and horizontal overflow. Screenshots are written to a temporary directory. It does not test real bookings or media delivery.
+For isolated responsive layout checks, run `npm run build` then `node scripts/video-mobile-ui-smoke.mjs`. This serves the compiled frontend on loopback with synthetic API responses and checks 320px, 390px, 768px and 1440px widths, first-screen availability, touch targets, inline sign-in and horizontal overflow. Desktop additionally checks a broad, profile-aligned canvas with sign-in beside the booking summary; mobile remains a single full-width column. Screenshots are written to a temporary directory. It does not test real bookings or media delivery.
 
 Video booking uses the existing marketplace checkout route and shared appointment form, not a separate booking implementation. The parent owns time selection and inline authentication; the form owns validation, slot holds and submission. The calendar collapses after selection, and changing time keeps the form mounted so patient details are preserved. Video checkout hides the duplicate progress rail, sidebar and mobile discovery navigation; confirmation still leads to My appointments for joining.
 
