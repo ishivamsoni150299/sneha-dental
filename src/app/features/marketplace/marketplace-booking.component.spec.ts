@@ -1,4 +1,5 @@
 import { By } from '@angular/platform-browser';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { DEFAULT_SCHEDULE, DoctorService } from '../../core/services/doctor.service';
@@ -8,6 +9,7 @@ import { AppointmentComponent } from '../appointment/appointment.component';
 import { MarketplaceBookingComponent } from './marketplace-booking.component';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { AppointmentService } from '../../core/services/appointment.service';
+import { AuthFacade } from '../../core/services/auth-facade.service';
 
 function clinic(): MarketplaceClinic {
   return {
@@ -26,6 +28,12 @@ function clinic(): MarketplaceClinic {
 }
 
 describe('MarketplaceBookingComponent', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [{ provide: AuthFacade, useValue: {
+      authReady: Promise.resolve(), role: signal(null), currentUser: signal(null),
+    } }] });
+  });
+
   async function createStateFixture(result: MarketplaceClinic | null, videoReady = false, mode = '', signedIn = false) {
     const marketplace = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
       'getVerifiedClinicBySlug', 'serviceLabel', 'videoAvailable', 'getAvailability',

@@ -4,20 +4,22 @@ import { PatientAuthService } from './patient-auth.service';
 import { AuthenticatedApiService } from './authenticated-api.service';
 
 describe('PatientAppointmentApiService', () => {
+  let fetchSpy: jasmine.Spy;
   const patientAuth = {
     user: () => ({ phoneNumber: '+919876543210' }),
   };
 
   beforeEach(() => {
     localStorage.clear();
+    fetchSpy = jasmine.createSpy('authenticated fetch');
     TestBed.configureTestingModule({ providers: [
       { provide: PatientAuthService, useValue: patientAuth },
-      { provide: AuthenticatedApiService, useValue: { fetch: (path: string, init: RequestInit) => fetch(path, init) } },
+      { provide: AuthenticatedApiService, useValue: { fetch: fetchSpy } },
     ] });
   });
 
   it('requests a one-time challenge for a guest booking', async () => {
-    const fetchSpy = spyOn(globalThis, 'fetch').and.resolveTo(jsonResponse({
+    fetchSpy.and.resolveTo(jsonResponse({
       challengeId: 'challenge-1',
     }));
     const service = TestBed.inject(PatientAppointmentApiService);
@@ -31,7 +33,7 @@ describe('PatientAppointmentApiService', () => {
   });
 
   it('sends the matching phone when cancelling', async () => {
-    const fetchSpy = spyOn(globalThis, 'fetch').and.returnValues(
+    fetchSpy.and.returnValues(
       Promise.resolve(jsonResponse({
         id: 'appointment-1', bookingRef: 'SC-ABCDEFGH', clinicId: 'clinic-1', status: 'pending',
       })),
@@ -47,7 +49,7 @@ describe('PatientAppointmentApiService', () => {
   });
 
   it('submits a review using the authenticated account', async () => {
-    const fetchSpy = spyOn(globalThis, 'fetch').and.resolveTo(jsonResponse({ id: 'review-1', rating: 5 }));
+    fetchSpy.and.resolveTo(jsonResponse({ id: 'review-1', rating: 5 }));
     const service = TestBed.inject(PatientAppointmentApiService);
 
     await service.submitReview('appointment-1', 5, 'Kind and clear care.', true);
