@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="platform-page-header">
     <div>
-    <h1 class="text-xl font-bold text-gray-900">Analytics</h1>
+    <h1 class="text-xl font-bold text-ui-ink">Analytics</h1>
     <p class="text-sm text-gray-500 mt-0.5">Appointment activity across all clinic websites · {{ currentMonth() }}</p>
     </div>
   </div>
@@ -13,19 +13,19 @@
       <!-- Stats skeleton -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         @for (_ of [1,2,3,4]; track $index) {
-          <div class="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse space-y-2">
-            <div class="h-3 bg-gray-100 rounded w-2/3"></div>
+          <div class="bg-white rounded-2xl border border-ui-line p-5 animate-pulse space-y-2">
+            <div class="h-3 bg-ui-canvas-subtle rounded w-2/3"></div>
             <div class="h-7 bg-gray-200 rounded w-1/2"></div>
-            <div class="h-3 bg-gray-100 rounded w-4/5"></div>
+            <div class="h-3 bg-ui-canvas-subtle rounded w-4/5"></div>
           </div>
         }
       </div>
       <!-- Chart skeleton -->
-      <div class="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse">
+      <div class="bg-white rounded-2xl border border-ui-line p-6 animate-pulse">
         <div class="h-4 bg-gray-200 rounded w-1/4 mb-6"></div>
         <div class="flex items-end gap-2 h-32">
           @for (_ of [1,2,3,4,5,6,7]; track $index) {
-            <div class="flex-1 bg-gray-100 rounded-t"
+            <div class="flex-1 bg-ui-canvas-subtle rounded-t"
                  [style.height]="(30 + ($index * 13) % 70) + '%'"></div>
           }
         </div>
@@ -46,12 +46,12 @@
     <div class="platform-metric-grid">
       <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">This Month</p>
-        <p class="text-3xl font-bold text-gray-900">{{ totalThisMonth() }}</p>
+        <p class="text-3xl font-bold text-ui-ink">{{ totalThisMonth() }}</p>
         <p class="text-xs text-gray-400 mt-1">Total bookings</p>
       </div>
       <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">All Time</p>
-        <p class="text-3xl font-bold text-gray-900">{{ totalAllTime() }}</p>
+        <p class="text-3xl font-bold text-ui-ink">{{ totalAllTime() }}</p>
         <p class="text-xs text-gray-400 mt-1">Total bookings</p>
       </div>
       <div class="platform-metric-card border-green-200 bg-green-50">
@@ -61,21 +61,21 @@
       </div>
       <div class="platform-metric-card">
         <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Peak Day</p>
-        <p class="text-3xl font-bold text-gray-900">{{ peakDay() }}</p>
+        <p class="text-3xl font-bold text-ui-ink">{{ peakDay() }}</p>
         <p class="text-xs text-gray-400 mt-1">Most bookings</p>
       </div>
     </div>
 
     @if (marketplaceReliability().requests > 0) {
       <section class="platform-panel overflow-hidden" aria-labelledby="marketplace-reliability-heading">
-        <div class="border-b border-gray-100 px-6 py-4">
-          <h2 id="marketplace-reliability-heading" class="text-sm font-semibold text-gray-900">Marketplace response reliability</h2>
+        <div class="border-b border-ui-line px-6 py-4">
+          <h2 id="marketplace-reliability-heading" class="text-sm font-semibold text-ui-ink">Marketplace response reliability</h2>
           <p class="mt-0.5 text-xs text-gray-400">All-time clinic confirmation performance</p>
         </div>
         <dl class="grid divide-y divide-gray-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
           <div class="p-5">
             <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Requests</dt>
-            <dd class="mt-2 text-2xl font-bold text-gray-900">{{ marketplaceReliability().requests }}</dd>
+            <dd class="mt-2 text-2xl font-bold text-ui-ink">{{ marketplaceReliability().requests }}</dd>
           </div>
           <div class="p-5">
             <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Confirmed</dt>
@@ -83,7 +83,7 @@
           </div>
           <div class="p-5">
             <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Average response</dt>
-            <dd class="mt-2 text-2xl font-bold text-gray-900">{{ marketplaceReliability().averageResponseMinutes ?? '—' }}{{ marketplaceReliability().averageResponseMinutes !== null ? ' min' : '' }}</dd>
+            <dd class="mt-2 text-2xl font-bold text-ui-ink">{{ marketplaceReliability().averageResponseMinutes ?? '—' }}{{ marketplaceReliability().averageResponseMinutes !== null ? ' min' : '' }}</dd>
           </div>
           <div class="p-5">
             <dt class="text-xs font-semibold uppercase tracking-wide text-gray-400">Missed SLA</dt>
@@ -95,8 +95,8 @@
 
     <!-- ── Per-clinic bookings ───────────────────────────────────────────── -->
     <div class="platform-panel overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="text-sm font-semibold text-gray-900">Bookings per Clinic</h2>
+      <div class="px-6 py-4 border-b border-ui-line">
+        <h2 class="text-sm font-semibold text-ui-ink">Bookings per Clinic</h2>
         <p class="text-xs text-gray-400 mt-0.5">This month vs all-time — sorted by activity</p>
       </div>
 
@@ -109,7 +109,7 @@
           <div class="px-6 py-4">
             <div class="flex items-center justify-between mb-2">
               <div>
-                <p class="text-sm font-semibold text-gray-900">{{ stat.clinic.name }}</p>
+                <p class="text-sm font-semibold text-ui-ink">{{ stat.clinic.name }}</p>
                 <p class="text-xs text-gray-400">{{ stat.clinic.city }}</p>
                 @if (stat.marketplaceRequests > 0) {
                   <p class="mt-1 text-[11px] font-medium text-cyan-700">
@@ -118,12 +118,12 @@
                 }
               </div>
               <div class="text-right">
-                <p class="text-sm font-bold text-gray-900">{{ stat.thisMonth }}</p>
+                <p class="text-sm font-bold text-ui-ink">{{ stat.thisMonth }}</p>
                 <p class="text-xs text-gray-400">{{ stat.allTime }} all-time</p>
               </div>
             </div>
             <!-- Bar -->
-            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-2 bg-ui-canvas-subtle rounded-full overflow-hidden">
               <div class="h-full bg-blue-500 rounded-full transition-all"
                    [style.width]="barWidth(stat.thisMonth, maxThisMonth())">
               </div>
@@ -138,8 +138,8 @@
 
       <!-- Top services -->
       <div class="platform-panel overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-          <h2 class="text-sm font-semibold text-gray-900">Top Services</h2>
+        <div class="px-6 py-4 border-b border-ui-line">
+          <h2 class="text-sm font-semibold text-ui-ink">Top Services</h2>
           <p class="text-xs text-gray-400 mt-0.5">Most booked this month</p>
         </div>
         @if (topServices().length === 0) {
@@ -149,10 +149,10 @@
           @for (svc of topServices(); track svc.service) {
             <div class="px-6 py-3">
               <div class="flex items-center justify-between mb-1.5">
-                <p class="text-sm text-gray-700 font-medium truncate pr-4">{{ svc.service }}</p>
+                <p class="text-sm text-ui-ink-soft font-medium truncate pr-4">{{ svc.service }}</p>
                 <span class="text-xs text-gray-500 shrink-0">{{ svc.count }} · {{ svc.pct }}%</span>
               </div>
-              <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-1.5 bg-ui-canvas-subtle rounded-full overflow-hidden">
                 <div class="h-full bg-indigo-400 rounded-full"
                      [style.width]="barWidth(svc.count, maxServiceCount())">
                 </div>
@@ -164,42 +164,42 @@
 
       <!-- Status breakdown -->
       <div class="platform-panel overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-          <h2 class="text-sm font-semibold text-gray-900">Booking Status</h2>
+        <div class="px-6 py-4 border-b border-ui-line">
+          <h2 class="text-sm font-semibold text-ui-ink">Booking Status</h2>
           <p class="text-xs text-gray-400 mt-0.5">This month's appointments</p>
         </div>
         <div class="p-6 space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-              <span class="text-sm text-gray-700">Pending</span>
+              <span class="text-sm text-ui-ink-soft">Pending</span>
             </div>
-            <span class="text-sm font-bold text-gray-900">{{ statusCounts().pending }}</span>
+            <span class="text-sm font-bold text-ui-ink">{{ statusCounts().pending }}</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-green-500"></div>
-              <span class="text-sm text-gray-700">Confirmed</span>
+              <span class="text-sm text-ui-ink-soft">Confirmed</span>
             </div>
             <span class="text-sm font-bold text-green-700">{{ statusCounts().confirmed }}</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-red-400"></div>
-              <span class="text-sm text-gray-700">Cancelled</span>
+              <span class="text-sm text-ui-ink-soft">Cancelled</span>
             </div>
             <span class="text-sm font-bold text-red-600">{{ statusCounts().cancelled }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2"><div class="h-3 w-3 rounded-full bg-rose-500"></div><span class="text-sm text-gray-700">Declined</span></div>
+            <div class="flex items-center gap-2"><div class="h-3 w-3 rounded-full bg-rose-500"></div><span class="text-sm text-ui-ink-soft">Declined</span></div>
             <span class="text-sm font-bold text-rose-700">{{ statusCounts().declined }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2"><div class="h-3 w-3 rounded-full bg-gray-400"></div><span class="text-sm text-gray-700">Expired</span></div>
-            <span class="text-sm font-bold text-gray-600">{{ statusCounts().expired }}</span>
+            <div class="flex items-center gap-2"><div class="h-3 w-3 rounded-full bg-gray-400"></div><span class="text-sm text-ui-ink-soft">Expired</span></div>
+            <span class="text-sm font-bold text-ui-ink-muted">{{ statusCounts().expired }}</span>
           </div>
           @if (totalThisMonth() > 0) {
-            <div class="pt-2 border-t border-gray-100">
+            <div class="pt-2 border-t border-ui-line">
               <div class="flex h-3 rounded-full overflow-hidden gap-px">
                 @if (statusCounts().confirmed > 0) {
                   <div class="bg-green-500 transition-all"
@@ -229,8 +229,8 @@
 
     <!-- ── Recent bookings ───────────────────────────────────────────────── -->
     <div class="platform-panel overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="text-sm font-semibold text-gray-900">Recent Bookings</h2>
+      <div class="px-6 py-4 border-b border-ui-line">
+        <h2 class="text-sm font-semibold text-ui-ink">Recent Bookings</h2>
         <p class="text-xs text-gray-400 mt-0.5">Last 10 across all clinics</p>
       </div>
 
@@ -242,13 +242,13 @@
         @for (appt of recentBookings(); track appt.id) {
           <div class="px-6 py-3.5 flex items-center justify-between gap-4">
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold text-gray-900 truncate">{{ appt.name }}</p>
+              <p class="text-sm font-semibold text-ui-ink truncate">{{ appt.name }}</p>
               <p class="text-xs text-gray-400 mt-0.5">
                 {{ clinicName(appt.clinicId) }} · {{ appt.service }}
               </p>
             </div>
             <div class="text-right shrink-0">
-              <p class="text-xs font-medium text-gray-700">{{ formatDate(appt.date) }}</p>
+              <p class="text-xs font-medium text-ui-ink-soft">{{ formatDate(appt.date) }}</p>
               <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
                     [class]="appt.status === 'confirmed' ? 'bg-green-100 text-green-700'
                             : appt.status === 'cancelled' ? 'bg-red-100 text-red-600'

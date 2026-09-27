@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="platform-page-header flex-wrap">
     <div>
-      <h1 class="text-xl font-bold text-gray-900">Leads</h1>
+      <h1 class="text-xl font-bold text-ui-ink">Leads</h1>
       <p class="text-sm text-gray-500 mt-0.5">Choose a lead, then take the next action.</p>
     </div>
     <div class="flex items-center gap-2">
@@ -15,20 +15,20 @@
         Add Lead
       </a>
       <details class="group/actions relative">
-        <summary class="ui-btn ui-btn-ghost cursor-pointer list-none text-xs text-gray-600 [&::-webkit-details-marker]:hidden">
+        <summary class="ui-btn ui-btn-ghost cursor-pointer list-none text-xs text-ui-ink-muted [&::-webkit-details-marker]:hidden">
           Tools
           <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
           </svg>
         </summary>
-        <div class="absolute right-0 top-full z-40 mt-2 w-48 rounded-md border border-gray-200 bg-white p-1.5 shadow-xl">
-          <a routerLink="/business/leads/discover" class="block rounded px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">Discover clinics</a>
-          <label class="block cursor-pointer rounded px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50" [class.opacity-50]="importingCsv()">
+        <div class="absolute right-0 top-full z-40 mt-2 w-48 rounded-md border border-ui-line bg-white p-1.5 shadow-xl">
+          <a routerLink="/business/leads/discover" class="block rounded px-3 py-2 text-xs font-semibold text-ui-ink-soft hover:bg-ui-muted">Discover clinics</a>
+          <label class="block cursor-pointer rounded px-3 py-2 text-xs font-semibold text-ui-ink-soft hover:bg-ui-muted" [class.opacity-50]="importingCsv()">
             {{ importingCsv() ? 'Importing...' : 'Import CSV' }}
             <input type="file" accept=".csv" class="hidden" (change)="handleCsvImport($event)" [disabled]="importingCsv()"/>
           </label>
           <button type="button" (click)="exportCsv()" [disabled]="sortedLeads().length === 0"
-                  class="block w-full rounded px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">Export CSV</button>
+                  class="block w-full rounded px-3 py-2 text-left text-xs font-semibold text-ui-ink-soft hover:bg-ui-muted disabled:opacity-40">Export CSV</button>
           @if (newLeadsWithPhone().length > 0) {
             <button type="button" (click)="startBlast()" class="block w-full rounded px-3 py-2 text-left text-xs font-semibold text-green-700 hover:bg-green-50">
               WhatsApp {{ newLeadsWithPhone().length }} new leads
@@ -97,15 +97,15 @@
             <div class="flex-1 min-w-0 space-y-2">
               <div class="flex items-center gap-2">
                 <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-                <div class="h-4 bg-gray-100 rounded w-16"></div>
+                <div class="h-4 bg-ui-canvas-subtle rounded w-16"></div>
               </div>
-              <div class="h-3.5 bg-gray-100 rounded w-2/3"></div>
-              <div class="h-3.5 bg-gray-100 rounded w-1/2"></div>
+              <div class="h-3.5 bg-ui-canvas-subtle rounded w-2/3"></div>
+              <div class="h-3.5 bg-ui-canvas-subtle rounded w-1/2"></div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <div class="w-10 h-10 bg-gray-100 rounded-lg"></div>
-              <div class="w-10 h-10 bg-gray-100 rounded-lg"></div>
-              <div class="w-10 h-10 bg-gray-100 rounded-lg"></div>
+              <div class="w-10 h-10 bg-ui-canvas-subtle rounded-lg"></div>
+              <div class="w-10 h-10 bg-ui-canvas-subtle rounded-lg"></div>
+              <div class="w-10 h-10 bg-ui-canvas-subtle rounded-lg"></div>
             </div>
           </div>
         </div>
@@ -117,8 +117,8 @@
 
     <!-- Compact overview -->
     @if (leads().length > 0) {
-      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-gray-200 pb-3 text-xs text-gray-500">
-        <span><strong class="text-base text-gray-950">{{ summaryStats().active }}</strong> active</span>
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-ui-line pb-3 text-xs text-gray-500">
+        <span><strong class="text-base text-ui-ink">{{ summaryStats().active }}</strong> active</span>
         <span><strong class="text-base text-amber-700">{{ summaryStats().overdue }}</strong> overdue</span>
         <span><strong class="text-base text-teal-700">{{ workQueueStats().readyToCall }}</strong> ready for AI call</span>
         <span class="sm:ml-auto">{{ summaryStats().converted }} converted · {{ summaryStats().rate }}% rate</span>
@@ -130,7 +130,7 @@
       <section class="lead-panel p-2" aria-labelledby="work-queue-heading">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div class="px-2 py-1 sm:w-44 sm:shrink-0">
-            <p id="work-queue-heading" class="text-xs font-bold text-gray-900">Work queue</p>
+            <p id="work-queue-heading" class="text-xs font-bold text-ui-ink">Work queue</p>
             <p class="mt-0.5 text-[11px] text-gray-500">Focus on the next useful action.</p>
           </div>
           <div class="grid flex-1 grid-cols-2 gap-1.5 sm:grid-cols-4" role="group" aria-label="Lead work queues">
@@ -192,13 +192,13 @@
     <div class="lead-filters grid gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_10rem]">
         <input type="search" placeholder="Search leads"
                [ngModel]="search()" (ngModelChange)="search.set($event)" class="w-full"/>
-        <select [ngModel]="activeTab()" (ngModelChange)="activeTab.set($event)" class="bg-white text-gray-600" aria-label="Filter by stage">
+        <select [ngModel]="activeTab()" (ngModelChange)="activeTab.set($event)" class="bg-white text-ui-ink-muted" aria-label="Filter by stage">
           <option value="all">All stages</option>
           @for (status of statuses; track status.value) {
             <option [value]="status.value">{{ status.label }}</option>
           }
         </select>
-        <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)" class="bg-white text-gray-600" aria-label="Sort leads">
+        <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)" class="bg-white text-ui-ink-muted" aria-label="Sort leads">
           <option value="newest">Newest first</option>
           <option value="followup">By follow-up</option>
           <option value="score">Highest priority</option>
@@ -212,7 +212,7 @@
           <svg class="w-10 h-10 text-red-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
           </svg>
-          <p class="text-sm font-semibold text-gray-700">Failed to load leads</p>
+          <p class="text-sm font-semibold text-ui-ink-soft">Failed to load leads</p>
           <p class="text-xs text-gray-400 mt-1">{{ error() }}</p>
           <button (click)="reload()" class="mt-4 text-xs font-semibold text-[var(--color-primary)] hover:underline">
             Retry
@@ -221,7 +221,7 @@
           <svg class="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
-          <p class="text-sm font-semibold text-gray-700">No leads yet</p>
+          <p class="text-sm font-semibold text-ui-ink-soft">No leads yet</p>
           <p class="text-xs text-gray-400 mt-1">Add your first prospect or import a CSV to start tracking.</p>
           <div class="flex items-center justify-center gap-3 mt-4">
             <a routerLink="/business/leads/new"
@@ -232,7 +232,7 @@
               Add Lead
             </a>
             <a routerLink="/business/leads/discover"
-               class="ui-btn ui-btn-ghost text-xs text-gray-600">
+               class="ui-btn ui-btn-ghost text-xs text-ui-ink-muted">
               Discover clinics
             </a>
           </div>
@@ -257,7 +257,7 @@
 
             <!-- Row 1: name + badges (no status here) -->
             <div class="flex items-center gap-2 flex-wrap">
-              <p class="font-semibold text-gray-900 text-sm truncate max-w-[200px] sm:max-w-sm" [title]="lead.clinicName">{{ lead.clinicName }}</p>
+              <p class="font-semibold text-ui-ink text-sm truncate max-w-[200px] sm:max-w-sm" [title]="lead.clinicName">{{ lead.clinicName }}</p>
               @if (isHotLead(lead)) {
                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600"
                       [title]="'Score: ' + leadScore(lead)">🔥 Hot</span>
@@ -295,7 +295,7 @@
               }
             </div>
 
-            <div class="mt-3 flex flex-col gap-2 border-l-2 border-gray-200 pl-3 sm:flex-row sm:items-center">
+            <div class="mt-3 flex flex-col gap-2 border-l-2 border-ui-line pl-3 sm:flex-row sm:items-center">
               <div class="min-w-0 flex-1">
                 <p class="text-[10px] font-bold uppercase text-gray-400">Next action</p>
                 <p class="mt-0.5 text-xs font-semibold" [class]="hasActiveAiCall(lead) ? 'text-teal-700' : 'text-gray-800'">
@@ -314,14 +314,14 @@
               }
             </div>
 
-            <details class="group/details mt-3 border-t border-gray-100 pt-2">
-              <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-gray-800 [&::-webkit-details-marker]:hidden">
+            <details class="group/details mt-3 border-t border-ui-line pt-2">
+              <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-ui-ink-soft [&::-webkit-details-marker]:hidden">
                 Details
                 <svg class="h-3 w-3 transition-transform group-open/details:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                 </svg>
               </summary>
-              <div class="mt-3 border-l border-gray-200 pl-3">
+              <div class="mt-3 border-l border-ui-line pl-3">
             <!-- Row 2: address / area / categories -->
             @if (lead.address || lead.area) {
               <p class="text-xs text-gray-500 mt-0.5 truncate max-w-lg">
@@ -365,7 +365,7 @@
                     <span class="text-[10px] font-semibold text-teal-900">{{ aiCallOutcomeLabel(lead) }}</span>
                   }
                 </div>
-                <p class="mt-0.5 line-clamp-2 text-[11px] leading-4 text-gray-600" [title]="lead.aiCallSummary">{{ lead.aiCallSummary }}</p>
+                <p class="mt-0.5 line-clamp-2 text-[11px] leading-4 text-ui-ink-muted" [title]="lead.aiCallSummary">{{ lead.aiCallSummary }}</p>
               </div>
             }
 
@@ -405,19 +405,19 @@
                     <input type="text"
                            [ngModel]="messageDraft()!.label"
                            (ngModelChange)="updateMessageLabel($event)"
-                           class="w-full text-xs text-gray-700">
+                           class="w-full text-xs text-ui-ink-soft">
                   </div>
                   <div>
                     <label class="mb-1 block text-[11px] font-semibold text-blue-900">WhatsApp message</label>
                     <textarea rows="10"
                               [ngModel]="messageDraft()!.message"
                               (ngModelChange)="updateMessageBody($event)"
-                              class="w-full text-xs leading-5 text-gray-700"></textarea>
+                              class="w-full text-xs leading-5 text-ui-ink-soft"></textarea>
                   </div>
                 </div>
                 <div class="mt-2 flex items-center justify-end gap-2">
                   <button (click)="cancelMessageEdit()"
-                          class="ui-btn ui-btn-ghost px-3 py-1.5 text-xs text-gray-600">
+                          class="ui-btn ui-btn-ghost px-3 py-1.5 text-xs text-ui-ink-muted">
                     Cancel
                   </button>
                   <button (click)="saveMessageEdit(lead)" [disabled]="savingMessage()"
@@ -441,7 +441,7 @@
                         class="text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-40">
                   {{ savingNote() ? '…' : 'Save' }}
                 </button>
-                <button (click)="cancelNoteEdit()" class="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                <button (click)="cancelNoteEdit()" class="text-xs text-gray-400 hover:text-ui-ink-muted">Cancel</button>
               </div>
             } @else {
               <div class="mt-1 flex items-center gap-1.5 group/note">
@@ -489,15 +489,15 @@
 
             <details class="group/actions relative">
                 <summary title="More actions" aria-label="More actions"
-                         class="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-800 [&::-webkit-details-marker]:hidden">
+                         class="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-lg border border-ui-line text-gray-500 transition-colors hover:border-ui-line-strong hover:text-ui-ink-soft [&::-webkit-details-marker]:hidden">
                   <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/>
                   </svg>
                 </summary>
-                <div class="absolute right-0 top-full z-30 mt-2 w-52 rounded-md border border-gray-200 bg-white p-1.5 shadow-xl">
+                <div class="absolute right-0 top-full z-30 mt-2 w-52 rounded-md border border-ui-line bg-white p-1.5 shadow-xl">
                   @if (lead.mapsLink) {
                     <a [href]="lead.mapsLink" target="_blank" rel="noopener noreferrer"
-                       class="flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                       class="flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-semibold text-ui-ink-soft hover:bg-ui-muted">
                       <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                       </svg>
@@ -505,14 +505,14 @@
                     </a>
                   }
                   <button type="button" (click)="copyMessage(lead)"
-                          class="flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                          class="flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-semibold text-ui-ink-soft hover:bg-ui-muted">
                     <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
                     {{ copiedId() === lead.id ? 'Message copied' : 'Copy message' }}
                   </button>
                   <a [routerLink]="['/business/leads', lead.id, 'edit']"
-                     class="flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                     class="flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-semibold text-ui-ink-soft hover:bg-ui-muted">
                     <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                     </svg>
@@ -544,7 +544,7 @@
                       Record new consent
                     </button>
                   }
-                  <div class="mt-1 border-t border-gray-100 pt-1">
+                  <div class="mt-1 border-t border-ui-line pt-1">
                     @if (confirmDelete() === lead.id) {
                       <div class="p-2">
                         <p class="text-[11px] font-semibold text-red-700">Delete this lead?</p>
@@ -554,7 +554,7 @@
                             {{ deleting() === lead.id ? 'Deleting...' : 'Delete' }}
                           </button>
                           <button type="button" (click)="confirmDelete.set(null)"
-                                  class="flex-1 rounded border border-gray-200 px-2 py-1.5 text-[11px] font-semibold text-gray-600 hover:bg-gray-50">
+                                  class="flex-1 rounded border border-ui-line px-2 py-1.5 text-[11px] font-semibold text-ui-ink-muted hover:bg-ui-muted">
                             Keep
                           </button>
                         </div>
@@ -586,14 +586,14 @@
     <button type="button" class="absolute inset-0 bg-gray-950/70" aria-label="Close AI call review" (click)="closeAiCallReview()"></button>
     <section class="relative flex max-h-[94dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:max-w-2xl sm:rounded-lg"
              role="dialog" aria-modal="true" aria-labelledby="ai-call-review-title">
-      <header class="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+      <header class="flex items-start justify-between gap-4 border-b border-ui-line px-5 py-4">
         <div>
           <p class="text-[10px] font-bold uppercase text-teal-700">Human-reviewed automation</p>
-          <h2 id="ai-call-review-title" class="mt-0.5 text-lg font-bold text-gray-950">Review AI call</h2>
+          <h2 id="ai-call-review-title" class="mt-0.5 text-lg font-bold text-ui-ink">Review AI call</h2>
           <p class="mt-0.5 text-xs text-gray-500">{{ review.lead.clinicName }} · {{ review.lead.phone }}</p>
         </div>
         <button type="button" (click)="closeAiCallReview()" [disabled]="queueingAiCall()"
-                class="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-gray-200 text-gray-500 hover:text-gray-900"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-ui-line text-gray-500 hover:text-ui-ink"
                 aria-label="Close AI call review">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -604,8 +604,8 @@
       <div class="overflow-y-auto px-5 py-4">
         <div class="grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(230px,0.65fr)]">
           <div>
-            <label class="text-xs font-bold text-gray-900">Opening script</label>
-            <div class="mt-1.5 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs leading-5 text-gray-700">
+            <label class="text-xs font-bold text-ui-ink">Opening script</label>
+            <div class="mt-1.5 rounded-md border border-ui-line bg-ui-muted p-3 text-xs leading-5 text-ui-ink-soft">
               {{ aiCallScript(review.lead) }}
             </div>
             <p class="mt-2 text-[11px] text-gray-500">The assistant must identify itself, state the purpose, and honor an opt-out immediately.</p>
@@ -613,7 +613,7 @@
 
           <div class="space-y-4">
             <div>
-              <p class="text-xs font-bold text-gray-900">When should the call start?</p>
+              <p class="text-xs font-bold text-ui-ink">When should the call start?</p>
               <div class="mt-1.5 grid grid-cols-2 gap-2" role="group" aria-label="AI call timing">
                 <button type="button" (click)="selectAiCallTiming('now')"
                         class="rounded-md border px-3 py-2.5 text-left text-xs transition-colors"
@@ -636,7 +636,7 @@
                 <p class="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-[10px] font-semibold text-amber-800">{{ reason }}</p>
               }
               @if (review.timing === 'scheduled') {
-                <label for="ai-call-time" class="mt-3 block text-xs font-bold text-gray-900">Date and time</label>
+                <label for="ai-call-time" class="mt-3 block text-xs font-bold text-ui-ink">Date and time</label>
                 <input id="ai-call-time" type="datetime-local" class="mt-1.5 w-full text-sm"
                        [min]="minimumCallSlot(review.lead)"
                        [ngModel]="review.scheduledFor"
@@ -646,7 +646,7 @@
             </div>
 
             <div>
-              <label for="ai-call-consent-source" class="text-xs font-bold text-gray-900">Consent evidence</label>
+              <label for="ai-call-consent-source" class="text-xs font-bold text-ui-ink">Consent evidence</label>
               <input id="ai-call-consent-source" type="text" class="mt-1.5 w-full text-sm"
                      placeholder="e.g. WhatsApp reply on 12 Mar"
                      [ngModel]="review.consentSource"
@@ -670,7 +670,7 @@
         }
       </div>
 
-      <footer class="flex flex-col-reverse gap-2 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <footer class="flex flex-col-reverse gap-2 border-t border-ui-line bg-ui-muted px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-[10px] text-gray-500">No automatic calls or retries. Every action is logged.</p>
         <div class="flex gap-2">
           <button type="button" (click)="closeAiCallReview()" [disabled]="queueingAiCall()"
@@ -693,20 +693,20 @@
     <button type="button" class="absolute inset-0 bg-gray-950/70" aria-label="Close call control review" (click)="closeAiCallControl()"></button>
     <section class="relative w-full bg-white shadow-2xl sm:max-w-lg sm:rounded-lg"
              role="dialog" aria-modal="true" aria-labelledby="ai-call-control-title">
-      <header class="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+      <header class="flex items-start justify-between gap-4 border-b border-ui-line px-5 py-4">
         <div>
           <p class="text-[10px] font-bold uppercase"
              [class.text-teal-700]="control.action === 'record_consent'"
              [class.text-red-700]="control.action !== 'record_consent'">
             {{ control.action === 'record_consent' ? 'Consent control' : 'Reviewed call control' }}
           </p>
-          <h2 id="ai-call-control-title" class="mt-0.5 text-lg font-bold text-gray-950">
+          <h2 id="ai-call-control-title" class="mt-0.5 text-lg font-bold text-ui-ink">
             {{ control.action === 'record_consent' ? 'Record new consent' : (control.action === 'do_not_call' ? 'Mark do not call' : 'Cancel AI call') }}
           </h2>
           <p class="mt-0.5 text-xs text-gray-500">{{ control.lead.clinicName }} · {{ control.lead.phone }}</p>
         </div>
         <button type="button" (click)="closeAiCallControl()" [disabled]="controllingAiCall()"
-                class="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-gray-200 text-gray-500 hover:text-gray-900"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-ui-line text-gray-500 hover:text-ui-ink"
                 aria-label="Close call control review">
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -720,7 +720,7 @@
             The pending provider call will be stopped before this change is saved.
           </p>
         }
-        <label for="ai-call-control-reason" class="text-xs font-bold text-gray-900">
+        <label for="ai-call-control-reason" class="text-xs font-bold text-ui-ink">
           {{ control.action === 'record_consent' ? 'New consent evidence' : (control.action === 'do_not_call' ? 'Opt-out evidence' : 'Cancellation reason') }}
         </label>
         <textarea id="ai-call-control-reason" rows="3" class="mt-1.5 w-full text-sm"
@@ -734,7 +734,7 @@
         }
       </div>
 
-      <footer class="flex gap-2 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:justify-end">
+      <footer class="flex gap-2 border-t border-ui-line bg-ui-muted px-5 py-4 sm:justify-end">
         <button type="button" (click)="closeAiCallControl()" [disabled]="controllingAiCall()"
                 class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none">Keep unchanged</button>
         @if (control.action === 'record_consent') {
@@ -798,8 +798,8 @@
       @if (blastCurrent(); as lead) {
 
         <!-- Lead info -->
-        <div class="px-5 py-4 border-b border-gray-100 flex-shrink-0">
-          <h3 class="font-bold text-gray-900">{{ lead.clinicName }}</h3>
+        <div class="px-5 py-4 border-b border-ui-line flex-shrink-0">
+          <h3 class="font-bold text-ui-ink">{{ lead.clinicName }}</h3>
           @if (lead.address || lead.area || lead.city) {
             <p class="text-xs text-gray-500 mt-0.5 truncate">
               {{ lead.address || ((lead.area ? lead.area + ', ' : '') + lead.city) }}
@@ -825,11 +825,11 @@
         <!-- Message preview -->
         <div class="px-5 pt-3 pb-1 flex-1 min-h-0 overflow-y-auto">
           <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Message</p>
-          <pre class="text-xs leading-relaxed text-gray-700 whitespace-pre-wrap font-sans pb-4">{{ buildWhatsAppPlan(lead).message }}</pre>
+          <pre class="text-xs leading-relaxed text-ui-ink-soft whitespace-pre-wrap font-sans pb-4">{{ buildWhatsAppPlan(lead).message }}</pre>
         </div>
 
         <!-- Action buttons -->
-        <div class="px-5 py-4 border-t border-gray-100 flex items-center gap-2.5 flex-shrink-0 bg-white">
+        <div class="px-5 py-4 border-t border-ui-line flex items-center gap-2.5 flex-shrink-0 bg-white">
           <button (click)="blastSend()" [disabled]="blastSending()"
                   class="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700
                          text-white font-bold rounded-xl py-3 text-sm transition-colors
@@ -844,8 +844,8 @@
             }
           </button>
           <button (click)="blastSkip()" [disabled]="blastSending()"
-                  class="px-4 py-3 text-sm font-semibold text-gray-600 border border-gray-200
-                         hover:border-gray-300 hover:text-gray-900 rounded-xl transition-colors
+                  class="px-4 py-3 text-sm font-semibold text-ui-ink-muted border border-ui-line
+                         hover:border-ui-line-strong hover:text-ui-ink rounded-xl transition-colors
                          disabled:opacity-40 disabled:cursor-not-allowed">
             Skip →
           </button>
@@ -860,7 +860,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-gray-900">Blast complete!</h3>
+          <h3 class="text-xl font-bold text-ui-ink">Blast complete!</h3>
           <p class="text-sm text-gray-500 mt-1.5">
             <span class="font-semibold text-green-600">{{ blastDone() }} sent</span>
             @if (blastSkipped() > 0) { · {{ blastSkipped() }} skipped }

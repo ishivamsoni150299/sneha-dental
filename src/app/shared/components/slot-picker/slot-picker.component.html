@@ -7,7 +7,7 @@
     </div>
     <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
       @for (i of [1,2,3,4,5,6]; track i) {
-        <div class="h-10 rounded-lg bg-gray-100"></div>
+        <div class="h-10 rounded-lg bg-ui-canvas-subtle"></div>
       }
     </div>
   </div>
@@ -17,14 +17,14 @@
     <button type="button" (click)="loadAvailability()" class="mt-3 block min-h-11 rounded-xl border border-red-200 bg-white px-4 font-semibold">Retry available times</button>
   </div>
 } @else if (!hasAnySlots()) {
-  <div class="rounded-lg border border-gray-200 bg-gray-50 px-5 py-8 text-center">
-    <p class="text-sm font-semibold text-gray-700">No slots available this week</p>
+  <div class="rounded-lg border border-ui-line bg-ui-muted px-5 py-8 text-center">
+    <p class="text-sm font-semibold text-ui-ink-soft">No slots available this week</p>
     <p class="mt-1 text-xs text-gray-500">Please call the clinic directly to arrange an appointment.</p>
   </div>
 } @else {
   <div class="space-y-5">
     <div>
-      <div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold text-gray-900">Select a date</p><span class="text-xs text-gray-500">Times shown in IST</span></div>
+      <div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold text-ui-ink">Select a date</p><span class="text-xs text-gray-500">Times shown in IST</span></div>
       <div class="mt-3 flex snap-x gap-3 overflow-x-auto pb-3" role="group" aria-label="Appointment dates">
         @for (day of days(); track day.date; let i = $index) {
           <button
@@ -58,7 +58,7 @@
     @if (currentDay(); as day) {
       @if (day.slots.length > 0) {
         <div>
-          <p class="text-sm font-semibold text-gray-900">{{ compact ? 'Available times' : 'Choose a time that suits you' }}</p>
+          <p class="text-sm font-semibold text-ui-ink">{{ compact ? 'Available times' : 'Choose a time that suits you' }}</p>
           <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             @for (slot of day.slots; track slot.time + slot.doctorId) {
               <button

@@ -11,9 +11,9 @@
             </div>
           </div>
           <p class="clinic-workflow-kicker mt-6 text-xs font-bold uppercase tracking-[0.14em] text-status-success">Request received</p>
-          <h1 class="clinic-result-title mt-3 text-gray-900">Request submitted</h1>
+          <h1 class="clinic-result-title mt-3 text-ui-ink">Request submitted</h1>
           <p class="mx-auto max-w-sm text-sm leading-relaxed text-gray-500">
-            We've received your request@if (name()) {, <strong class="text-gray-700">{{ name() }}</strong>}. The clinic will call you within 2 hours to confirm your slot.
+            We've received your request@if (name()) {, <strong class="text-ui-ink-soft">{{ name() }}</strong>}. The clinic will call you within 2 hours to confirm your slot.
           </p>
         </div>
 
@@ -36,7 +36,7 @@
         }
 
         @if (date() || service()) {
-          <div class="clinic-confirmed-details mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div class="clinic-confirmed-details mt-4 rounded-2xl border border-ui-line bg-white p-5 shadow-sm">
             <div class="mb-3 flex items-center justify-between gap-3">
               <p class="text-xs font-bold uppercase tracking-widest text-gray-400">Appointment Details</p>
               @if (date()) {
@@ -54,7 +54,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-400">Service</p>
-                    <p class="font-semibold text-gray-900">{{ service() }}</p>
+                    <p class="font-semibold text-ui-ink">{{ service() }}</p>
                   </div>
                 </div>
               }
@@ -68,7 +68,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-400">Preferred Date</p>
-                    <p class="font-semibold text-gray-900">{{ formattedDate }}</p>
+                    <p class="font-semibold text-ui-ink">{{ formattedDate }}</p>
                   </div>
                 </div>
               }
@@ -82,7 +82,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-gray-400">Preferred Time</p>
-                    <p class="font-semibold text-gray-900">{{ formattedTime }}</p>
+                    <p class="font-semibold text-ui-ink">{{ formattedTime }}</p>
                   </div>
                 </div>
               }
@@ -96,7 +96,7 @@
                 </div>
                 <div>
                   <p class="text-xs text-gray-400">Clinic</p>
-                  <p class="font-semibold text-gray-900">{{ clinic.displayName }}</p>
+                  <p class="font-semibold text-ui-ink">{{ clinic.displayName }}</p>
                   @if (clinic.address) { <p class="text-xs text-gray-500">{{ clinic.address }}</p> }
                 </div>
               </div>
@@ -167,8 +167,8 @@
     <aside class="clinic-confirmed-aside space-y-4">
       <div class="clinic-confirmed-support ui-card ui-card-muted p-6">
         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent-dk)]">Quick Support</p>
-        <h2 class="mt-2 font-display text-2xl text-gray-900">Need anything else?</h2>
-        <p class="mt-2 text-sm leading-6 text-gray-600">
+        <h2 class="mt-2 font-display text-2xl text-ui-ink">Need anything else?</h2>
+        <p class="mt-2 text-sm leading-6 text-ui-ink-muted">
           Keep this reference handy. You can manage, reschedule, or cancel the request anytime from your booking page.
         </p>
         <div class="mt-5 space-y-3">
@@ -177,13 +177,13 @@
             <span class="text-[var(--accent)]">&rarr;</span>
           </a>
           @if (clinic.hasPhone) {
-            <a [href]="phoneHref" class="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-gray-300 hover:bg-gray-50">
+            <a [href]="phoneHref" class="flex items-center justify-between rounded-2xl border border-ui-line bg-white px-4 py-3 text-sm font-semibold text-ui-ink transition hover:border-ui-line-strong hover:bg-ui-muted">
               <span>Call clinic</span>
               <span class="text-[var(--accent)]">{{ clinic.config.phone }}</span>
             </a>
           }
           @if (clinic.config.mapDirectionsUrl) {
-            <a [href]="clinic.config.mapDirectionsUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 transition hover:border-gray-300 hover:bg-gray-50">
+            <a [href]="clinic.config.mapDirectionsUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-2xl border border-ui-line bg-white px-4 py-3 text-sm font-semibold text-ui-ink transition hover:border-ui-line-strong hover:bg-ui-muted">
               <span>Get directions</span>
               <span class="text-[var(--accent)]">Maps</span>
             </a>

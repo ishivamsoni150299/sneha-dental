@@ -45,8 +45,8 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
         <div class="admin-topbar-inner max-w-5xl">
           <div class="flex items-center gap-3">
             <a routerLink="/business/clinic/dashboard"
-               class="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-              <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+               class="w-9 h-9 rounded-xl bg-ui-canvas-subtle hover:bg-gray-200 flex items-center justify-center transition-colors">
+              <svg class="w-4 h-4 text-ui-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
             </a>
@@ -104,7 +104,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
             </div>
-            <h3 class="font-bold text-gray-900 mb-2">No doctors yet</h3>
+            <h3 class="font-bold text-ui-ink mb-2">No doctors yet</h3>
             <p class="text-sm text-gray-500 mb-6 max-w-xs mx-auto">Add your first doctor to enable doctor-specific appointment booking with live availability.</p>
             <button (click)="openAddModal()"
                     class="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-dk)]
@@ -133,7 +133,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                       {{ initials(doctor.name) }}
                     </div>
                     <div class="min-w-0">
-                      <p class="font-bold text-gray-900 text-sm leading-none truncate">{{ doctor.name }}</p>
+                      <p class="font-bold text-ui-ink text-sm leading-none truncate">{{ doctor.name }}</p>
                       <p class="text-xs text-gray-400 mt-0.5 truncate">
                         {{ doctor.qualification }}{{ doctor.qualification && doctor.speciality ? ' · ' : '' }}{{ doctor.speciality }}
                       </p>
@@ -207,10 +207,10 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
         <div class="admin-modal relative w-full max-w-2xl">
 
           <!-- Modal header -->
-          <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
-            <h2 class="font-bold text-gray-900">{{ modalMode() === 'add' ? 'Add Doctor' : 'Edit Doctor' }}</h2>
-            <button (click)="closeModal()" aria-label="Close" class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-              <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <div class="sticky top-0 bg-white px-6 py-4 border-b border-ui-line flex items-center justify-between z-10">
+            <h2 class="font-bold text-ui-ink">{{ modalMode() === 'add' ? 'Add Doctor' : 'Edit Doctor' }}</h2>
+            <button (click)="closeModal()" aria-label="Close" class="w-10 h-10 rounded-lg bg-ui-canvas-subtle hover:bg-gray-200 flex items-center justify-center transition-colors">
+              <svg class="w-4 h-4 text-ui-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
               </svg>
             </button>
@@ -221,39 +221,39 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
             <!-- Name + Qualification -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
+                <label class="block text-sm font-semibold text-ui-ink-soft mb-1.5">Full Name *</label>
                 <input [(ngModel)]="form.name" name="doctorName" type="text"
                        placeholder="e.g. Dr. Priya Sharma" autofocus
-                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
+                       class="w-full px-4 py-2.5 rounded-xl border border-ui-line text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
               </div>
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Qualification</label>
+                <label class="block text-sm font-semibold text-ui-ink-soft mb-1.5">Qualification</label>
                 <input [(ngModel)]="form.qualification" name="doctorQual" type="text"
                        placeholder="e.g. BDS, MDS"
-                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
+                       class="w-full px-4 py-2.5 rounded-xl border border-ui-line text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
               </div>
             </div>
 
             <!-- Speciality + Available -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Speciality</label>
+                <label class="block text-sm font-semibold text-ui-ink-soft mb-1.5">Speciality</label>
                 <input [(ngModel)]="form.speciality" name="doctorSpec" type="text"
                        placeholder="e.g. Orthodontics"
-                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
+                       class="w-full px-4 py-2.5 rounded-xl border border-ui-line text-sm outline-none focus:border-[var(--accent-md)] focus:ring-2 focus:ring-blue-200 bg-white">
               </div>
               <div class="flex items-center gap-3 pt-6">
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" [(ngModel)]="form.available" name="doctorAvailable" class="sr-only peer">
                   <div class="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[var(--accent)] after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-5"></div>
                 </label>
-                <span class="text-sm font-semibold text-gray-700">Currently Available</span>
+                <span class="text-sm font-semibold text-ui-ink-soft">Currently Available</span>
               </div>
             </div>
 
             <!-- Weekly Schedule -->
             <div>
-              <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <h3 class="text-sm font-bold text-ui-ink-soft mb-3 flex items-center gap-2">
                 <svg class="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
@@ -273,7 +273,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                     </label>
 
                     <!-- Day label -->
-                    <span class="w-8 text-xs font-bold text-gray-700 shrink-0">{{ day.label }}</span>
+                    <span class="w-8 text-xs font-bold text-ui-ink-soft shrink-0">{{ day.label }}</span>
 
                     @if (form.schedule[day.key].enabled) {
                       <!-- Start time -->
@@ -306,10 +306,10 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
                       @for (pause of form.schedule[day.key].breaks ?? []; track $index) {
                         <div class="flex flex-wrap items-center gap-2">
                           <input type="time" [(ngModel)]="pause.start" [attr.aria-label]="day.label + ' break start'"
-                            class="border border-gray-200 rounded-lg p-2 text-sm">
+                            class="border border-ui-line rounded-lg p-2 text-sm">
                           <span class="text-gray-500 text-sm">to</span>
                           <input type="time" [(ngModel)]="pause.end" [attr.aria-label]="day.label + ' break end'"
-                            class="border border-gray-200 rounded-lg p-2 text-sm">
+                            class="border border-ui-line rounded-lg p-2 text-sm">
                           <button type="button" (click)="form.schedule[day.key].breaks!.splice($index, 1)"
                             class="text-sm text-red-600 p-2">Remove break</button>
                         </div>
@@ -321,11 +321,11 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               </div>
             </div>
 
-            <div class="border-t border-gray-200 pt-4">
-              <h3 class="text-sm font-bold text-gray-900">Holidays and days off</h3>
+            <div class="border-t border-ui-line pt-4">
+              <h3 class="text-sm font-bold text-ui-ink">Holidays and days off</h3>
               <p class="text-xs text-gray-500 mt-1">No new slots will be offered on these dates. Reschedule affected appointments first.</p>
               <div class="flex gap-2 mt-3">
-                <input type="date" [(ngModel)]="dayOffDate" aria-label="Day off date" class="border border-gray-200 rounded-xl p-2 text-sm">
+                <input type="date" [(ngModel)]="dayOffDate" aria-label="Day off date" class="border border-ui-line rounded-xl p-2 text-sm">
                 <button type="button" (click)="addDayOff()" [disabled]="!dayOffDate" class="text-sm text-blue-600 px-3 disabled:opacity-50">Add date</button>
               </div>
               @for (date of form.schedule.daysOff ?? []; track date) {
@@ -340,9 +340,9 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
           </div>
 
           <!-- Modal footer -->
-          <div class="sticky bottom-0 bg-white px-6 py-4 border-t border-gray-100 flex gap-3">
+          <div class="sticky bottom-0 bg-white px-6 py-4 border-t border-ui-line flex gap-3">
             <button (click)="closeModal()"
-                    class="flex-1 border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                    class="flex-1 border border-ui-line text-ui-ink-muted hover:bg-ui-muted font-semibold py-2.5 rounded-xl text-sm transition-colors">
               Cancel
             </button>
             <button (click)="saveDoctor()"
@@ -377,14 +377,14 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               </svg>
             </div>
             <div>
-              <h3 class="font-bold text-gray-900 text-sm">Remove doctor</h3>
+              <h3 class="font-bold text-ui-ink text-sm">Remove doctor</h3>
               <p class="text-xs text-gray-400">{{ deleteTarget()?.name }}</p>
             </div>
           </div>
-          <p class="text-sm text-gray-600 mb-5">This will permanently remove the doctor. Existing appointments will not be affected.</p>
+          <p class="text-sm text-ui-ink-muted mb-5">This will permanently remove the doctor. Existing appointments will not be affected.</p>
           <div class="flex gap-3">
             <button (click)="deleteTarget.set(null)"
-                    class="flex-1 border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                    class="flex-1 border border-ui-line text-ui-ink-muted hover:bg-ui-muted font-semibold py-2.5 rounded-xl text-sm transition-colors">
               Keep
             </button>
             <button (click)="doDelete()"

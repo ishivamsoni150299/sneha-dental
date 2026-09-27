@@ -14,7 +14,7 @@ interface Submission {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 class="text-2xl font-bold text-gray-900">Dentist Verification</h1>
+      <div><h1 class="text-2xl font-bold text-ui-ink">Dentist Verification</h1>
       <p class="mt-2 text-gray-500">Review registration details before approving a public dentist listing.</p></div>
       <button class="ui-btn ui-btn-secondary" (click)="load()" [disabled]="loading() || busy() !== null">Refresh</button>
     </div>
@@ -23,8 +23,8 @@ interface Submission {
     @if (loading()) { <p class="mt-6 text-gray-500" role="status">Loading submissions…</p> }
     @else {
       @for (dentist of submissions(); track dentist.id) {
-        <article class="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 class="text-xl font-bold text-gray-900">{{ dentist.full_name }}</h2>
+        <article class="mt-6 rounded-2xl border border-ui-line bg-white p-6 shadow-sm">
+          <h2 class="text-xl font-bold text-ui-ink">{{ dentist.full_name }}</h2>
           <p class="mt-1 text-sm text-gray-500">Last updated {{ dentist.updated_at | date:'medium' }}</p>
           <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div><dt class="text-gray-500">Contact</dt><dd>{{ dentist.email || 'No email' }} · {{ dentist.phone_e164 || 'No phone' }}</dd></div>
@@ -32,9 +32,9 @@ interface Submission {
             <div><dt class="text-gray-500">Registration</dt><dd>{{ dentist.registration_number }} · {{ dentist.registration_council }}</dd></div>
             <div><dt class="text-gray-500">Active practice locations</dt><dd>{{ dentist.locations || 'No active location' }}</dd></div>
           </dl>
-          @if (dentist.biography) { <p class="mt-4 whitespace-pre-line text-sm text-gray-700">{{ dentist.biography }}</p> }
+          @if (dentist.biography) { <p class="mt-4 whitespace-pre-line text-sm text-ui-ink-soft">{{ dentist.biography }}</p> }
           <label class="mt-5 block text-sm font-semibold" [for]="'reason-' + dentist.id">Reason (required to reject)</label>
-          <textarea #reason [id]="'reason-' + dentist.id" maxlength="1000" rows="2" class="mt-2 w-full rounded-xl border border-gray-300 p-3" [disabled]="busy() !== null"></textarea>
+          <textarea #reason [id]="'reason-' + dentist.id" maxlength="1000" rows="2" class="mt-2 w-full rounded-xl border border-ui-line-strong p-3" [disabled]="busy() !== null"></textarea>
           <div class="mt-4 flex flex-wrap gap-3">
             <button class="ui-btn ui-btn-primary" [disabled]="busy() !== null" (click)="review(dentist, 'verify', '')">Approve and publish</button>
             <button class="ui-btn ui-btn-secondary" [disabled]="busy() !== null" (click)="review(dentist, 'reject', reason.value)">Reject</button>

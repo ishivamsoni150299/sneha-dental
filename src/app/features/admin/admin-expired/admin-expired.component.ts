@@ -21,10 +21,10 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
               </svg>
             </div>
             <span class="text-[15px] font-bold tracking-tight">
-              <span class="text-gray-900">mydental</span><span class="text-blue-600">platform</span>
+              <span class="text-ui-ink">mydental</span><span class="text-blue-600">platform</span>
             </span>
           </a>
-          <button (click)="logout()" class="text-xs text-gray-400 transition-colors hover:text-gray-600">
+          <button (click)="logout()" class="text-xs text-gray-400 transition-colors hover:text-ui-ink-muted">
             Sign out
           </button>
         </div>
@@ -38,7 +38,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
             </svg>
           </div>
 
-          <h1 class="mb-2 text-2xl font-extrabold text-gray-900">
+          <h1 class="mb-2 text-2xl font-extrabold text-ui-ink">
             Your subscription has ended
           </h1>
           <p class="mb-2 text-sm text-gray-500">
@@ -50,9 +50,9 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 
           <div class="mb-6 grid gap-3 text-left sm:grid-cols-2">
             <div class="admin-panel p-5 transition-colors hover:border-blue-300">
-              <p class="mb-0.5 font-bold text-gray-900">Basic</p>
+              <p class="mb-0.5 font-bold text-ui-ink">Basic</p>
               <p class="mb-1 text-2xl font-extrabold text-blue-600">{{ starterPrice }}</p>
-              <ul class="space-y-1.5 text-xs text-gray-600">
+              <ul class="space-y-1.5 text-xs text-ui-ink-muted">
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Professional website live instantly</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Online appointment booking</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Custom domain setup</li>

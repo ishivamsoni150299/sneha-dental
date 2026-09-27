@@ -10,25 +10,25 @@ import { CallViewportDirective } from '../../shared/components/video-consultatio
 @Component({
   selector: 'app-video-test', standalone: true, imports: [RouterLink, NativeVideoRoomComponent, CallViewportDirective], changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <main class="min-h-screen bg-ui-muted p-4 sm:p-6">
       <div class="mx-auto max-w-6xl">
         @if (host) { <a routerLink="/professional/workspace" class="inline-flex min-h-11 items-center text-sm font-semibold text-blue-700">← Dentist workspace</a> }
         <p class="mt-5 text-xs font-semibold uppercase tracking-widest text-blue-700">Video consultation</p>
-        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">Let’s check your call.</h1>
-        <p class="mt-3 max-w-xl text-sm leading-6 text-gray-600">Open a private room, check your camera and microphone, and invite a second device. No appointment needed for this test.</p>
+        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ui-ink">Let’s check your call.</h1>
+        <p class="mt-3 max-w-xl text-sm leading-6 text-ui-ink-muted">Open a private room, check your camera and microphone, and invite a second device. No appointment needed for this test.</p>
         @if (guestLink()) {
           <section class="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div class="flex flex-wrap items-center justify-between gap-3"><div><p class="text-sm font-semibold text-blue-900">Invite your second device</p><p class="mt-1 text-xs text-gray-600">Private link · expires {{ expires() }}</p></div><button (click)="copy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">{{ copied() ? 'Copied' : 'Copy invitation' }}</button></div>
-            <details class="mt-2 text-xs text-gray-600"><summary class="cursor-pointer py-2">Show invitation link</summary><input aria-label="Temporary guest invitation" readonly [value]="guestLink()" class="mt-2 min-h-11 w-full rounded-lg border border-gray-300 p-3 text-sm" (focus)="$any($event.target).select()"></details>
+            <div class="flex flex-wrap items-center justify-between gap-3"><div><p class="text-sm font-semibold text-blue-900">Invite your second device</p><p class="mt-1 text-xs text-ui-ink-muted">Private link · expires {{ expires() }}</p></div><button (click)="copy()" class="min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white">{{ copied() ? 'Copied' : 'Copy invitation' }}</button></div>
+            <details class="mt-2 text-xs text-ui-ink-muted"><summary class="cursor-pointer py-2">Show invitation link</summary><input aria-label="Temporary guest invitation" readonly [value]="guestLink()" class="mt-2 min-h-11 w-full rounded-lg border border-ui-line-strong p-3 text-sm" (focus)="$any($event.target).select()"></details>
           </section>
         }
         @if (error()) { <p role="alert" class="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-800">{{ error() }}</p> }
         <div class="my-4 flex gap-3" [class.hidden]="!!nativeSession()">
           <button (click)="join()" [disabled]="busy() || joined()" class="min-h-12 rounded-xl bg-blue-600 px-5 font-semibold text-white disabled:opacity-50">{{ busy() ? 'Opening room…' : host ? 'Start test call' : 'Join test call' }}</button>
-          @if (joined()) { <button (click)="leave()" class="min-h-12 rounded-xl border border-gray-300 px-5 font-semibold">Leave call</button> }
+          @if (joined()) { <button (click)="leave()" class="min-h-12 rounded-xl border border-ui-line-strong px-5 font-semibold">Leave call</button> }
         </div>
-        @if (nativeSession(); as session) { <section appCallViewport class="test-room fixed inset-0 z-50 flex flex-col overflow-hidden bg-white sm:relative sm:inset-auto sm:h-[80dvh] sm:min-h-[28rem] sm:rounded-2xl sm:border sm:border-gray-200"><app-native-video-room [session]="session" [staff]="host" [refreshSession]="refreshSession" (closed)="leave()" /></section> }
-        <div #frame class="overflow-hidden rounded-2xl border border-gray-200 bg-white" style="height: 65dvh; min-height: 360px" [class.hidden]="!!nativeSession() || (!joined() && !busy())"></div>
+        @if (nativeSession(); as session) { <section appCallViewport class="test-room fixed inset-0 z-50 flex flex-col overflow-hidden bg-white sm:relative sm:inset-auto sm:h-[80dvh] sm:min-h-[28rem] sm:rounded-2xl sm:border sm:border-ui-line"><app-native-video-room [session]="session" [staff]="host" [refreshSession]="refreshSession" (closed)="leave()" /></section> }
+        <div #frame class="overflow-hidden rounded-2xl border border-ui-line bg-white" style="height: 65dvh; min-height: 360px" [class.hidden]="!!nativeSession() || (!joined() && !busy())"></div>
       </div>
     </main>
   `,

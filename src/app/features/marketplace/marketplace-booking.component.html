@@ -2,29 +2,29 @@
   <div class="mx-auto min-h-[34rem] max-w-5xl animate-pulse px-4 py-10 sm:px-6">
     <div class="mx-auto h-5 w-36 rounded bg-gray-200"></div>
     <div class="mx-auto mt-5 h-10 w-80 max-w-full rounded bg-gray-200"></div>
-    <div class="mt-10 h-96 rounded-lg border border-gray-100 bg-white"></div>
+    <div class="mt-10 h-96 rounded-lg border border-ui-line bg-white"></div>
   </div>
 } @else if (error()) {
   <section class="mx-auto min-h-[34rem] max-w-3xl px-4 py-16 text-center sm:px-6">
     <div role="alert" class="border-y border-red-200 bg-white px-5 py-10">
-      <h1 class="text-2xl font-bold text-gray-950">Booking unavailable</h1>
+      <h1 class="text-2xl font-bold text-ui-ink">Booking unavailable</h1>
       <p class="mt-3 text-sm text-red-700">{{ error() }}</p>
       <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Back to dentists</a>
     </div>
   </section>
 } @else if (notFound()) {
   <section class="mx-auto min-h-[34rem] max-w-3xl px-4 py-16 text-center sm:px-6">
-    <div class="border-y border-gray-200 bg-white px-5 py-12">
-      <h1 class="text-2xl font-bold text-gray-950">Dentist not found</h1>
-      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">This marketplace profile is unavailable or may have moved.</p>
+    <div class="border-y border-ui-line bg-white px-5 py-12">
+      <h1 class="text-2xl font-bold text-ui-ink">Dentist not found</h1>
+      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-ui-ink-muted">This marketplace profile is unavailable or may have moved.</p>
       <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Browse dentists</a>
     </div>
   </section>
 } @else if (unavailable()) {
   <section class="mx-auto min-h-[34rem] max-w-3xl px-4 py-16 text-center sm:px-6">
-    <div class="border-y border-gray-200 bg-white px-5 py-12">
-      <h1 class="text-2xl font-bold text-gray-950">Online requests are paused</h1>
-      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">This clinic is not accepting marketplace appointment requests right now.</p>
+    <div class="border-y border-ui-line bg-white px-5 py-12">
+      <h1 class="text-2xl font-bold text-ui-ink">Online requests are paused</h1>
+      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-ui-ink-muted">This clinic is not accepting marketplace appointment requests right now.</p>
       <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Browse other dentists</a>
     </div>
   </section>
@@ -33,45 +33,45 @@
     @if (booking.consultationMode === 'video') {
       <section class="video-receipt mx-auto max-w-lg px-4 py-8" aria-labelledby="video-receipt-title">
         <p class="text-sm font-semibold text-amber-800">Pending dentist confirmation</p>
-        <h1 id="video-receipt-title" class="mt-2 text-2xl font-semibold text-gray-950">Your request was sent</h1>
-        <dl class="my-6 space-y-4 rounded-2xl border border-gray-200 bg-white p-4 text-sm">
-          <div><dt class="text-gray-500">Dentist</dt><dd class="mt-1 font-semibold text-gray-900">{{ clinic()!.name }}</dd></div>
-          <div><dt class="text-gray-500">Requested time</dt><dd class="mt-1 font-semibold text-gray-900">{{ formattedDate(booking.date) }} · {{ booking.time }} IST</dd></div>
-          <div><dt class="text-gray-500">Reference</dt><dd class="mt-1 font-mono text-gray-900">{{ booking.ref }}</dd></div>
+        <h1 id="video-receipt-title" class="mt-2 text-2xl font-semibold text-ui-ink">Your request was sent</h1>
+        <dl class="my-6 space-y-4 rounded-2xl border border-ui-line bg-white p-4 text-sm">
+          <div><dt class="text-gray-500">Dentist</dt><dd class="mt-1 font-semibold text-ui-ink">{{ clinic()!.name }}</dd></div>
+          <div><dt class="text-gray-500">Requested time</dt><dd class="mt-1 font-semibold text-ui-ink">{{ formattedDate(booking.date) }} · {{ booking.time }} IST</dd></div>
+          <div><dt class="text-gray-500">Reference</dt><dd class="mt-1 font-mono text-ui-ink">{{ booking.ref }}</dd></div>
         </dl>
-        <p class="text-sm leading-6 text-gray-600">Once confirmed, join from My appointments 10 minutes before your call.</p>
+        <p class="text-sm leading-6 text-ui-ink-muted">Once confirmed, join from My appointments 10 minutes before your call.</p>
         <a routerLink="/appointments" class="mt-6 flex min-h-12 items-center justify-center rounded-xl bg-blue-600 px-4 font-semibold text-white hover:bg-blue-700">View my appointments</a>
       </section>
     } @else {
-    <section class="min-h-[38rem] border-b border-gray-200 bg-gray-50 px-4 py-10 sm:px-6 sm:py-16">
-      <div class="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
+    <section class="min-h-[38rem] border-b border-ui-line bg-ui-muted px-4 py-10 sm:px-6 sm:py-16">
+      <div class="mx-auto max-w-3xl rounded-lg border border-ui-line bg-white p-6 shadow-sm sm:p-10">
         <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">
           <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
           </svg>
         </div>
         <p class="mt-6 text-xs font-bold uppercase tracking-widest text-emerald-700">{{ isIndependent() ? 'Pending dentist confirmation' : 'Pending clinic confirmation' }}</p>
-        <h1 class="mt-2 text-3xl font-bold text-gray-950">Your request was sent</h1>
-        <p class="mt-3 max-w-xl text-sm leading-6 text-gray-600">
+        <h1 class="mt-2 text-3xl font-bold text-ui-ink">Your request was sent</h1>
+        <p class="mt-3 max-w-xl text-sm leading-6 text-ui-ink-muted">
           {{ clinic()!.name }} will confirm or decline the requested time within two working hours or during its next working window.
         </p>
 
-        <dl class="mt-8 grid gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-2">
+        <dl class="mt-8 grid gap-px overflow-hidden rounded-lg border border-ui-line bg-gray-200 sm:grid-cols-2">
           <div class="bg-white p-4 sm:col-span-2">
             <dt class="text-[11px] font-bold uppercase text-gray-400">Booking reference</dt>
             <dd class="mt-1 font-mono text-xl font-bold tracking-wider text-blue-700">{{ booking.ref }}</dd>
           </div>
           <div class="bg-white p-4">
             <dt class="text-[11px] font-bold uppercase text-gray-400">Preferred date</dt>
-            <dd class="mt-1 text-sm font-bold text-gray-950">{{ formattedDate(booking.date) }}</dd>
+            <dd class="mt-1 text-sm font-bold text-ui-ink">{{ formattedDate(booking.date) }}</dd>
           </div>
           <div class="bg-white p-4">
             <dt class="text-[11px] font-bold uppercase text-gray-400">Preferred time</dt>
-            <dd class="mt-1 text-sm font-bold text-gray-950">{{ booking.time }}</dd>
+            <dd class="mt-1 text-sm font-bold text-ui-ink">{{ booking.time }}</dd>
           </div>
           <div class="bg-white p-4 sm:col-span-2">
             <dt class="text-[11px] font-bold uppercase text-gray-400">Service</dt>
-            <dd class="mt-1 text-sm font-bold text-gray-950">{{ booking.service }}</dd>
+            <dd class="mt-1 text-sm font-bold text-ui-ink">{{ booking.service }}</dd>
           </div>
         </dl>
 
@@ -80,8 +80,8 @@
         </div>
         <div class="mt-8 flex flex-wrap gap-3">
           <a routerLink="/appointments" [queryParams]="patientAuth.isSignedIn() ? {} : { claim: booking.ref }" class="inline-flex min-h-11 items-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">View my appointments</a>
-          <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">Back to profile</a>
-          <a routerLink="/dentists" class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">Find another dentist</a>
+          <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center rounded-lg border border-ui-line-strong px-5 py-3 text-sm font-bold text-ui-ink-soft hover:bg-ui-muted">Back to profile</a>
+          <a routerLink="/dentists" class="inline-flex min-h-11 items-center rounded-lg border border-ui-line-strong px-5 py-3 text-sm font-bold text-ui-ink-soft hover:bg-ui-muted">Find another dentist</a>
         </div>
       </div>
     </section>
@@ -91,12 +91,12 @@
       <section class="mx-auto px-4 py-6 sm:px-6 sm:py-8" [class.video-booking]="consultationMode() === 'video'" [class.max-w-2xl]="consultationMode() === 'video'" [class.max-w-5xl]="consultationMode() !== 'video'">
         <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700"><i class="ph ph-arrow-left" aria-hidden="true"></i> Back to profile</a>
         <div class="mt-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div><h1 class="booking-title mt-3 text-3xl font-semibold text-gray-900 sm:text-4xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Book your next visit.' }}</h1><p class="booking-provider mt-3 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
+          <div><h1 class="booking-title mt-3 text-3xl font-semibold text-ui-ink sm:text-4xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Book your next visit.' }}</h1><p class="booking-provider mt-3 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
           @if (consultationMode() !== 'video') {<span class="inline-flex items-center gap-2 text-sm text-gray-500"><i class="ph ph-seal-check text-lg text-blue-600" aria-hidden="true"></i> No platform booking fee</span>}
         </div>
         @if (!isIndependent() && consultationMode() !== 'video') {
         <fieldset class="mt-7">
-          <legend class="mb-3 text-sm font-semibold text-gray-900">How would you like to meet?</legend>
+          <legend class="mb-3 text-sm font-semibold text-ui-ink">How would you like to meet?</legend>
           <div class="grid gap-3 sm:grid-cols-2">
             <button type="button" (click)="chooseMode('in_person')"
               [disabled]="isIndependent()"
@@ -105,10 +105,10 @@
               [class.bg-blue-50]="consultationMode() === 'in_person'"
               [class.opacity-50]="isIndependent()"
               [class.cursor-not-allowed]="isIndependent()"
-              class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left">
+              class="flex min-h-24 items-start gap-3 rounded-2xl border border-ui-line p-4 text-left">
               <i class="ph ph-hospital text-2xl" [class.text-blue-600]="!isIndependent()" [class.text-gray-400]="isIndependent()" aria-hidden="true"></i>
               <span>
-                <strong class="block text-sm text-gray-900">In-clinic visit</strong>
+                <strong class="block text-sm text-ui-ink">In-clinic visit</strong>
                 <span class="mt-1 block text-sm text-gray-500">
                   {{ isIndependent() ? 'Unavailable for independent profiles. Remote video consultations only.' : 'Meet your dentist at the clinic.' }}
                 </span>
@@ -119,10 +119,10 @@
               [attr.aria-pressed]="consultationMode() === 'video'"
               [class.border-blue-600]="consultationMode() === 'video'"
               [class.bg-blue-50]="consultationMode() === 'video'"
-              class="flex min-h-24 items-start gap-3 rounded-2xl border border-gray-200 p-4 text-left disabled:opacity-60">
+              class="flex min-h-24 items-start gap-3 rounded-2xl border border-ui-line p-4 text-left disabled:opacity-60">
               <i class="ph ph-video-camera text-2xl text-blue-600" aria-hidden="true"></i>
               <span>
-                <strong class="block text-sm text-gray-900">Video consultation</strong>
+                <strong class="block text-sm text-ui-ink">Video consultation</strong>
                 <span class="mt-1 block text-sm text-gray-500">
                   {{ !videoReady() ? 'Video consultations are temporarily unavailable.' : (isIndependent() ? 'Direct video consultation with independent practitioner.' : 'A private video call from your device.') }}
                 </span>
@@ -134,26 +134,26 @@
           </div>
         </fieldset>
         } @else {
-          <p class="mt-3 text-sm text-gray-600">{{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with dentist' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee + ' consultation fee' }} · No platform booking fee</p>
+          <p class="mt-3 text-sm text-ui-ink-muted">{{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with dentist' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee + ' consultation fee' }} · No platform booking fee</p>
         }
         @if (videoUnavailable()) {
           <p role="alert" class="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">Video consultations are unavailable right now. @if (!isIndependent()) { <button type="button" (click)="chooseMode('in_person')" class="font-semibold underline">Choose an in-clinic visit</button> or }<a routerLink="/dentists" class="font-semibold underline">browse other dentists</a>.</p>
         } @else {
         @if (consultationMode() !== 'video') {
-        <ol class="my-7 grid grid-cols-3 gap-3 border-y border-gray-200 py-5 text-xs sm:text-sm" aria-label="Booking progress">
+        <ol class="my-7 grid grid-cols-3 gap-3 border-y border-ui-line py-5 text-xs sm:text-sm" aria-label="Booking progress">
           <li class="flex items-center gap-2 font-semibold text-blue-700" [attr.aria-current]="selectedSlot() ? null : 'step'"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-100">1</span> Choose a time</li>
-          <li class="flex items-center gap-2 font-semibold" [class.text-gray-500]="!selectedSlot()" [class.text-blue-700]="selectedSlot()" [attr.aria-current]="selectedSlot() ? 'step' : null"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gray-100">2</span> Your details</li>
-          <li class="flex items-center gap-2 text-gray-500"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gray-100">3</span> Dentist confirms</li>
+          <li class="flex items-center gap-2 font-semibold" [class.text-gray-500]="!selectedSlot()" [class.text-blue-700]="selectedSlot()" [attr.aria-current]="selectedSlot() ? 'step' : null"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ui-canvas-subtle">2</span> Your details</li>
+          <li class="flex items-center gap-2 text-gray-500"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ui-canvas-subtle">3</span> Dentist confirms</li>
         </ol>
         }
         @if (consultationMode() === 'video' && selectedSlot(); as slot) {
-          <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4" aria-label="Selected appointment">
-            <p class="text-sm font-semibold text-gray-900">{{ formattedDate(slot.date) }} · {{ slot.time.slice(0, 5) }} IST</p>
+          <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-line bg-white p-4" aria-label="Selected appointment">
+            <p class="text-sm font-semibold text-ui-ink">{{ formattedDate(slot.date) }} · {{ slot.time.slice(0, 5) }} IST</p>
             <button type="button" (click)="editingTime.set(!editingTime())" [attr.aria-expanded]="editingTime()" aria-controls="booking-time-picker" class="min-h-11 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">{{ editingTime() ? 'Keep this time' : 'Change time' }}</button>
           </div>
         }
-        <div id="booking-time-picker" [hidden]="consultationMode() === 'video' && selectedSlot() && !editingTime()" class="mt-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-        <div class="mb-5"><h2 class="text-xl font-semibold text-gray-900">Choose a time</h2></div>
+        <div id="booking-time-picker" [hidden]="consultationMode() === 'video' && selectedSlot() && !editingTime()" class="mt-5 rounded-2xl border border-ui-line bg-white p-5 shadow-sm sm:p-6">
+        <div class="mb-5"><h2 class="text-xl font-semibold text-ui-ink">Choose a time</h2></div>
         <app-slot-picker
           [compact]="consultationMode() === 'video'"
           [slug]="route.snapshot.paramMap.get('slug') ?? ''"
@@ -165,9 +165,9 @@
       </section>
       @if (!videoUnavailable() && selectedSlot()) {
         @if (consultationMode() === 'video' && (!accountReady() || !patientAuth.isSignedIn())) {
-          <section [hidden]="editingTime()" class="video-signin mx-auto mb-10 max-w-lg rounded-2xl border border-gray-200 bg-white p-6" aria-labelledby="video-signin-heading">
-            <h2 id="video-signin-heading" class="text-xl font-semibold text-gray-900">{{ signup() ? 'Create your patient account' : 'Sign in to continue' }}</h2>
-            <p class="mb-5 mt-2 text-sm text-gray-600">Use your patient account to book and join your call.</p>
+          <section [hidden]="editingTime()" class="video-signin mx-auto mb-10 max-w-lg rounded-2xl border border-ui-line bg-white p-6" aria-labelledby="video-signin-heading">
+            <h2 id="video-signin-heading" class="text-xl font-semibold text-ui-ink">{{ signup() ? 'Create your patient account' : 'Sign in to continue' }}</h2>
+            <p class="mb-5 mt-2 text-sm text-ui-ink-muted">Use your patient account to book and join your call.</p>
             @if (accountError()) { <p role="alert" class="mb-4 text-sm text-red-700">{{ accountError() }}</p> }
             <app-password-login portal="patient" [signup]="signup()" (authenticated)="onAuthenticated($event)" />
             <button type="button" (click)="signup.set(!signup())" class="mt-4 min-h-11 text-sm font-semibold text-blue-700">{{ signup() ? 'Already registered? Sign in' : 'New here? Create an account' }}</button>

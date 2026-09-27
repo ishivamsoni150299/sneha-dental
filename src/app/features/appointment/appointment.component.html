@@ -13,7 +13,7 @@
         </span>
         <span class="text-xs font-semibold text-gray-500">Takes about 60 seconds</span>
       </div>
-      <h1 class="clinic-workflow-title mt-4 text-gray-950">
+      <h1 class="clinic-workflow-title mt-4 text-ui-ink">
         Book your appointment
       </h1>
       @if (!patientAuth.isSignedIn()) {
@@ -22,20 +22,20 @@
           to manage your visits online. A patient account is required for video consultations.
         </p>
       }
-      <p class="clinic-workflow-lede mt-3 max-w-2xl text-sm leading-6 text-gray-600 md:mx-auto md:text-base">
+      <p class="clinic-workflow-lede mt-3 max-w-2xl text-sm leading-6 text-ui-ink-muted md:mx-auto md:text-base">
         Choose a convenient time. The clinic will confirm your request {{ isClinicOpenNow ? 'within two working hours' : confirmationWindowLabel.toLowerCase() }}.
       </p>
       <div class="clinic-trust-rail mt-5 hidden grid-cols-3 divide-x divide-gray-200 px-2 py-3 sm:grid md:mx-auto md:max-w-xl">
         <div class="px-2 text-center">
-          <p class="text-xs font-bold text-gray-900">No payment</p>
+          <p class="text-xs font-bold text-ui-ink">No payment</p>
           <p class="mt-0.5 text-[11px] text-gray-500">to request</p>
         </div>
         <div class="px-2 text-center">
-          <p class="text-xs font-bold text-gray-900">Private</p>
+          <p class="text-xs font-bold text-ui-ink">Private</p>
           <p class="mt-0.5 text-[11px] text-gray-500">and secure</p>
         </div>
         <div class="px-2 text-center">
-          <p class="text-xs font-bold text-gray-900">No fee</p>
+          <p class="text-xs font-bold text-ui-ink">No fee</p>
           <p class="mt-0.5 text-[11px] text-gray-500">to request</p>
         </div>
       </div>
@@ -49,19 +49,19 @@
 
           <!-- ── Step Progress Indicator ── -->
           @if (compactVideoBooking) {
-            <div class="border-b border-gray-100 px-4 py-4 md:px-6" aria-live="polite">
-              <h2 class="text-lg font-semibold text-gray-900">{{ currentStep() === 3 ? 'Review your request' : currentStep() === 2 ? 'Your details' : 'Check your time' }}</h2>
+            <div class="border-b border-ui-line px-4 py-4 md:px-6" aria-live="polite">
+              <h2 class="text-lg font-semibold text-ui-ink">{{ currentStep() === 3 ? 'Review your request' : currentStep() === 2 ? 'Your details' : 'Check your time' }}</h2>
               <p class="mt-1 text-sm text-gray-500">{{ currentStep() === 3 ? 'Your dentist must confirm the appointment before you can join.' : 'A video consultation may still require a follow-up clinic visit.' }}</p>
             </div>
           } @else {
-          <div class="border-b border-gray-100 px-4 pb-4 pt-5 md:px-6 md:pb-5 md:pt-6">
+          <div class="border-b border-ui-line px-4 pb-4 pt-5 md:px-6 md:pb-5 md:pt-6">
             <div class="sm:hidden" aria-label="Booking progress">
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">
                     Step {{ currentStep() }} of {{ totalSteps }}
                   </p>
-                  <p class="mt-1 text-base font-bold text-gray-950">{{ stepLabels[currentStep() - 1].title }}</p>
+                  <p class="mt-1 text-base font-bold text-ui-ink">{{ stepLabels[currentStep() - 1].title }}</p>
                 </div>
                 <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-gray-500 shadow-sm">
                   {{ (currentStep() / totalSteps) * 100 | number:'1.0-0' }}%
@@ -117,7 +117,7 @@
             <!-- Current step title + open status -->
             <div class="mt-3 hidden items-center justify-between sm:flex">
               <div>
-                <p class="font-semibold text-gray-900 text-sm">{{ stepLabels[currentStep() - 1].title }}</p>
+                <p class="font-semibold text-ui-ink text-sm">{{ stepLabels[currentStep() - 1].title }}</p>
                 <p class="text-xs text-gray-400 mt-0.5">Step {{ currentStep() }} of {{ totalSteps }}</p>
               </div>
               @if (isClinicOpenNow) {
@@ -126,7 +126,7 @@
                   Open now
                 </span>
               } @else {
-                <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200">
+                <span class="inline-flex items-center gap-1.5 bg-ui-muted text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full border border-ui-line">
                   <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
                   We confirm within 2 hrs
                 </span>
@@ -142,9 +142,9 @@
             <!-- ═══════════════════════════════════════════════════════ -->
             @if (currentStep() === 1 && compactVideoBooking) {
               @if (holdingSlot()) {
-                <p role="status" class="text-sm text-gray-600">Reserving your selected time…</p>
+                <p role="status" class="text-sm text-ui-ink-muted">Reserving your selected time…</p>
               } @else {
-                <p role="alert" class="text-sm text-gray-700">{{ error() || 'Checking availability. If your time is no longer available, choose another.' }}</p>
+                <p role="alert" class="text-sm text-ui-ink-soft">{{ error() || 'Checking availability. If your time is no longer available, choose another.' }}</p>
                 <button type="button" (click)="changeTime.emit()" class="mt-4 min-h-11 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Choose another time</button>
               }
             }
@@ -153,7 +153,7 @@
 
                 <!-- Service -->
                 <div>
-                  <label for="appointment-service" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label for="appointment-service" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                     Service Required <span class="text-red-500">*</span>
                   </label>
                   <div class="relative">
@@ -180,7 +180,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                       </svg>
                       Estimated cost:
-                      <span class="font-semibold text-gray-800">{{ selectedServicePrice }}</span>
+                      <span class="font-semibold text-ui-ink-soft">{{ selectedServicePrice }}</span>
                       <span class="text-gray-400">· exact amount confirmed before treatment</span>
                     </p>
                   }
@@ -190,19 +190,19 @@
                 @if (doctorsLoading()) {
                   <div class="sm:hidden" aria-label="Loading doctors" aria-busy="true">
                     <div class="mb-1.5 h-4 w-32 animate-pulse rounded-md bg-gray-200"></div>
-                    <div class="h-[52px] animate-pulse rounded-xl border border-gray-100 bg-gray-50"></div>
+                    <div class="h-[52px] animate-pulse rounded-xl border border-ui-line bg-ui-muted"></div>
                   </div>
                   <div class="hidden sm:block" aria-label="Loading doctors" aria-busy="true">
                     <div class="h-4 w-32 bg-gray-200 rounded-md animate-pulse mb-3"></div>
                     <div class="grid grid-cols-2 gap-2.5">
-                      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 min-h-[52px]">
+                      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-ui-line bg-ui-muted min-h-[52px]">
                         <div class="w-9 h-9 rounded-lg bg-gray-200 animate-pulse shrink-0"></div>
                         <div class="flex-1 space-y-1.5">
                           <div class="h-3.5 bg-gray-200 rounded animate-pulse w-3/4"></div>
                           <div class="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
                         </div>
                       </div>
-                      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 min-h-[52px]">
+                      <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-ui-line bg-ui-muted min-h-[52px]">
                         <div class="w-9 h-9 rounded-lg bg-gray-200 animate-pulse shrink-0"></div>
                         <div class="flex-1 space-y-1.5">
                           <div class="h-3.5 bg-gray-200 rounded animate-pulse w-3/4"></div>
@@ -213,7 +213,7 @@
                   </div>
                 } @else if (doctors().length > 0) {
                   <div class="sm:hidden">
-                    <label for="appointment-doctor" class="mb-1.5 block text-sm font-semibold text-gray-700">
+                    <label for="appointment-doctor" class="mb-1.5 block text-sm font-semibold text-ui-ink-soft">
                       Choose Doctor
                       <span class="text-gray-400 font-normal text-xs">(optional)</span>
                     </label>
@@ -224,7 +224,7 @@
                       <select id="appointment-doctor"
                               [value]="selectedDoctorId()"
                               (change)="onDoctorSelectionChange($event)"
-                              class="w-full appearance-none rounded-xl border border-gray-200 bg-white py-3.5 pl-10 pr-10 text-sm font-semibold text-gray-800 outline-none transition-colors focus:border-[var(--accent-md)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1">
+                              class="w-full appearance-none rounded-xl border border-ui-line bg-white py-3.5 pl-10 pr-10 text-sm font-semibold text-ui-ink-soft outline-none transition-colors focus:border-[var(--accent-md)] focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1">
                         <option value="">First available doctor</option>
                         @for (doctor of doctors(); track doctor.id) {
                           <option [value]="doctor.id">{{ doctor.name }} · {{ doctor.speciality || doctor.qualification }}</option>
@@ -236,7 +236,7 @@
                     </div>
                   </div>
                   <div class="hidden sm:block">
-                    <p id="appointment-doctor-label" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    <p id="appointment-doctor-label" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                       Choose Doctor
                       <span class="text-gray-400 font-normal text-xs">(optional)</span>
                     </p>
@@ -249,13 +249,13 @@
                               [ngClass]="selectedDoctorId() === ''
                                 ? 'border-[var(--accent)] bg-[var(--accent-lt)] ring-1 ring-[var(--accent)]'
                                 : 'border-gray-200 bg-white hover:border-gray-300'">
-                        <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                        <div class="w-9 h-9 rounded-lg bg-ui-canvas-subtle flex items-center justify-center shrink-0">
                           <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                           </svg>
                         </div>
                         <div>
-                          <p class="text-sm font-semibold text-gray-800">No preference</p>
+                          <p class="text-sm font-semibold text-ui-ink-soft">No preference</p>
                           <p class="text-xs text-gray-400">Any available doctor</p>
                         </div>
                       </button>
@@ -272,7 +272,7 @@
                             {{ doctorInitials(doctor.name) }}
                           </div>
                           <div class="min-w-0">
-                            <p class="text-sm font-semibold text-gray-800 truncate">{{ doctor.name }}</p>
+                            <p class="text-sm font-semibold text-ui-ink-soft truncate">{{ doctor.name }}</p>
                             <p class="text-xs text-gray-400 truncate">{{ doctor.speciality || doctor.qualification }}</p>
                           </div>
                         </button>
@@ -284,7 +284,7 @@
                 <!-- Date + Time -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label for="appointment-date" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    <label for="appointment-date" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                       Preferred Date <span class="text-red-500">*</span>
                     </label>
                     <div class="booking-quick-dates mb-2.5 grid grid-cols-3 gap-2 sm:hidden" aria-label="Quick date choices">
@@ -316,7 +316,7 @@
                     } @else if (isInvalid('date')) { <p id="appointment-date-error" class="text-red-500 text-xs mt-1" role="alert">Please select a date.</p> }
                   </div>
                   <div>
-                    <label for="appointment-time" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    <label for="appointment-time" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                       @if (selectedDoctorId() && form.get('date')?.value) {
                         Available Slots <span class="text-red-500">*</span>
                       } @else {
@@ -325,7 +325,7 @@
                     </label>
                     <div class="relative">
                       @if (slotsLoading()) {
-                        <div class="w-full py-3 px-4 rounded-xl border border-gray-100 bg-gray-50 space-y-2" aria-busy="true" aria-label="Loading available slots">
+                        <div class="w-full py-3 px-4 rounded-xl border border-ui-line bg-ui-muted space-y-2" aria-busy="true" aria-label="Loading available slots">
                           <div class="flex gap-2">
                             <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse"></div>
                             <div class="h-8 w-20 rounded-lg bg-gray-200 animate-pulse [animation-delay:80ms]"></div>
@@ -421,7 +421,7 @@
                   </div>
                   <div class="min-w-0">
                     <p class="text-xs font-bold text-[var(--accent-dk)] uppercase tracking-wide mb-1">Your Selection</p>
-                    <p class="text-sm font-semibold text-gray-900">{{ selectedServiceLabel }}</p>
+                    <p class="text-sm font-semibold text-ui-ink">{{ selectedServiceLabel }}</p>
                     <p class="text-xs text-gray-500 mt-0.5">{{ selectedDateLabel }} · {{ selectedTimeLabel }}</p>
                     <p class="text-xs text-gray-500 mt-1">Doctor: {{ selectedDoctorLabel }}</p>
                   </div>
@@ -439,7 +439,7 @@
                 <!-- Name -->
                 }
                 <div>
-                  <label for="appointment-name" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label for="appointment-name" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                     Full Name <span class="text-red-500">*</span>
                   </label>
                   <div class="relative">
@@ -457,7 +457,7 @@
 
                 <!-- Phone -->
                 <div>
-                  <label for="appointment-phone" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                  <label for="appointment-phone" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                     Phone Number <span class="text-red-500">*</span>
                   </label>
                   <div class="relative">
@@ -477,7 +477,7 @@
                 <!-- Step 2 navigation -->
                 <div class="booking-mobile-actions hidden gap-3 pt-1 md:flex">
                   <button type="button" (click)="prevStep()"
-                          class="flex items-center justify-center gap-1.5 px-5 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[52px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
+                          class="flex items-center justify-center gap-1.5 px-5 py-4 rounded-xl border border-ui-line text-ui-ink-muted font-semibold text-sm hover:bg-ui-muted hover:border-ui-line-strong transition-all min-h-[52px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
                     </svg>
@@ -501,34 +501,34 @@
               <div class="space-y-5">
 
                 <!-- Booking summary card -->
-                <div class="rounded-2xl border border-gray-100 bg-gray-50 overflow-hidden">
+                <div class="rounded-2xl border border-ui-line bg-ui-muted overflow-hidden">
                   <div class="px-4 py-3 bg-[var(--accent-lt)] border-b border-[var(--accent-bd)]">
                     <p class="text-xs font-bold text-[var(--accent-dk)] uppercase tracking-widest">Booking Summary</p>
                   </div>
                   <div class="p-4 space-y-3">
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Service</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedServiceLabel }}</span>
+                      <span class="text-sm font-semibold text-ui-ink text-right">{{ selectedServiceLabel }}</span>
                     </div>
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Date</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedDateLabel }}</span>
+                      <span class="text-sm font-semibold text-ui-ink text-right">{{ selectedDateLabel }}</span>
                     </div>
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Time</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedTimeLabel }}</span>
+                      <span class="text-sm font-semibold text-ui-ink text-right">{{ selectedTimeLabel }}</span>
                     </div>
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Doctor</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ selectedDoctorLabel }}</span>
+                      <span class="text-sm font-semibold text-ui-ink text-right">{{ selectedDoctorLabel }}</span>
                     </div>
-                    <div class="border-t border-gray-200 pt-3 flex justify-between items-start gap-3">
+                    <div class="border-t border-ui-line pt-3 flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Name</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ form.get('name')?.value }}</span>
+                      <span class="text-sm font-semibold text-ui-ink text-right">{{ form.get('name')?.value }}</span>
                     </div>
                     <div class="flex justify-between items-start gap-3">
                       <span class="text-xs text-gray-500 shrink-0">Phone</span>
-                      <span class="text-sm font-semibold text-gray-900 text-right">{{ form.get('phone')?.value }}</span>
+                      <span class="text-sm font-semibold text-ui-ink text-right">{{ form.get('phone')?.value }}</span>
                     </div>
                   </div>
                   <div class="px-4 pb-3 text-right">
@@ -539,24 +539,24 @@
                 <!-- Inline info strip — 3 items side by side on all screen sizes -->
                 @if (!compactVideoBooking) {
                 <div class="booking-mobile-promises flex items-stretch gap-2">
-                  <div class="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 text-center">
+                  <div class="flex-1 rounded-2xl border border-ui-line bg-white px-3 py-2.5 text-center">
                     <p class="text-[10px] uppercase tracking-wide text-gray-400 leading-none">Confirm</p>
-                    <p class="mt-1 text-xs font-bold text-gray-900 leading-tight">{{ confirmationWindowLabel }}</p>
+                    <p class="mt-1 text-xs font-bold text-ui-ink leading-tight">{{ confirmationWindowLabel }}</p>
                   </div>
-                  <div class="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 text-center">
+                  <div class="flex-1 rounded-2xl border border-ui-line bg-white px-3 py-2.5 text-center">
                     <p class="text-[10px] uppercase tracking-wide text-gray-400 leading-none">Arrival</p>
-                    <p class="mt-1 text-xs font-bold text-gray-900 leading-tight">10 min early</p>
+                    <p class="mt-1 text-xs font-bold text-ui-ink leading-tight">10 min early</p>
                   </div>
-                  <div class="flex-1 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 text-center">
+                  <div class="flex-1 rounded-2xl border border-ui-line bg-white px-3 py-2.5 text-center">
                     <p class="text-[10px] uppercase tracking-wide text-gray-400 leading-none">Cancel</p>
-                    <p class="mt-1 text-xs font-bold text-gray-900 leading-tight">No booking fee</p>
+                    <p class="mt-1 text-xs font-bold text-ui-ink leading-tight">No booking fee</p>
                   </div>
                 </div>
 
                 <!-- Optional fields — collapsed by default on mobile -->
                 }
                 <details class="group">
-                  <summary class="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-500 list-none select-none hover:border-gray-300 hover:text-gray-700 transition-colors">
+                  <summary class="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-ui-line bg-white px-4 py-3 text-sm font-semibold text-gray-500 list-none select-none hover:border-ui-line-strong hover:text-ui-ink-soft transition-colors">
                     <span class="flex items-center gap-2">
                       <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -570,7 +570,7 @@
                   <div class="mt-3 space-y-4">
                     <!-- Email -->
                     <div>
-                      <label for="appointment-email" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                      <label for="appointment-email" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                         Email <span class="text-gray-400 font-normal text-xs">(for booking confirmation)</span>
                       </label>
                       <div class="relative">
@@ -589,21 +589,21 @@
                     </div>
                     <!-- Notes -->
                     <div>
-                      <label for="appointment-message" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                      <label for="appointment-message" class="block text-sm font-semibold text-ui-ink-soft mb-1.5">
                         Additional Notes
                       </label>
                       <textarea id="appointment-message" formControlName="message" rows="3"
                                 placeholder="Describe your concern or anything we should know..."
-                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[var(--accent-md)] transition-colors outline-none resize-none bg-white"></textarea>
+                                class="w-full px-4 py-3 rounded-xl border border-ui-line focus:border-[var(--accent-md)] transition-colors outline-none resize-none bg-white"></textarea>
                     </div>
                   </div>
                 </details>
 
-                <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-xs leading-5 text-gray-600">
+                <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-ui-line bg-white px-4 py-3 text-xs leading-5 text-ui-ink-muted">
                       <input id="appointment-privacyAccepted" type="checkbox" formControlName="privacyAccepted" required
                         [attr.aria-invalid]="isInvalid('privacyAccepted') ? 'true' : null"
                         [attr.aria-describedby]="isInvalid('privacyAccepted') ? 'appointment-privacy-error' : null"
-                        class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-[var(--accent)] focus:ring-[var(--accent)]">
+                        class="mt-0.5 h-4 w-4 shrink-0 rounded border-ui-line-strong text-[var(--accent)] focus:ring-[var(--accent)]">
                   <span>I agree that my details may be used to manage this appointment request. I have read the <a [routerLink]="privacyRoute" class="font-bold text-[var(--accent)] hover:underline">privacy notice</a> and <a [routerLink]="termsRoute" class="font-bold text-[var(--accent)] hover:underline">website terms</a>.</span>
                 </label>
                 @if (isInvalid('privacyAccepted')) {
@@ -629,7 +629,7 @@
 
                 <!-- Trust strip -->
                 @if (!compactVideoBooking) {
-                <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100">
+                <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 bg-ui-muted rounded-xl px-4 py-2.5 border border-ui-line">
                   <span class="flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-[var(--accent-md)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <span class="font-medium">Private &amp; secure</span>
@@ -669,7 +669,7 @@
 
                 <div class="hidden gap-3 md:flex">
                   <button type="button" (click)="prevStep()"
-                          class="flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
+                          class="flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl border border-ui-line text-ui-ink-muted font-semibold text-sm hover:bg-ui-muted transition-all min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
                     </svg>
@@ -693,17 +693,17 @@
       @if (!compactVideoBooking) {
       <div class="hidden min-w-0 space-y-4 xl:col-span-2 xl:block">
         @if (bookingContext?.consultationMode === 'video') {
-          <aside class="rounded-2xl border border-gray-200 bg-white p-5" aria-label="Video consultation summary">
-            <h2 class="text-lg font-semibold text-gray-900">Your video consultation</h2>
-            <p class="mt-3 font-semibold text-gray-900">{{ selectedDoctorLabel }}</p>
-            <p class="mt-2 text-sm text-gray-600">{{ selectedDateLabel }} · {{ selectedTimeLabel }} IST</p>
+          <aside class="rounded-2xl border border-ui-line bg-white p-5" aria-label="Video consultation summary">
+            <h2 class="text-lg font-semibold text-ui-ink">Your video consultation</h2>
+            <p class="mt-3 font-semibold text-ui-ink">{{ selectedDoctorLabel }}</p>
+            <p class="mt-2 text-sm text-ui-ink-muted">{{ selectedDateLabel }} · {{ selectedTimeLabel }} IST</p>
             @if (selectedServicePrice) { <p class="mt-2 text-sm font-semibold text-blue-700">{{ selectedServicePrice }} consultation fee</p> }
-            <p class="mt-4 text-sm leading-6 text-gray-600">Your dentist will review this request. Once confirmed, join from My appointments 10 minutes before your scheduled time.</p>
+            <p class="mt-4 text-sm leading-6 text-ui-ink-muted">Your dentist will review this request. Once confirmed, join from My appointments 10 minutes before your scheduled time.</p>
           </aside>
         } @else {
 
         <!-- Reassurance panel — sticky, visible from step 1 -->
-        <div class="xl:sticky xl:top-20 space-y-4 bg-gray-50 pb-1">
+        <div class="xl:sticky xl:top-20 space-y-4 bg-ui-muted pb-1">
 
         <!-- Booking progress card — shows selected details as user fills in form -->
         @if (form.get('service')?.value || form.get('date')?.value || form.get('time')?.value) {
@@ -722,7 +722,7 @@
                   </svg>
                   <div>
                     <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Service</p>
-                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ selectedServiceLabel }}</p>
+                    <p class="text-sm font-semibold text-ui-ink leading-snug">{{ selectedServiceLabel }}</p>
                   </div>
                 </div>
               }
@@ -733,7 +733,7 @@
                   </svg>
                   <div>
                     <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Date &amp; Time</p>
-                    <p class="text-sm font-semibold text-gray-900 leading-snug">{{ selectedDateLabel }}</p>
+                    <p class="text-sm font-semibold text-ui-ink leading-snug">{{ selectedDateLabel }}</p>
                     <p class="text-xs text-gray-500 mt-0.5">{{ selectedTimeLabel }}</p>
                   </div>
                 </div>
@@ -744,7 +744,7 @@
                 </div>
                 <div>
                   <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-none mb-0.5">Doctor</p>
-                  <p class="text-sm font-semibold text-gray-900 leading-snug">{{ selectedDoctorLabel }}</p>
+                  <p class="text-sm font-semibold text-ui-ink leading-snug">{{ selectedDoctorLabel }}</p>
                   <p class="text-xs text-gray-500 mt-0.5">{{ confirmationWindowLabel }}</p>
                 </div>
               </div>
@@ -753,8 +753,8 @@
         }
 
         <!-- Patient reassurance — always visible -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 class="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
+        <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
+          <h3 class="font-bold text-ui-ink text-sm mb-4 flex items-center gap-2">
             <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
@@ -768,7 +768,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs font-semibold text-gray-800 leading-tight">Confirmed within 2 hours</p>
+                <p class="text-xs font-semibold text-ui-ink-soft leading-tight">Confirmed within 2 hours</p>
                 <p class="text-xs text-gray-400 leading-snug mt-0.5">We call you to confirm your slot — no guessing.</p>
               </div>
             </div>
@@ -779,7 +779,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs font-semibold text-gray-800 leading-tight">No fee to request</p>
+                <p class="text-xs font-semibold text-ui-ink-soft leading-tight">No fee to request</p>
                 <p class="text-xs text-gray-400 leading-snug mt-0.5">The clinic confirms the final appointment time.</p>
               </div>
             </div>
@@ -790,12 +790,12 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs font-semibold text-gray-800 leading-tight">Your details stay private</p>
+                <p class="text-xs font-semibold text-ui-ink-soft leading-tight">Your details stay private</p>
                 <p class="text-xs text-gray-400 leading-snug mt-0.5">We never share your information with third parties.</p>
               </div>
             </div>
             @if (whatsappNumber) {
-              <div class="mt-4 pt-3 border-t border-gray-100">
+              <div class="mt-4 pt-3 border-t border-ui-line">
                 <p class="text-xs text-gray-500 mb-2">Quick question? Chat with us directly:</p>
                 <a [href]="'https://wa.me/' + whatsappNumber" target="_blank" rel="noopener noreferrer"
                    class="flex items-center justify-center gap-2 w-full bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-3 py-2 rounded-xl font-semibold text-xs transition-all">
@@ -812,15 +812,15 @@
         </div><!-- end sticky wrapper -->
 
         <!-- Clinic Hours -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+        <div class="bg-white rounded-2xl border border-ui-line shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-ui-line flex items-center gap-3">
             <div class="w-9 h-9 bg-[var(--accent-lt)] rounded-xl flex items-center justify-center">
               <svg class="w-4.5 h-4.5 w-[18px] h-[18px] text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
             <div>
-              <h3 class="font-bold text-gray-900 text-sm">Clinic Hours</h3>
+              <h3 class="font-bold text-ui-ink text-sm">Clinic Hours</h3>
               <p class="text-xs text-gray-400">Walk-ins welcome during open hours</p>
             </div>
           </div>
@@ -829,8 +829,8 @@
               <div class="space-y-2 text-sm">
                 @for (h of clinicHours; track h.days) {
                   <div class="flex justify-between items-center">
-                    <span class="text-gray-600">{{ h.days }}</span>
-                    <span class="font-semibold text-gray-900 bg-[var(--accent-lt)] px-2.5 py-0.5 rounded-lg text-xs">{{ h.time }}</span>
+                    <span class="text-ui-ink-muted">{{ h.days }}</span>
+                    <span class="font-semibold text-ui-ink bg-[var(--accent-lt)] px-2.5 py-0.5 rounded-lg text-xs">{{ h.time }}</span>
                   </div>
                 }
               </div>
@@ -841,8 +841,8 @@
         </div>
 
         <!-- What to Expect -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 class="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
+        <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
+          <h3 class="font-bold text-ui-ink text-sm mb-4 flex items-center gap-2">
             <svg class="w-4 h-4 text-[var(--accent-md)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -852,7 +852,7 @@
             @for (step of nextSteps; track step.text; let i = $index) {
               <li class="flex items-start gap-3">
                 <span class="w-6 h-6 bg-[var(--accent)] text-white rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{{ i + 1 }}</span>
-                <p class="text-sm text-gray-600 leading-snug">{{ step.text }}</p>
+                <p class="text-sm text-ui-ink-muted leading-snug">{{ step.text }}</p>
               </li>
             }
           </ol>
@@ -868,7 +868,7 @@
               </svg>
             </div>
             <div>
-              <h3 class="font-bold text-gray-900 text-sm">Book via WhatsApp</h3>
+              <h3 class="font-bold text-ui-ink text-sm">Book via WhatsApp</h3>
               <p class="text-xs text-gray-500">Clinic replies during working hours</p>
             </div>
           </div>

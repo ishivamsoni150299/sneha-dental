@@ -335,3 +335,29 @@ not exercised. Theme/service/plan option styling, the website preview, and the
 success celebration remain existing implementations for a later pass; the
 entire onboarding UI is not yet fully migrated. `platform-auth-*` styles remain
 for the legacy password-recovery templates, not for clinic signup.
+
+### Shared neutral palette — 2026-09-28
+
+35 templates now use the shared ink, surface, and border tokens instead of
+independent gray/slate/zinc choices. Muted body text is darker for readability;
+dark dashboard and preview panels use an explicit inverse text token. This
+pass preserves status colors, tenant accent colors, and layout behavior.
+
+ESLint, the production build, and all 157 enabled Angular tests passed (eight
+existing tests remain skipped). Browser checks use local intercepted fixtures;
+they are presentation checks, not live backend or authorization verification.
+Screen consistency remains in progress: controls, populated tables, dialogs,
+validation, and loading/error states require separate checks.
+
+The route review found a pre-existing contact-page injection failure: it was
+the only consumer of an unregistered HttpClient. Contact submission now uses
+fetch, matching the application's existing transport, with explicit HTTP error
+handling. Three regression tests cover submission/clinic scope/consent, failure
+and retry, and rejecting a form without consent.
+
+After fixing the fixture and contact failure, 46 route fixtures at 390 and
+1440 pixels passed checks for horizontal document overflow, unexpected
+redirects, browser errors, and Angular console errors. Most data screens used
+empty fixtures; contacts, billing, verification detail and review moderation
+endpoints exercised unavailable-data states. This is not coverage of every
+screen state or a claim that all screens are complete.

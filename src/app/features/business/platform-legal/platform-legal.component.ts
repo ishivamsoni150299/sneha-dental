@@ -8,8 +8,8 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
   imports: [RouterLink, PlatformBrandComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="min-h-screen bg-white text-gray-900">
-      <header class="border-b border-gray-200 bg-white">
+    <div class="min-h-screen bg-white text-ui-ink">
+      <header class="border-b border-ui-line bg-white">
         <div class="mx-auto flex h-16 max-w-3xl items-center px-5 sm:px-8">
           <a routerLink="/business" class="flex items-center gap-2.5" aria-label="mydentalplatform home">
             <app-platform-brand />
@@ -78,7 +78,7 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
           </div>
         }
 
-        <div class="mt-12 flex flex-wrap gap-5 border-t border-gray-200 pt-6 text-sm font-semibold">
+        <div class="mt-12 flex flex-wrap gap-5 border-t border-ui-line pt-6 text-sm font-semibold">
           <a routerLink="/business/privacy" class="text-blue-700 hover:underline" [attr.aria-current]="isPrivacy ? 'page' : null">Privacy</a>
           <a routerLink="/business/terms" class="text-blue-700 hover:underline" [attr.aria-current]="!isPrivacy ? 'page' : null">Terms</a>
           <a href="mailto:support@mydentalplatform.com" class="text-blue-700 hover:underline">Contact support</a>

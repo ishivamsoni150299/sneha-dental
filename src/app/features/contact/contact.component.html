@@ -194,21 +194,21 @@
         <p class="ui-eyebrow">Clinic details</p>
         <div class="clinic-contact-detail-list">
           <div class="clinic-contact-detail">
-            <p class="text-sm font-extrabold text-slate-950">Address</p>
+            <p class="text-sm font-extrabold text-ui-ink">Address</p>
             @if (config.addressLine1 || config.addressLine2) {
-              <p class="mt-1 text-sm leading-6 text-slate-600">{{ config.addressLine1 }}<br>{{ config.addressLine2 }}</p>
+              <p class="mt-1 text-sm leading-6 text-ui-ink-muted">{{ config.addressLine1 }}<br>{{ config.addressLine2 }}</p>
             } @else {
-              <p class="mt-1 text-sm leading-6 text-slate-600">Address confirmed after booking.</p>
+              <p class="mt-1 text-sm leading-6 text-ui-ink-muted">Address confirmed after booking.</p>
             }
           </div>
 
           @if (config.hours.length > 0) {
             <div class="clinic-contact-detail">
-              <p class="text-sm font-extrabold text-slate-950">Hours</p>
-              <ul class="mt-2 space-y-2 text-sm text-slate-600">
+              <p class="text-sm font-extrabold text-ui-ink">Hours</p>
+              <ul class="mt-2 space-y-2 text-sm text-ui-ink-muted">
                 @for (slot of config.hours.slice(0, 4); track slot.days) {
                   <li class="flex items-center justify-between gap-4">
-                    <span class="font-semibold text-slate-700">{{ slot.days }}</span>
+                    <span class="font-semibold text-ui-ink-soft">{{ slot.days }}</span>
                     <span>{{ slot.time }}</span>
                   </li>
                 }

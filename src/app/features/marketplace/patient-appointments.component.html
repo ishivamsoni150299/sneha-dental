@@ -1,13 +1,13 @@
-<section class="border-b border-gray-200 bg-white">
+<section class="border-b border-ui-line bg-white">
   <div class="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-12 lg:px-8">
     <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Patient appointments</p>
     <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="max-w-2xl text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">Your visits, made simpler.</h1>
+        <h1 class="max-w-2xl text-3xl font-semibold tracking-tight text-ui-ink sm:text-4xl">Your visits, made simpler.</h1>
         <p class="mt-4 max-w-xl text-sm leading-6 text-gray-500 sm:text-base">Sign in to see your appointments, manage visits and join video consultations.</p>
       </div>
       @if (step() === 'appointments') {
-        <button type="button" (click)="logout()" class="self-start text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-gray-950">
+        <button type="button" (click)="logout()" class="self-start text-sm font-bold text-ui-ink-muted underline decoration-gray-300 underline-offset-4 hover:text-ui-ink">
           Sign out
         </button>
       }
@@ -15,13 +15,13 @@
   </div>
 </section>
 
-<section class="min-h-[36rem] bg-gray-50 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+<section class="min-h-[36rem] bg-ui-muted px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
   <div class="mx-auto max-w-6xl">
     @if (patientAuth.role() && patientAuth.role() !== 'patient') {
       <div class="mx-auto max-w-2xl border-y border-amber-200 bg-white px-5 py-10 text-center sm:px-10">
         <p class="text-xs font-bold uppercase tracking-widest text-amber-700">Business session active</p>
-        <h2 class="mt-3 text-2xl font-bold text-gray-950">Use a separate patient session</h2>
-        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-600">Sign out of the clinic or platform account, then sign in with your patient email and password.</p>
+        <h2 class="mt-3 text-2xl font-bold text-ui-ink">Use a separate patient session</h2>
+        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-ui-ink-muted">Sign out of the clinic or platform account, then sign in with your patient email and password.</p>
         <button type="button" (click)="logout()" class="mt-6 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Sign out business account</button>
       </div>
     } @else if (step() !== 'appointments') {
@@ -38,9 +38,9 @@
             <div>
               <p class="text-sm font-semibold text-gray-500">{{ accountLabel() }}</p>
               <a routerLink="/account/recovery" class="text-sm font-semibold text-blue-700">Account recovery</a>
-              <h2 class="mt-1 text-2xl font-bold text-gray-950">Appointments</h2>
+              <h2 class="mt-1 text-2xl font-bold text-ui-ink">Appointments</h2>
             </div>
-            <button type="button" (click)="loadSession()" [disabled]="loading()" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-60">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>
+            <button type="button" (click)="loadSession()" [disabled]="loading()" class="rounded-lg border border-ui-line-strong bg-white px-4 py-2.5 text-sm font-bold text-ui-ink-soft hover:bg-ui-canvas-subtle disabled:opacity-60">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>
           </div>
 
           @if (error()) {
@@ -48,19 +48,19 @@
           }
 
           @if (!loading() && appointments().length === 0) {
-            <div class="mt-6 rounded-2xl border border-gray-200 bg-white px-5 py-12 text-center">
-              <h3 class="text-xl font-bold text-gray-950">No linked appointments yet</h3>
-              <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">Your next visit starts here. Find a dentist and book while signed in to see your appointment in this account.</p>
+            <div class="mt-6 rounded-2xl border border-ui-line bg-white px-5 py-12 text-center">
+              <h3 class="text-xl font-bold text-ui-ink">No linked appointments yet</h3>
+              <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ui-ink-muted">Your next visit starts here. Find a dentist and book while signed in to see your appointment in this account.</p>
               <a routerLink="/dentists" class="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white">Find a dentist</a>
             </div>
           }
 
           <div class="mt-6 space-y-4">
             @for (appointment of appointments(); track appointment.id) {
-              <article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-                <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <article class="overflow-hidden rounded-lg border border-ui-line bg-white shadow-sm">
+                <div class="flex flex-col gap-3 border-b border-ui-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div class="min-w-0">
-                    <h3 class="truncate text-lg font-bold text-gray-950">{{ appointment.clinicName }}</h3>
+                    <h3 class="truncate text-lg font-bold text-ui-ink">{{ appointment.clinicName }}</h3>
                     <p class="mt-1 font-mono text-xs font-bold text-blue-700">{{ appointment.bookingRef }}</p>
                   </div>
                   <span class="self-start rounded-full px-3 py-1 text-xs font-bold" [class]="statusClass(appointment.status)">{{ statusLabel(appointment.status) }}</span>
@@ -73,24 +73,24 @@
                   </div>
                 }
 
-                <dl class="grid gap-px bg-gray-100 sm:grid-cols-3">
+                <dl class="grid gap-px bg-ui-canvas-subtle sm:grid-cols-3">
                   <div class="bg-white px-5 py-4 sm:col-span-2">
                     <dt class="text-xs font-bold uppercase text-gray-400">Date and time</dt>
-                    <dd class="mt-1 text-sm font-bold text-gray-950">{{ formatDate(appointment.date) }} at {{ formatSlotDisplay(appointment.time) }}</dd>
+                    <dd class="mt-1 text-sm font-bold text-ui-ink">{{ formatDate(appointment.date) }} at {{ formatSlotDisplay(appointment.time) }}</dd>
                   </div>
                   <div class="bg-white px-5 py-4">
                     <dt class="text-xs font-bold uppercase text-gray-400">Service</dt>
-                    <dd class="mt-1 text-sm font-bold text-gray-950">{{ appointment.service }}</dd>
+                    <dd class="mt-1 text-sm font-bold text-ui-ink">{{ appointment.service }}</dd>
                   </div>
                   @if (appointment.doctorName) {
                     <div class="bg-white px-5 py-4">
                       <dt class="text-xs font-bold uppercase text-gray-400">Dentist</dt>
-                      <dd class="mt-1 text-sm font-bold text-gray-950">{{ appointment.doctorName }}</dd>
+                      <dd class="mt-1 text-sm font-bold text-ui-ink">{{ appointment.doctorName }}</dd>
                     </div>
                   }
                   <div class="bg-white px-5 py-4" [class.sm:col-span-2]="!appointment.doctorName">
                     <dt class="text-xs font-bold uppercase text-gray-400">{{ appointment.consultationMode === 'video' ? 'Video consultation' : 'Clinic' }}</dt>
-                    <dd class="mt-1 text-sm text-gray-700">{{ appointment.consultationMode === 'video' ? 'Join here 10 minutes before your confirmed appointment.' : (appointment.clinicAddress || 'Address available from the clinic') }}</dd>
+                    <dd class="mt-1 text-sm text-ui-ink-soft">{{ appointment.consultationMode === 'video' ? 'Join here 10 minutes before your confirmed appointment.' : (appointment.clinicAddress || 'Address available from the clinic') }}</dd>
                   </div>
                 </dl>
 
@@ -151,7 +151,7 @@
                       </div>
                     </fieldset>
                     <label [for]="'review-text-' + appointment.id" class="mt-4 block text-xs font-bold uppercase text-blue-900">Review <span class="font-normal normal-case">(optional)</span></label>
-                    <textarea [id]="'review-text-' + appointment.id" formControlName="text" rows="4" maxlength="1200" placeholder="What should other patients know?" class="mt-1 w-full resize-y rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-gray-950 outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"></textarea>
+                    <textarea [id]="'review-text-' + appointment.id" formControlName="text" rows="4" maxlength="1200" placeholder="What should other patients know?" class="mt-1 w-full resize-y rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-ui-ink outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"></textarea>
                     <label class="mt-3 flex items-start gap-2 text-sm text-blue-950">
                       <input type="checkbox" formControlName="anonymous" class="mt-0.5 size-4 rounded border-blue-300 text-blue-700">
                       <span>Publish without using my first name</span>
@@ -164,14 +164,14 @@
                 }
 
                 @if (appointment.review) {
-                  <div class="border-t border-gray-200 bg-gray-50 px-5 py-4">
+                  <div class="border-t border-ui-line bg-ui-muted px-5 py-4">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                      <p class="text-sm font-bold text-gray-950">Your review · {{ appointment.review.rating }}/5</p>
-                      <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-700">{{ reviewStatusLabel(appointment.review.moderationStatus) }}</span>
+                      <p class="text-sm font-bold text-ui-ink">Your review · {{ appointment.review.rating }}/5</p>
+                      <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-ui-ink-soft">{{ reviewStatusLabel(appointment.review.moderationStatus) }}</span>
                     </div>
-                    @if (appointment.review.text) { <p class="mt-2 text-sm leading-6 text-gray-700">{{ appointment.review.text }}</p> }
+                    @if (appointment.review.text) { <p class="mt-2 text-sm leading-6 text-ui-ink-soft">{{ appointment.review.text }}</p> }
                     @if (appointment.review.clinicResponse) {
-                      <div class="mt-3 border-l-2 border-blue-500 pl-3 text-sm text-gray-700"><strong>Clinic response:</strong> {{ appointment.review.clinicResponse }}</div>
+                      <div class="mt-3 border-l-2 border-blue-500 pl-3 text-sm text-ui-ink-soft"><strong>Clinic response:</strong> {{ appointment.review.clinicResponse }}</div>
                     }
                   </div>
                 }
@@ -181,7 +181,7 @@
                     <app-video-consultation [appointmentId]="appointment.id" [bookingRef]="appointment.bookingRef" [phone]="patientAuth.user()?.phoneNumber ?? ''" />
                   }
                   @if (canManage(appointment) && rescheduleId() !== appointment.id) {
-                    <button type="button" (click)="openReschedule(appointment)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50">Change time</button>
+                    <button type="button" (click)="openReschedule(appointment)" class="rounded-lg border border-ui-line-strong px-3 py-2 text-sm font-bold text-ui-ink-soft hover:bg-ui-muted">Change time</button>
                   }
                   @if (canCancel(appointment) && confirmCancelId() !== appointment.id) {
                     <button type="button" (click)="confirmCancelId.set(appointment.id); rescheduleId.set(null)" class="rounded-lg px-3 py-2 text-sm font-bold text-rose-700 hover:bg-rose-50">Cancel</button>
@@ -193,7 +193,7 @@
                     <a [href]="'tel:' + appointment.clinicPhone" class="ml-auto text-sm font-bold text-blue-700 underline decoration-blue-200 underline-offset-4">Call clinic</a>
                   }
                   @if (appointment.marketplaceSlug) {
-                    <a [routerLink]="['/dentists', appointment.marketplaceSlug]" class="text-sm font-bold text-gray-600 underline decoration-gray-300 underline-offset-4">Clinic profile</a>
+                    <a [routerLink]="['/dentists', appointment.marketplaceSlug]" class="text-sm font-bold text-ui-ink-muted underline decoration-gray-300 underline-offset-4">Clinic profile</a>
                   }
                 </div>
               </article>
@@ -201,15 +201,15 @@
           </div>
         </div>
 
-        <aside class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+        <aside class="rounded-lg border border-ui-line bg-white p-5 shadow-sm sm:p-6">
           <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Find an account booking</p>
-          <h2 class="mt-2 text-xl font-bold text-gray-950">Have a booking reference?</h2>
-          <p class="mt-2 text-sm leading-6 text-gray-600">For an older guest booking, request a one-time code sent to the email on that booking. If it has no email, contact the clinic.</p>
+          <h2 class="mt-2 text-xl font-bold text-ui-ink">Have a booking reference?</h2>
+          <p class="mt-2 text-sm leading-6 text-ui-ink-muted">For an older guest booking, request a one-time code sent to the email on that booking. If it has no email, contact the clinic.</p>
           <form [formGroup]="claimForm" (ngSubmit)="claimBooking()" class="mt-5">
-            <label for="claim-booking-ref" class="text-sm font-bold text-gray-800">Booking reference</label>
+            <label for="claim-booking-ref" class="text-sm font-bold text-ui-ink-soft">Booking reference</label>
             <input id="claim-booking-ref" formControlName="bookingRef" type="text" autocomplete="off" autocapitalize="characters"
                    (input)="normaliseBookingRef($event)" placeholder="SC-ABCDEFGH"
-                   class="mt-2 min-h-12 w-full rounded-lg border border-gray-300 px-4 font-mono uppercase text-gray-950 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100">
+                   class="mt-2 min-h-12 w-full rounded-lg border border-ui-line-strong px-4 font-mono uppercase text-ui-ink outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100">
             @if (claimForm.controls.bookingRef.touched && claimForm.controls.bookingRef.invalid) {
               <p class="mt-2 text-sm text-red-700">Enter the complete booking reference.</p>
             }
@@ -220,9 +220,9 @@
           </form>
           @if (claimChallengeId()) {
             <form [formGroup]="claimCodeForm" (ngSubmit)="completeClaim()" class="mt-5">
-              <label for="claim-code" class="text-sm font-bold text-gray-800">Code from booking email</label>
+              <label for="claim-code" class="text-sm font-bold text-ui-ink-soft">Code from booking email</label>
               <input id="claim-code" formControlName="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8"
-                     class="mt-2 min-h-12 w-full rounded-lg border border-gray-300 px-4 font-mono text-gray-950 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100">
+                     class="mt-2 min-h-12 w-full rounded-lg border border-ui-line-strong px-4 font-mono text-ui-ink outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100">
               @if (claimCodeForm.controls.code.touched && claimCodeForm.controls.code.invalid) {
                 <p class="mt-2 text-sm text-red-700">Enter the 8-digit code.</p>
               }

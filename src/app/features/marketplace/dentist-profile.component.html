@@ -5,41 +5,41 @@
       <div class="space-y-4 py-6">
         <div class="h-5 w-28 rounded bg-gray-200"></div>
         <div class="h-10 w-4/5 rounded bg-gray-200"></div>
-        <div class="h-5 w-1/2 rounded bg-gray-100"></div>
-        <div class="mt-8 h-28 rounded bg-gray-100"></div>
+        <div class="h-5 w-1/2 rounded bg-ui-canvas-subtle"></div>
+        <div class="mt-8 h-28 rounded bg-ui-canvas-subtle"></div>
       </div>
     </div>
   </div>
 } @else if (error()) {
   <section class="mx-auto min-h-[34rem] max-w-4xl px-4 py-16 text-center sm:px-6">
     <div role="alert" class="border-y border-red-200 bg-white px-5 py-10">
-      <h1 class="text-2xl font-bold text-gray-950">Profile unavailable</h1>
+      <h1 class="text-2xl font-bold text-ui-ink">Profile unavailable</h1>
       <p class="mt-3 text-sm text-red-700">{{ error() }}</p>
       <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Back to dentists</a>
     </div>
   </section>
 } @else if (notFound()) {
   <section class="mx-auto min-h-[34rem] max-w-4xl px-4 py-16 text-center sm:px-6">
-    <div class="border-y border-gray-200 bg-white px-5 py-12">
+    <div class="border-y border-ui-line bg-white px-5 py-12">
       <img src="/assets/brand/mydentalplatform-logo.svg" alt="" class="mx-auto h-14 w-14 opacity-70">
-      <h1 class="mt-5 text-2xl font-bold text-gray-950">Clinic profile not found</h1>
-      <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">The listing may still be under review or is no longer available.</p>
+      <h1 class="mt-5 text-2xl font-bold text-ui-ink">Clinic profile not found</h1>
+      <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ui-ink-muted">The listing may still be under review or is no longer available.</p>
       <a routerLink="/dentists" class="mt-6 inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">Browse verified dentists</a>
     </div>
   </section>
 } @else {
   @if (clinic(); as currentClinic) {
-  <nav aria-label="Breadcrumb" class="border-b border-gray-200 bg-white">
+  <nav aria-label="Breadcrumb" class="border-b border-ui-line bg-white">
     <div class="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 text-xs text-gray-500 sm:px-6 lg:px-8">
-      <a routerLink="/dentists" class="font-semibold hover:text-gray-900">Dentists</a>
+      <a routerLink="/dentists" class="font-semibold hover:text-ui-ink">Dentists</a>
       <span aria-hidden="true">/</span>
-      <span class="truncate text-gray-700">{{ currentClinic.name }}</span>
+      <span class="truncate text-ui-ink-soft">{{ currentClinic.name }}</span>
     </div>
   </nav>
 
-  <section class="border-b border-gray-200 bg-white">
+  <section class="border-b border-ui-line bg-white">
     <div class="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:px-8 lg:py-10">
-      <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+      <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-ui-canvas-subtle">
         <img [src]="listingImage(currentClinic)"
              [alt]="hasListingPhoto(currentClinic) ? currentClinic.name : ''"
              class="h-full w-full"
@@ -54,16 +54,16 @@
 
       <div class="flex flex-col justify-center">
         <p class="text-xs font-bold uppercase tracking-widest text-blue-700">{{ currentClinic.marketplaceProfile!.locality }}</p>
-        <h1 class="mt-3 text-3xl font-bold leading-tight text-gray-950 sm:text-4xl">{{ currentClinic.name }}</h1>
-        <p class="mt-3 text-lg font-semibold text-gray-700">{{ currentClinic.doctorName }}</p>
+        <h1 class="mt-3 text-3xl font-bold leading-tight text-ui-ink sm:text-4xl">{{ currentClinic.name }}</h1>
+        <p class="mt-3 text-lg font-semibold text-ui-ink-soft">{{ currentClinic.doctorName }}</p>
         @if (currentClinic.doctorQualification) {
           <p class="mt-1 text-sm text-gray-500">{{ currentClinic.doctorQualification }}</p>
         }
 
-        <div class="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200">
+        <div class="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-ui-line bg-gray-200">
           <div class="bg-white p-4">
             <p class="text-[11px] font-bold uppercase text-gray-400">Consultation</p>
-            <p class="mt-1 text-base font-bold text-gray-950">{{ formattedFee(currentClinic) }}</p>
+            <p class="mt-1 text-base font-bold text-ui-ink">{{ formattedFee(currentClinic) }}</p>
           </div>
           <div class="bg-white p-4">
             <p class="text-[11px] font-bold uppercase text-gray-400">New patients</p>
@@ -89,7 +89,7 @@
             }
           }
           @if (phoneUrl(currentClinic); as callUrl) {
-            <a [href]="callUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-50">
+            <a [href]="callUrl" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-ui-line-strong px-5 py-3 text-sm font-bold text-ui-ink-soft hover:bg-ui-muted">
               {{ currentClinic.isIndependent ? 'Call dentist' : 'Call clinic' }}
             </a>
           }
@@ -116,34 +116,34 @@
     <div class="space-y-10">
       <section aria-labelledby="services-heading">
         <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Care available</p>
-        <h2 id="services-heading" class="mt-2 text-2xl font-bold text-gray-950">Dental services</h2>
+        <h2 id="services-heading" class="mt-2 text-2xl font-bold text-ui-ink">Dental services</h2>
         <div class="mt-5 grid gap-2 sm:grid-cols-2">
           @for (service of serviceLabels(currentClinic); track service) {
-            <div class="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800">{{ service }}</div>
+            <div class="rounded-lg border border-ui-line bg-white px-4 py-3 text-sm font-semibold text-ui-ink-soft">{{ service }}</div>
           }
         </div>
       </section>
 
-      <section aria-labelledby="doctors-heading" class="border-t border-gray-200 pt-10">
+      <section aria-labelledby="doctors-heading" class="border-t border-ui-line pt-10">
         <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Clinical team</p>
-        <h2 id="doctors-heading" class="mt-2 text-2xl font-bold text-gray-950">Dentists</h2>
+        <h2 id="doctors-heading" class="mt-2 text-2xl font-bold text-ui-ink">Dentists</h2>
         <div class="mt-5 grid gap-3 sm:grid-cols-2">
-          <article class="rounded-lg border border-gray-200 bg-white p-4">
+          <article class="rounded-lg border border-ui-line bg-white p-4">
             <div class="flex items-start gap-3">
               <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-900">{{ doctorInitials(currentClinic.doctorName) }}</div>
               <div>
-                <h3 class="font-bold text-gray-950">{{ currentClinic.doctorName }}</h3>
+                <h3 class="font-bold text-ui-ink">{{ currentClinic.doctorName }}</h3>
                 <p class="mt-0.5 text-sm text-gray-500">{{ currentClinic.doctorQualification || 'Principal dentist' }}</p>
                 <p class="mt-2 text-xs font-bold text-emerald-700">Registration checked</p>
               </div>
             </div>
           </article>
           @for (doctor of verifiedDoctors(); track doctor.id) {
-            <article class="rounded-lg border border-gray-200 bg-white p-4">
+            <article class="rounded-lg border border-ui-line bg-white p-4">
               <div class="flex items-start gap-3">
-                <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gray-100 text-sm font-bold text-gray-700">{{ doctorInitials(doctor.name) }}</div>
+                <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ui-canvas-subtle text-sm font-bold text-ui-ink-soft">{{ doctorInitials(doctor.name) }}</div>
                 <div>
-                  <h3 class="font-bold text-gray-950">{{ doctor.name }}</h3>
+                  <h3 class="font-bold text-ui-ink">{{ doctor.name }}</h3>
                   <p class="mt-0.5 text-sm text-gray-500">{{ doctor.qualification || doctor.speciality }}</p>
                   <p class="mt-2 text-xs font-bold text-emerald-700">Registration checked</p>
                 </div>
@@ -153,12 +153,12 @@
         </div>
       </section>
 
-      <section aria-labelledby="reviews-heading" class="border-t border-gray-200 pt-10">
+      <section aria-labelledby="reviews-heading" class="border-t border-ui-line pt-10">
         <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Completed appointments only</p>
         <div class="mt-2 flex flex-wrap items-end justify-between gap-3">
-          <h2 id="reviews-heading" class="text-2xl font-bold text-gray-950">Patient reviews</h2>
+          <h2 id="reviews-heading" class="text-2xl font-bold text-ui-ink">Patient reviews</h2>
           @if (averageRating(); as rating) {
-            <p class="text-sm text-gray-600"><strong class="text-xl text-gray-950">{{ rating.toFixed(1) }}</strong> / 5 · {{ reviews().length }} {{ reviews().length === 1 ? 'review' : 'reviews' }}</p>
+            <p class="text-sm text-ui-ink-muted"><strong class="text-xl text-ui-ink">{{ rating.toFixed(1) }}</strong> / 5 · {{ reviews().length }} {{ reviews().length === 1 ? 'review' : 'reviews' }}</p>
           }
         </div>
         @if (reportMessage()) {
@@ -172,24 +172,24 @@
         @if (reviews().length) {
           <div class="mt-5 space-y-3">
             @for (review of reviews(); track review.id) {
-              <article class="rounded-lg border border-gray-200 bg-white p-5">
+              <article class="rounded-lg border border-ui-line bg-white p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p class="font-bold text-gray-950">{{ review.patientAlias }}</p>
+                    <p class="font-bold text-ui-ink">{{ review.patientAlias }}</p>
                     <p class="mt-1 text-sm font-bold text-amber-600" [attr.aria-label]="review.rating + ' out of 5 stars'">{{ '★'.repeat(review.rating) }}<span class="text-gray-300">{{ '★'.repeat(5 - review.rating) }}</span></p>
                   </div>
                   <time class="text-xs text-gray-500">{{ formatReviewDate(review.publishedAt) }}</time>
                 </div>
-                @if (review.text) { <p class="mt-3 text-sm leading-6 text-gray-700">{{ review.text }}</p> }
+                @if (review.text) { <p class="mt-3 text-sm leading-6 text-ui-ink-soft">{{ review.text }}</p> }
                 @if (review.clinicResponse) {
-                  <div class="mt-4 border-l-2 border-blue-500 bg-blue-50 px-3 py-2 text-sm leading-6 text-gray-700"><strong>Clinic response:</strong> {{ review.clinicResponse }}</div>
+                  <div class="mt-4 border-l-2 border-blue-500 bg-blue-50 px-3 py-2 text-sm leading-6 text-ui-ink-soft"><strong>Clinic response:</strong> {{ review.clinicResponse }}</div>
                 }
                 @if (reportId() === review.id) {
-                  <form [formGroup]="reportForm" (ngSubmit)="submitReport(review.id)" class="mt-4 border-t border-gray-200 pt-4">
+                  <form [formGroup]="reportForm" (ngSubmit)="submitReport(review.id)" class="mt-4 border-t border-ui-line pt-4">
                     <div class="grid gap-3 sm:grid-cols-[11rem_minmax(0,1fr)]">
                       <div>
-                        <label [for]="'report-reason-' + review.id" class="text-xs font-bold uppercase text-gray-600">Reason</label>
-                        <select [id]="'report-reason-' + review.id" formControlName="reason" class="mt-1 min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm">
+                        <label [for]="'report-reason-' + review.id" class="text-xs font-bold uppercase text-ui-ink-muted">Reason</label>
+                        <select [id]="'report-reason-' + review.id" formControlName="reason" class="mt-1 min-h-11 w-full rounded-lg border border-ui-line-strong bg-white px-3 text-sm">
                           <option value="misleading">Misleading</option>
                           <option value="privacy">Personal information</option>
                           <option value="abuse">Abusive content</option>
@@ -197,36 +197,36 @@
                         </select>
                       </div>
                       <div>
-                        <label [for]="'report-details-' + review.id" class="text-xs font-bold uppercase text-gray-600">Details <span class="font-normal normal-case">(optional)</span></label>
-                        <input [id]="'report-details-' + review.id" formControlName="details" maxlength="500" class="mt-1 min-h-11 w-full rounded-lg border border-gray-300 px-3 text-sm" placeholder="Briefly describe the concern">
+                        <label [for]="'report-details-' + review.id" class="text-xs font-bold uppercase text-ui-ink-muted">Details <span class="font-normal normal-case">(optional)</span></label>
+                        <input [id]="'report-details-' + review.id" formControlName="details" maxlength="500" class="mt-1 min-h-11 w-full rounded-lg border border-ui-line-strong px-3 text-sm" placeholder="Briefly describe the concern">
                       </div>
                     </div>
                     <div class="mt-3 flex gap-2">
                       <button type="submit" [disabled]="reporting()" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{{ reporting() ? 'Sending...' : 'Send report' }}</button>
-                      <button type="button" (click)="reportId.set(null)" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-bold text-gray-700">Cancel</button>
+                      <button type="button" (click)="reportId.set(null)" class="rounded-lg border border-ui-line-strong px-4 py-2 text-sm font-bold text-ui-ink-soft">Cancel</button>
                     </div>
                   </form>
                 } @else if (!reportedReviewIds().has(review.id)) {
-                  <button type="button" (click)="openReport(review.id)" class="mt-3 text-xs font-bold text-gray-500 underline decoration-gray-300 underline-offset-4 hover:text-gray-900">Report review</button>
+                  <button type="button" (click)="openReport(review.id)" class="mt-3 text-xs font-bold text-gray-500 underline decoration-gray-300 underline-offset-4 hover:text-ui-ink">Report review</button>
                 }
               </article>
             }
           </div>
         } @else {
-          <p class="mt-4 text-sm leading-6 text-gray-600">No published patient reviews yet.</p>
+          <p class="mt-4 text-sm leading-6 text-ui-ink-muted">No published patient reviews yet.</p>
         }
       </section>
 
       @if (currentClinic.customization?.media?.clinicImages?.length) {
-        <section aria-labelledby="gallery-heading" class="border-t border-gray-200 pt-10">
+        <section aria-labelledby="gallery-heading" class="border-t border-ui-line pt-10">
           <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Clinic view</p>
-          <h2 id="gallery-heading" class="mt-2 text-2xl font-bold text-gray-950">Inside the clinic</h2>
+          <h2 id="gallery-heading" class="mt-2 text-2xl font-bold text-ui-ink">Inside the clinic</h2>
           <div class="mt-5 grid grid-cols-2 gap-3">
             @for (image of currentClinic.customization!.media!.clinicImages!.slice(0, 4); track image.src) {
-              <figure class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+              <figure class="overflow-hidden rounded-lg border border-ui-line bg-white">
                 <img [src]="image.src" [alt]="image.alt" class="aspect-[4/3] w-full object-cover">
                 @if (image.label) {
-                  <figcaption class="px-3 py-2 text-xs font-medium text-gray-600">{{ image.label }}</figcaption>
+                  <figcaption class="px-3 py-2 text-xs font-medium text-ui-ink-muted">{{ image.label }}</figcaption>
                 }
               </figure>
             }
@@ -235,23 +235,23 @@
       }
     </div>
 
-    <aside class="space-y-7 lg:border-l lg:border-gray-200 lg:pl-8">
+    <aside class="space-y-7 lg:border-l lg:border-ui-line lg:pl-8">
       <section aria-labelledby="location-heading">
-        <h2 id="location-heading" class="text-lg font-bold text-gray-950">Location</h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">{{ address(currentClinic) }}</p>
+        <h2 id="location-heading" class="text-lg font-bold text-ui-ink">Location</h2>
+        <p class="mt-3 text-sm leading-6 text-ui-ink-muted">{{ address(currentClinic) }}</p>
         @if (currentClinic.mapDirectionsUrl) {
           <a [href]="currentClinic.mapDirectionsUrl" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">Open directions →</a>
         }
       </section>
 
       @if (currentClinic.hours.length) {
-        <section aria-labelledby="hours-heading" class="border-t border-gray-200 pt-7">
-          <h2 id="hours-heading" class="text-lg font-bold text-gray-950">Clinic hours</h2>
+        <section aria-labelledby="hours-heading" class="border-t border-ui-line pt-7">
+          <h2 id="hours-heading" class="text-lg font-bold text-ui-ink">Clinic hours</h2>
           <dl class="mt-3 space-y-2.5">
             @for (slot of currentClinic.hours; track slot.days + slot.time) {
               <div class="flex justify-between gap-4 text-sm">
-                <dt class="text-gray-600">{{ slot.days }}</dt>
-                <dd class="text-right font-semibold text-gray-900">{{ slot.time }}</dd>
+                <dt class="text-ui-ink-muted">{{ slot.days }}</dt>
+                <dd class="text-right font-semibold text-ui-ink">{{ slot.time }}</dd>
               </div>
             }
           </dl>
@@ -259,26 +259,26 @@
       }
 
       @if (currentClinic.marketplaceProfile!.languages.length) {
-        <section aria-labelledby="languages-heading" class="border-t border-gray-200 pt-7">
-          <h2 id="languages-heading" class="text-lg font-bold text-gray-950">Languages</h2>
-          <p class="mt-3 text-sm leading-6 text-gray-600">{{ currentClinic.marketplaceProfile!.languages.join(', ') }}</p>
+        <section aria-labelledby="languages-heading" class="border-t border-ui-line pt-7">
+          <h2 id="languages-heading" class="text-lg font-bold text-ui-ink">Languages</h2>
+          <p class="mt-3 text-sm leading-6 text-ui-ink-muted">{{ currentClinic.marketplaceProfile!.languages.join(', ') }}</p>
         </section>
       }
 
-      <section aria-labelledby="verification-heading" class="border-t border-gray-200 pt-7">
-        <h2 id="verification-heading" class="text-lg font-bold text-gray-950">Provider verification</h2>
-        <p class="mt-3 text-sm leading-6 text-gray-600">Identity, dentist registration, clinic phone, and operating address were checked by mydentalplatform.</p>
+      <section aria-labelledby="verification-heading" class="border-t border-ui-line pt-7">
+        <h2 id="verification-heading" class="text-lg font-bold text-ui-ink">Provider verification</h2>
+        <p class="mt-3 text-sm leading-6 text-ui-ink-muted">Identity, dentist registration, clinic phone, and operating address were checked by mydentalplatform.</p>
         <p class="mt-2 text-xs leading-5 text-gray-500">Verification does not guarantee a clinical outcome. Discuss diagnosis, treatment options, and total cost directly with your dentist.</p>
       </section>
 
       @if (clinicWebsiteUrl(currentClinic); as websiteUrl) {
-        <a [href]="websiteUrl" class="inline-flex text-sm font-bold text-gray-700 hover:text-gray-950">Visit clinic website →</a>
+        <a [href]="websiteUrl" class="inline-flex text-sm font-bold text-ui-ink-soft hover:text-ui-ink">Visit clinic website →</a>
       }
     </aside>
   </div>
 
   @if (currentClinic.marketplaceProfile!.acceptingNewPatients) {
-    <div class="profile-booking-bar fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white p-3 shadow-lg lg:hidden">
+    <div class="profile-booking-bar fixed inset-x-0 bottom-0 z-30 border-t border-ui-line bg-white p-3 shadow-lg lg:hidden">
       @if (currentClinic.isIndependent) {
         <a [routerLink]="['/dentists', currentClinic.marketplaceSlug, 'book']" [queryParams]="{mode:'video'}" class="mx-auto flex min-h-11 max-w-lg items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white">
           <i class="ph ph-video-camera" aria-hidden="true"></i> Book Video Consultation

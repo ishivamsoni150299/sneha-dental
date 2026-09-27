@@ -22,7 +22,7 @@
     <div class="admin-topbar-inner max-w-5xl">
       <div class="flex items-center gap-3">
         <a routerLink="/business/clinic/dashboard"
-           class="text-gray-400 hover:text-gray-600 transition-colors">
+           class="text-gray-400 hover:text-ui-ink-muted transition-colors">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
           </svg>
@@ -54,7 +54,7 @@
       <div class="settings-progress-card overflow-hidden">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <p class="font-bold text-gray-900 text-sm">Setup progress</p>
+            <p class="font-bold text-ui-ink text-sm">Setup progress</p>
             <p class="text-xs text-gray-400 mt-0.5">Complete your profile to get the most out of your clinic site</p>
           </div>
           <div class="text-right shrink-0 ml-4">
@@ -69,7 +69,7 @@
         </div>
 
         <!-- Progress bar -->
-        <div class="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+        <div class="h-2 bg-ui-canvas-subtle rounded-full overflow-hidden mb-4">
           <div class="h-full rounded-full transition-all duration-700"
                [style.width.%]="setupScore"
                [class]="setupScore === 100 ? 'bg-green-500' : setupScore >= 60 ? 'bg-[var(--accent)]' : 'bg-amber-400'">
@@ -140,7 +140,7 @@
               class="settings-form-card space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-semibold text-gray-900">Clinic Profile</h2>
+              <h2 class="text-sm font-semibold text-ui-ink">Clinic Profile</h2>
               <p class="text-xs text-gray-400 mt-1">These details power your logo fallback, homepage trust signals, and booking experience.</p>
             </div>
             @if (isTabDirty('info')) {
@@ -150,7 +150,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Clinic Name <span class="text-red-400">*</span></label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Clinic Name <span class="text-red-400">*</span></label>
               <input formControlName="name" type="text" placeholder="Smile Dental Clinic"
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(infoForm, 'name')
@@ -164,7 +164,7 @@
               }
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Doctor Name <span class="text-red-400">*</span></label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Doctor Name <span class="text-red-400">*</span></label>
               <input formControlName="doctorName" type="text" placeholder="Dr. Ramesh Sharma"
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(infoForm, 'doctorName')
@@ -178,28 +178,28 @@
               }
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Qualification</label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Qualification</label>
               <input formControlName="doctorQualification" type="text" placeholder="BDS, MDS"
-                     class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                     class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Patient Count</label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Patient Count</label>
               <input formControlName="patientCount" type="text" placeholder="1000+"
-                     class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                     class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
               <p class="text-[11px] text-gray-400 mt-1">Shown on homepage trust bar</p>
             </div>
-            <div class="sm:col-span-2 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
+            <div class="sm:col-span-2 rounded-2xl border border-ui-line bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
               <div class="flex items-start gap-4">
                 <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-lg font-bold shrink-0">
                   {{ clinicInitial }}
                 </div>
                 <div class="min-w-0">
-                  <p class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Live Website Preview</p>
+                  <p class="text-[11px] uppercase tracking-[0.25em] text-ui-inverse-muted">Live Website Preview</p>
                   <p class="mt-2 text-lg font-bold truncate">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
                   <p class="text-sm text-slate-300 mt-1 truncate">{{ websiteHost }}</p>
-                  <p class="text-xs text-slate-400 mt-2">Profile updates here flow into homepage branding, logo fallback text, and booking messages.</p>
+                  <p class="text-xs text-ui-inverse-muted mt-2">Profile updates here flow into homepage branding, logo fallback text, and booking messages.</p>
                 </div>
               </div>
             </div>
@@ -207,7 +207,7 @@
 
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-xs font-semibold text-gray-600">Doctor Bio</label>
+              <label class="block text-xs font-semibold text-ui-ink-muted">Doctor Bio</label>
               <span class="text-[11px]"
                     [class]="(infoForm.get('doctorBio')?.value?.length || 0) > 480
                       ? 'text-red-500 font-semibold'
@@ -217,7 +217,7 @@
             </div>
             <textarea formControlName="doctorBio" rows="5" placeholder="Write each paragraph on a new line…"
                       maxlength="500"
-                      class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                      class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                              focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none">
             </textarea>
             <p class="text-[11px] text-gray-400 mt-1">Each line becomes a separate paragraph on the About page</p>
@@ -243,7 +243,7 @@
         <form [formGroup]="contactForm" (ngSubmit)="saveContact()"
               class="settings-form-card space-y-5">
           <div class="flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-gray-900">Contact Details</h2>
+            <h2 class="text-sm font-semibold text-ui-ink">Contact Details</h2>
             @if (isTabDirty('contact')) {
               <span class="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Unsaved changes</span>
             }
@@ -251,7 +251,7 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Phone Number <span class="text-red-400">*</span></label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Phone Number <span class="text-red-400">*</span></label>
               <input formControlName="phone" type="tel" placeholder="+91 98765 43210" autofocus
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(contactForm, 'phone')
@@ -267,7 +267,7 @@
               <p class="text-[11px] text-gray-400 mt-1">WhatsApp and call links are auto-generated from this number</p>
             </div>
             <div class="sm:col-span-2">
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Address Line 1 <span class="text-red-400">*</span></label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Address Line 1 <span class="text-red-400">*</span></label>
               <input formControlName="addressLine1" type="text" placeholder="Shop 12, Main Market"
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(contactForm, 'addressLine1')
@@ -281,13 +281,13 @@
               }
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Address Line 2</label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Address Line 2</label>
               <input formControlName="addressLine2" type="text" placeholder="Near Bus Stand"
-                     class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                     class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">City <span class="text-red-400">*</span></label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">City <span class="text-red-400">*</span></label>
               <input formControlName="city" type="text" placeholder="Jhansi"
                      class="w-full text-sm border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
                      [class]="hasError(contactForm, 'city')
@@ -301,16 +301,16 @@
               }
             </div>
             <div class="sm:col-span-2">
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Google Maps Embed URL</label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Google Maps Embed URL</label>
               <input formControlName="mapEmbedUrl" type="url" placeholder="https://www.google.com/maps/embed?…"
-                     class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                     class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
               <p class="text-[11px] text-gray-400 mt-1">Google Maps → Share → Embed a map → copy the src URL</p>
             </div>
             <div class="sm:col-span-2">
-              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Google Maps Directions URL</label>
+              <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Google Maps Directions URL</label>
               <input formControlName="mapDirectionsUrl" type="url" placeholder="https://maps.google.com/…"
-                     class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                     class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                             focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
             </div>
           </div>
@@ -333,23 +333,23 @@
       <!-- ── Hours ───────────────────────────────────────────────────────── -->
       @if (activeTab() === 'hours') {
         <form [formGroup]="hoursForm" (ngSubmit)="saveHours()"
-              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+              class="bg-white rounded-2xl border border-ui-line p-6 space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-semibold text-gray-900">Clinic Hours</h2>
+              <h2 class="text-sm font-semibold text-ui-ink">Clinic Hours</h2>
               @if (isTabDirty('hours')) {
                 <span class="text-[10px] font-semibold text-amber-600">Unsaved changes</span>
               }
             </div>
             <button type="button" (click)="addHour()"
-                    class="text-xs text-gray-600 hover:text-gray-900 font-semibold
-                           border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                    class="text-xs text-ui-ink-muted hover:text-ui-ink font-semibold
+                           border border-ui-line hover:border-ui-line-strong px-3 py-1.5 rounded-lg transition-colors">
               + Add Row
             </button>
           </div>
 
           @if (hoursArr.length === 0) {
-            <div class="rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
+            <div class="rounded-xl border-2 border-dashed border-ui-line py-8 text-center">
               <p class="text-sm text-gray-400">No hours added yet.</p>
               <button type="button" (click)="addHour()"
                       class="mt-2 text-sm text-blue-600 font-semibold hover:underline">
@@ -361,7 +361,7 @@
           <div formArrayName="hours" class="space-y-2">
             @for (_ of hoursArr.controls; track $index) {
               <div [formGroupName]="$index"
-                   class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5">
+                   class="flex items-center gap-2 bg-ui-muted border border-ui-line rounded-xl px-3 py-2.5">
                 <!-- Days label -->
                 <div class="flex items-center gap-1.5 shrink-0 w-5">
                   <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -369,7 +369,7 @@
                   </svg>
                 </div>
                 <input formControlName="days" type="text" placeholder="Mon – Sat"
-                       class="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2
+                       class="flex-1 text-sm bg-white border border-ui-line rounded-lg px-3 py-2
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                 <div class="flex items-center gap-1.5 shrink-0 w-5">
                   <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -377,7 +377,7 @@
                   </svg>
                 </div>
                 <input formControlName="time" type="text" placeholder="9:00 AM – 8:00 PM"
-                       class="flex-1 text-sm bg-white border border-gray-200 rounded-lg px-3 py-2
+                       class="flex-1 text-sm bg-white border border-ui-line rounded-lg px-3 py-2
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                 <button type="button" (click)="removeHour($index)"
                         class="shrink-0 text-gray-300 hover:text-red-400 transition-colors p-1">
@@ -390,7 +390,7 @@
           </div>
 
           @if (hoursArr.length > 0) {
-            <div class="flex items-start gap-2 bg-gray-50 rounded-lg px-3 py-2">
+            <div class="flex items-start gap-2 bg-ui-muted rounded-lg px-3 py-2">
               <svg class="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
@@ -418,26 +418,26 @@
       @if (activeTab() === 'services') {
         <app-video-settings />
         <form [formGroup]="servicesForm" (ngSubmit)="saveServices()"
-              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+              class="bg-white rounded-2xl border border-ui-line p-6 space-y-5">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 class="text-sm font-semibold text-gray-900">Services Offered</h2>
+              <h2 class="text-sm font-semibold text-ui-ink">Services Offered</h2>
               <p class="text-xs text-gray-400 mt-1">These services appear on your homepage, services page, and appointment form.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button type="button" (click)="fillSuggestedServices()"
-                      class="text-xs text-gray-600 hover:text-gray-900 font-semibold border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                      class="text-xs text-ui-ink-muted hover:text-ui-ink font-semibold border border-ui-line hover:border-ui-line-strong px-3 py-1.5 rounded-lg transition-colors">
                 Use Suggested List
               </button>
               <button type="button" (click)="addService()"
-                      class="text-xs text-gray-600 hover:text-gray-900 font-semibold border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                      class="text-xs text-ui-ink-muted hover:text-ui-ink font-semibold border border-ui-line hover:border-ui-line-strong px-3 py-1.5 rounded-lg transition-colors">
                 + Add Service
               </button>
             </div>
           </div>
 
           @if (servicesArr.length === 0) {
-            <div class="rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
+            <div class="rounded-xl border-2 border-dashed border-ui-line py-8 text-center">
               <p class="text-sm text-gray-400">No services added yet.</p>
               <button type="button" (click)="fillSuggestedServices()"
                       class="mt-2 text-sm text-blue-600 font-semibold hover:underline">
@@ -449,10 +449,10 @@
           <div formArrayName="services" class="space-y-4">
             @for (_ of servicesArr.controls; track $index) {
               <div [formGroupName]="$index"
-                   class="rounded-2xl border border-gray-100 bg-gray-50 p-4 space-y-3">
+                   class="rounded-2xl border border-ui-line bg-ui-muted p-4 space-y-3">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-xs font-semibold text-gray-600">Service {{ $index + 1 }}</p>
+                    <p class="text-xs font-semibold text-ui-ink-muted">Service {{ $index + 1 }}</p>
                     <p class="text-[11px] text-gray-400 mt-0.5">Shown as a bookable treatment on the website.</p>
                   </div>
                   <button type="button" (click)="removeService($index)"
@@ -466,7 +466,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Service Name <span class="text-red-400">*</span></label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-1">Service Name <span class="text-red-400">*</span></label>
                     <input formControlName="name" type="text" placeholder="Root Canal Treatment"
                            class="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 transition-colors"
                            [class]="(servicesArr.at($index).get('name')?.invalid && servicesArr.at($index).get('name')?.touched)
@@ -477,20 +477,20 @@
                     }
                   </div>
                   <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Price Label</label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-1">Price Label</label>
                     <input formControlName="price" type="text" placeholder="On consultation"
-                           class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                           class="w-full text-sm border border-ui-line rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-1">Description</label>
                     <textarea formControlName="description" rows="2"
                               placeholder="Single-sitting treatment with modern rotary care."
-                              class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none"></textarea>
+                              class="w-full text-sm border border-ui-line rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 resize-none"></textarea>
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Benefit Line</label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-1">Benefit Line</label>
                     <input formControlName="benefit" type="text" placeholder="Save your natural tooth"
-                           class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                           class="w-full text-sm border border-ui-line rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                     <p class="text-[11px] text-gray-400 mt-1">Short reassurance line shown on service cards.</p>
                   </div>
                 </div>
@@ -522,21 +522,21 @@
 
       @if (activeTab() === 'testimonials') {
         <form [formGroup]="testimonialsForm" (ngSubmit)="saveTestimonials()"
-              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+              class="bg-white rounded-2xl border border-ui-line p-6 space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-semibold text-gray-900">Patient Testimonials</h2>
+              <h2 class="text-sm font-semibold text-ui-ink">Patient Testimonials</h2>
               <p class="text-xs text-gray-400 mt-0.5">These appear on your Testimonials page</p>
             </div>
             <button type="button" (click)="addTestimonial()"
-                    class="text-xs text-gray-600 hover:text-gray-900 font-semibold
-                           border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                    class="text-xs text-ui-ink-muted hover:text-ui-ink font-semibold
+                           border border-ui-line hover:border-ui-line-strong px-3 py-1.5 rounded-lg transition-colors">
               + Add Review
             </button>
           </div>
 
           @if (testimonialsArr.length === 0) {
-            <div class="rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
+            <div class="rounded-xl border-2 border-dashed border-ui-line py-8 text-center">
               <p class="text-sm text-gray-400">No testimonials yet.</p>
               <button type="button" (click)="addTestimonial()"
                       class="mt-2 text-sm text-blue-600 font-semibold hover:underline">
@@ -548,7 +548,7 @@
           <div formArrayName="testimonials" class="space-y-4">
             @for (_ of testimonialsArr.controls; track $index) {
               <div [formGroupName]="$index"
-                   class="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50">
+                   class="border border-ui-line rounded-xl p-4 space-y-3 bg-ui-muted">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-gray-500">Review {{ $index + 1 }}</span>
                   <button type="button" (click)="removeTestimonial($index)"
@@ -561,7 +561,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Patient Name <span class="text-red-400">*</span></label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-1">Patient Name <span class="text-red-400">*</span></label>
                     <input formControlName="name" type="text" placeholder="Priya Sharma"
                            class="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 transition-colors"
                            [class]="(testimonialsArr.at($index).get('name')?.invalid && testimonialsArr.at($index).get('name')?.touched)
@@ -572,15 +572,15 @@
                     }
                   </div>
                   <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Location</label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-1">Location</label>
                     <input formControlName="location" type="text" placeholder="Delhi, India"
-                           class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
+                           class="w-full text-sm border border-ui-line rounded-lg px-3 py-2
                                   focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
                   </div>
 
                   <!-- Star rating picker -->
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold text-gray-600 mb-2">Rating</label>
+                    <label class="block text-xs font-semibold text-ui-ink-muted mb-2">Rating</label>
                     <div class="flex items-center gap-1">
                       @for (star of STARS; track star) {
                         <button type="button" (click)="setStars($index, star)"
@@ -601,7 +601,7 @@
 
                   <div class="sm:col-span-2">
                     <div class="flex items-center justify-between mb-1">
-                      <label class="block text-xs font-semibold text-gray-600">Review Text <span class="text-red-400">*</span></label>
+                      <label class="block text-xs font-semibold text-ui-ink-muted">Review Text <span class="text-red-400">*</span></label>
                       <span class="text-[11px]"
                             [class]="(testimonialsArr.at($index).get('review')?.value?.length || 0) > 230
                               ? 'text-red-500 font-semibold' : 'text-gray-400'">
@@ -644,10 +644,10 @@
       <!-- ── Social ──────────────────────────────────────────────────────── -->
       @if (activeTab() === 'social') {
         <form [formGroup]="socialForm" (ngSubmit)="saveSocial()"
-              class="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+              class="bg-white rounded-2xl border border-ui-line p-6 space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-semibold text-gray-900">Social Media Links</h2>
+              <h2 class="text-sm font-semibold text-ui-ink">Social Media Links</h2>
               <p class="text-xs text-gray-400 mt-0.5">These appear in your clinic website footer</p>
             </div>
             @if (isTabDirty('social')) {
@@ -664,9 +664,9 @@
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Facebook</label>
+                <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Facebook</label>
                 <input formControlName="facebook" type="url" placeholder="https://facebook.com/yourclinic" autofocus
-                       class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                       class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
               </div>
             </div>
@@ -679,9 +679,9 @@
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Instagram</label>
+                <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Instagram</label>
                 <input formControlName="instagram" type="url" placeholder="https://instagram.com/yourclinic"
-                       class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                       class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
               </div>
             </div>
@@ -693,15 +693,15 @@
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-semibold text-gray-600 mb-1.5">LinkedIn</label>
+                <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">LinkedIn</label>
                 <input formControlName="linkedin" type="url" placeholder="https://linkedin.com/in/yourdoctor"
-                       class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5
+                       class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
                               focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
               </div>
             </div>
 
             <!-- Google Analytics 4 -->
-            <div class="pt-4 border-t border-gray-100">
+            <div class="pt-4 border-t border-ui-line">
               <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
                   <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -710,8 +710,8 @@
                 </div>
                 <div class="flex-1">
                   <div class="flex items-center justify-between mb-1.5">
-                    <label class="block text-xs font-semibold text-gray-700">Google Analytics 4 Measurement ID</label>
-                    <span class="text-[10px] text-gray-400 font-mono bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">Format: G-XXXXXXXXXX</span>
+                    <label class="block text-xs font-semibold text-ui-ink-soft">Google Analytics 4 Measurement ID</label>
+                    <span class="text-[10px] text-gray-400 font-mono bg-ui-muted border border-ui-line px-1.5 py-0.5 rounded">Format: G-XXXXXXXXXX</span>
                   </div>
                   <input formControlName="googleAnalyticsId" type="text" placeholder="G-XXXXXXXXXX"
                          class="w-full text-sm font-mono border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 transition-colors"
@@ -749,10 +749,10 @@
       <!-- ── Theme ────────────────────────────────────────────────────────── -->
       @if (activeTab() === 'theme') {
         @if (canManageBranding) {
-        <div class="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+        <div class="bg-white rounded-2xl border border-ui-line p-6 space-y-6">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <h2 class="text-sm font-semibold text-gray-900">Clinic Theme</h2>
+              <h2 class="text-sm font-semibold text-ui-ink">Clinic Theme</h2>
               <p class="text-xs text-gray-400 mt-1">Choose a dental-friendly theme for your website. Unsaved previews are automatically reverted when you leave this page.</p>
             </div>
             @if (isTabDirty('theme')) {
@@ -760,14 +760,14 @@
             }
           </div>
 
-          <div class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white">
+          <div class="rounded-2xl border border-ui-line bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white">
             <div class="flex items-start gap-4">
               <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-bold border border-white/15"
                    [style.background]="selectedThemeMeta.gradient">
                 {{ clinicInitial }}
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Theme Preview</p>
+                <p class="text-[11px] uppercase tracking-[0.25em] text-ui-inverse-muted">Theme Preview</p>
                 <p class="mt-2 text-lg font-bold truncate">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
                 <p class="text-sm text-slate-300 mt-1">{{ selectedThemeMeta.label }} · {{ selectedThemeMeta.note }}</p>
                 <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
@@ -794,7 +794,7 @@
                     <div class="h-2" [style.background]="opt.primary"></div>
                     <div class="px-2 py-1.5 space-y-1">
                       <div class="h-1.5 bg-gray-200 rounded w-3/4"></div>
-                      <div class="h-1.5 bg-gray-100 rounded w-1/2"></div>
+                      <div class="h-1.5 bg-ui-canvas-subtle rounded w-1/2"></div>
                       <div class="mt-2 h-4 rounded text-[6px] font-bold text-white flex items-center justify-center"
                            [style.background]="opt.primary">Book Now</div>
                     </div>
@@ -806,9 +806,9 @@
                   <div class="flex items-center justify-between gap-2">
                     <span class="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
                           [style.background]="opt.primary"></span>
-                    <span class="text-xs font-semibold text-gray-700">{{ opt.label }}</span>
+                    <span class="text-xs font-semibold text-ui-ink-soft">{{ opt.label }}</span>
                     @if (selectedTheme() === opt.value) {
-                      <svg class="w-4 h-4 text-gray-900 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <svg class="w-4 h-4 text-ui-ink flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                       </svg>
                     }
@@ -841,32 +841,32 @@
           </div>
         </div>
         } @else {
-          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <div class="bg-white rounded-2xl border border-ui-line p-6">
             <div class="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-cyan-50 to-white p-6 sm:p-7">
               <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div class="max-w-2xl">
                   <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-700">
                     Basic Feature
                   </span>
-                  <h2 class="mt-4 text-xl font-bold text-gray-900">Unlock custom dental theme controls</h2>
-                  <p class="mt-2 text-sm leading-relaxed text-gray-600">
+                  <h2 class="mt-4 text-xl font-bold text-ui-ink">Unlock custom dental theme controls</h2>
+                  <p class="mt-2 text-sm leading-relaxed text-ui-ink-muted">
                     Free clinics stay on a curated theme so every launch looks clean and conversion-focused. Upgrade to Basic to choose your own palette, remove the mydentalplatform footer badge, and match the website to your clinic brand.
                   </p>
                   <div class="mt-4 flex flex-wrap gap-2">
-                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Choose your color palette</span>
-                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Match every CTA to your clinic brand</span>
-                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-blue-100">Remove Powered by mydentalplatform</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ui-ink-soft shadow-sm ring-1 ring-blue-100">Choose your color palette</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ui-ink-soft shadow-sm ring-1 ring-blue-100">Match every CTA to your clinic brand</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ui-ink-soft shadow-sm ring-1 ring-blue-100">Remove Powered by mydentalplatform</span>
                   </div>
                 </div>
 
-                <div class="w-full max-w-sm rounded-3xl border border-slate-200 bg-slate-950 p-5 text-white shadow-xl">
+                <div class="w-full max-w-sm rounded-3xl border border-ui-line bg-slate-950 p-5 text-white shadow-xl">
                   <div class="flex items-start gap-4">
                     <div class="w-14 h-14 rounded-2xl flex items-center justify-center border border-white/10 text-lg font-bold"
                          [style.background]="selectedThemeMeta.gradient">
                       {{ clinicInitial }}
                     </div>
                     <div class="min-w-0 flex-1">
-                      <p class="text-[11px] uppercase tracking-[0.25em] text-slate-400">Current Theme</p>
+                      <p class="text-[11px] uppercase tracking-[0.25em] text-ui-inverse-muted">Current Theme</p>
                       <p class="mt-2 truncate text-lg font-bold">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
                       <p class="mt-1 text-sm text-slate-300">{{ selectedThemeMeta.label }} · {{ selectedThemeMeta.note }}</p>
                       <div class="mt-4 flex flex-wrap gap-2 text-xs">
@@ -901,10 +901,10 @@
       <!-- ── Logo ──────────────────────────────────────────────────────────── -->
       @if (activeTab() === 'logo') {
         @if (canManageBranding) {
-        <div class="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+        <div class="bg-white rounded-2xl border border-ui-line p-6 space-y-6">
 
           <div>
-            <h2 class="text-sm font-semibold text-gray-900">Clinic Logo</h2>
+            <h2 class="text-sm font-semibold text-ui-ink">Clinic Logo</h2>
             <p class="text-xs text-gray-400 mt-1">Upload your clinic's logo. It replaces the default tooth icon in the navbar and footer.</p>
           </div>
 
@@ -912,13 +912,13 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <!-- Current logo -->
-            <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+            <div class="rounded-2xl border border-ui-line bg-ui-muted p-5">
               <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Current Logo</p>
               @if (cfg.logoDataUrl) {
                 <!-- Has custom logo -->
                 <div class="flex flex-col items-center gap-4">
                   <!-- On white background -->
-                  <div class="w-full bg-white rounded-xl border border-gray-200 flex items-center justify-center h-16 px-4">
+                  <div class="w-full bg-white rounded-xl border border-ui-line flex items-center justify-center h-16 px-4">
                     <img [src]="cfg.logoDataUrl" alt="Current logo" class="h-10 max-w-full object-contain">
                   </div>
                   <!-- On dark background (footer simulation) -->
@@ -939,7 +939,7 @@
               } @else {
                 <!-- Default tooth icon -->
                 <div class="flex flex-col items-center gap-3">
-                  <div class="w-full bg-white rounded-xl border border-gray-200 flex items-center justify-center h-16 gap-2.5">
+                  <div class="w-full bg-white rounded-xl border border-ui-line flex items-center justify-center h-16 gap-2.5">
                     <svg class="w-6 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
                       <defs>
                         <linearGradient id="logoPreviewTooth" x1="0" y1="0" x2=".4" y2="1">
@@ -950,7 +950,7 @@
                       <path d="M 16,2 C 23,2 29,7 28,14 C 28,19 27,22 26,24 C 26,28 25,33 24,37 C 24,39 21,39 21,37 C 21,33 21,28 20,25 C 19,23 17,23 15,23 C 14,26 14,33 12,37 C 12,39 9,39 9,37 C 8,33 7,28 7,24 C 5,22 4,19 4,14 C 3,7 9,2 16,2 Z" fill="url(#logoPreviewTooth)"/>
                       <ellipse cx="11" cy="10" rx="3" ry="5.5" fill="white" opacity="0.2" transform="rotate(-15,11,10)"/>
                     </svg>
-                    <span class="text-base font-medium text-gray-700 truncate max-w-[100px]">{{ cfg.name }}</span>
+                    <span class="text-base font-medium text-ui-ink-soft truncate max-w-[100px]">{{ cfg.name }}</span>
                   </div>
                   <p class="text-xs text-gray-400 text-center">Using default tooth icon</p>
                 </div>
@@ -958,12 +958,12 @@
             </div>
 
             <!-- New upload preview -->
-            <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+            <div class="rounded-2xl border border-ui-line bg-ui-muted p-5">
               <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">New Logo Preview</p>
               @if (logoPreview()) {
                 <div class="flex flex-col items-center gap-4">
                   <!-- White bg preview -->
-                  <div class="w-full bg-white rounded-xl border border-gray-200 flex items-center justify-center h-16 px-4">
+                  <div class="w-full bg-white rounded-xl border border-ui-line flex items-center justify-center h-16 px-4">
                     <img [src]="logoPreview()!" alt="Preview" class="h-10 max-w-full object-contain">
                   </div>
                   <!-- Dark bg preview -->
@@ -990,14 +990,14 @@
                     }
                   </button>
                   <button type="button" (click)="logoPreview.set(null)"
-                          class="w-full text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors">
+                          class="w-full text-xs font-medium text-gray-500 hover:text-ui-ink-soft transition-colors">
                     Cancel
                   </button>
                 </div>
               } @else {
                 <!-- Upload prompt -->
                 <label class="flex flex-col items-center justify-center gap-3 cursor-pointer
-                              border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50/40
+                              border-2 border-dashed border-ui-line hover:border-blue-300 hover:bg-blue-50/40
                               rounded-xl p-6 transition-all group h-[calc(100%-28px)]">
                   <div class="w-12 h-12 bg-blue-50 group-hover:bg-blue-100 rounded-2xl flex items-center justify-center transition-colors">
                     <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -1005,7 +1005,7 @@
                     </svg>
                   </div>
                   <div class="text-center">
-                    <p class="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">
+                    <p class="text-sm font-semibold text-ui-ink-soft group-hover:text-blue-700 transition-colors">
                       Click to upload
                     </p>
                     <p class="text-xs text-gray-400 mt-0.5">PNG, JPG, SVG, WebP · Max 5 MB</p>
@@ -1040,37 +1040,37 @@
 
         </div>
         } @else {
-          <div class="bg-white rounded-2xl border border-gray-100 p-6">
+          <div class="bg-white rounded-2xl border border-ui-line p-6">
             <div class="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-6 sm:p-7">
               <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div class="max-w-2xl">
                   <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-700">
                     Basic Feature
                   </span>
-                  <h2 class="mt-4 text-xl font-bold text-gray-900">Unlock your clinic logo</h2>
-                  <p class="mt-2 text-sm leading-relaxed text-gray-600">
+                  <h2 class="mt-4 text-xl font-bold text-ui-ink">Unlock your clinic logo</h2>
+                  <p class="mt-2 text-sm leading-relaxed text-ui-ink-muted">
                     Free clinics use the default dental mark so every site launches fast and stays visually consistent. Upgrade to Basic to upload your clinic logo across the navbar, footer, and booking journey for stronger patient trust.
                   </p>
                   <div class="mt-4 flex flex-wrap gap-2">
-                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Custom logo on website header</span>
-                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Branded footer and share links</span>
-                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-emerald-100">Cleaner patient recall</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ui-ink-soft shadow-sm ring-1 ring-emerald-100">Custom logo on website header</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ui-ink-soft shadow-sm ring-1 ring-emerald-100">Branded footer and share links</span>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ui-ink-soft shadow-sm ring-1 ring-emerald-100">Cleaner patient recall</span>
                   </div>
                 </div>
 
-                <div class="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-5 shadow-lg">
+                <div class="w-full max-w-sm rounded-3xl border border-ui-line bg-white p-5 shadow-lg">
                   <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-400">Current Website Mark</p>
-                  <div class="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div class="mt-4 rounded-2xl border border-ui-line bg-ui-muted p-4">
                     <div class="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
                       @if (cfg.logoDataUrl) {
                         <img [src]="cfg.logoDataUrl" alt="Current logo" class="h-9 max-w-[150px] object-contain">
                       } @else {
-                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-200 bg-[color:var(--accent-lt)] text-sm font-black text-[color:var(--accent-dk)]">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-ui-line bg-[color:var(--accent-lt)] text-sm font-black text-[color:var(--accent-dk)]">
                           {{ clinicInitial }}
                         </div>
                       }
                       <div class="min-w-0">
-                        <p class="truncate text-sm font-bold text-gray-900">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
+                        <p class="truncate text-sm font-bold text-ui-ink">{{ infoForm.get('name')?.value || cfg.name || 'Your clinic name' }}</p>
                         <p class="text-xs text-gray-500">Basic removes the default platform branding.</p>
                       </div>
                     </div>
@@ -1110,7 +1110,7 @@
                  [class]="isExpired ? 'text-red-500' : isPending ? 'text-amber-600' : isTrial ? 'text-blue-600' : isStarter ? 'text-blue-600' : 'text-purple-600'">
                 Current Plan
               </p>
-              <p class="font-bold text-gray-900 text-lg leading-tight">{{ currentPlanLabel() }}</p>
+              <p class="font-bold text-ui-ink text-lg leading-tight">{{ currentPlanLabel() }}</p>
               @if (isTrial && !isExpired) {
                 <p class="text-blue-700 text-xs mt-1">Your website and booking page stay live. Upgrade when you need patient records, doctors, branding, or a custom domain.</p>
               }
@@ -1150,12 +1150,12 @@
             }
           </div>
 
-          <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ui-line bg-white px-4 py-3">
             <div>
-              <p class="text-sm font-semibold text-gray-900">Billing cycle</p>
+              <p class="text-sm font-semibold text-ui-ink">Billing cycle</p>
               <p class="text-xs text-gray-500 mt-0.5">Monthly Razorpay subscriptions are active. Yearly billing is temporarily disabled.</p>
             </div>
-            <div class="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+            <div class="inline-flex rounded-xl border border-ui-line bg-ui-muted p-1">
               <button type="button" (click)="selectedBillingCycle.set('monthly')"
                       class="px-3 py-2 text-xs font-semibold rounded-lg transition-colors"
                       [class]="selectedBillingCycle() === 'monthly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'">
@@ -1170,18 +1170,18 @@
           </div>
 
           @if (subscriptionStatus()?.subscriptionId) {
-            <div class="rounded-2xl border border-gray-200 bg-white p-5">
-              <h3 class="text-sm font-bold text-gray-900">Manage subscription</h3>
+            <div class="rounded-2xl border border-ui-line bg-white p-5">
+              <h3 class="text-sm font-bold text-ui-ink">Manage subscription</h3>
               @if (subscriptionStatus()?.cancellationEffectiveAt) {
-                <p role="status" class="mt-2 text-sm text-gray-700">Cancellation scheduled for {{ cancellationEffectiveLabel() }}. Your paid features remain available through the current billing cycle.</p>
+                <p role="status" class="mt-2 text-sm text-ui-ink-soft">Cancellation scheduled for {{ cancellationEffectiveLabel() }}. Your paid features remain available through the current billing cycle.</p>
               } @else if (confirmingCancellation()) {
-                <p class="mt-2 text-sm text-gray-700">Stop renewal at the end of this billing cycle? Your paid features remain available until then.</p>
+                <p class="mt-2 text-sm text-ui-ink-soft">Stop renewal at the end of this billing cycle? Your paid features remain available until then.</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                   <button type="button" (click)="cancelCurrentSubscription()" [disabled]="cancellingSubscription()" class="min-h-11 rounded-xl bg-red-700 px-4 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">{{ cancellingSubscription() ? 'Scheduling...' : 'Confirm cancellation' }}</button>
-                  <button type="button" (click)="confirmingCancellation.set(false)" class="min-h-11 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-700">Keep plan</button>
+                  <button type="button" (click)="confirmingCancellation.set(false)" class="min-h-11 rounded-xl border border-ui-line-strong px-4 text-sm font-semibold text-ui-ink-soft">Keep plan</button>
                 </div>
               } @else {
-                <button type="button" (click)="confirmingCancellation.set(true)" class="mt-3 min-h-11 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel subscription</button>
+                <button type="button" (click)="confirmingCancellation.set(true)" class="mt-3 min-h-11 rounded-xl border border-ui-line-strong px-4 text-sm font-semibold text-ui-ink-soft hover:bg-ui-muted">Cancel subscription</button>
               }
               @if (cancellationError()) { <p role="alert" class="mt-3 text-sm text-red-700">{{ cancellationError() }}</p> }
             </div>
@@ -1199,7 +1199,7 @@
 
                 <div class="flex items-start justify-between mb-3">
                   <div>
-                    <p class="font-bold text-gray-900 text-sm">{{ p.label }}</p>
+                    <p class="font-bold text-ui-ink text-sm">{{ p.label }}</p>
                     <p class="mt-1 max-w-[15rem] text-xs leading-relaxed text-gray-500">{{ p.description }}</p>
                     <p class="text-2xl font-extrabold mt-0.5"
                        [class]="p.id === 'pro' ? 'text-purple-600' : p.id === 'starter' ? 'text-blue-600' : 'text-gray-500'">
@@ -1224,7 +1224,7 @@
 
                 <ul class="space-y-1.5 mb-4 flex-1">
                   @for (f of p.features; track f) {
-                    <li class="flex items-start gap-2 text-xs text-gray-700">
+                    <li class="flex items-start gap-2 text-xs text-ui-ink-soft">
                       <svg class="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                       </svg>
@@ -1234,7 +1234,7 @@
                 </ul>
 
                 @if (p.locked.length > 0) {
-                  <ul class="space-y-1.5 mb-4 border-t border-gray-100 pt-3">
+                  <ul class="space-y-1.5 mb-4 border-t border-ui-line pt-3">
                     @for (f of p.locked; track f) {
                       <li class="flex items-start gap-2 text-xs text-gray-400">
                         <svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1257,7 +1257,7 @@
                       @else { {{ upgradeButtonLabel('pro') }} }
                     </button>
                   } @else {
-                    <span class="block w-full text-center text-sm font-bold py-2.5 rounded-xl bg-gray-100 text-gray-400 cursor-default">
+                    <span class="block w-full text-center text-sm font-bold py-2.5 rounded-xl bg-ui-canvas-subtle text-gray-400 cursor-default">
                       Downgrade
                     </span>
                   }
@@ -1267,8 +1267,8 @@
           </div>
 
           <!-- ROI nudge -->
-          <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
-            <p class="text-sm font-bold text-gray-900 mb-1">Is it worth it?</p>
+          <div class="rounded-2xl border border-ui-line bg-ui-muted p-5">
+            <p class="text-sm font-bold text-ui-ink mb-1">Is it worth it?</p>
             <p class="text-xs text-gray-500 leading-relaxed">
               One extra patient booking per week = ~₹2,500-₹5,000 revenue. Pro costs ₹2,499/month.
               Compare the plan cost with your clinic's own appointment and revenue data.
@@ -1285,7 +1285,7 @@
           <!-- Header -->
           <div class="flex items-start justify-between gap-4">
             <div>
-              <h3 class="font-bold text-gray-900 text-lg">AI Voice Receptionist</h3>
+              <h3 class="font-bold text-ui-ink text-lg">AI Voice Receptionist</h3>
               <p class="text-sm text-gray-500 mt-0.5">OpenAI Realtime speaks with website visitors, answers clinic FAQs, and books appointments.</p>
             </div>
             @if (isTabDirty('voice') && isVoiceEnabled) {
@@ -1301,7 +1301,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                 </svg>
               </div>
-              <p class="font-bold text-gray-900 text-base mb-1">Pro Plan Feature</p>
+              <p class="font-bold text-ui-ink text-base mb-1">Pro Plan Feature</p>
               <p class="text-sm text-gray-500 mb-4 max-w-sm mx-auto">
                 The AI Voice Receptionist helps website visitors in Hindi and English, answers clinic questions, and submits confirmed appointment requests.
               </p>
@@ -1322,7 +1322,7 @@
                   <path d="M2 12h2"/><path d="M6 8v8"/><path d="M10 5v14"/><path d="M14 9v6"/><path d="M18 7v10"/><path d="M22 12h-2"/>
                 </svg>
               </div>
-              <p class="font-bold text-gray-900 text-base mb-1">OpenAI voice is not enabled</p>
+              <p class="font-bold text-ui-ink text-base mb-1">OpenAI voice is not enabled</p>
               <p class="text-sm text-gray-500 mb-5 max-w-xs mx-auto">
                 Enable your AI receptionist in one click. It will appear in the assistant on your clinic website.
               </p>
@@ -1357,24 +1357,24 @@
             </div>
 
             <!-- Usage meter -->
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
+            <div class="rounded-xl border border-ui-line bg-white p-4">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-sm font-bold text-gray-800">This month's usage</p>
+                <p class="text-sm font-bold text-ui-ink-soft">This month's usage</p>
                 <button type="button" (click)="fetchUsage()"
                         [disabled]="loadingUsage()"
-                        class="text-xs text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                        class="text-xs text-gray-400 hover:text-ui-ink-soft transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   @if (loadingUsage()) { Refreshing… } @else { Refresh ↻ }
                 </button>
               </div>
               @if (voiceUsage(); as u) {
                 <div class="space-y-2">
-                  <div class="flex items-center justify-between text-xs text-gray-600">
+                  <div class="flex items-center justify-between text-xs text-ui-ink-muted">
                     <span>{{ u.minutesUsed }} / {{ u.minutesLimit }} min used</span>
                     <span class="font-bold" [class]="u.minutesUsed >= u.minutesLimit ? 'text-red-600' : 'text-gray-700'">
                       {{ u.minutesLimit - u.minutesUsed > 0 ? (u.minutesLimit - u.minutesUsed) + ' min left' : 'Limit reached' }}
                     </span>
                   </div>
-                  <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-2 bg-ui-canvas-subtle rounded-full overflow-hidden">
                     <div class="h-full rounded-full transition-all duration-500"
                          [style.width.%]="Math.min(100, (u.minutesUsed / u.minutesLimit) * 100)"
                          [class]="u.minutesUsed >= u.minutesLimit ? 'bg-red-500' : u.minutesUsed / u.minutesLimit > 0.8 ? 'bg-amber-500' : 'bg-purple-500'">
@@ -1391,14 +1391,14 @@
 
               <!-- Language -->
               <div>
-                <label class="block text-sm font-bold text-gray-800 mb-2">Conversation Language</label>
+                <label class="block text-sm font-bold text-ui-ink-soft mb-2">Conversation Language</label>
                 <div class="grid grid-cols-3 gap-3">
                   @for (lang of [{v:'hindi',l:'Hindi',s:'हिंदी'},{v:'english',l:'English',s:'EN'},{v:'bilingual',l:'Bilingual',s:'HI+EN'}]; track lang.v) {
                     <label class="relative cursor-pointer">
                       <input type="radio" formControlName="language" [value]="lang.v" class="sr-only peer">
                       <div class="rounded-xl border-2 p-3 text-center transition-all
-                                  border-gray-200 bg-white peer-checked:border-purple-500 peer-checked:bg-purple-50">
-                        <p class="text-base font-bold text-gray-800">{{ lang.s }}</p>
+                                  border-ui-line bg-white peer-checked:border-purple-500 peer-checked:bg-purple-50">
+                        <p class="text-base font-bold text-ui-ink-soft">{{ lang.s }}</p>
                         <p class="text-[11px] text-gray-500 mt-0.5">{{ lang.l }}</p>
                       </div>
                     </label>
@@ -1408,15 +1408,15 @@
 
               <!-- Voice picker -->
               <div>
-                <label class="block text-sm font-bold text-gray-800 mb-2">Agent Voice</label>
+                <label class="block text-sm font-bold text-ui-ink-soft mb-2">Agent Voice</label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   @for (v of VOICE_OPTIONS; track v.id) {
                     <label class="relative cursor-pointer">
                       <input type="radio" formControlName="voiceId" [value]="v.id" class="sr-only peer">
                       <div class="rounded-xl border-2 p-3 transition-all text-left
-                                  border-gray-200 bg-white peer-checked:border-purple-500 peer-checked:bg-purple-50">
+                                  border-ui-line bg-white peer-checked:border-purple-500 peer-checked:bg-purple-50">
                         <div class="flex items-center justify-between mb-0.5">
-                          <p class="text-sm font-bold text-gray-800">{{ v.name }}</p>
+                          <p class="text-sm font-bold text-ui-ink-soft">{{ v.name }}</p>
                           @if (v.recommended) {
                             <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">Recommended</span>
                           }
@@ -1430,13 +1430,13 @@
 
               <!-- Opening Greeting -->
               <div>
-                <label class="block text-sm font-bold text-gray-800 mb-1.5">
+                <label class="block text-sm font-bold text-ui-ink-soft mb-1.5">
                   Opening Greeting
                   <span class="font-normal text-gray-400 ml-1">(first thing the agent says)</span>
                 </label>
                 <textarea formControlName="greeting" rows="2"
                           placeholder="Namaste! [Clinic Name] mein aapka swagat hai. Main aapki kaise madad kar sakti hoon?"
-                          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400
+                          class="w-full px-3.5 py-2.5 rounded-xl border border-ui-line bg-white text-sm text-ui-ink placeholder-gray-400
                                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                                  resize-none leading-relaxed">
                 </textarea>
@@ -1445,13 +1445,13 @@
 
               <!-- Persona Notes -->
               <div>
-                <label class="block text-sm font-bold text-gray-800 mb-1.5">
+                <label class="block text-sm font-bold text-ui-ink-soft mb-1.5">
                   Persona Notes
                   <span class="font-normal text-gray-400 ml-1">(optional clinic-specific knowledge)</span>
                 </label>
                 <textarea formControlName="persona" rows="3"
                           placeholder="e.g. We offer free X-ray with the first consultation. Parking is available behind the building."
-                          class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400
+                          class="w-full px-3.5 py-2.5 rounded-xl border border-ui-line bg-white text-sm text-ui-ink placeholder-gray-400
                                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                                  resize-none leading-relaxed">
                 </textarea>

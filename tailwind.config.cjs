@@ -37,6 +37,7 @@ module.exports = {
           ink: 'var(--ui-ink)',
           'ink-soft': 'var(--ui-ink-soft)',
           'ink-muted': 'var(--ui-ink-muted)',
+          'inverse-muted': 'var(--ui-inverse-muted)',
           line: 'var(--ui-line)',
           'line-strong': 'var(--ui-line-strong)',
           primary: 'var(--ui-primary)',
