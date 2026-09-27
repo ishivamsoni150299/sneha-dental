@@ -31,6 +31,7 @@ Available roles:
 
 - `ui-display` — one page-level marketing headline
 - `ui-heading` — section and major panel headings
+- `ui-heading-interface` — pair with `ui-heading` for the shared sans-serif account-screen heading
 - `ui-title` — card and list-item headings
 - `ui-lede` — introductory body copy
 - `ui-body` — ordinary copy
@@ -88,6 +89,13 @@ Do not use green to decorate a card or red to attract attention.
 - `ui-grid-auto` — responsive repeated-card layout
 - `ui-stack` — vertical content rhythm
 - `ui-cluster` — wrapping horizontal action/metadata group
+
+Account screens use `ui-auth-layout` for their outer grid and responsive spacing.
+Add `ui-auth-layout-split` when a desktop supporting aside is present. Pair
+`ui-card` with `ui-auth-card` for the common 28rem maximum form width and 1.5rem
+content gap; use `ui-auth-footer` for separated secondary actions. These are
+presentation patterns; authentication and role-specific routing stay in their
+existing components and services.
 
 Do not create a new `max-w-* + px-*` combination for each page. Use the
 container primitives and add a grid only where the content requires it.
@@ -147,6 +155,7 @@ Use:
 
 - `ui-label`
 - `ui-field`
+- `ui-field-with-action` — reserves trailing space for an adjacent control, such as password visibility; pair with `ui-field`
 - `ui-field-invalid`
 - `ui-helper`
 - `ui-error`
@@ -245,3 +254,55 @@ Before merging UI work, confirm:
 - mobile sticky actions do not cover content
 - tenant themes preserve readable contrast
 - `npm run lint`, `npm test`, and `npm run build` pass
+
+## 13. Consolidation progress
+
+### Shared authentication controls — 2026-09-27
+
+The shared password form and account recovery now use `ui-field`, `ui-label`,
+`ui-btn` variants, and `ui-alert` variants. The unused `auth-field` and
+`auth-primary` definitions have been removed from `src/styles.css`. Password
+visibility uses the shared ghost button and reserves input space through
+`ui-field-with-action`. Authentication logic and role routing are unchanged.
+
+Verification: ESLint, the production build, and all four existing
+`PasswordLoginComponent` tests passed. Local Chrome checks of the compiled app
+covered `/professional/login`, `/professional/signup`, `/business/login`,
+`/appointments` (signed out), and `/account/recovery` (signed out) at 320, 390,
+768, and 1440 pixels. Checked horizontal overflow, input/action sizes, password
+visibility and keyboard focus where applicable. Reviewed mobile signup and
+recovery screenshots and desktop clinic login. Signup mismatch validation and
+login loading/disabled/error states passed using intercepted API responses.
+
+This is presentation verification, not backend end-to-end evidence. Actual
+signup, authenticated recovery, recovery-code success displays, platform staff
+login, and clinic signup were not browser-verified in this pass. Their shared
+form changes compile, but their complete journeys remain to be checked.
+The surrounding auth page/card/link/icon styles and differing page layouts
+remain for later consolidation; this pass does not certify every screen.
+
+### Account layouts — subsequent consolidation, 2026-09-27
+
+The page/card/link/icon follow-up above is now complete for dentist login and
+signup, clinic/staff login, account recovery, and the patient account form.
+They share card sizing, spacing, footer actions, and sans-serif account
+headings. Dentist and clinic/staff login share the responsive split layout;
+their role-specific content and navigation are preserved. The remaining
+`auth-page`, `auth-card`, `auth-link`, and `auth-icon` styles were removed after
+migrating every consumer. Decorative icon boxes and the nested signup-success
+card were removed, leaving one clear form panel.
+
+The production build, ESLint, and all 14 focused password-login, business-login,
+and patient-appointments tests passed. Chrome presentation checks passed at
+320, 390, 768, and 1440 pixels for the five routes above plus `/platform/login`
+and `/business/signup`. Verified overflow, control sizing, password visibility,
+keyboard focus, and the migrated cards' width, spacing, and heading font.
+Reviewed desktop dentist login and mobile clinic login/recovery screenshots.
+Additional mobile fixture checks and screenshots covered signup recovery-code
+display, reset success, and authenticated recovery-code generation.
+
+API responses were intercepted locally: these checks do not prove real account
+creation, reset authorization, or production delivery. Clinic signup's full
+multi-step layout and the authenticated appointments workspace remain outside
+this layout migration. The existing `platform-auth-*` compatibility rules are
+still used by those older business templates and have not been removed.

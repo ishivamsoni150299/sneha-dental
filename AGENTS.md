@@ -2,6 +2,17 @@
 
 My Dental Platform is a multi-tenant dental marketplace and clinic workspace. The frontend is Angular 19 with standalone components, signals, and Tailwind CSS 3. The backend is a Spring Boot 4.1 modular monolith on Java 25, PostgreSQL, JDBC, and Flyway. Do not use the old Sneha Dental brochure-site assumptions.
 
+## Current priority: consolidation
+
+The project is in a consolidation phase. Unless the user explicitly changes this direction, improve existing functionality rather than adding features, screens, providers, frameworks, or infrastructure. Prioritize UI simplicity and consistency, then frontend and backend maintainability.
+
+- Use the existing design system in `src/design-system.css` and `docs/DESIGN_SYSTEM.md`; converge on shared tokens, controls, page patterns, and interaction states instead of adding another styling layer.
+- Keep patient, dentist, clinic, and platform permissions distinct while making their shared UI patterns consistent. One product does not mean one permission model or one oversized component.
+- Reuse existing components and services before creating abstractions. Extract repeated responsibilities only when this makes their consumers simpler; remove superseded code after verifying its callers.
+- Retain Angular, Spring Boot, JDBC, PostgreSQL, and the modular monolith. Simplify within existing domain boundaries and preserve API behavior, transaction boundaries, tenant isolation, and session revocation.
+- Make small, reviewable migrations through existing journeys. Verify affected desktop/mobile layouts, keyboard access, loading/empty/error/success states, and relevant automated checks. Report unverified behavior explicitly; do not describe the entire project as perfect or production-ready based on a build alone.
+- Follow the consolidation sequence in `docs/PRODUCT_ARCHITECTURE.md`. Existing future-looking proposals in documentation do not authorize feature expansion during this phase.
+
 ## Main domains
 
 - Patient marketplace: `/dentists` and locality/treatment routes, dentist profiles, appointment requests, reviews, `/appointments` patient account.

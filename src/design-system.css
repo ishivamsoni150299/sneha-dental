@@ -170,6 +170,40 @@ body {
   margin-inline: auto;
 }
 
+/* Shared account layouts; forms retain their role-specific content and routing. */
+.ui-auth-layout {
+  display: grid;
+  align-items: center;
+  gap: var(--ui-space-3xl);
+  width: min(100% - 2rem, 64rem);
+  margin-inline: auto;
+  padding-block: clamp(2rem, 6vw, 4rem);
+}
+
+.ui-auth-card {
+  display: grid;
+  gap: var(--ui-space-lg);
+  width: 100%;
+  max-width: 28rem;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.ui-auth-footer {
+  border-top: 1px solid var(--ui-line);
+  padding-top: var(--ui-space-md);
+  color: var(--ui-ink-soft);
+  font-size: var(--ui-text-sm);
+  line-height: var(--ui-leading-copy);
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .ui-auth-layout-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
+  }
+}
+
 .ui-section {
   padding-block: clamp(3.5rem, 8vw, 7rem);
 }
@@ -244,6 +278,12 @@ body {
   font-family: var(--ui-font-sans);
   font-weight: 720;
   letter-spacing: -0.04em;
+}
+
+.ui-heading.ui-heading-interface {
+  font-family: var(--ui-font-sans);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: var(--ui-weight-semibold);
 }
 
 .ui-lede {
@@ -486,6 +526,11 @@ body {
   background: var(--ui-surface);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: border-color var(--ui-duration-fast), box-shadow var(--ui-duration-fast), background var(--ui-duration-fast);
+}
+
+/* Reserve space for an adjacent action such as password visibility. */
+.ui-field-with-action {
+  padding-inline-end: 4.5rem;
 }
 
 .ui-field::placeholder,

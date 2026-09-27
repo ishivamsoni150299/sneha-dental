@@ -11,45 +11,44 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (accountCreated()) {
-      <section class="space-y-4 rounded-2xl border border-blue-200 bg-blue-50 p-5 sm:p-6">
-        <span class="auth-icon bg-white" aria-hidden="true"><i class="ph ph-key"></i></span>
-        <p class="text-xs font-semibold uppercase tracking-widest text-blue-700">Account created</p>
-        <h2 class="text-xl font-semibold tracking-tight text-gray-900">Save your recovery code</h2>
-        <p class="text-sm leading-6 text-gray-600">Keep this in your password manager. You’ll need it if you forget your password. It is shown only once.</p>
+      <section class="space-y-4">
+        <p class="ui-eyebrow">Account created</p>
+        <h2 class="ui-heading ui-heading-interface">Save your recovery code</h2>
+        <p class="ui-body">Keep this in your password manager. You’ll need it if you forget your password. It is shown only once.</p>
         @if (recoveryCode()) {
-          <textarea readonly aria-label="Recovery code" rows="3" spellcheck="false" class="auth-field resize-none font-mono text-sm leading-6" [value]="recoveryCode()" (focus)="$any($event.target).select()"></textarea>
-          <button type="button" (click)="copyRecoveryCode()" class="auth-link gap-2"><i class="ph ph-copy" aria-hidden="true"></i>{{ copyMessage() || 'Copy recovery code' }}</button>
+          <textarea readonly aria-label="Recovery code" rows="3" spellcheck="false" class="ui-field mt-2 font-mono text-sm" [value]="recoveryCode()" (focus)="$any($event.target).select()"></textarea>
+          <button type="button" (click)="copyRecoveryCode()" class="ui-btn ui-btn-ghost gap-2"><i class="ph ph-copy" aria-hidden="true"></i>{{ copyMessage() || 'Copy recovery code' }}</button>
           <span class="sr-only" role="status">{{ copyMessage() }}</span>
         }
-        @if (error()) { <p role="alert" class="text-sm text-red-700">Your account was created. Generate a recovery code from Account recovery after signing in.</p> }
-        <button type="button" (click)="continueAfterSignup()" class="auth-primary">{{ recoveryCode() ? 'I saved my code — continue' : 'Continue to my account' }}<i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+        @if (error()) { <p role="alert" class="ui-error">Your account was created. Generate a recovery code from Account recovery after signing in.</p> }
+        <button type="button" (click)="continueAfterSignup()" class="ui-btn ui-btn-primary ui-btn-block">{{ recoveryCode() ? 'I saved my code — continue' : 'Continue to my account' }}<i class="ph ph-arrow-right" aria-hidden="true"></i></button>
       </section>
     } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
       @if (signup() && portal() === 'dentist') {
-        <label class="block text-sm font-semibold text-gray-900">Full name
-          <input formControlName="name" autocomplete="name" maxlength="160" class="auth-field">
+        <label class="ui-label">Full name
+          <input formControlName="name" autocomplete="name" maxlength="160" class="ui-field mt-2 text-base">
         </label>
       }
-      <label class="block text-sm font-semibold text-gray-900">Email address
-        <input formControlName="email" type="email" autocomplete="username" maxlength="254" required class="auth-field">
+      <label class="ui-label">Email address
+        <input formControlName="email" type="email" autocomplete="username" maxlength="254" required class="ui-field mt-2 text-base">
       </label>
       <div>
-        <label for="auth-password" class="block text-sm font-semibold text-gray-900">Password</label>
+        <label for="auth-password" class="ui-label">Password</label>
         <div class="relative">
-          <input id="auth-password" formControlName="password" [type]="showPassword() ? 'text' : 'password'" [autocomplete]="signup() ? 'new-password' : 'current-password'" maxlength="72" required class="auth-field pr-16">
-          <button type="button" (click)="showPassword.set(!showPassword())" [attr.aria-pressed]="showPassword()" [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'" class="absolute bottom-1 right-1 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-gray-500 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">{{ showPassword() ? 'Hide' : 'Show' }}</button>
+          <input id="auth-password" formControlName="password" [type]="showPassword() ? 'text' : 'password'" [autocomplete]="signup() ? 'new-password' : 'current-password'" maxlength="72" required class="ui-field ui-field-with-action mt-2 text-base">
+          <button type="button" (click)="showPassword.set(!showPassword())" [attr.aria-pressed]="showPassword()" [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'" class="ui-btn ui-btn-ghost absolute bottom-0 right-0">{{ showPassword() ? 'Hide' : 'Show' }}</button>
         </div>
       </div>
       @if (signup()) {
-        <p class="text-xs leading-5 text-gray-500">Use 8–72 characters. A longer, unique password helps protect your account.</p>
-        <label class="block text-sm font-semibold text-gray-900">Confirm password
-          <input formControlName="confirm" type="password" autocomplete="new-password" maxlength="72" required class="auth-field">
+        <p class="ui-helper">Use 8–72 characters. A longer, unique password helps protect your account.</p>
+        <label class="ui-label">Confirm password
+          <input formControlName="confirm" type="password" autocomplete="new-password" maxlength="72" required class="ui-field mt-2 text-base">
         </label>
       }
-      @if (error()) { <p role="alert" class="rounded-xl bg-red-50 p-3 text-sm text-red-700">{{ error() }}</p> }
-      <button type="submit" [disabled]="busy()" [attr.aria-busy]="busy()" class="auth-primary">@if (busy()) { <i class="ph ph-spinner animate-spin motion-reduce:animate-none" aria-hidden="true"></i> }{{ busy() ? 'Please wait…' : signup() ? 'Create account' : 'Sign in' }}@if (!busy()) { <i class="ph ph-arrow-right" aria-hidden="true"></i> }</button>
-      @if (!signup()) { <div class="text-center"><a routerLink="/account/recovery" class="auth-link">Forgot your password?</a></div> }
+      @if (error()) { <p role="alert" class="ui-alert ui-alert-danger text-sm">{{ error() }}</p> }
+      <button type="submit" [disabled]="busy()" [attr.aria-busy]="busy()" class="ui-btn ui-btn-primary ui-btn-block">@if (busy()) { <i class="ph ph-spinner animate-spin motion-reduce:animate-none" aria-hidden="true"></i> }{{ busy() ? 'Please wait…' : signup() ? 'Create account' : 'Sign in' }}@if (!busy()) { <i class="ph ph-arrow-right" aria-hidden="true"></i> }</button>
+      @if (!signup()) { <div class="text-center"><a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Forgot your password?</a></div> }
     </form>
     }
   `,

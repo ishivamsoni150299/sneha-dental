@@ -1,5 +1,35 @@
 # Product architecture
 
+## Active direction: simplify the existing product
+
+As of 2026-09-27, consolidation takes priority over feature development. Keep the current stack and behavior while reducing duplication and making existing screens consistent. Future-looking domain and API proposals below are architectural context, not a mandate to add capabilities or migrate all routes at once.
+
+### Initial repository findings
+
+- `src/design-system.css` already owns semantic tokens and controls, but both it and `src/styles.css` contain shared styling and compatibility rules. Consolidate ownership through verified consumer migrations; do not add a third design system or remove legacy selectors without checking their usage and cascade.
+- `PasswordLoginComponent` already provides shared authentication UI. Reuse it and audit its surrounding patient, professional, and business screens before introducing more form abstractions.
+- Large admin dashboard/settings and clinic-form templates are candidates for responsibility-based extraction. File size alone does not establish that a component should be split.
+- `ProviderWorkspaceController` performs SQL queries and documents legacy doctor/provider compatibility. Move cohesive business/data responsibilities behind domain services incrementally, preserving query scope and transaction behavior. Follow `backend/LEGACY_COMPATIBILITY.md` before removing fallback logic.
+
+These are code inspection findings, not a completed visual or functional audit.
+
+### Consolidation sequence
+
+1. Inventory current routes from `src/app/app.routes.ts` and the business route file, including guarded and tenant routes. Track each screen's shared shell, primary action, form/list patterns, responsive behavior, and verification evidence.
+2. Consolidate existing UI primitives: typography, spacing, colours, buttons, inputs, validation, status messages, cards, and tables. Use `docs/DESIGN_SYSTEM.md` as the common specification; migrate consumers and remove their superseded styles in the same reviewed change where practical.
+3. Apply the common patterns to complete existing journeys: authentication/recovery, patient discovery and booking, dentist profile and workspace, then clinic and platform administration. Keep navigation appropriate to each role while standardizing common interactions. Preserve tenant branding through tokens.
+4. Simplify frontend responsibilities where the audit finds duplication: components own presentation and interaction, domain services own API access, and guards/authentication services retain access checks. Avoid creating a generic service or component that merely hides unrelated behavior behind flags.
+5. Simplify backend responsibilities one domain at a time. Keep HTTP mapping/validation in controllers, business rules and transaction boundaries in services, and cohesive database access in the owning domain. Preserve request/response contracts and existing database behavior; do not introduce layers without a concrete reduction in duplication or coupling.
+6. Verify the migrated journeys, remove demonstrated dead code, and update the existing architecture/design/readiness documentation with evidence and remaining gaps.
+
+### Evidence required for completion
+
+For each migrated screen, record desktop and narrow-screen checks, keyboard/focus behavior, applicable loading/empty/error/success states, and its primary user action against the real application. Record responsive or accessibility exceptions rather than silently declaring them covered.
+
+Run focused tests plus lint/build appropriate to each change. Backend refactors require relevant service/integration tests, including tenant isolation and ownership when affected. Browser journeys require an isolated database; compiled artifact smoke checks are not browser tests. Use `docs/LAUNCH_READINESS.md` for deployment acceptance and keep unverified external integrations explicitly open.
+
+The completion target is a consistent, maintainable project with passing acceptance evidence and documented limitations. This initial consolidation direction does not certify every screen or production integration.
+
 ## Product decision
 
 MyDentalPlatform is an appointment marketplace first. The clinic software and clinic websites create and retain the supply that makes the marketplace useful.

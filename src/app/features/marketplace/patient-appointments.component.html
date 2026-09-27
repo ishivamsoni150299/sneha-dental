@@ -25,12 +25,11 @@
         <button type="button" (click)="logout()" class="mt-6 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Sign out business account</button>
       </div>
     } @else if (step() !== 'appointments') {
-      <section class="auth-card mx-auto max-w-md space-y-5">
-        <span class="auth-icon" aria-hidden="true"><i class="ph ph-calendar-heart"></i></span>
-        <h2 class="text-2xl font-semibold tracking-tight text-gray-900">{{ signup() ? 'Create your patient account' : 'Sign in to your appointments' }}</h2>
-        <p class="text-sm text-gray-600">Use your email and password. Sign in before booking to keep your visits in this account.</p>
+      <section class="ui-card ui-auth-card">
+        <div class="space-y-3"><h2 class="ui-heading ui-heading-interface">{{ signup() ? 'Create your patient account' : 'Sign in to your appointments' }}</h2>
+        <p class="ui-body">Use your email and password. Sign in before booking to keep your visits in this account.</p></div>
         <app-password-login portal="patient" [signup]="signup()" (authenticated)="authenticated($event)" />
-        <div class="border-t border-gray-100 pt-4 text-center"><button type="button" (click)="signup.set(!signup())" class="auth-link">{{ signup() ? 'Already registered? Sign in' : 'New here? Create an account' }}</button></div>
+        <div class="ui-auth-footer"><button type="button" (click)="signup.set(!signup())" class="ui-btn ui-btn-ghost">{{ signup() ? 'Already registered? Sign in' : 'New here? Create an account' }}</button></div>
       </section>
     } @else {
       <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
@@ -50,7 +49,6 @@
 
           @if (!loading() && appointments().length === 0) {
             <div class="mt-6 rounded-2xl border border-gray-200 bg-white px-5 py-12 text-center">
-              <span class="auth-icon mb-5" aria-hidden="true"><i class="ph ph-calendar-blank"></i></span>
               <h3 class="text-xl font-bold text-gray-950">No linked appointments yet</h3>
               <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">Your next visit starts here. Find a dentist and book while signed in to see your appointment in this account.</p>
               <a routerLink="/dentists" class="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white">Find a dentist</a>
