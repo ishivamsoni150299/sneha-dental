@@ -38,6 +38,8 @@ A verified dentist can open `/professional/video-test`, select **Start test call
 
 ## Release verification
 
+Video booking uses the existing marketplace checkout route and shared appointment form, not a separate booking implementation. The parent owns time selection and inline authentication; the form owns validation, slot holds and submission. The calendar collapses after selection, and changing time keeps the form mounted so patient details are preserved. Video checkout hides the duplicate progress rail, sidebar and mobile discovery navigation; confirmation still leads to My appointments for joining.
+
 The disposable PostgreSQL browser CI journey covers independent-dentist verification, published slots, patient sign-in without leaving the booking page, submission through the video booking form, dentist inbox/confirmation and patient-account visibility. Its video configuration is a non-routable fixture for booking checks and does not prove media delivery. The LiveKit smoke test below is required separately.
 
 For LiveKit, set `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` in the local process environment and run `npm run test:video:media`. This creates a temporary two-person room, connects two isolated Chrome contexts, verifies that each receives video frames and an audio signal, and deletes the room. Set `CHROME_BIN` when Chrome is outside the default Windows path; on other systems install Playwright's Chromium. This checks the media provider, while the appointment and login flow still requires the application tests below.

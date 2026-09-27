@@ -235,6 +235,20 @@ describe('MarketplaceBookingComponent', () => {
     expect(form.currentStep()).toBe(2);
     expect(form.bookingContext?.isIndependent).toBeTrue();
     expect(fixture.nativeElement.textContent).not.toContain('Independent Dentist Profile:');
+    expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeTrue();
+    expect(fixture.nativeElement.textContent).not.toContain('Step 2 of 3');
+    expect(fixture.nativeElement.querySelector('[aria-label="Video consultation summary"]')).toBeNull();
+
+    form.form.patchValue({ name: 'Saved patient', phone: '9876543210' });
+    form.prevStep(); fixture.detectChanges();
+    expect(fixture.componentInstance.editingTime()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeFalse();
+    expect(fixture.nativeElement.querySelector('app-appointment').hidden).toBeTrue();
+    expect(form.currentStep()).toBe(2);
+    fixture.componentInstance.editingTime.set(false); fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance).toBe(form);
+    expect(form.form.value.name).toBe('Saved patient');
+    expect(form.form.value.phone).toBe('9876543210');
   });
 
   it('keeps the selected video slot while showing patient sign-in on the same page', async () => {
@@ -246,5 +260,10 @@ describe('MarketplaceBookingComponent', () => {
     expect(fixture.nativeElement.querySelector('app-password-login')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-appointment')).toBeNull();
     expect(fixture.componentInstance.selectedSlot()?.time).toBe('10:00:00');
+    expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeTrue();
+    const changeTime = Array.from(fixture.nativeElement.querySelectorAll('button')).find(button => (button as HTMLButtonElement).textContent?.trim() === 'Change time') as HTMLButtonElement;
+    changeTime.click(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[aria-labelledby="video-signin-heading"]').hidden).toBeTrue();
   });
 });

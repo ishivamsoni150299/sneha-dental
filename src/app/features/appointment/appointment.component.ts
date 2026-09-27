@@ -51,6 +51,11 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   @Input() bookingContext: BookingClinicContext | null = null;
   @Input() preselectedSlot: { doctorId: string; doctorName: string; date: string; time: string } | null = null;
   @Output() readonly bookingCompleted = new EventEmitter<BookingSubmission>();
+  @Output() readonly changeTime = new EventEmitter<void>();
+
+  get compactVideoBooking(): boolean {
+    return this.isMarketplaceBooking && this.bookingContext?.consultationMode === 'video';
+  }
 
   private readonly fb                 = inject(FormBuilder);
   private readonly appointmentService = inject(AppointmentService);
@@ -140,6 +145,10 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
 
   prevStep() {
     const step = this.currentStep();
+    if (step === 2 && this.compactVideoBooking) {
+      this.changeTime.emit();
+      return;
+    }
     if (step > 1) {
       this.currentStep.set(step - 1);
       this.scrollToBookingForm();

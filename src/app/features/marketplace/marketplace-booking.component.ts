@@ -38,12 +38,12 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly context = signal<BookingClinicContext | null>(null);
   readonly submission = signal<BookingSubmission | null>(null);
   readonly selectedSlot = signal<SelectedSlot | null>(null);
+  readonly editingTime = signal(false);
   private readonly slotPicker = viewChild(SlotPickerComponent);
   readonly consultationMode = signal<'in_person' | 'video'>('in_person');
   readonly videoReady = signal(false);
   readonly videoUnavailable = signal(false);
   readonly isIndependent = computed(() => Boolean(this.clinic()?.isIndependent));
-  readonly eligibleForInClinic = computed(() => !this.isIndependent());
   readonly selectedContext = computed(() => {
     const context = this.context();
     if (!context) return null;
@@ -172,6 +172,7 @@ export class MarketplaceBookingComponent implements OnInit {
 
   onSlotSelected(slot: SelectedSlot): void {
     this.selectedSlot.set(slot);
+    this.editingTime.set(false);
   }
 
   chooseMode(mode: 'in_person' | 'video'): void {

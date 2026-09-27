@@ -139,11 +139,18 @@ try {
   assert.equal(await page.getByRole('button', { name: /In-clinic visit/ }).count(), 0);
   await page.locator('app-slot-picker').getByRole('button', { name: /E2E Video Dentist/ }).first().click();
   await page.getByRole('heading', { name: 'Sign in to continue', exact: true }).waitFor();
+  assert.equal(await page.locator('#booking-time-picker').isVisible(), false);
   await page.getByRole('textbox', { name: 'Email address' }).fill(patientEmail);
   await page.locator('#auth-password').fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.locator('#appointment-name').fill('E2E Video Patient');
   await page.locator('#appointment-phone').fill('9876543210');
+  await page.getByRole('button', { name: 'Change time', exact: true }).click();
+  await page.locator('#booking-time-picker').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#appointment-name').isVisible(), false);
+  await page.getByRole('button', { name: 'Keep this time', exact: true }).click();
+  assert.equal(await page.locator('#appointment-name').inputValue(), 'E2E Video Patient');
+  assert.equal(await page.locator('#appointment-phone').inputValue(), '9876543210');
   await page.getByRole('button', { name: 'Review & Book', exact: true }).click();
   await page.locator('#appointment-privacyAccepted').check();
   await page.getByRole('button', { name: 'Send Appointment Request', exact: true }).click();

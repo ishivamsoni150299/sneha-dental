@@ -97,6 +97,8 @@
 .marketplace-shell .professional-menu { display: none; }
 .marketplace-shell main { min-height: 65vh; }
 .patient-tab-bar { display: none; }
+/* Checkout owns the mobile action dock; discovery navigation must not cover it. */
+.marketplace-shell:has(.video-booking) .patient-tab-bar { display: none; }
 html:has(.filter-dialog[open]) { overflow: hidden; }
 
 @media (max-width: 63.9375rem) {
