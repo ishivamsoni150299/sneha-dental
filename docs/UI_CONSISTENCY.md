@@ -16,7 +16,8 @@ Tailwind colors in `tailwind.config.cjs`. Reuse `ui-btn`, `ui-field`, `ui-card`,
 | Marketplace directory, profile, booking, treatment pages | Shared neutral palette | Populated search, booking, filters, responsive controls and failure states |
 | Patient appointments | Shared controls, cards, errors, headings and neutral palette; populated/cancel/review/reschedule presentation checked | Live linking, mutations and video consultation states |
 | Dentist workspace and embedded profile | Shared controls, cards, errors, headings and neutral palette; expanded profile, hours with breaks and decline presentation checked | Live profile/verification/appointment mutations; video consultation states |
-| Clinic dashboard, settings, doctors, patients and reviews | Shared neutral palette; inverse text in dark panels | Dialogs, populated tables, forms, responsive schedules and field labels |
+| Clinic doctor management | Shared actions and labeled fields; schedule layout aligned with dentist workspace | Full keyboard modal lifecycle; live scheduling conflicts and authorization |
+| Clinic dashboard, settings, patients and reviews | Shared neutral palette; inverse text in dark panels | Dialogs, populated tables, forms and field labels |
 | Platform clinics, leads, verification, analytics, revenue and reviews | Shared neutral palette | Consistent actions, filtering, editing, populated tables and failure states |
 | Tenant website, contact and legal pages | Shared neutral palette where applicable; contact rendering repaired | Complete control and responsive visual audit without expanding compatibility routes |
 | Video tests and consultation overlays | Partial neutral palette adoption | Permission, device, disconnected, joining and active-call states |

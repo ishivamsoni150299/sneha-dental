@@ -377,3 +377,18 @@ passed for document overflow, visible shared controls at least 44px high,
 unexpected redirects and browser/Angular errors. Reviewed mobile profile,
 hours and patient review screenshots. This does not verify live mutations,
 verification, email linking or media delivery.
+
+### Clinic doctor controls and schedules — 2026-09-28
+
+Doctor management now reuses shared actions and fields. Editor labels are
+associated with their inputs, icon actions have accessible names, and dialogs
+have named headings. Native labeled checkboxes replace the custom schedule
+switches. Opening/closing and break times use the same paired field layout as
+the dentist workspace, with days off below the weekly schedule.
+
+Production build and ESLint passed. Local Chrome checked the populated list,
+add editor, edit editor and remove confirmation at 320, 390, 768 and 1440px.
+All 16 checks passed for document/dialog overflow, shared control heights and
+browser/Angular errors. Mocked add/edit submissions preserved breaks and days
+off. Mobile list and edit screenshots were reviewed. Live persistence,
+conflicts and modal focus trapping remain outside this presentation pass.
