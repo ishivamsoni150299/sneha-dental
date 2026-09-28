@@ -361,3 +361,19 @@ redirects, browser errors, and Angular console errors. Most data screens used
 empty fixtures; contacts, billing, verification detail and review moderation
 endpoints exercised unavailable-data states. This is not coverage of every
 screen state or a claim that all screens are complete.
+
+### Patient and dentist workspace controls — 2026-09-28
+
+The patient appointments page, dentist workspace and embedded professional
+profile now share buttons, fields, cards, interface headings and alerts.
+The dentist header wraps on narrow screens; break-time columns can shrink.
+Patient review ratings have 44px targets and visible keyboard focus.
+
+ESLint, production build and nine focused patient/workspace tests passed.
+Local Chrome fixtures covered seven populated presentation states at 320,
+390, 768 and 1440px: dentist decline, expanded profile, hours with a break,
+patient appointments, cancellation, review and rescheduling. All 28 checks
+passed for document overflow, visible shared controls at least 44px high,
+unexpected redirects and browser/Angular errors. Reviewed mobile profile,
+hours and patient review screenshots. This does not verify live mutations,
+verification, email linking or media delivery.
