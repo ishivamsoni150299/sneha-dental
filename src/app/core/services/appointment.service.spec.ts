@@ -6,7 +6,7 @@
  * What IS tested here (zero network dependency):
  *   - canCancel()            — pure date arithmetic, business-critical rule
  *   - cancelAppointment()    — enforces the cancellation rule before the API call
- *   - bookingRef format     — regex contract for generated refs
+ *   - request identity, booking conflicts, lookup errors and lifecycle guards
  */
 
 import { TestBed } from '@angular/core/testing';
@@ -16,6 +16,8 @@ import {
   isClinicOpenAt,
 } from './appointment.service';
 import { ClinicConfigService } from './clinic-config.service';
+import { AuthFacade, type AuthRole } from './auth-facade.service';
+import { AuthenticatedApiService } from './authenticated-api.service';
 
 const MOCK_CONFIG = {
   isLoaded: true,
@@ -29,6 +31,8 @@ const MOCK_CONFIG = {
 
 describe('AppointmentService', () => {
   let service: AppointmentService;
+  let api: jasmine.SpyObj<AuthenticatedApiService>;
+  let role: AuthRole | null;
   const buildAppointment = (date: string) => ({
     id: 'appt-1',
     clinicId: 'clinic-001',
@@ -42,9 +46,13 @@ describe('AppointmentService', () => {
   });
 
   beforeEach(() => {
+    role = null;
+    api = jasmine.createSpyObj<AuthenticatedApiService>('AuthenticatedApiService', ['fetch']);
     TestBed.configureTestingModule({
       providers: [
         { provide: ClinicConfigService, useValue: MOCK_CONFIG },
+        { provide: AuthFacade, useValue: { authReady: Promise.resolve(), role: () => role } },
+        { provide: AuthenticatedApiService, useValue: api },
       ],
     });
     service = TestBed.inject(AppointmentService);
@@ -155,40 +163,59 @@ describe('AppointmentService', () => {
     });
   });
 
-  // ── bookingRef contract ───────────────────────────────────────────────────
-  describe('bookAppointment() — booking ref format', () => {
-    it('generates refs matching PREFIX-XXXXXXXX pattern', () =>
-      pending('API integration test suite not configured'));
-  });
+  describe('API boundary (mock transport; server isolation is tested in backend/E2E)', () => {
+    const future = () => new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
 
-  // ── API integration tests (pending) ───────────────────────────────────────
-  describe('API integration (pending — requires test server)', () => {
-    it('bookAppointment() saves with status:pending and correct clinicId', () => {
-      pending('API integration test suite not configured');
+    it('does not attach a clinic-admin identity to a public patient booking', async () => {
+      role = 'clinic-admin';
+      const publicFetch = spyOn(globalThis, 'fetch').and.resolveTo(new Response(JSON.stringify({ bookingRef: 'BK-SERVER01' })));
+      expect(await service.bookAppointment(buildAppointment(future()))).toBe('BK-SERVER01');
+      expect(publicFetch).toHaveBeenCalled();
+      expect(api.fetch).not.toHaveBeenCalled();
     });
 
-    it('bookAppointment() returns a unique ref on each call', () => {
-      pending('API integration test suite not configured');
+    it('uses authenticated transport for a patient booking', async () => {
+      role = 'patient';
+      const publicFetch = spyOn(globalThis, 'fetch');
+      api.fetch.and.resolveTo(new Response(JSON.stringify({ bookingRef: 'BK-SERVER02' })));
+      expect(await service.bookAppointment(buildAppointment(future()))).toBe('BK-SERVER02');
+      expect(publicFetch).not.toHaveBeenCalled();
+      expect(api.fetch).toHaveBeenCalled();
     });
 
-    it('getAllAppointments() is scoped to clinicId — no cross-clinic leakage', () => {
-      pending('API integration test suite not configured');
+    it('surfaces slot conflicts instead of returning a booking reference', async () => {
+      role = 'patient';
+      api.fetch.and.resolveTo(new Response(JSON.stringify({ detail: 'This slot is already reserved.' }), { status: 409 }));
+      await expectAsync(service.bookAppointment(buildAppointment(future())))
+        .toBeRejectedWithError('This slot is already reserved.');
     });
 
-    it('getAppointmentByRef() returns null when no match found', () => {
-      pending('API integration test suite not configured');
+    it('returns null for an appointment lookup with no match', async () => {
+      api.fetch.and.resolveTo(new Response(null, { status: 404 }));
+      expect(await service.getAppointmentByRef('BK-NONE', '9999999999')).toBeNull();
     });
 
-    it('getAppointmentByRef() queries clinicId + bookingRef + phone', () => {
-      pending('API integration test suite not configured');
+    it('does not disguise an unauthorized lookup as a missing booking', async () => {
+      api.fetch.and.resolveTo(new Response(JSON.stringify({ detail: 'Sign in required' }), { status: 401 }));
+      await expectAsync(service.getAppointmentByRef('BK-PRIVATE', '9999999999')).toBeRejectedWithError('Sign in required');
     });
 
-    it('setStatus() mutates only the status field', () => {
-      pending('API integration test suite not configured');
+    it('rejects rescheduling a completed visit before sending a request', async () => {
+      await expectAsync(service.updateAppointment({ ...buildAppointment(future()), status: 'completed' }, { time: '11:00 AM' }))
+        .toBeRejectedWithError(/can no longer be changed/);
+      expect(api.fetch).not.toHaveBeenCalled();
     });
 
-    it('cancelAppointment() calls deleteDoc for valid cancellation', () => {
-      pending('API integration test suite not configured');
+    it('loads clinic appointments through the server-resolved current tenant', async () => {
+      api.fetch.and.resolveTo(new Response('[]'));
+      expect(await service.getAllAppointments()).toEqual([]);
+      expect(api.fetch).toHaveBeenCalledOnceWith('/api/clinics/current/appointments');
+    });
+
+    it('cancels a future appointment without deleting its history', async () => {
+      api.fetch.and.resolveTo(new Response(null, { status: 204 }));
+      await service.cancelAppointment(buildAppointment(future()));
+      expect(api.fetch).toHaveBeenCalledWith('/api/public/appointments/appt-1/cancel', jasmine.objectContaining({ method: 'POST' }));
     });
   });
 });

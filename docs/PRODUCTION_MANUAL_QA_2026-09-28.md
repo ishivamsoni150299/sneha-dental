@@ -127,11 +127,9 @@ Additional route cases not manually completed: hidden treatment-locality deep li
 - Complete real booking/publication cannot be certified with no genuinely verified provider.
 - iPhone Safari/Android hardware media, actual email delivery, live payment lifecycle, backup restore and rollback require separate evidence; never infer them from page rendering.
 
-## Test data ledger
-
 ## Follow-up fixes — 2026-09-29
 
-The historical observations above describe the deployed version at the time of the manual run. The following fixes have been implemented; they must not be read as confirmation of production deployment.
+The historical observations above describe the deployed version at the time of the manual run. The following fixes were delivered in commit `d2070c6`.
 
 - Protected the renewal page with clinic authentication and role checks, allowed expired owners through without a redirect loop, and redirected active owners to their dashboard.
 - Fixed route locality selection, retained nested locality options with an empty directory, and stopped generating nonexistent locality breadcrumb URLs.
@@ -140,10 +138,16 @@ The historical observations above describe the deployed version at the time of t
 - Prevented mobile dentist navigation labels from wrapping, labelled revenue cost fields and lead inputs, and marked the optional lead doctor name accurately.
 - Removed duplicate renewal benefits and aligned revenue insights wording with the plan entitlements.
 
-Validation: 31 focused regressions and the full frontend suite passed (167 passed, eight existing API-integration placeholders skipped). Lint, production build, and compiled artifact smoke passed. The previous expanded lifecycle commit `50665e2` passed both GitHub CI jobs in run `36528259260`. Additional browser regressions now cover locality selection, renewal authentication, and mobile header layout; their CI result is tracked separately.
+Validation: 31 focused regressions and the full frontend suite passed (167 passed, eight existing API-integration placeholders skipped). Lint, production build, and compiled artifact smoke passed. Both GitHub CI jobs passed for `d2070c6` in [run 36554592445](https://github.com/ishivamsoni150299/sneha-dental/actions/runs/36554592445), including backend/PostgreSQL checks and the expanded lifecycle/browser regressions.
+
+Production verification: all six HTTP/API health checks and all 15 desktop/mobile smoke checks passed. One earlier smoke run reported a `compute-pressure` permissions-policy console error on clinic login; neither targeted login inspection nor the complete rerun reproduced it. It remains an intermittent observation, not a confirmed code fix. After production began serving `main-ULNBFSOX.js`, targeted browser checks confirmed Sector 75 selection after initialization, removal of the fictional testimonial section, and unauthenticated renewal navigation to clinic sign-in. No horizontal overflow was observed on the inspected 390px pages.
 
 Security gate: `npm audit --omit=dev` reports four high-severity affected production packages (`@angular/common`, `@angular/compiler`, `@angular/core`, `@angular/platform-server`). The proposed fixes require a major Angular upgrade beyond this repository's Angular 19 constraint. No forced dependency upgrade has been applied. This remains a launch blocker pending an approved migration and compatibility verification.
 
+The eight obsolete skipped frontend API placeholders were replaced with transport-boundary tests covering patient/clinic identity separation, server booking references, slot-conflict errors, missing versus unauthorized lookups, completed-visit restrictions, server-selected clinic scope, and cancellation without history deletion. All 24 appointment service tests passed, with no skips, and focused lint passed. These mock-transport tests complement backend isolation tests; they do not claim to prove server authorization themselves.
+
 Real payment processing, delivered email, two-device media, hosting cold starts, backup restoration and real-client acceptance remain unverified. Passing automated tests does not remove those gates.
+
+## Test data ledger
 
 Created clinic `eddb76fc-d4ad-414e-9559-0884d08519a8`, named `QA 2026-09-28 - Unpublished Test Clinic`. It is inactive, Free, marketplace-unlisted, and does not accept new patients. It uses an explicit fictional doctor/address, reserved fictional phone +12025550123, and one service labelled `QA Test Consultation`. The clinic-owner email is the user-supplied test account; no password is stored in this report. Do not publish or clinically verify this fixture.
