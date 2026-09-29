@@ -87,9 +87,10 @@ export const businessRoutes: Routes = [
   // ── Subscription expired page (accessible without active subscription) ───
   {
     path: 'clinic/expired',
+    canActivate: [clinicAdminGuard],
     loadComponent: () =>
       import('../admin/admin-expired/admin-expired.component').then(m => m.AdminExpiredComponent),
-    data: { title: 'Subscription Expired', noIndex: true },
+    data: { title: 'Subscription Expired', noIndex: true, subscriptionRenewal: true },
   },
 
   // ── Clinic-owner admin portal (appointments + settings) ──────────────────

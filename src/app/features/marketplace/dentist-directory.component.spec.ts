@@ -174,6 +174,18 @@ describe('DentistDirectoryComponent', () => {
     return { fixture, component: fixture.componentInstance };
   }
 
+  it('selects the route location after options render', async () => {
+    const { fixture } = await setupComponent({ initialLocation: 'Noida' });
+    expect(fixture.nativeElement.querySelector('#dentist-locality').value).toBe('Noida');
+  });
+
+  it('keeps a nested locality selectable without inventing a breadcrumb route', async () => {
+    marketplaceSpy.getVerifiedClinics.and.resolveTo({ dentists: [], totalCount: 0, limit: 50, offset: 0 });
+    const { fixture } = await setupComponent({ initialLocation: 'Sector 75' });
+    expect(fixture.nativeElement.querySelector('#dentist-locality').value).toBe('Sector 75');
+    expect(fixture.nativeElement.querySelector('a[href="/dentists/sector-75"]')).toBeNull();
+  });
+
   it('shows an approved independent dentist even when no clinics are published', async () => {
     marketplaceSpy.getVerifiedClinics.and.resolveTo({ dentists: [], totalCount: 0, limit: 50, offset: 0 });
     marketplaceSpy.getVerifiedProviders.and.resolveTo([{

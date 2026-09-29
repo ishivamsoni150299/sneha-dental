@@ -129,4 +129,21 @@ Additional route cases not manually completed: hidden treatment-locality deep li
 
 ## Test data ledger
 
+## Follow-up fixes — 2026-09-29
+
+The historical observations above describe the deployed version at the time of the manual run. The following fixes have been implemented; they must not be read as confirmation of production deployment.
+
+- Protected the renewal page with clinic authentication and role checks, allowed expired owners through without a redirect loop, and redirected active owners to their dashboard.
+- Fixed route locality selection, retained nested locality options with an empty directory, and stopped generating nonexistent locality breadcrumb URLs.
+- Removed fictional clinic testimonials from the business landing page.
+- Corrected privacy/terms descriptions to match email/password sign-in and email-code guest booking claims.
+- Prevented mobile dentist navigation labels from wrapping, labelled revenue cost fields and lead inputs, and marked the optional lead doctor name accurately.
+- Removed duplicate renewal benefits and aligned revenue insights wording with the plan entitlements.
+
+Validation: 31 focused regressions and the full frontend suite passed (167 passed, eight existing API-integration placeholders skipped). Lint, production build, and compiled artifact smoke passed. The previous expanded lifecycle commit `50665e2` passed both GitHub CI jobs in run `36528259260`. Additional browser regressions now cover locality selection, renewal authentication, and mobile header layout; their CI result is tracked separately.
+
+Security gate: `npm audit --omit=dev` reports four high-severity affected production packages (`@angular/common`, `@angular/compiler`, `@angular/core`, `@angular/platform-server`). The proposed fixes require a major Angular upgrade beyond this repository's Angular 19 constraint. No forced dependency upgrade has been applied. This remains a launch blocker pending an approved migration and compatibility verification.
+
+Real payment processing, delivered email, two-device media, hosting cold starts, backup restoration and real-client acceptance remain unverified. Passing automated tests does not remove those gates.
+
 Created clinic `eddb76fc-d4ad-414e-9559-0884d08519a8`, named `QA 2026-09-28 - Unpublished Test Clinic`. It is inactive, Free, marketplace-unlisted, and does not accept new patients. It uses an explicit fictional doctor/address, reserved fictional phone +12025550123, and one service labelled `QA Test Consultation`. The clinic-owner email is the user-supplied test account; no password is stored in this report. Do not publish or clinically verify this fixture.

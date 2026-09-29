@@ -105,6 +105,26 @@ const doctor = await post('/api/clinics/current/doctors', {
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
+  for (const [path, location] of [
+    ['/dentists/noida', 'Noida'],
+    ['/dentists/noida/sector-75', 'Sector 75'],
+  ]) {
+    await page.goto(appUrl + path);
+    await page.locator('#dentist-locality').waitFor();
+    assert.equal(await page.locator('#dentist-locality').inputValue(), location);
+    assert.equal(await page.locator('a[href="/dentists/sector-75"]').count(), 0);
+  }
+  await page.goto(appUrl + '/business/clinic/expired');
+  await page.waitForURL('**/business/login?**');
+  assert.equal(await page.getByRole('button', { name: 'Reactivate with Basic' }).count(), 0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(appUrl + '/professional');
+  await page.getByRole('heading', { name: /Your professional identity/i }).waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
+    'Dentist mobile header must fit the viewport');
+  const signIn = await page.getByRole('link', { name: 'Sign in', exact: true }).boundingBox();
+  assert.ok(signIn && signIn.height < 30, 'Mobile sign-in label must remain on one line');
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(appUrl + '/dentists');
   await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
   await page.locator('#dentist-search').fill('root canal');

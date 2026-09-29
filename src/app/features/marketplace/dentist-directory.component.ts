@@ -3,6 +3,7 @@ import { TreatmentGuideComponent, type TreatmentCostGuideItem } from './treatmen
 import { DentistListingCardComponent } from './dentist-listing-card.component';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Meta } from '@angular/platform-browser';
 import { MARKETPLACE_DENTAL_SERVICES } from '../../core/config/marketplace.config';
 import type { MarketplaceDentalServiceId } from '../../core/config/marketplace.config';
@@ -22,7 +23,7 @@ export interface ActiveFilterChip {
 @Component({
   selector: 'app-dentist-directory',
   standalone: true,
-  imports: [RouterLink, TreatmentGuideComponent, DentistListingCardComponent],
+  imports: [RouterLink, FormsModule, TreatmentGuideComponent, DentistListingCardComponent],
   templateUrl: './dentist-directory.component.html',
   styleUrl: './dentist-directory.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -101,7 +102,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly currentBreadcrumbCitySlug = computed(() => {
     const city = this.currentBreadcrumbCity();
-    return city ? city.toLowerCase().replace(/\s+/g, '-') : '';
+    return this.locationChoices.slice(1).includes(city) ? city.toLowerCase().replace(/\s+/g, '-') : '';
   });
 
   readonly currentBreadcrumbTreatment = computed(() => {
@@ -371,8 +372,8 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   readonly localities = computed(() => [...new Set(
-    this.clinics()
-      .map(clinic => clinic.marketplaceProfile?.locality.trim())
+    [String(this.route.snapshot.data['initialLocation'] ?? ''), ...this.clinics()
+      .map(clinic => clinic.marketplaceProfile?.locality.trim())]
       .filter((value): value is string => Boolean(value) && !this.locationChoices.some(city => city.toLowerCase() === value?.toLowerCase())),
   )].sort((first, second) => first.localeCompare(second)));
 

@@ -198,29 +198,7 @@ export class PlatformLandingComponent {
     },
   ];
 
-  readonly testimonials = [
-    {
-      text: 'Patients can see our clinic details and request a time without calling first. The booking alerts are instant.',
-      name: 'Dr. Ramesh Kumar',
-      clinic: 'Indram Dental, Jhansi',
-      location: 'Uttar Pradesh',
-      initials: 'RK',
-    },
-    {
-      text: 'Setup was straightforward, and patients could request appointments online without technical work from our team.',
-      name: 'Dr. Priya Sharma',
-      clinic: 'Smile Care Dental',
-      location: 'Delhi',
-      initials: 'PS',
-    },
-    {
-      text: 'Patients now see our information and availability before they call, which keeps routine enquiries clearer.',
-      name: 'Dr. Anil Mehta',
-      clinic: 'Mehta Dental Clinic',
-      location: 'Mumbai',
-      initials: 'AM',
-    },
-  ];
+
 
   readonly results = [
     { value: '5×',     label: 'Example inquiry growth',  desc: 'Illustrative outcome for a clinic improving its online discovery and booking flow' },

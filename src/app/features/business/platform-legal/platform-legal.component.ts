@@ -26,7 +26,7 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
           <div class="mt-10 space-y-8 text-sm leading-7 text-ui-ink-soft">
             <section>
               <h2 class="ui-title">Information we process</h2>
-              <p class="mt-2">We process account identity, clinic details, subscription information, product usage, support communications, and configuration needed to operate each clinic workspace. For patients, we process the verified mobile number and appointment coordination details submitted through clinic websites or the marketplace.</p>
+              <p class="mt-2">We process account identity, clinic details, subscription information, product usage, support communications, and configuration needed to operate each clinic workspace. For patients, we process the email address, contact phone number and appointment coordination details submitted through clinic websites or the marketplace.</p>
             </section>
             <section>
               <h2 class="ui-title">How information is used</h2>
@@ -37,12 +37,12 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
               <p class="mt-2">Clinic workspaces are separated by authenticated tenant permissions. Essential providers may process limited information for hosting, authentication, databases, payments, email delivery, monitoring, and enabled AI services.</p>
             </section>
             <section>
-              <h2 class="ui-title">Patient phone verification</h2>
-              <p class="mt-2">The patient appointment portal uses the booking reference and phone number provided during booking. The portal exposes scheduling details only; clinical notes, treatment records, and clinic billing fields are not part of the shared patient profile.</p>
+              <h2 class="ui-title">Patient account and booking ownership</h2>
+              <p class="mt-2">Patients sign in with an email address and password. Linking a guest booking requires a verification code sent to the booking email address. A booking reference or phone number alone does not grant access. The portal exposes scheduling details only; clinical notes, treatment records, and clinic billing fields are not part of the shared patient profile.</p>
             </section>
             <section>
               <h2 class="ui-title">Appointment reviews</h2>
-              <p class="mt-2">A patient may submit one review after a linked appointment is marked completed. Public reviews show the rating, review text, a limited patient alias or “Verified patient,” publication date, and any clinic response. Appointment identifiers, verified phone numbers, account identifiers, and moderation reports are kept in restricted records and are not published. Platform staff may moderate reviews and investigate reports; clinics may respond to published reviews but cannot edit patient feedback.</p>
+              <p class="mt-2">A patient may submit one review after a linked appointment is marked completed. Public reviews show the rating, review text, a limited patient alias or “Verified patient,” publication date, and any clinic response. Appointment identifiers, contact details, account identifiers, and moderation reports are kept in restricted records and are not published. Platform staff may moderate reviews and investigate reports; clinics may respond to published reviews but cannot edit patient feedback.</p>
             </section>
             <section>
               <h2 class="ui-title">Retention and requests</h2>
@@ -57,7 +57,7 @@ import { PlatformBrandComponent } from '../../../shared/components/platform-bran
             </section>
             <section>
               <h2 class="ui-title">Patient portal</h2>
-              <p class="mt-2">Patients must verify the mobile number used for a booking before linking or managing it. Patients are responsible for keeping access to that number secure and for providing accurate appointment information. Online changes may close near the appointment time, in which case the clinic must be contacted directly.</p>
+              <p class="mt-2">Patients must sign in to manage linked appointments and verify access to the booking email address when claiming a guest booking. Patients are responsible for keeping their email account and password secure and for providing accurate appointment information. Online changes may close near the appointment time, in which case the clinic must be contacted directly.</p>
             </section>
             <section>
               <h2 class="ui-title">Reviews and moderation</h2>

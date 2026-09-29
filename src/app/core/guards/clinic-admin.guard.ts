@@ -14,7 +14,7 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  *
  * Expired/cancelled clinics → /business/clinic/expired (upgrade prompt).
  */
-export const clinicAdminGuard: CanActivateFn = async (_route, state) => {
+export const clinicAdminGuard: CanActivateFn = async (route, state) => {
   const auth      = inject(AuthFacade);
   const clinicCfg = inject(ClinicConfigService);
   const router    = inject(Router);
@@ -54,16 +54,13 @@ export const clinicAdminGuard: CanActivateFn = async (_route, state) => {
   const isFree = (cfg.subscriptionPlan ?? 'trial') === 'trial';
 
   // Free is permanent. Paid plans still require a current subscription.
-  if (status === 'cancelled' || (!isFree && status === 'expired')) {
-    return router.createUrlTree(['/business/clinic/expired']);
+  const needsRenewal = status === 'cancelled' || (!isFree && (
+    status === 'expired' || (status === 'active' && !!cfg.subscriptionEndDate && isPastGrace(cfg.subscriptionEndDate, 3))
+  ));
+  if (route.data?.['subscriptionRenewal']) {
+    return needsRenewal ? true : router.createUrlTree(['/business/clinic/dashboard']);
   }
-
-  // Paid subscription past renewal date (+ 3-day grace)
-  if (!isFree && status === 'active' && cfg.subscriptionEndDate) {
-    if (isPastGrace(cfg.subscriptionEndDate, 3)) {
-      return router.createUrlTree(['/business/clinic/expired']);
-    }
-  }
+  if (needsRenewal) return router.createUrlTree(['/business/clinic/expired']);
 
   return true;
 };

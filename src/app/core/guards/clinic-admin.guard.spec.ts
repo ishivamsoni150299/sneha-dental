@@ -49,15 +49,38 @@ describe('clinicAdminGuard', () => {
     return clinic;
   }
 
-  async function run() {
+  async function run(subscriptionRenewal = false) {
     return TestBed.runInInjectionContext(() =>
-      clinicAdminGuard({} as never, { url: '/business/clinic/patients' } as never),
+      clinicAdminGuard({ data: { subscriptionRenewal } } as never, { url: '/business/clinic/patients' } as never),
     );
   }
 
   it('allows a clinic admin with an active workspace', async () => {
     setup();
     expect(await run()).toBeTrue();
+  });
+
+  it('requires authentication on the renewal page', async () => {
+    setup({ authenticated: false });
+    await run(true);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/login'], jasmine.anything());
+  });
+
+  it('blocks other roles from clinic renewal', async () => {
+    setup({ role: 'platform-admin' });
+    await run(true);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/login']);
+  });
+
+  it('allows an expired owner to renew without a redirect loop', async () => {
+    setup({ plan: 'starter', status: 'expired' });
+    expect(await run(true)).toBeTrue();
+  });
+
+  it('sends active owners away from the expired page', async () => {
+    setup();
+    await run(true);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/clinic/dashboard']);
   });
 
   it('replaces the localhost fallback config with the signed-in clinic', async () => {

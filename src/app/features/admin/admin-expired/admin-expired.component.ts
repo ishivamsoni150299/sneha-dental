@@ -45,7 +45,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
             {{ clinicName }} · {{ statusLabel }}
           </p>
           <p class="mx-auto mb-8 max-w-sm text-sm leading-relaxed text-gray-500">
-            Your clinic website is currently offline. Choose a plan below to reopen checkout instantly and bring the site back online.
+            Choose a monthly plan to renew your clinic subscription. Access is restored after payment confirmation.
           </p>
 
           <div class="mb-6 grid gap-3 text-left sm:grid-cols-2">
@@ -53,7 +53,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
               <p class="mb-0.5 font-bold text-ui-ink">Basic</p>
               <p class="mb-1 text-2xl font-extrabold text-blue-600">{{ starterPrice }}</p>
               <ul class="space-y-1.5 text-xs text-ui-ink-muted">
-                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Professional website live instantly</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Hosted clinic website</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Online appointment booking</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Custom domain setup</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>WhatsApp contact link</li>
@@ -81,8 +81,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
               <ul class="space-y-1.5 text-xs opacity-90">
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Everything in Basic</li>
                 <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Priority support</li>
-                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>SEO-optimised pages</li>
-                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Priority support</li>
+                <li class="flex items-center gap-1.5"><svg class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Revenue and payment insights</li>
               </ul>
               <button
                 type="button"
@@ -100,7 +99,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
           </div>
 
           @if (checkoutError()) {
-            <p class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-700">
+            <p role="alert" class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-700">
               {{ checkoutError() }}
             </p>
           }
