@@ -19,6 +19,7 @@
     "preview:api": "node scripts/preview-server.mjs",
     "test:live": "node scripts/test-live-integration.mjs",
     "test:e2e": "node scripts/browser-e2e.mjs",
+    "test:production:smoke": "node scripts/production-smoke.mjs",
     "test:video:media": "node scripts/livekit-media-smoke.mjs"
   },
   "private": true,

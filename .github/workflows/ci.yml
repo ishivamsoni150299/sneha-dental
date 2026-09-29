@@ -64,6 +64,8 @@ jobs:
       E2E_ISOLATED_DB: '1'
       BOOTSTRAP_ADMIN_EMAIL: browser-admin@example.test
       BOOTSTRAP_ADMIN_PASSWORD: BrowserAdminOnlyPass123!
+      # Enables claim-email outbox creation while preventing external delivery from CI.
+      EMAIL_CAPTURE_ONLY: 'true'
       # Isolated booking/access tests only; no external media service is contacted.
       VIDEO_PROVIDER: livekit
       LIVEKIT_URL: wss://video.example.test

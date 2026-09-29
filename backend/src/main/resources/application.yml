@@ -35,6 +35,7 @@ platform:
     manual-payment-url: ${PUBLIC_RAZORPAY_ME_URL:}
   email:
     resend-api-key: ${RESEND_API_KEY:}
+    capture-only: ${EMAIL_CAPTURE_ONLY:false}
     from: ${EMAIL_FROM:onboarding@resend.dev}
   bootstrap-admin:
     email: ${BOOTSTRAP_ADMIN_EMAIL:}

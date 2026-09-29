@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright';
 
 const appUrl = process.env.E2E_APP_URL ?? 'http://127.0.0.1:4200';
@@ -9,6 +10,38 @@ if (process.env.E2E_ISOLATED_DB !== '1' || !['localhost', '127.0.0.1'].includes(
 const adminEmail = process.env.BOOTSTRAP_ADMIN_EMAIL;
 const adminPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD;
 if (!adminEmail || !adminPassword) throw new Error('Disposable browser E2E requires a bootstrap administrator.');
+
+function sql(query) {
+  return execFileSync('psql', [
+    '-h', process.env.DATABASE_HOST ?? '127.0.0.1',
+    '-p', process.env.DATABASE_PORT ?? '5432',
+    '-U', process.env.DATABASE_USERNAME ?? 'postgres',
+    '-d', process.env.DATABASE_NAME ?? 'postgres',
+    '-At', '-v', 'ON_ERROR_STOP=1', '-c', query,
+  ], {
+    encoding: 'utf8',
+    env: { ...process.env, PGPASSWORD: process.env.DATABASE_PASSWORD ?? 'postgres' },
+  }).trim();
+}
+
+async function claimCodeFor(email) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const html = sql(`select payload ->> 'html' from dental.notification_outbox
+      where notification_type = 'appointment_claim' and destination = '${email}'
+      order by created_at desc limit 1`);
+    const code = html.match(/<strong>(\d{8})<\/strong>/)?.[1];
+    if (code) return code;
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  throw new Error('Claim code was not written to the isolated notification outbox.');
+}
+
+async function passwordLogin(page, url, email, password) {
+  await page.goto(url);
+  await page.getByRole('textbox', { name: 'Email address' }).fill(email);
+  await page.locator('input[type="password"]').fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+}
 
 async function waitFor(url) {
   for (let attempt = 0; attempt < 90; attempt++) {
@@ -48,13 +81,14 @@ await waitFor(appUrl + '/dentists');
 const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const password = `Browser-${suffix}-Pass!`;
 const patientEmail = `patient-${suffix}@example.test`;
+const clinicEmail = `clinic-${suffix}@example.test`;
 await post('/api/auth/patient/signup', { email: patientEmail, password });
-const owner = await post('/api/auth/clinic/signup', { email: `clinic-${suffix}@example.test`, password });
+const owner = await post('/api/auth/clinic/signup', { email: clinicEmail, password });
 const onboarded = await post('/api/clinics/onboarding', {
   name: 'E2E Clinic', phone: '9876543210', slug: `e2e-clinic-${suffix}`,
   plan: 'trial', city: 'Noida',
 }, owner.accessToken);
-const clinicOwner = await post('/api/auth/login', { email: `clinic-${suffix}@example.test`, password });
+const clinicOwner = await post('/api/auth/login', { email: clinicEmail, password });
 const schedule = Object.fromEntries(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day =>
   [day, { enabled: true, start: '09:00', end: '17:00' }]));
 const doctor = await post('/api/clinics/current/doctors', {
@@ -98,7 +132,8 @@ try {
   const listing = await get(`/api/v1/dentists/${listingSlug}`);
   assert.equal(listing.dentist.slug, listingSlug, 'Published verified fixture must be visible');
   const availability = await get(`/api/v1/dentists/${listingSlug}/availability?days=14`);
-  const day = availability.days.find(item => item.slots.length > 0);
+  const day = availability.days.find(item =>
+    item.slots.length > 0 && new Date(`${item.date}T00:00:00+05:30`).getTime() - Date.now() > 48 * 60 * 60_000);
   assert.ok(day, 'Verified clinic must expose a future appointment slot');
   const slot = day.slots.find(item => item.doctorId === doctor.id);
   assert.ok(slot, 'Only the verified dentist should have bookable slots');
@@ -130,7 +165,16 @@ try {
   }, dentist.accessToken, 201);
   await post('/api/providers/me/submit-verification', {}, dentist.accessToken, 202);
   const provider = await get('/api/providers/me', dentist.accessToken);
-  await post(`/api/admin/providers/${provider.id}/verify`, {}, admin.accessToken);
+  const adminContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const adminPage = await adminContext.newPage();
+  await passwordLogin(adminPage, appUrl + '/platform/login', adminEmail, adminPassword);
+  await adminPage.getByRole('heading', { name: 'Clinics', exact: true }).waitFor();
+  await adminPage.goto(appUrl + '/business/dentists/verification');
+  const verificationCard = adminPage.getByRole('article').filter({ hasText: 'E2E Video Dentist' });
+  await verificationCard.getByRole('button', { name: 'Approve and publish', exact: true }).click();
+  await adminPage.getByRole('status').filter({ hasText: 'approved and published' }).waitFor();
+  assert.equal((await get(`/api/v1/dentists/${provider.slug}`)).dentist.slug, provider.slug,
+    'Platform-admin browser approval must publish the submitted dentist');
 
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.getByRole('heading', { name: 'Sign in to your appointments' }).waitFor();
@@ -167,6 +211,88 @@ try {
   await page.reload();
   const videoCard = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'E2E Video Dentist', exact: true }) });
   await videoCard.getByText('Confirmed', { exact: true }).waitFor();
+
+  // Guest booking -> email challenge -> linked patient account -> reschedule -> cancel.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const guestSlot = day.slots.find(item => item.doctorId === doctor.id && item.time !== slot.time);
+  assert.ok(guestSlot, 'A second isolated slot is required for the guest-claim journey');
+  const guest = await post('/api/public/appointments', {
+    clinicId: onboarded.clinicId, bookingRefPrefix: 'E2E', name: 'E2E Guest Claim',
+    phone: '9876543211', email: patientEmail, service: 'Guest consultation',
+    date: day.date, time: guestSlot.time, doctorId: doctor.id, source: 'marketplace',
+    consultationMode: 'in_person',
+  });
+  await page.goto(appUrl + '/appointments');
+  await page.locator('#claim-booking-ref').fill(guest.bookingRef);
+  await page.getByRole('button', { name: 'Send linking code', exact: true }).click();
+  await page.getByText(/sent a linking code/i).waitFor();
+  await page.locator('#claim-code').fill(await claimCodeFor(patientEmail));
+  await page.getByRole('button', { name: 'Link appointment', exact: true }).click();
+  await page.getByText('Appointment linked to your account.', { exact: true }).waitFor();
+  const guestCard = page.getByRole('article').filter({ hasText: guest.bookingRef });
+  await guestCard.getByText('E2E Clinic', { exact: true }).waitFor();
+  await guestCard.getByRole('button', { name: 'Change time', exact: true }).click();
+  const timeSelect = guestCard.getByRole('combobox', { name: 'Time' });
+  await timeSelect.waitFor();
+  await timeSelect.selectOption({ index: 1 });
+  await guestCard.getByRole('button', { name: 'Save request', exact: true }).click();
+  await guestCard.getByText('Awaiting clinic', { exact: true }).waitFor();
+  await guestCard.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await guestCard.getByRole('button', { name: 'Yes, cancel', exact: true }).click();
+  await guestCard.getByText('Cancelled', { exact: true }).waitFor();
+
+  // Clinic owner confirms and completes the linked appointment through the dashboard.
+  const clinicContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const clinicPage = await clinicContext.newPage();
+  await passwordLogin(clinicPage, appUrl + '/business/login', clinicEmail, password);
+  await clinicPage.getByText('E2E Clinic', { exact: true }).first().waitFor();
+  const appointmentRow = clinicPage.locator('tr').filter({ hasText: booked.bookingReference });
+  await appointmentRow.getByRole('button', { name: 'Confirm', exact: true }).click();
+  await appointmentRow.getByText('Confirmed', { exact: true }).waitFor();
+  await appointmentRow.getByRole('button', { name: 'Done', exact: true }).click();
+  await appointmentRow.getByText('Completed', { exact: true }).waitFor();
+
+  // Completed appointment -> patient review -> platform moderation -> clinic response.
+  const reviewText = `E2E verified review ${suffix}`;
+  const clinicResponse = `Thank you for the isolated E2E feedback ${suffix}.`;
+  await page.reload();
+  const completedCard = page.getByRole('article').filter({ hasText: booked.bookingReference });
+  await completedCard.getByText('Completed', { exact: true }).waitFor();
+  await completedCard.getByRole('button', { name: 'Review visit', exact: true }).click();
+  await completedCard.getByPlaceholder('What should other patients know?').fill(reviewText);
+  await completedCard.getByRole('button', { name: 'Submit review', exact: true }).click();
+  await completedCard.getByText('Awaiting moderation', { exact: true }).waitFor();
+
+  await adminPage.goto(appUrl + '/business/reviews');
+  const moderationCard = adminPage.getByRole('article').filter({ hasText: reviewText });
+  await moderationCard.getByRole('button', { name: 'Publish', exact: true }).click();
+  await moderationCard.waitFor({ state: 'detached' });
+
+  await clinicPage.goto(appUrl + '/business/clinic/reviews');
+  const clinicReviewCard = clinicPage.getByRole('article').filter({ hasText: reviewText });
+  await clinicReviewCard.getByRole('button', { name: 'Write response', exact: true }).click();
+  await clinicReviewCard.getByRole('textbox', { name: 'Clinic response' }).fill(clinicResponse);
+  await clinicReviewCard.getByRole('button', { name: 'Publish response', exact: true }).click();
+  await clinicReviewCard.getByText(`Your response: ${clinicResponse}`, { exact: true }).waitFor();
+  await page.reload();
+  await page.getByRole('article').filter({ hasText: booked.bookingReference })
+    .getByText(`Clinic response: ${clinicResponse}`, { exact: true }).waitFor();
+
+  // Cancellation UI: confirmation can be backed out, and an unconfigured provider fails safely.
+  const subscriptionId = `sub_E2E${suffix.replaceAll('-', '')}`;
+  sql(`update dental.clinic_private_accounts set razorpay_subscription_id = '${subscriptionId}',
+    billing_config = '{}'::jsonb, updated_at = now() where clinic_id = '${onboarded.clinicId}'`);
+  await clinicPage.goto(appUrl + '/business/clinic/settings?tab=subscription');
+  await clinicPage.getByRole('heading', { name: 'Manage subscription', exact: true }).waitFor();
+  await clinicPage.getByRole('button', { name: 'Cancel subscription', exact: true }).click();
+  await clinicPage.getByText(/Stop renewal at the end of this billing cycle/i).waitFor();
+  await clinicPage.getByRole('button', { name: 'Keep plan', exact: true }).click();
+  await clinicPage.getByRole('button', { name: 'Cancel subscription', exact: true }).waitFor();
+  await clinicPage.getByRole('button', { name: 'Cancel subscription', exact: true }).click();
+  await clinicPage.getByRole('button', { name: 'Confirm cancellation', exact: true }).click();
+  await clinicPage.getByRole('alert').filter({ hasText: 'Self-service cancellation is unavailable' }).waitFor();
+
+  console.log('PASS Playwright: guest claim, patient reschedule/cancel, clinic confirmation/completion, review moderation/response, provider verification, and subscription cancellation UI.');
   console.log('PASS Playwright: independent video booking form, dentist inbox/confirmation, and patient-account visibility. Media transport is tested separately.');
   console.log('PASS Playwright: unverified exclusion, verified booking, and patient-account visibility against isolated Spring/PostgreSQL.');
 } finally {

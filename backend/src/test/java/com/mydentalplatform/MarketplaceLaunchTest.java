@@ -132,13 +132,19 @@ class MarketplaceLaunchTest {
                 @SuppressWarnings("unchecked") HttpResponse<String> delivered = org.mockito.Mockito.mock(HttpResponse.class);
                 org.mockito.Mockito.when(delivered.statusCode()).thenReturn(200);
                 org.mockito.Mockito.when(emailHttp.send(org.mockito.ArgumentMatchers.any(HttpRequest.class), org.mockito.ArgumentMatchers.<HttpResponse.BodyHandler<String>>any())).thenReturn(delivered);
-                var worker = new com.mydentalplatform.notification.NotificationService(jdbc, json, "test-key", "sender@example.test", base, emailHttp);
+                var worker = new com.mydentalplatform.notification.NotificationService(jdbc, json, "test-key", "sender@example.test", base, false, emailHttp);
                 worker.retryFailedNotifications();
                 worker.retryFailedNotifications();
                 assertEquals(1, jdbc.queryForObject("select count(*) from notification_outbox where appointment_id = ? and status = 'sent' and attempts = 1", Integer.class, appointmentId));
                 var emailRequest = org.mockito.ArgumentCaptor.forClass(HttpRequest.class);
                 org.mockito.Mockito.verify(emailHttp, org.mockito.Mockito.atLeastOnce()).send(emailRequest.capture(), org.mockito.ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
                 assertTrue(emailRequest.getValue().headers().firstValue("Idempotency-Key").isPresent());
+                HttpClient captureOnlyHttp = org.mockito.Mockito.mock(HttpClient.class);
+                var captureOnly = new com.mydentalplatform.notification.NotificationService(
+                    jdbc, json, "", "sender@example.test", base, true, captureOnlyHttp);
+                assertTrue(captureOnly.canSendEmail());
+                captureOnly.retryFailedNotifications();
+                org.mockito.Mockito.verifyNoInteractions(captureOnlyHttp);
                 String stranger = token(request("POST", "/api/auth/patient/signup", Map.of("email", "stranger@example.test", "password", password), null, 200));
                 assertEquals(0, request("GET", "/api/patient/account/session", null, stranger, 200).path("appointments").size());
 

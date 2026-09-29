@@ -32,8 +32,9 @@ public class NotificationService {
     private final String resendApiKey;
     private final String emailFrom;
     private final String publicBaseUrl;
+    private final boolean captureOnly;
 
-    public boolean canSendEmail() { return resendApiKey != null && !resendApiKey.isBlank(); }
+    public boolean canSendEmail() { return captureOnly || (resendApiKey != null && !resendApiKey.isBlank()); }
 
     @org.springframework.transaction.annotation.Transactional
     public void notifyAppointmentClaim(UUID clinicId, UUID appointmentId, String destination, String code, UUID challengeId) {
@@ -50,19 +51,21 @@ public class NotificationService {
         ObjectMapper objectMapper,
         @Value("${platform.email.resend-api-key:}") String resendApiKey,
         @Value("${platform.email.from:onboarding@resend.dev}") String emailFrom,
-        @Value("${platform.public-base-url:https://mydentalplatform.com}") String publicBaseUrl
+        @Value("${platform.public-base-url:https://mydentalplatform.com}") String publicBaseUrl,
+        @Value("${platform.email.capture-only:false}") boolean captureOnly
     ) {
-        this(jdbcTemplate, objectMapper, resendApiKey, emailFrom, publicBaseUrl,
+        this(jdbcTemplate, objectMapper, resendApiKey, emailFrom, publicBaseUrl, captureOnly,
             HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build());
     }
 
     public NotificationService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, String resendApiKey,
-        String emailFrom, String publicBaseUrl, HttpClient httpClient) {
+        String emailFrom, String publicBaseUrl, boolean captureOnly, HttpClient httpClient) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.resendApiKey = resendApiKey;
         this.emailFrom = emailFrom;
         this.publicBaseUrl = publicBaseUrl;
+        this.captureOnly = captureOnly;
         this.httpClient = httpClient;
     }
 
@@ -307,7 +310,7 @@ public class NotificationService {
 
     @Scheduled(fixedDelay = 30000, initialDelay = 30000)
     public void retryFailedNotifications() {
-        if (resendApiKey == null || resendApiKey.isBlank()) return;
+        if (captureOnly || resendApiKey == null || resendApiKey.isBlank()) return;
         jdbcTemplate.update("update notification_outbox set status = 'failed', updated_at = now() where status = 'processing' and attempts >= 3 and next_retry_at <= now()");
         // Claim one at a time: another instance cannot send the same row during this lease.
         for (int count = 0; count < 20; count++) {
