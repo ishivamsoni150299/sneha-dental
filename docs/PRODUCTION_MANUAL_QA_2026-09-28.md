@@ -88,7 +88,7 @@ Run `$env:PUBLIC_BASE_URL='https://mydentalplatform.com'; npm run release:check`
 | AUTO-01 | Production HTTP/API smoke | PASS | Six read-only checks passed: business shell, signup shell, Spring/PostgreSQL health, marketplace JSON, and expected 401 responses for unauthenticated user/admin APIs. |
 | AUTO-02 | Playwright production smoke | PASS | All 15 read-only desktop/mobile route checks passed after correcting three test heading selectors. No unexpected console/page errors or horizontal overflow were found on the tested routes. |
 | ADM-11 | Create unpublished QA clinic | PASS | Created inactive Free clinic `eddb76fc-d4ad-414e-9559-0884d08519a8`; directory shows Not listed and persisted the fictional contact, hours and QA service after reload. |
-| E2E-01 | Expanded isolated Playwright lifecycle | IMPLEMENTED, CI pending | Added guest secure claim, patient reschedule/cancel, clinic confirm/complete, completed-visit review, platform moderation, clinic response, platform dentist approval and subscription-cancellation UI. It is restricted to loopback disposable PostgreSQL and never targets production. |
+| E2E-01 | Expanded isolated Playwright lifecycle | PASS locally, CI rerun pending | Guest secure claim, patient reschedule/cancel, clinic confirm/complete, completed-visit review, platform moderation, clinic response, platform dentist approval and subscription-cancellation UI passed against loopback disposable PostgreSQL. It never targets production. |
 
 ## Findings and blockers
 

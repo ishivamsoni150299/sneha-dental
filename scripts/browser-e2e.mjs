@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import pg from 'pg';
 import { chromium } from 'playwright';
+
+const { Client } = pg;
 
 const appUrl = process.env.E2E_APP_URL ?? 'http://127.0.0.1:4200';
 const apiUrl = process.env.E2E_API_URL ?? 'http://127.0.0.1:8080';
@@ -11,22 +13,26 @@ const adminEmail = process.env.BOOTSTRAP_ADMIN_EMAIL;
 const adminPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD;
 if (!adminEmail || !adminPassword) throw new Error('Disposable browser E2E requires a bootstrap administrator.');
 
-function sql(query) {
-  return execFileSync('psql', [
-    '-h', process.env.DATABASE_HOST ?? '127.0.0.1',
-    '-p', process.env.DATABASE_PORT ?? '5432',
-    '-U', process.env.DATABASE_USERNAME ?? 'postgres',
-    '-d', process.env.DATABASE_NAME ?? 'postgres',
-    '-At', '-v', 'ON_ERROR_STOP=1', '-c', query,
-  ], {
-    encoding: 'utf8',
-    env: { ...process.env, PGPASSWORD: process.env.DATABASE_PASSWORD ?? 'postgres' },
-  }).trim();
+async function sql(query) {
+  const client = new Client({
+    host: process.env.DATABASE_HOST ?? '127.0.0.1',
+    port: Number(process.env.DATABASE_PORT ?? '5432'),
+    user: process.env.DATABASE_USERNAME ?? 'postgres',
+    database: process.env.DATABASE_NAME ?? 'postgres',
+    password: process.env.DATABASE_PASSWORD || undefined,
+  });
+  await client.connect();
+  try {
+    const result = await client.query(query);
+    return result.rows.map(row => Object.values(row).join('|')).join('\n').trim();
+  } finally {
+    await client.end();
+  }
 }
 
 async function claimCodeFor(email) {
   for (let attempt = 0; attempt < 20; attempt++) {
-    const html = sql(`select payload ->> 'html' from dental.notification_outbox
+    const html = await sql(`select payload ->> 'html' from dental.notification_outbox
       where notification_type = 'appointment_claim' and destination = '${email}'
       order by created_at desc limit 1`);
     const code = html.match(/<strong>(\d{8})<\/strong>/)?.[1];
@@ -242,11 +248,16 @@ try {
   await guestCard.getByText('Cancelled', { exact: true }).waitFor();
 
   // Clinic owner confirms and completes the linked appointment through the dashboard.
+  const subscriptionId = `sub_E2E${suffix.replaceAll('-', '')}`;
+  await sql(`update dental.clinics set subscription_plan = 'starter', subscription_status = 'active',
+    updated_at = now() where id = '${onboarded.clinicId}'`);
+  await sql(`update dental.clinic_private_accounts set razorpay_subscription_id = '${subscriptionId}',
+    billing_config = '{}'::jsonb, updated_at = now() where clinic_id = '${onboarded.clinicId}'`);
   const clinicContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const clinicPage = await clinicContext.newPage();
   await passwordLogin(clinicPage, appUrl + '/business/login', clinicEmail, password);
   await clinicPage.getByText('E2E Clinic', { exact: true }).first().waitFor();
-  const appointmentRow = clinicPage.locator('tr').filter({ hasText: booked.bookingReference });
+  const appointmentRow = clinicPage.locator('tr').filter({ hasText: 'E2E Patient' });
   await appointmentRow.getByRole('button', { name: 'Confirm', exact: true }).click();
   await appointmentRow.getByText('Confirmed', { exact: true }).waitFor();
   await appointmentRow.getByRole('button', { name: 'Done', exact: true }).click();
@@ -279,9 +290,6 @@ try {
     .getByText(`Clinic response: ${clinicResponse}`, { exact: true }).waitFor();
 
   // Cancellation UI: confirmation can be backed out, and an unconfigured provider fails safely.
-  const subscriptionId = `sub_E2E${suffix.replaceAll('-', '')}`;
-  sql(`update dental.clinic_private_accounts set razorpay_subscription_id = '${subscriptionId}',
-    billing_config = '{}'::jsonb, updated_at = now() where clinic_id = '${onboarded.clinicId}'`);
   await clinicPage.goto(appUrl + '/business/clinic/settings?tab=subscription');
   await clinicPage.getByRole('heading', { name: 'Manage subscription', exact: true }).waitFor();
   await clinicPage.getByRole('button', { name: 'Cancel subscription', exact: true }).click();

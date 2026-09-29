@@ -11,6 +11,7 @@ describe('clinicAdminGuard', () => {
     authenticated?: boolean;
     role?: AuthRole | null;
     loaded?: boolean;
+    clinicId?: string;
     plan?: 'trial' | 'starter' | 'pro';
     status?: 'trial' | 'active' | 'expired' | 'cancelled';
     trialEndDate?: string | null;
@@ -24,11 +25,13 @@ describe('clinicAdminGuard', () => {
       isAuthenticated: options.authenticated !== false,
       currentUser: () => user,
       role: () => options.role ?? 'clinic-admin',
+      getFreshIdToken: jasmine.createSpy('getFreshIdToken').and.resolveTo('token'),
     };
     const clinic = {
       isLoaded: options.loaded ?? true,
       loadByUid: jasmine.createSpy('loadByUid').and.resolveTo(true),
       config: {
+        clinicId: options.clinicId ?? 'clinic-1',
         subscriptionPlan: options.plan ?? 'trial',
         subscriptionStatus: options.status ?? 'trial',
         trialEndDate: options.trialEndDate ?? null,
@@ -43,6 +46,7 @@ describe('clinicAdminGuard', () => {
         { provide: Router, useValue: router },
       ],
     });
+    return clinic;
   }
 
   async function run() {
@@ -54,6 +58,12 @@ describe('clinicAdminGuard', () => {
   it('allows a clinic admin with an active workspace', async () => {
     setup();
     expect(await run()).toBeTrue();
+  });
+
+  it('replaces the localhost fallback config with the signed-in clinic', async () => {
+    const clinic = setup({ clinicId: 'default' });
+    expect(await run()).toBeTrue();
+    expect(clinic.loadByUid).toHaveBeenCalledWith('owner-1', jasmine.anything());
   });
 
   it('preserves the requested page when authentication is required', async () => {
