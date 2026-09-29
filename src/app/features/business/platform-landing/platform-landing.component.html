@@ -1,12 +1,5 @@
 <div class="platform-landing platform-shell min-h-screen bg-white">
 
-  <!-- ── Announcement bar ─────────────────────────────────────────────────── -->
-  <div class="platform-announcement bg-gray-900 text-white text-center py-1.5 sm:py-2 px-4 text-[11px] sm:text-xs font-medium leading-snug">
-    Join the patient booking network — no credit card needed
-    <span class="hidden sm:inline"> · Publish your clinic profile today</span>
-    <a routerLink="/business/signup" class="underline font-bold ml-2 hover:text-gray-300">Start Free</a>
-  </div>
-
   <!-- ── Top Nav ──────────────────────────────────────────────────────────── -->
   <header class="platform-landing-header border-b border-ui-line sticky top-0 bg-white/95 backdrop-blur z-40">
     <div class="platform-header-inner max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -16,11 +9,7 @@
 
       <!-- Nav links — use (click) + scrollTo to avoid Angular router interference -->
       <nav class="flex items-center gap-2">
-        <a routerLink="/professional" class="hidden lg:inline text-xs font-semibold text-blue-700 hover:text-blue-800">Are you a dentist?</a>
-        <button (click)="scrollTo('problem')"  class="hidden md:inline text-xs text-gray-500 hover:text-ui-ink transition-colors cursor-pointer bg-transparent border-0">Why now?</button>
         <button (click)="scrollTo('features')" class="hidden md:inline text-xs text-gray-500 hover:text-ui-ink transition-colors cursor-pointer bg-transparent border-0">Features</button>
-        <button (click)="scrollTo('portfolio')" class="hidden md:inline text-xs text-gray-500 hover:text-ui-ink transition-colors cursor-pointer bg-transparent border-0">Our Work</button>
-        <button (click)="scrollTo('roi')" class="hidden md:inline text-xs text-gray-500 hover:text-ui-ink transition-colors cursor-pointer bg-transparent border-0">ROI</button>
         <button (click)="scrollTo('pricing')"  class="hidden md:inline text-xs text-gray-500 hover:text-ui-ink transition-colors cursor-pointer bg-transparent border-0">Pricing</button>
         <button (click)="scrollTo('faq')"      class="hidden md:inline text-xs text-gray-500 hover:text-ui-ink transition-colors cursor-pointer bg-transparent border-0">FAQ</button>
         <a routerLink="/business/signup"
@@ -29,9 +18,9 @@
           Start Free
         </a>
         <a routerLink="/business/login"
-           class="hidden lg:inline-flex text-xs font-medium text-gray-500 hover:text-ui-ink-soft border border-ui-line
+           class="inline-flex text-xs font-medium text-gray-500 hover:text-ui-ink-soft border border-ui-line
                   hover:border-ui-line-strong px-3 py-2 rounded-lg transition-colors">
-          Login →
+          Sign in
         </a>
         <button
           type="button"
@@ -57,12 +46,11 @@
       <div id="platform-mobile-menu" class="platform-mobile-menu md:hidden">
         <div class="grid grid-cols-2 gap-2">
           <button type="button" (click)="mobileMenuOpen.set(false); scrollTo('features')">Features</button>
-          <button type="button" (click)="mobileMenuOpen.set(false); scrollTo('portfolio')">Our work</button>
           <button type="button" (click)="mobileMenuOpen.set(false); scrollTo('pricing')">Pricing</button>
           <button type="button" (click)="mobileMenuOpen.set(false); scrollTo('faq')">FAQ</button>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-2 border-t border-ui-line pt-3">
-          <a routerLink="/business/login" (click)="mobileMenuOpen.set(false)" class="ui-btn ui-btn-secondary">Client login</a>
+          <a routerLink="/professional" (click)="mobileMenuOpen.set(false)" class="ui-btn ui-btn-secondary">For dentists</a>
           <a routerLink="/business/signup"
              [queryParams]="signupQuery('trial', 'mobile-menu', 'sales-sprint', 'free clinic launch')"
              (click)="mobileMenuOpen.set(false)"
@@ -91,9 +79,7 @@
             <span class="block text-blue-600">booked appointments.</span>
           </h1>
           <p class="mt-5 text-lg text-gray-500 leading-relaxed">
-            List your clinic, publish verified dentist profiles and availability, and let patients
-            find you by treatment and location. Manage every appointment request from one
-            <strong class="text-ui-ink-soft">focused clinic workspace</strong>.
+            Help patients find your clinic. Manage appointment requests, dentist schedules, and patient visits in one place.
           </p>
 
           <div class="platform-hero-actions mt-8 flex flex-col sm:flex-row gap-3">
@@ -120,12 +106,10 @@
               </svg>
               {{ devEmail }}
             </a>
-            <span class="hidden sm:inline text-gray-300">|</span>
-            <span>Reply within 2 business hours</span>
           </div>
 
           <div class="platform-hero-trust mt-8 flex flex-wrap gap-5 text-xs text-gray-400">
-            @for (t of ['Free forever', 'No credit card needed', 'Live in < 24 hrs', 'Upgrade anytime']; track t) {
+            @for (t of ['Free plan available', 'No credit card needed', 'Verification before publication']; track t) {
               <span class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>

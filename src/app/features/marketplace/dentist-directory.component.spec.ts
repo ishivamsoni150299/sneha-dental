@@ -335,9 +335,30 @@ describe('DentistDirectoryComponent', () => {
     const { fixture, component } = await setupComponent();
 
     expect(component.discoveryType()).toBe('dentists');
-    component.discoveryType.set('clinics');
+    component.toggleMobileFilter();
+    fixture.detectChanges();
+    const type = fixture.nativeElement.querySelector('#filter-provider-type') as HTMLSelectElement;
+    type.value = 'clinics';
+    type.dispatchEvent(new Event('change'));
     fixture.detectChanges();
     expect(component.discoveryType()).toBe('clinics');
+    expect(component.activeFilterChips()).toContain({ id: 'provider-type', label: 'Dental clinics' });
+    expect(fixture.nativeElement.querySelector('button[aria-label="Remove Dental clinics"]')).not.toBeNull();
+    component.clearFilters();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(type.value).toBe('dentists');
+    component.closeFilters();
+  });
+
+  it('preserves search choices when switching to video consultation', async () => {
+    const { component } = await setupComponent();
+    component.locality.set('Noida');
+    component.serviceId.set('root-canal');
+    component.chooseVideo();
+    expect(component.videoOnly()).toBeTrue();
+    expect(component.locality()).toBe('Noida');
+    expect(component.serviceId()).toBe('root-canal');
   });
 
   it('computes SEO page heading, kicker and lead paragraph dynamically based on search intent', async () => {

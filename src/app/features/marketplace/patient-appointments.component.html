@@ -1,10 +1,11 @@
+@if (step() === 'appointments' || (patientAuth.role() && patientAuth.role() !== 'patient')) {
 <section class="border-b border-ui-line bg-white">
   <div class="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-12 lg:px-8">
     <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Patient appointments</p>
     <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="ui-heading ui-heading-interface max-w-2xl">Your visits, made simpler.</h1>
-        <p class="mt-4 max-w-xl text-sm leading-6 text-ui-ink-muted sm:text-base">Sign in to see your appointments, manage visits and join video consultations.</p>
+        <h1 class="ui-heading ui-heading-interface max-w-2xl">My appointments</h1>
+        <p class="mt-2 max-w-xl text-sm leading-6 text-ui-ink-muted">Manage your visits and join confirmed video consultations here.</p>
       </div>
       @if (step() === 'appointments') {
         <button type="button" (click)="logout()" class="ui-btn ui-btn-ghost self-start">
@@ -14,8 +15,9 @@
     </div>
   </div>
 </section>
+}
 
-<section class="min-h-[36rem] bg-ui-muted px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+<section class="min-h-[36rem] bg-ui-muted px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
   <div class="mx-auto max-w-6xl">
     @if (patientAuth.role() && patientAuth.role() !== 'patient') {
       <div class="mx-auto max-w-2xl border-y border-amber-200 bg-white px-5 py-10 text-center sm:px-10">
@@ -26,8 +28,8 @@
       </div>
     } @else if (step() !== 'appointments') {
       <section class="ui-card ui-auth-card">
-        <div class="space-y-3"><h2 class="ui-heading ui-heading-interface">{{ signup() ? 'Create your patient account' : 'Sign in to your appointments' }}</h2>
-        <p class="ui-body">Use your email and password. Sign in before booking to keep your visits in this account.</p></div>
+        <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">{{ signup() ? 'Create your patient account' : 'Sign in to your appointments' }}</h1>
+        <p class="ui-body">{{ signup() ? 'Keep your bookings and manage your visits in one place.' : 'Use your patient email and password to manage your visits.' }}</p></div>
         <app-password-login portal="patient" [signup]="signup()" (authenticated)="authenticated($event)" />
         <div class="ui-auth-footer"><button type="button" (click)="signup.set(!signup())" class="ui-btn ui-btn-ghost">{{ signup() ? 'Already registered? Sign in' : 'New here? Create an account' }}</button></div>
       </section>

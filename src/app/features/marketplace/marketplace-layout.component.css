@@ -94,7 +94,14 @@
   outline-offset: 4px;
 }
 
-.marketplace-shell .professional-menu { display: none; }
+.marketplace-shell .professional-menu { display: block; position: relative; order: 3; }
+.marketplace-header .patient-navigation { margin-left: auto; }
+.professional-menu summary { display: flex; align-items: center; gap: .25rem; min-height: 44px; cursor: pointer; font-size: .8125rem; color: var(--ui-ink-muted); list-style: none; }
+.professional-menu summary::-webkit-details-marker { display: none; }
+.professional-menu summary:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
+.professional-menu>div { position: absolute; z-index: 50; right: 0; top: 48px; width: 210px; padding: 8px; border: 1px solid var(--ui-line); border-radius: 14px; background: var(--ui-surface); box-shadow: var(--ui-shadow-md); }
+.professional-menu a { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 12px; border-radius: 8px; font-size: .875rem; }
+.professional-menu a:hover { background: var(--ui-primary-soft); }
 .marketplace-shell main { min-height: 65vh; }
 .patient-tab-bar { display: none; }
 /* Checkout owns the mobile action dock; discovery navigation must not cover it. */
@@ -170,20 +177,14 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-header .platform-brand-lg img { width: 2rem; height: 2rem; }
   .marketplace-header .platform-brand-lg .platform-brand-wordmark { font-size: .875rem; }
   .marketplace-header .patient-navigation {
+    order: 1;
     width: 100%;
     height: 3rem;
     gap: 1rem;
     font-size: .8125rem;
   }
   .marketplace-header .patient-navigation>a { justify-content: center; flex: 1; }
-  .marketplace-header .patient-navigation .clinic-nav { display: none; }
-  .marketplace-shell .professional-menu { display: block; position: relative; margin-left: auto; }
-  .professional-menu summary { display: flex; align-items: center; gap: .25rem; min-height: 44px; cursor: pointer; font-size: .75rem; color: var(--ui-ink-muted); list-style: none; }
-  .professional-menu summary::-webkit-details-marker { display: none; }
-  .professional-menu summary:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
-  .professional-menu>div { position: absolute; z-index: 50; right: 0; top: 48px; width: 210px; padding: 8px; border: 1px solid var(--ui-line); border-radius: 14px; background: var(--ui-surface); box-shadow: var(--ui-shadow-md); }
-  .professional-menu a { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 12px; border-radius: 8px; font-size: .875rem; }
-  .professional-menu a:hover { background: var(--ui-primary-soft); }
+  .marketplace-shell .professional-menu { order: 0; margin-left: auto; }
 }
 
 @media (max-width: 47.9375rem) {
@@ -198,7 +199,7 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-header .patient-navigation { display: none; }
   .patient-tab-bar {
     @apply fixed inset-x-0 bottom-0 grid gap-2 border-t border-gray-200 bg-white px-4 pt-2;
-    grid-template-columns: 1.4fr .8fr;
+    grid-template-columns: 1fr 1fr;
     z-index: 40;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     box-shadow: var(--ui-shadow-md);
@@ -207,8 +208,6 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
     @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-semibold text-gray-500;
     -webkit-tap-highlight-color: transparent;
   }
-  .patient-tab-bar a:first-child { @apply bg-blue-600 text-white; }
-  .patient-tab-bar a:first-child.active { @apply bg-blue-700 text-white; }
   .patient-tab-bar svg { width: 22px; height: 22px; }
   .patient-tab-bar a.active { @apply bg-blue-100 text-blue-700; }
   .patient-tab-bar a:active { @apply bg-gray-100; }

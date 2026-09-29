@@ -16,20 +16,15 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
 .search-field:focus-within{background:var(--ui-surface-muted);border-radius:10px}.location-field{border-left:1px solid var(--ui-line)}
 .location-button,.icon-button{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:10px;color:var(--ui-primary)}
 .location-button:hover,.icon-button:hover{background:var(--ui-primary-soft)}.location-button svg{width:22px;height:22px}
-.search-submit{min-height:62px;font-size:15px}.concern-label{margin-top:24px;font-size:12px;color:var(--ui-ink-muted)}
+.search-submit{min-height:62px;font-size:15px}
 .problems{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
 .problems button{display:flex;gap:10px;align-items:center;justify-content:center;min-height:54px;padding:10px;border:1px solid var(--ui-line);border-radius:12px;background:var(--ui-surface);font-size:13px;transition:border-color .15s,background .15s,color .15s,box-shadow .15s}
 .problems i{color:var(--ui-primary);font-size:23px}.problems button:hover{border-color:var(--ui-primary-line);background:var(--ui-primary-soft)}.problems button.selected{border-color:var(--ui-primary);color:var(--ui-primary-hover);background:var(--ui-primary-soft);box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-primary) 14%,transparent)}.problems button:focus-visible{outline:3px solid var(--ui-focus);outline-offset:3px}
-.trust-strip{display:flex;justify-content:center;gap:36px;margin-top:22px;color:var(--ui-ink-muted);font-size:12px}
-.trust-strip span{display:inline-flex;gap:6px;align-items:center;padding:6px 9px;border:1px solid var(--ui-line);border-radius:999px;background:var(--ui-surface)}.trust-strip i{font-size:16px;color:var(--ui-primary)}
 .results-section{padding-bottom:64px;scroll-margin-top:92px}
 .results-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:40px 0 24px}.results-heading .hero-kicker{margin-bottom:8px}
 .results-heading h2,.empty-state h2,.patient-faq h2,.comparison h2{font-family:var(--ui-font-display);font-size:32px;line-height:1.2;letter-spacing:-.02em}
 .edit-search{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;font-size:13px;font-weight:650;color:var(--ui-primary)}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--ui-line)}
-.discovery-tabs{display:flex;padding:4px;border-radius:12px;background:var(--ui-surface-muted)}
-.discovery-tabs button{min-height:44px;padding:10px 22px;border-radius:9px;font-size:14px;font-weight:650;color:var(--ui-ink-muted)}
-.discovery-tabs .active{background:var(--ui-surface);color:var(--ui-primary);box-shadow:var(--ui-shadow-xs)}
 .quick-filters{display:flex;gap:8px}
 .quick-filters button,.quick-filters select{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:9px 12px;border:1px solid var(--ui-line);border-radius:10px;background:var(--ui-surface);font-size:13px;color:var(--ui-ink-soft)}
 .filter-count{padding:1px 6px;border-radius:5px;background:var(--ui-primary-soft);color:var(--ui-primary);font-size:11px}
@@ -69,7 +64,7 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
 @media(max-width:1023px){
   .results-section{scroll-margin-top:118px}
   .hero-intro{grid-template-columns:1fr}.hero-description{max-width:660px}.location-identity .directory-wrap{grid-template-columns:1fr}.location-highlight-grid{grid-template-columns:repeat(3,1fr)}
-  .toolbar{align-items:stretch;flex-direction:column}.discovery-tabs{align-self:start}
+  .toolbar{align-items:stretch;flex-direction:column}
 }
 @media(min-width:768px) and (max-width:1023px){
   .search-bar{grid-template-columns:1fr 1fr}.search-submit{grid-column:1/-1;min-height:48px}
@@ -78,14 +73,13 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
   .directory-wrap{padding:0 18px}.discovery-hero{padding:30px 0 22px}h1{font-size:clamp(34px,8.6vw,46px)}
   .hero-kicker{font-size:10px;letter-spacing:.09em}.hero-description{margin-top:14px;font-size:15px;line-height:1.6}
   .search-bar{grid-template-columns:1fr;margin-top:22px;padding:5px}.search-field{padding:10px 12px}
-  .location-field{border-left:0;border-top:1px solid var(--ui-line)}.search-submit{min-height:48px}.concern-label{margin-top:20px}
+  .location-field{border-left:0;border-top:1px solid var(--ui-line)}.search-submit{min-height:48px}
   .problems{display:flex;overflow-x:auto;padding:2px 2px 10px;gap:8px;scroll-snap-type:x proximity;scrollbar-width:none}
   .problems button{flex:0 0 auto;min-height:44px;padding:8px 12px;scroll-snap-align:start}.problems i{font-size:20px}
-  .trust-strip{flex-wrap:wrap;gap:10px 18px;justify-content:start;margin-top:10px;font-size:11px}.trust-strip span:last-child{display:none}
   .location-highlight-grid{grid-template-columns:1fr}.location-identity .directory-wrap{gap:16px;padding-block:20px}
   .results-section{padding-bottom:40px;scroll-margin-top:118px}.results-heading{padding:28px 0 20px;gap:8px}.results-heading h2{font-size:26px}
   .edit-search{padding:6px;font-size:12px}.results-heading .edit-search{flex-direction:column;gap:3px;min-width:72px}
-  .discovery-tabs{align-self:stretch}.discovery-tabs button{flex:1}.quick-filters{flex-wrap:wrap}
+  .quick-filters{flex-wrap:wrap}
   .quick-filters button,.quick-filters select{flex:1 0 auto;justify-content:center;font-size:12px;padding:9px}
   .result-summary{align-items:start;gap:4px;flex-direction:column;padding:16px 0}.result-summary select{padding:0;min-height:36px}
   .filter-dialog{width:100%;max-width:100%;max-height:90dvh;margin:auto 0 0;border-radius:22px 22px 0 0}.filter-header{padding:20px}.filter-header h2{font-size:22px}

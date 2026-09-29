@@ -384,6 +384,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly activeFilterCount = computed(() => {
     let count = 0;
+    if (this.discoveryType() === 'clinics') count++;
     if (this.videoOnly()) count++;
     if (this.searchTerm().trim()) count++;
     if (this.locality()) count++;
@@ -400,6 +401,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   readonly activeFilterChips = computed<ActiveFilterChip[]>(() => {
     const chips: ActiveFilterChip[] = [];
+    if (this.discoveryType() === 'clinics') chips.push({ id: 'provider-type', label: 'Dental clinics' });
     if (this.videoOnly()) chips.push({ id: 'video', label: 'Video consultation' });
     if (this.searchTerm().trim()) {
       chips.push({ id: 'search', label: `Search: ${this.searchTerm().trim()}` });
@@ -468,10 +470,7 @@ export class DentistDirectoryComponent implements OnInit {
       .sort((first, second) => this.compareListings(first, second));
   });
 
-  readonly hasFilters = computed(() => Boolean(
-    this.videoOnly() || this.searchTerm().trim() || this.locality() || this.serviceId() || this.availableTodayOnly() ||
-    this.maxFee() != null || this.minExperience() || this.gender() || this.minRating() || this.language() || this.userCoordinates(),
-  ));
+  readonly hasFilters = computed(() => this.activeFilterCount() > 0);
 
   readonly comparedClinics = computed(() => {
     const selected = new Set(this.compareIds());
@@ -554,6 +553,7 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   clearFilters(): void {
+    this.discoveryType.set('dentists');
     this.videoOnly.set(false);
     this.searchTerm.set('');
     this.locality.set('');
@@ -571,6 +571,9 @@ export class DentistDirectoryComponent implements OnInit {
 
   removeFilter(chipId: string): void {
     switch (chipId) {
+      case 'provider-type':
+        this.discoveryType.set('dentists');
+        break;
       case 'video':
         this.videoOnly.set(false);
         break;
@@ -615,7 +618,6 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   chooseVideo(): void {
-    this.clearFilters();
     this.videoOnly.set(true);
     this.findDentists();
   }

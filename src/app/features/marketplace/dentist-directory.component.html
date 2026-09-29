@@ -40,10 +40,10 @@
           <span class="hero-kicker">Your dental care, closer to home</span>
         }
         <h1>
-          @if (isDiscoveryHome) {Find your dentist.<br><span class="text-blue-600">Feel good about it.</span>}
+          @if (isDiscoveryHome) {Find your dentist.}
           @else { {{ pageHeading() }} }
         </h1>
-        <p class="hero-description">{{ isDiscoveryHome ? 'From a routine check-up to a new smile. Compare verified dentists across Delhi NCR and request a time that works for you.' : pageLead() }}</p>
+        <p class="hero-description">{{ isDiscoveryHome ? 'Choose your location, compare verified dentists, and request a time.' : pageLead() }}</p>
       </div>
     </div>
     <div class="consultation-switch mt-6 flex flex-wrap gap-2" role="group" aria-label="Consultation format">
@@ -72,7 +72,8 @@
     </form>
     @if (locationError()) { <p role="status" class="text-sm text-gray-500 mt-3">{{ locationError() }}</p> }
     @if (userCoordinates()) { <p role="status" class="text-sm text-blue-700 mt-3">Showing dentists within 25 km of you.</p> }
-    <p class="concern-label">Or start with the care you need</p>
+    <details class="mt-4">
+    <summary class="ui-link cursor-pointer py-2 text-sm">Browse by treatment</summary>
     <div class="problems" aria-label="Choose your dental concern">
       @for (problem of cleanProblems; track problem.label) {
         <button type="button" [class.selected]="serviceId() === problem.serviceId" [attr.aria-pressed]="serviceId() === problem.serviceId" (click)="chooseService(problem.serviceId)">
@@ -80,11 +81,8 @@
         </button>
       }
     </div>
-    <div class="trust-strip" aria-label="Why patients can book with confidence">
-      <span title="Dentist registration is checked before a profile appears"><i class="ph ph-seal-check" aria-hidden="true"></i><b>Checked</b></span>
-      <span title="mydentalplatform does not add a patient booking fee"><i class="ph ph-currency-inr" aria-hidden="true"></i><b>No fee</b></span>
-      <span title="Appointment requests go directly to the practice"><i class="ph ph-calendar-check" aria-hidden="true"></i><b>Direct</b></span>
-    </div>
+    </details>
+    <p class="ui-helper mt-3">Verified profiles · No platform booking fee · The practice confirms your request</p>
   </div>
 </section>
 @if (locationHighlights().length) {
@@ -102,17 +100,12 @@
 <section id="marketplace-results" class="results-section" tabindex="-1" aria-label="Dentist search results">
   <div class="directory-wrap">
     <div class="results-heading">
-      <div><span class="hero-kicker">Find your fit</span><h2>Care that works for you.</h2></div>
+      <div><h2>Search results</h2></div>
       <button type="button" class="edit-search" (click)="editSearch()"><i class="ph ph-magnifying-glass" aria-hidden="true"></i> Change search</button>
     </div>
     <div class="toolbar">
-      <div class="discovery-tabs" aria-label="Discovery type">
-        <button type="button" (click)="discoveryType.set('dentists')" [class.active]="discoveryType() === 'dentists'" [attr.aria-pressed]="discoveryType() === 'dentists'">Dentists</button>
-        <button type="button" (click)="discoveryType.set('clinics')" [class.active]="discoveryType() === 'clinics'" [attr.aria-pressed]="discoveryType() === 'clinics'">Dental clinics</button>
-      </div>
       <div class="quick-filters">
         <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()">Available today</button>
-        <select aria-label="Maximum consultation fee" [value]="maxFee() ?? 0" (change)="updateFee($event)"><option value="0">Fee: any</option><option value="500">Up to ₹500</option><option value="1000">Up to ₹1,000</option></select>
         <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-haspopup="dialog" aria-controls="advanced-filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> All filters @if (activeFilterCount()) {<span class="filter-count">{{ activeFilterCount() }}</span>}</button>
       </div>
     </div>
@@ -130,8 +123,9 @@
       </aside>
     }
     <dialog #filtersDialog id="advanced-filters" class="filter-dialog" aria-labelledby="filter-heading" (close)="isMobileFilterOpen.set(false)">
-      <div class="filter-header"><div><h2 id="filter-heading">Make it your search</h2><p>A few details can help you find the right fit.</p></div><button type="button" (click)="closeFilters()" class="icon-button" aria-label="Close filters"><i class="ph ph-x" aria-hidden="true"></i></button></div>
+      <div class="filter-header"><div><h2 id="filter-heading">Filter results</h2><p>Choose only what matters to you. Everything is optional.</p></div><button type="button" (click)="closeFilters()" class="icon-button" aria-label="Close filters"><i class="ph ph-x" aria-hidden="true"></i></button></div>
       <div class="advanced-filters">
+        <div><label for="filter-provider-type">Show</label><select id="filter-provider-type" [ngModel]="discoveryType()" (ngModelChange)="discoveryType.set($event)"><option value="dentists">Dentists</option><option value="clinics">Dental clinics</option></select></div>
         <div><label for="filter-treatment">Treatment</label><select id="filter-treatment" [value]="serviceId()" (change)="updateService($event)"><option value="">Any treatment</option>@for (service of services; track service.id) {<option [value]="service.id">{{ service.label }}</option>}</select></div>
         <div><label for="filter-experience">Experience</label><select id="filter-experience" [value]="minExperience()" (change)="updateExperience($event)"><option value="0">Any experience</option><option value="5">5+ years</option><option value="10">10+ years</option></select></div>
         <div><label for="filter-gender">Dentist gender</label><select id="filter-gender" [value]="gender()" (change)="updateGender($event)"><option value="">Any gender</option><option value="female">Female dentist</option><option value="male">Male dentist</option></select></div>
@@ -203,9 +197,12 @@
               <h2>{{ clinics().length + providers().length ? 'Let’s widen your search.' : 'We’re verifying the first dentists.' }}</h2>
               <p>{{ clinics().length + providers().length ? 'Try all Delhi NCR, remove a filter, or choose another treatment.' : 'Every dentist must complete our checks before appearing here. You can still explore treatment costs while verified profiles are prepared.' }}</p>
               <div class="empty-actions mt-5 flex flex-wrap justify-center gap-3">
-                <button type="button" (click)="changeLocation()" class="primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"><i class="ph ph-map-pin" aria-hidden="true"></i> Change location</button>
-                @if (hasFilters()) {<button type="button" (click)="clearFilters()" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-ui-line-strong bg-white px-5 py-3 text-sm font-semibold text-ui-ink-soft hover:bg-ui-muted">Clear filters</button>}
-                <a [href]="demandRequestHref()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-bell" aria-hidden="true"></i> Notify me</a>
+                @if (clinics().length + providers().length) {
+                  <button type="button" (click)="clearFilters()" class="ui-btn ui-btn-primary">Show all dentists</button>
+                  <button type="button" (click)="changeLocation()" class="ui-btn ui-btn-secondary">Change location</button>
+                } @else {
+                  <a [href]="demandRequestHref()" class="ui-btn ui-btn-primary">Email us about availability</a>
+                }
               </div>
             </div>
             <p class="provider-invite">Dental professional? <a routerLink="/professional/signup">Create your independent profile</a></p>
@@ -226,8 +223,9 @@
 
     <app-treatment-guide [items]="treatmentCostGuide" (serviceSelected)="chooseService($event)" />
 
-    <!-- Comprehensive Internal Linking Matrix -->
-    <section class="browse-matrix-section mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-ui-line pt-7" aria-label="Browse Dental Care by Locality and Treatment">
+    <details class="mt-8 border-t border-ui-line pt-4">
+    <summary class="ui-link cursor-pointer py-3">Browse all locations and treatments</summary>
+    <section class="browse-matrix-section mt-4 grid grid-cols-1 md:grid-cols-2 gap-8" aria-label="Browse Dental Care by Locality and Treatment">
       <div class="matrix-column">
         <h3>Dentists by Delhi NCR Locality</h3>
         <nav class="matrix-links flex flex-wrap gap-2" aria-label="Cities">
@@ -257,6 +255,8 @@
         </nav>
       </div>
     </section>
+
+    </details>
 
     <!-- Dynamic FAQs -->
     <section class="patient-faq">
