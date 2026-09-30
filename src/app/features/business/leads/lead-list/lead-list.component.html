@@ -409,7 +409,7 @@
                   </div>
                   <div>
                     <label class="mb-1 block text-[11px] font-semibold text-blue-900">WhatsApp message</label>
-                    <textarea rows="10"
+                    <textarea aria-label="WhatsApp message" rows="10"
                               [ngModel]="messageDraft()!.message"
                               (ngModelChange)="updateMessageBody($event)"
                               class="w-full text-xs leading-5 text-ui-ink-soft"></textarea>

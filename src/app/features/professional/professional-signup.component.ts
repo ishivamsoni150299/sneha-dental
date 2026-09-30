@@ -20,7 +20,7 @@ import { PasswordLoginComponent } from '../../shared/components/password-login/p
         <section class="ui-card ui-auth-card">
           <div class="space-y-3">
             <p class="ui-eyebrow">For independent dentists</p>
-            <h1 class="ui-heading ui-heading-interface">Make room for your practice.</h1>
+            <h1 class="ui-heading ui-heading-interface">Create your dentist account</h1>
             <p class="ui-body">Create your account, then add your profile and practice in one workspace. No clinic subscription required.</p>
           </div>
           <app-password-login [signup]="true" portal="dentist" (authenticated)="onOtpAuthenticated()" />

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import pg from 'pg';
 import { chromium } from 'playwright';
+import { checkUxRoutes } from './ux-route-checks.mjs';
 
 const { Client } = pg;
 
@@ -130,9 +131,11 @@ try {
   await page.locator('#dentist-search').fill('root canal');
   await page.locator('#dentist-locality').selectOption({ label: 'Noida' });
   await page.getByRole('button', { name: 'Find Dentists', exact: true }).click();
-  await page.getByRole('heading', { name: /verifying the first dentists/i }).waitFor();
-  assert.equal(await page.locator('app-dentist-listing-card').count(), 0,
-    'Unverified fixture clinics must not appear in the patient marketplace');
+  await page.getByText('Checking verified profiles and appointment times.').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator(`a[href="/clinic/e2e-clinic-${suffix}"]`).count(), 0,
+    'The new unverified fixture must not appear, even when earlier verified test clinics exist');
+  const unpublishedProfile = await fetch(`${apiUrl}/api/v1/dentists/e2e-clinic-${suffix}`);
+  assert.equal(unpublishedProfile.status, 404, 'Unverified clinic profiles must stay inaccessible');
 
   await page.goto(appUrl + '/appointments');
   await page.getByRole('heading', { name: 'Sign in to your appointments' }).waitFor();
@@ -182,7 +185,7 @@ try {
   });
   await patch('/api/providers/me', {
     fullName: 'E2E Video Dentist', qualification: 'BDS', speciality: 'General Dentistry',
-    registrationNumber: 'E2E-ONLY', registrationCouncil: 'Disposable test fixture',
+    registrationNumber: `E2E-${suffix}`, registrationCouncil: 'Disposable test fixture',
     phoneE164: '+919876543210', languages: ['English'],
   }, dentist.accessToken);
   await post('/api/providers/me/locations', {
@@ -320,6 +323,35 @@ try {
   await clinicPage.getByRole('button', { name: 'Confirm cancellation', exact: true }).click();
   await clinicPage.getByRole('alert').filter({ hasText: 'Self-service cancellation is unavailable' }).waitFor();
 
+  if (process.env.E2E_UX_AUDIT === '1') {
+    const guestPage = await browser.newPage();
+    const failures = await checkUxRoutes(guestPage, appUrl, 'public', [
+      '/', '/services', '/about', '/gallery', '/testimonials', '/contact', '/appointment',
+      '/appointment/confirmed', '/my-appointment', '/privacy', '/terms', '/coming-soon', '/not-a-real-page',
+      '/dentists', '/dentists/noida', '/dentists/root-canal/noida', `/dentists/${listingSlug}`,
+      `/dentists/${listingSlug}/book`, `/dentist/${provider.slug}`, `/clinic/${listingSlug}`,
+      '/appointments', '/professional', '/professional/signup', '/professional/login', '/account/recovery',
+      '/business', '/business/signup', '/business/login', '/business/privacy', '/business/terms', '/platform/login', '/video-test',
+    ]);
+    failures.push(...await checkUxRoutes(clinicPage, appUrl, 'clinic', [
+      '/business/clinic/dashboard', '/business/clinic/settings', '/business/clinic/settings?tab=subscription',
+      ...['contact', 'hours', 'services', 'testimonials', 'social', 'theme', 'logo'].map(tab => `/business/clinic/settings?tab=${tab}`),
+      '/business/clinic/doctors', '/business/clinic/patients', '/business/clinic/reviews',
+    ]));
+    failures.push(...await checkUxRoutes(adminPage, appUrl, 'platform', [
+      '/business/clinics', '/business/clinics/new', `/business/clinics/${onboarded.clinicId}/edit`,
+      '/business/dentists/verification', '/business/reviews', '/business/analytics', '/business/revenue',
+      '/business/leads', '/business/leads/new', '/business/leads/discover',
+    ]));
+    const dentistPage = await browser.newPage();
+    await passwordLogin(dentistPage, appUrl + '/professional/login', `dentist-${suffix}@example.test`, password);
+    await dentistPage.waitForURL('**/professional/workspace**');
+    failures.push(...await checkUxRoutes(dentistPage, appUrl, 'dentist', [
+      '/professional/workspace?tab=appointments', '/professional/workspace?tab=profile',
+      '/professional/workspace?tab=availability', '/professional/profile', '/professional/video-test',
+    ]));
+    assert.deepEqual(failures, [], 'All UX route checks should pass');
+  }
   console.log('PASS Playwright: guest claim, patient reschedule/cancel, clinic confirmation/completion, review moderation/response, provider verification, and subscription cancellation UI.');
   console.log('PASS Playwright: independent video booking form, dentist inbox/confirmation, and patient-account visibility. Media transport is tested separately.');
   console.log('PASS Playwright: unverified exclusion, verified booking, and patient-account visibility against isolated Spring/PostgreSQL.');

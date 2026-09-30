@@ -285,7 +285,7 @@
                 </div>
                 <div>
                   <label class="text-xs font-medium text-gray-500 mb-1 block">Payment status</label>
-                  <select [ngModel]="notesForm().paymentStatus"
+<select aria-label="Payment status" [ngModel]="notesForm().paymentStatus"
                           (ngModelChange)="setNotesPayStatus($event)"
                           class="w-full text-sm border border-ui-line rounded-xl px-2 py-2.5 outline-none
                                  focus:ring-2 focus:ring-blue-300 bg-white">
@@ -299,7 +299,7 @@
               @if (notesForm().paymentStatus) {
                 <div>
                   <label class="text-xs font-medium text-gray-500 mb-1 block">Payment method</label>
-                  <select [ngModel]="notesForm().paymentMethod"
+<select aria-label="Payment method" [ngModel]="notesForm().paymentMethod"
                           (ngModelChange)="setNotesPayMethod($event)"
                           class="w-full text-sm border border-ui-line rounded-xl px-2 py-2.5 outline-none
                                  focus:ring-2 focus:ring-blue-300 bg-white">
@@ -420,7 +420,7 @@
     <div class="fixed inset-0 bg-black/50 z-40 lg:hidden" (click)="sidebarOpen.set(false)"></div>
   }
 
-  <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 flex flex-col transition-transform duration-300
+  <aside id="clinic-navigation" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 flex flex-col transition-transform duration-300
                 lg:translate-x-0 lg:static lg:inset-auto"
          [class.translate-x-0]="sidebarOpen()"
          [class.-translate-x-full]="!sidebarOpen()">
@@ -504,6 +504,14 @@
         }
       </a>
 
+      <a routerLink="/business/clinic/reviews" (click)="sidebarOpen.set(false)"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-ui-inverse-muted hover:text-white hover:bg-slate-800 transition-colors">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M5 3h14a2 2 0 012 2v12a2 2 0 01-2 2H9l-6 3V5a2 2 0 012-2z"/>
+        </svg>
+        Patient reviews
+      </a>
+
       <a routerLink="/business/clinic/settings" (click)="sidebarOpen.set(false)"
          class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-ui-inverse-muted hover:text-white hover:bg-slate-800 transition-colors">
         <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -552,7 +560,7 @@
     <!-- Top bar -->
     <header class="admin-topbar">
       <div class="admin-topbar-inner">
-        <button (click)="sidebarOpen.set(true)" class="lg:hidden text-gray-500 hover:text-ui-ink-soft">
+        <button (click)="sidebarOpen.set(true)" aria-label="Open clinic navigation" aria-controls="clinic-navigation" [attr.aria-expanded]="sidebarOpen()" class="lg:hidden text-gray-500 hover:text-ui-ink-soft">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>

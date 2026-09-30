@@ -139,7 +139,7 @@ body {
   background: color-mix(in srgb, var(--ui-primary-soft) 82%, white);
 }
 
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid var(--ui-focus);
   outline-offset: 3px;
 }
@@ -4726,7 +4726,7 @@ textarea.ui-field {
   backdrop-filter: blur(18px);
 }
 
-@media (max-width: 639px) {
+@media (max-width: 1279px) {
   .platform-admin-shell > main#main-content {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
   }

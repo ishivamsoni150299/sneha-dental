@@ -75,28 +75,23 @@
 
   <!-- ── Page Header ───────────────────────────────────────────────────────── -->
   <div class="flex items-start gap-3 mb-5">
-    <a routerLink="/business/clinics"
+    <a routerLink="/business/clinics" aria-label="Back to clinics"
        class="ui-btn ui-btn-ghost h-10 w-10 shrink-0 px-0 mt-0.5 text-gray-500">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>
     </a>
     <div class="flex-1">
-      <h1 class="text-2xl font-black tracking-tight text-ui-ink">{{ isEdit ? 'Refine Clinic Profile' : 'Launch A Dental Clinic Profile' }}</h1>
+      <h1 class="text-2xl font-black tracking-tight text-ui-ink">{{ isEdit ? 'Edit clinic' : 'Add clinic' }}</h1>
       <p class="hidden">
         {{ isEdit ? (form.controls.name.value || 'Loading…') : 'Super admin tool — set up a new clinic deployment' }}
       </p>
       <p class="ui-body mt-1">
         {{ isEdit
           ? (form.controls.name.value || 'Update clinic identity, theme, website content and billing controls from one place.')
-          : 'Configure a polished clinic profile using the current dental theme system, booking flow and business data model.' }}
+          : 'Start with clinic details and owner access. You can add website content later.' }}
       </p>
     </div>
-    @if (!isEdit) {
-      <span class="ui-chip ui-chip-accent mt-1 shrink-0">
-        Dental Setup
-      </span>
-    }
   </div>
 
   <!-- ── Info banner (new clinic only) ─────────────────────────────────────── -->
@@ -110,7 +105,7 @@
         Services, Health Plans and Testimonials can be updated later from the clinic's own settings page.
       </p>
       <p class="text-xs leading-relaxed text-[color:var(--color-primary-hover)]">
-        This page now follows the latest dental brand system. Core identity, contact, booking and billing data save directly to the clinic record. Optional website content sections can remain empty without blocking creation.
+        Complete Essentials and Billing & Access first. Optional sections can be updated after the clinic is created.
       </p>
     </div>
   }
@@ -138,9 +133,9 @@
   <!-- ── Tab navigation ────────────────────────────────────────────────────── -->
   @if (!loading()) {
     <div class="clinic-form-nav sticky top-14 z-20 -mx-4 mb-1 overflow-x-auto px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-      <div class="flex items-center gap-0.5 min-w-max">
+      <div class="flex flex-wrap items-center gap-0.5" aria-label="Clinic form sections">
         @for (tab of TABS; track tab.num) {
-          <button type="button" (click)="activeTab.set(tab.num)"
+          <button type="button" (click)="activeTab.set(tab.num)" [attr.aria-pressed]="activeTab() === tab.num"
                   class="whitespace-nowrap flex items-center gap-1.5"
                   [class]="activeTab() === tab.num ? 'ui-tab ui-tab-active shadow-sm' : 'ui-tab'">
             <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
@@ -195,7 +190,7 @@
           <!-- Clinic Name -->
           <div class="sm:col-span-2">
             <label class="form-label">Clinic Name <span class="text-red-400">*</span></label>
-            <input formControlName="name" type="text" placeholder="e.g. Sneha Dental"
+            <input aria-label="Clinic Name" formControlName="name" type="text" placeholder="e.g. Sneha Dental"
                    class="form-input" [class.input-error]="hasErr(form.controls.name)">
             @if (hasErr(form.controls.name)) {
               <p class="text-xs text-red-500 mt-1">Clinic name is required.</p>
@@ -205,7 +200,7 @@
           <!-- Doctor Name -->
           <div>
             <label class="form-label">Doctor Name <span class="text-red-400">*</span></label>
-            <input formControlName="doctorName" type="text" placeholder="Dr. Full Name"
+            <input aria-label="Doctor Name" formControlName="doctorName" type="text" placeholder="Dr. Full Name"
                    class="form-input" [class.input-error]="hasErr(form.controls.doctorName)">
             @if (hasErr(form.controls.doctorName)) {
               <p class="text-xs text-red-500 mt-1">Doctor name is required.</p>
@@ -215,13 +210,13 @@
           <!-- Qualification -->
           <div>
             <label class="form-label">Qualification <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input formControlName="doctorQualification" type="text" placeholder="BDS, MDS" class="form-input">
+            <input aria-label="Qualification (optional)" formControlName="doctorQualification" type="text" placeholder="BDS, MDS" class="form-input">
           </div>
 
           <!-- Patient Count -->
           <div>
             <label class="form-label">Patient Count <span class="text-gray-400 font-normal text-[11px]">shown on website</span></label>
-            <input formControlName="patientCount" type="text" placeholder="e.g. 1000+" class="form-input">
+            <input aria-label="Patient Count shown on website" formControlName="patientCount" type="text" placeholder="e.g. 1000+" class="form-input">
           </div>
         </div>
 
@@ -300,7 +295,7 @@
           <!-- Address Line 1 -->
           <div class="sm:col-span-2">
             <label class="form-label">Address Line 1 <span class="text-red-400">*</span></label>
-            <input formControlName="addressLine1" type="text" placeholder="Shop / flat, street, area"
+            <input aria-label="Address Line 1" formControlName="addressLine1" type="text" placeholder="Shop / flat, street, area"
                    class="form-input" [class.input-error]="hasErr(form.controls.addressLine1)">
             @if (hasErr(form.controls.addressLine1)) {
               <p class="text-xs text-red-500 mt-1">Address is required.</p>
@@ -310,13 +305,13 @@
           <!-- Address Line 2 -->
           <div>
             <label class="form-label">Address Line 2 <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="addressLine2" type="text" placeholder="Landmark, PIN" class="form-input">
+            <input aria-label="Address Line 2 optional" formControlName="addressLine2" type="text" placeholder="Landmark, PIN" class="form-input">
           </div>
 
           <!-- City -->
           <div>
             <label class="form-label">City <span class="text-red-400">*</span></label>
-            <input formControlName="city" type="text" placeholder="Noida"
+            <input aria-label="City" formControlName="city" type="text" placeholder="Noida"
                    class="form-input" [class.input-error]="hasErr(form.controls.city)">
             @if (hasErr(form.controls.city)) {
               <p class="text-xs text-red-500 mt-1">City is required.</p>
@@ -329,7 +324,7 @@
               Google Place ID
               <span class="text-gray-400 font-normal text-[11px] ml-1">optional — enables map + reviews automation</span>
             </label>
-            <input formControlName="googlePlaceId" type="text"
+            <input aria-label="Google Place ID optional — enables map + reviews automation" formControlName="googlePlaceId" type="text"
                    placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4" class="form-input font-mono text-sm">
             <p class="text-xs text-gray-400 mt-1">Find it at Google Maps → Share → Embed → copy the place_id= value.</p>
           </div>
@@ -337,14 +332,14 @@
           <!-- Map Embed URL -->
           <div class="sm:col-span-2">
             <label class="form-label">Google Maps Embed URL <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="mapEmbedUrl" type="url"
+            <input aria-label="Google Maps Embed URL optional" formControlName="mapEmbedUrl" type="url"
                    placeholder="https://maps.google.com/maps?q=place_id:…&output=embed" class="form-input text-sm">
           </div>
 
           <!-- Map Directions URL -->
           <div class="sm:col-span-2">
             <label class="form-label">Google Maps Directions URL <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="mapDirectionsUrl" type="url"
+            <input aria-label="Google Maps Directions URL optional" formControlName="mapDirectionsUrl" type="url"
                    placeholder="https://www.google.com/maps/search/?api=1&query=place_id:…" class="form-input text-sm">
           </div>
         </div>
@@ -490,7 +485,7 @@
           <!-- Custom Domain -->
           <div>
             <label class="form-label">Custom Domain <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="domain" type="text" placeholder="snehadental.com" class="form-input"
+            <input aria-label="Custom Domain optional" formControlName="domain" type="text" placeholder="snehadental.com" class="form-input"
                    [readonly]="form.controls.subscriptionPlan.value === 'trial'">
             @if (form.controls.subscriptionPlan.value === 'trial') {
               <p class="text-xs text-amber-600 mt-1">Choose Basic or Pro before assigning the clinic's own domain.</p>
@@ -502,7 +497,7 @@
           <!-- Preview Address -->
           <div>
             <label class="form-label">Preview Website Address <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="hostedDomain" type="text" placeholder="arogyamdental.mydentalplatform.com" class="form-input"
+            <input aria-label="Preview Website Address optional" formControlName="hostedDomain" type="text" placeholder="arogyamdental.mydentalplatform.com" class="form-input"
                    (input)="markPreviewDomainManual()"
                    (blur)="normalizePreviewDomain()">
             <p class="text-xs text-gray-400 mt-1">Auto-generated from clinic name. You can edit the first part if needed.</p>
@@ -628,21 +623,21 @@
                 </div>
                 <div>
                   <label class="form-label">Price</label>
-                  <input formControlName="price" type="text" placeholder="₹2,000 – ₹5,000" class="form-input">
+                  <input aria-label="Price" formControlName="price" type="text" placeholder="₹2,000 – ₹5,000" class="form-input">
                 </div>
                 <div class="sm:col-span-2">
                   <label class="form-label">Description</label>
-                  <input formControlName="description" type="text"
+                  <input aria-label="Description" formControlName="description" type="text"
                          placeholder="Brief description shown on the services page" class="form-input">
                 </div>
                 <div>
                   <label class="form-label">Benefit tag</label>
-                  <input formControlName="benefit" type="text"
+                  <input aria-label="Benefit tag" formControlName="benefit" type="text"
                          placeholder="e.g. Pain-free in 45 mins" class="form-input">
                 </div>
                 <div>
                   <label class="form-label text-gray-400">Icon SVG Path <span class="font-normal">(advanced)</span></label>
-                  <input formControlName="iconPath" type="text"
+                  <input aria-label="Icon SVG Path (advanced)" formControlName="iconPath" type="text"
                          placeholder="M… (paste SVG path data)" class="form-input font-mono text-xs text-gray-400">
                 </div>
               </div>
@@ -705,23 +700,23 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="form-label">Plan Name <span class="text-red-400">*</span></label>
-                  <input formControlName="name" type="text" placeholder="Dental Health Plan" class="form-input">
+                  <input aria-label="Plan Name" formControlName="name" type="text" placeholder="Dental Health Plan" class="form-input">
                 </div>
                 <div>
                   <label class="form-label">Tag</label>
-                  <input formControlName="tag" type="text" placeholder="Best for Families" class="form-input">
+                  <input aria-label="Tag" formControlName="tag" type="text" placeholder="Best for Families" class="form-input">
                 </div>
                 <div>
                   <label class="form-label">Price</label>
-                  <input formControlName="price" type="text" placeholder="₹1,999" class="form-input">
+                  <input aria-label="Price" formControlName="price" type="text" placeholder="₹1,999" class="form-input">
                 </div>
                 <div>
                   <label class="form-label">Period</label>
-                  <input formControlName="period" type="text" placeholder="/year" class="form-input">
+                  <input aria-label="Period" formControlName="period" type="text" placeholder="/year" class="form-input">
                 </div>
                 <div class="sm:col-span-2">
                   <label class="form-label">Subtitle</label>
-                  <input formControlName="subtitle" type="text"
+                  <input aria-label="Subtitle" formControlName="subtitle" type="text"
                          placeholder="Ideal for students & working professionals" class="form-input">
                 </div>
               </div>
@@ -823,44 +818,44 @@
           </div>
           <div>
             <label class="form-label">Hero Highlight</label>
-            <input formControlName="homeHeroHighlight" type="text" placeholder="You Can Trust" class="form-input">
+            <input aria-label="Hero Highlight" formControlName="homeHeroHighlight" type="text" placeholder="You Can Trust" class="form-input">
           </div>
           <div>
             <label class="form-label">Hero Title</label>
-            <input formControlName="homeHeroTitle" type="text" placeholder="Pain-Free Care" class="form-input">
+            <input aria-label="Hero Title" formControlName="homeHeroTitle" type="text" placeholder="Pain-Free Care" class="form-input">
           </div>
           <div>
             <label class="form-label">Why Section Title</label>
-            <input formControlName="homeWhyTitle" type="text" placeholder="Dental Care That Puts You First" class="form-input">
+            <input aria-label="Why Section Title" formControlName="homeWhyTitle" type="text" placeholder="Dental Care That Puts You First" class="form-input">
           </div>
           <div class="sm:col-span-2">
             <label class="form-label">Hero Subtitle</label>
-            <textarea formControlName="homeHeroSubtitle" rows="2" placeholder="Short promise shown below the homepage headline" class="form-input resize-none text-sm"></textarea>
+            <textarea aria-label="Hero Subtitle" formControlName="homeHeroSubtitle" rows="2" placeholder="Short promise shown below the homepage headline" class="form-input resize-none text-sm"></textarea>
           </div>
           <div class="sm:col-span-2">
             <label class="form-label">Doctor Quote</label>
-            <textarea formControlName="homeDoctorQuote" rows="3" placeholder="Doctor introduction shown on the homepage" class="form-input resize-none text-sm"></textarea>
+            <textarea aria-label="Doctor Quote" formControlName="homeDoctorQuote" rows="3" placeholder="Doctor introduction shown on the homepage" class="form-input resize-none text-sm"></textarea>
           </div>
           <div class="sm:col-span-2">
             <label class="form-label">Why Section Body</label>
-            <textarea formControlName="homeWhyBody" rows="2" placeholder="A calm trust-building explanation for patients" class="form-input resize-none text-sm"></textarea>
+            <textarea aria-label="Why Section Body" formControlName="homeWhyBody" rows="2" placeholder="A calm trust-building explanation for patients" class="form-input resize-none text-sm"></textarea>
           </div>
           <div>
             <label class="form-label">Final CTA Title</label>
-            <input formControlName="homeFinalCtaTitle" type="text" placeholder="Ready for a Healthier Smile?" class="form-input">
+            <input aria-label="Final CTA Title" formControlName="homeFinalCtaTitle" type="text" placeholder="Ready for a Healthier Smile?" class="form-input">
           </div>
           <div>
             <label class="form-label">Final CTA Subtitle</label>
-            <input formControlName="homeFinalCtaSubtitle" type="text" placeholder="Same-day slots available. Confirmed within 2 hours." class="form-input">
+            <input aria-label="Final CTA Subtitle" formControlName="homeFinalCtaSubtitle" type="text" placeholder="Same-day slots available. Confirmed within 2 hours." class="form-input">
           </div>
           <div class="sm:col-span-2">
             <label class="form-label">First Touch WhatsApp Message</label>
-            <textarea formControlName="firstTouchWhatsapp" rows="3" placeholder="Public lead message template for this clinic" class="form-input resize-none text-sm"></textarea>
+            <textarea aria-label="First Touch WhatsApp Message" formControlName="firstTouchWhatsapp" rows="3" placeholder="Public lead message template for this clinic" class="form-input resize-none text-sm"></textarea>
             <p class="mt-1 text-xs text-gray-400">Use public marketing copy only. Clinic name, city, phone and services are already available on the clinic record.</p>
           </div>
           <div class="sm:col-span-2">
             <label class="form-label">Follow-up WhatsApp Message</label>
-            <textarea formControlName="followupWhatsapp" rows="3" placeholder="Public follow-up message template" class="form-input resize-none text-sm"></textarea>
+            <textarea aria-label="Follow-up WhatsApp Message" formControlName="followupWhatsapp" rows="3" placeholder="Public follow-up message template" class="form-input resize-none text-sm"></textarea>
           </div>
         </div>
 
@@ -872,50 +867,50 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="form-label">Treatment Focus</label>
-              <input formControlName="knowledgeTreatmentFocus" type="text" placeholder="Root canal, Implants, Aligners" class="form-input">
+              <input aria-label="Treatment Focus" formControlName="knowledgeTreatmentFocus" type="text" placeholder="Root canal, Implants, Aligners" class="form-input">
               <p class="mt-1 text-xs text-gray-400">Comma-separated.</p>
             </div>
             <div>
               <label class="form-label">Languages Spoken</label>
-              <input formControlName="knowledgeLanguages" type="text" placeholder="Hindi, English" class="form-input">
+              <input aria-label="Languages Spoken" formControlName="knowledgeLanguages" type="text" placeholder="Hindi, English" class="form-input">
               <p class="mt-1 text-xs text-gray-400">Comma-separated.</p>
             </div>
             <div>
               <label class="form-label">Consultation Fee</label>
-              <input formControlName="knowledgeConsultationFee" type="text" placeholder="₹300 consultation, adjusted in treatment" class="form-input">
+              <input aria-label="Consultation Fee" formControlName="knowledgeConsultationFee" type="text" placeholder="₹300 consultation, adjusted in treatment" class="form-input">
             </div>
             <div>
               <label class="form-label">Payment Options</label>
-              <input formControlName="knowledgePaymentOptions" type="text" placeholder="UPI, Cash, Card" class="form-input">
+              <input aria-label="Payment Options" formControlName="knowledgePaymentOptions" type="text" placeholder="UPI, Cash, Card" class="form-input">
               <p class="mt-1 text-xs text-gray-400">Comma-separated.</p>
             </div>
             <div class="sm:col-span-2">
               <label class="form-label">Price Guidance</label>
-              <textarea formControlName="knowledgePriceGuidance" rows="2" placeholder="Exact treatment cost is confirmed after consultation. Basic cleaning starts from..." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Price Guidance" formControlName="knowledgePriceGuidance" rows="2" placeholder="Exact treatment cost is confirmed after consultation. Basic cleaning starts from..." class="form-input resize-none text-sm"></textarea>
             </div>
             <div class="sm:col-span-2">
               <label class="form-label">Emergency Policy</label>
-              <textarea formControlName="knowledgeEmergencyPolicy" rows="2" placeholder="Dental pain emergencies are prioritised during clinic hours. Call before visiting." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Emergency Policy" formControlName="knowledgeEmergencyPolicy" rows="2" placeholder="Dental pain emergencies are prioritised during clinic hours. Call before visiting." class="form-input resize-none text-sm"></textarea>
             </div>
             <div class="sm:col-span-2">
               <label class="form-label">Appointment Policy</label>
-              <textarea formControlName="knowledgeAppointmentPolicy" rows="2" placeholder="Appointment requests are confirmed by clinic staff on WhatsApp or call." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Appointment Policy" formControlName="knowledgeAppointmentPolicy" rows="2" placeholder="Appointment requests are confirmed by clinic staff on WhatsApp or call." class="form-input resize-none text-sm"></textarea>
             </div>
             <div>
               <label class="form-label">Insurance / EMI Policy</label>
-              <textarea formControlName="knowledgeInsurancePolicy" rows="2" placeholder="EMI available for selected treatments, if applicable." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Insurance / EMI Policy" formControlName="knowledgeInsurancePolicy" rows="2" placeholder="EMI available for selected treatments, if applicable." class="form-input resize-none text-sm"></textarea>
             </div>
             <div>
               <label class="form-label">Parking Info</label>
-              <textarea formControlName="knowledgeParkingInfo" rows="2" placeholder="Street parking available near clinic." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Parking Info" formControlName="knowledgeParkingInfo" rows="2" placeholder="Street parking available near clinic." class="form-input resize-none text-sm"></textarea>
             </div>
             <div class="sm:col-span-2">
               <label class="form-label">Accessibility Info</label>
-              <textarea formControlName="knowledgeAccessibilityInfo" rows="2" placeholder="Lift access / ground floor / wheelchair support if available." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Accessibility Info" formControlName="knowledgeAccessibilityInfo" rows="2" placeholder="Lift access / ground floor / wheelchair support if available." class="form-input resize-none text-sm"></textarea>
             </div>
             <div class="sm:col-span-2">
               <label class="form-label">Patient Notes</label>
-              <textarea formControlName="knowledgePatientNotes" rows="3" placeholder="Any public instructions patients should know before visiting." class="form-input resize-none text-sm"></textarea>
+              <textarea aria-label="Patient Notes" formControlName="knowledgePatientNotes" rows="3" placeholder="Any public instructions patients should know before visiting." class="form-input resize-none text-sm"></textarea>
             </div>
           </div>
         </div>
@@ -936,15 +931,15 @@
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div class="sm:col-span-2">
                   <label class="form-label">Image URL</label>
-                  <input formControlName="src" type="url" placeholder="https://..." class="form-input">
+                  <input aria-label="Image URL" formControlName="src" type="url" placeholder="https://..." class="form-input">
                 </div>
                 <div>
                   <label class="form-label">Label</label>
-                  <input formControlName="label" type="text" placeholder="Reception" class="form-input">
+                  <input aria-label="Label" formControlName="label" type="text" placeholder="Reception" class="form-input">
                 </div>
                 <div class="sm:col-span-3">
                   <label class="form-label">Alt Text</label>
-                  <input formControlName="alt" type="text" placeholder="Modern dental clinic reception" class="form-input">
+                  <input aria-label="Alt Text" formControlName="alt" type="text" placeholder="Modern dental clinic reception" class="form-input">
                 </div>
               </div>
             </div>
@@ -996,11 +991,11 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="form-label">Patient Name <span class="text-red-400">*</span></label>
-                  <input formControlName="name" type="text" placeholder="Priya M." class="form-input">
+                  <input aria-label="Patient Name" formControlName="name" type="text" placeholder="Priya M." class="form-input">
                 </div>
                 <div>
                   <label class="form-label">Location <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-                  <input formControlName="location" type="text" placeholder="Pune · Verified Patient" class="form-input">
+                  <input aria-label="Location optional" formControlName="location" type="text" placeholder="Pune · Verified Patient" class="form-input">
                 </div>
 
                 <!-- Star picker (replaces number input) -->
@@ -1071,7 +1066,7 @@
           <!-- Plan -->
           <div>
             <label class="form-label">Platform Plan</label>
-            <select formControlName="subscriptionPlan" class="form-input">
+            <select aria-label="Platform Plan" formControlName="subscriptionPlan" class="form-input">
               <option value="trial">Free — no expiry</option>
               <option value="starter">Basic — ₹999/month</option>
               <option value="pro">Pro — ₹2,499/month</option>
@@ -1081,7 +1076,7 @@
           <!-- Status -->
           <div>
             <label class="form-label">Subscription Status</label>
-            <select formControlName="subscriptionStatus" class="form-input"
+            <select aria-label="Subscription Status" formControlName="subscriptionStatus" class="form-input"
                     [class]="form.controls.subscriptionStatus.value === 'expired' || form.controls.subscriptionStatus.value === 'cancelled'
                       ? 'border-red-200 bg-red-50 text-red-700' : ''">
               <option value="trial">Free</option>
@@ -1105,7 +1100,7 @@
           <!-- Billing cycle -->
           <div>
             <label class="form-label">Billing Cycle</label>
-            <select formControlName="billingCycle" class="form-input">
+            <select aria-label="Billing Cycle" formControlName="billingCycle" class="form-input">
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
             </select>
@@ -1114,33 +1109,33 @@
           <!-- Last payment date -->
           <div>
             <label class="form-label">Last Payment Date</label>
-            <input formControlName="lastPaymentDate" type="date" class="form-input">
+            <input aria-label="Last Payment Date" formControlName="lastPaymentDate" type="date" class="form-input">
           </div>
 
           <!-- Amount -->
           <div>
             <label class="form-label">Amount Paid (₹)</label>
-            <input formControlName="lastPaymentAmount" type="number" min="0" placeholder="499" class="form-input">
+            <input aria-label="Amount Paid (₹)" formControlName="lastPaymentAmount" type="number" min="0" placeholder="499" class="form-input">
             <p class="text-xs text-gray-400 mt-1">Auto-filled when plan + cycle are set.</p>
           </div>
 
           <!-- Payment ref -->
           <div>
             <label class="form-label">Payment Reference</label>
-            <input formControlName="lastPaymentRef" type="text" placeholder="pay_AbCdEfGh or UPI-xxxx" class="form-input font-mono text-sm">
+            <input aria-label="Payment Reference" formControlName="lastPaymentRef" type="text" placeholder="pay_AbCdEfGh or UPI-xxxx" class="form-input font-mono text-sm">
           </div>
 
           <!-- Subscription end -->
           <div>
             <label class="form-label">Next Renewal / Expiry</label>
-            <input formControlName="subscriptionEndDate" type="date" class="form-input">
+            <input aria-label="Next Renewal / Expiry" formControlName="subscriptionEndDate" type="date" class="form-input">
             <p class="text-xs text-gray-400 mt-1">Auto-calculated from last payment + cycle.</p>
           </div>
 
           <!-- Billing email -->
           <div>
             <label class="form-label">Billing Email <span class="text-gray-400 font-normal text-[11px]">optional</span></label>
-            <input formControlName="billingEmail" type="email" placeholder="owner@clinic.com" class="form-input">
+            <input aria-label="Billing Email optional" formControlName="billingEmail" type="email" placeholder="owner@clinic.com" class="form-input">
           </div>
 
           <div class="sm:col-span-2 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
@@ -1199,7 +1194,7 @@
           <!-- Notes -->
           <div class="sm:col-span-2">
             <label class="form-label">Internal Notes</label>
-            <textarea formControlName="billingNotes" rows="2"
+            <textarea aria-label="Internal Notes" formControlName="billingNotes" rows="2"
                       placeholder="e.g. Pays via UPI on 7th. Contact: Dr. Sharma +91 98765 43210"
                       class="form-input resize-none text-sm"></textarea>
           </div>
@@ -1468,7 +1463,7 @@
 
   <!-- ── Sticky Save Bar ─────────────────────────────────────────────────────── -->
   @if (!loading()) {
-    <div class="clinic-form-savebar fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 px-4 py-3 backdrop-blur-sm sm:bottom-0 sm:z-30">
+    <div class="clinic-form-savebar fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 px-4 py-3 backdrop-blur-sm xl:bottom-0 xl:z-30">
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-4">
 
         @if (success()) {

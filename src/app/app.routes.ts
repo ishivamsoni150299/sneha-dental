@@ -217,7 +217,7 @@ export const routes: Routes = [
           import('./features/marketplace/patient-appointments.component').then(m => m.PatientAppointmentsComponent),
         data: {
           title: 'My Dental Appointments',
-          description: 'Verify your mobile number to securely manage dental appointment requests.',
+          description: 'Sign in with your email to securely manage dental appointment requests.',
           noIndex: true,
         },
       },
@@ -283,7 +283,7 @@ export const routes: Routes = [
           import('./features/marketplace/patient-appointments.component').then(m => m.PatientAppointmentsComponent),
         data: {
           title: 'Manage Appointment',
-          description: 'View, reschedule, or cancel your appointment with your booking reference.',
+          description: 'Sign in to view, reschedule, or cancel your appointments.',
           noIndex: true,
         },
       },

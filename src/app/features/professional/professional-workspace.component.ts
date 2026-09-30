@@ -93,7 +93,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                 @if (declining()?.id === visit.id) {
                   <label class="mt-4 block text-sm font-semibold" [for]="'reason-' + visit.id">Reason for patient</label>
                   <textarea [id]="'reason-' + visit.id" [(ngModel)]="reason" maxlength="500" class="ui-field mt-2 text-base" rows="2"></textarea>
-                  <button (click)="updateVisit(visit, visit.source === 'marketplace' ? 'declined' : 'cancelled', reason)" [disabled]="busy() || !reason.trim()" class="ui-btn ui-btn-primary mt-2">Save decision</button>
+                  <button (click)="updateVisit(visit, visit.source === 'marketplace' ? 'declined' : 'cancelled', reason)" [disabled]="busy() || !reason.trim()" class="ui-btn ui-btn-primary mt-2">{{ visit.source === 'marketplace' ? 'Decline request' : 'Cancel appointment' }}</button>
                   <button (click)="declining.set(null)" [disabled]="busy()" class="ui-btn ui-btn-ghost">Keep appointment</button>
                 }
               </article>
