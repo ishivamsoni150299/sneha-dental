@@ -21,7 +21,7 @@
   <header class="admin-topbar clinic-settings-header z-40">
     <div class="admin-topbar-inner max-w-5xl">
       <div class="flex items-center gap-3">
-        <a routerLink="/business/clinic/dashboard"
+        <a routerLink="/business/clinic/dashboard" aria-label="Back to appointments"
            class="text-gray-400 hover:text-ui-ink-muted transition-colors">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
@@ -51,7 +51,9 @@
     @if (!loading()) {
 
       <!-- Setup completion score -->
-      <div class="settings-progress-card overflow-hidden">
+      <details class="settings-progress-card overflow-hidden">
+        <summary class="cursor-pointer text-sm font-semibold text-ui-ink focus-visible:outline focus-visible:outline-2">Clinic setup · {{ setupDoneCount }} of {{ setupChecklist.length }} steps complete</summary>
+        <div class="mt-4">
         <div class="flex items-center justify-between mb-3">
           <div>
             <p class="font-bold text-ui-ink text-sm">Setup progress</p>
@@ -79,7 +81,7 @@
         <!-- Checklist items — show incomplete first -->
         <div class="space-y-2">
           @for (item of setupChecklist; track item.label) {
-            <div class="flex items-center gap-3 py-1.5 px-3 rounded-xl transition-colors cursor-pointer group"
+            <button type="button" class="w-full text-left flex items-center gap-3 py-1.5 px-3 rounded-xl transition-colors cursor-pointer group"
                  [class]="item.done ? 'bg-gray-50' : 'bg-amber-50 hover:bg-amber-100'"
                  (click)="activeTab.set(item.tab)">
               <!-- Status icon -->
@@ -111,16 +113,17 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
               }
-            </div>
+            </button>
           }
         </div>
-      </div>
+        </div>
+      </details>
 
       <!-- Tab bar -->
-      <div class="settings-tab-bar flex gap-1 overflow-x-auto">
+      <nav aria-label="Clinic settings sections" class="settings-tab-bar flex flex-wrap gap-1">
         @for (tab of tabs; track tab.id) {
-          <button (click)="activeTab.set(tab.id)"
-                  class="ui-tab relative shrink-0 flex-1 min-w-fit whitespace-nowrap focus:outline-none"
+          <button (click)="activeTab.set(tab.id)" [attr.aria-pressed]="activeTab() === tab.id"
+                  class="ui-tab relative shrink-0 flex-1 min-w-fit whitespace-nowrap"
                   [class]="activeTab() === tab.id
                     ? 'ui-tab ui-tab-active'
                     : 'ui-tab'">
@@ -132,7 +135,7 @@
             }
           </button>
         }
-      </div>
+      </nav>
 
       <!-- ── Clinic Info ──────────────────────────────────────────────────── -->
       @if (activeTab() === 'info') {
@@ -141,7 +144,7 @@
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-sm font-semibold text-ui-ink">Clinic Profile</h2>
-              <p class="text-xs text-gray-400 mt-1">These details power your logo fallback, homepage trust signals, and booking experience.</p>
+              <p class="text-xs text-ui-ink-muted mt-1">The clinic details patients see on your website and when booking.</p>
             </div>
             @if (isTabDirty('info')) {
               <span class="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Unsaved changes</span>

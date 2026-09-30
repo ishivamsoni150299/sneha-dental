@@ -60,7 +60,7 @@
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-ui-ink text-sm">{{ isDeclineTarget(cancelTarget()!) ? 'Decline appointment request' : 'Remove this appointment' }}</h3>
+            <h3 class="font-bold text-ui-ink text-sm">{{ isDeclineTarget(cancelTarget()!) ? 'Decline appointment request' : 'Cancel this appointment?' }}</h3>
             <p class="text-xs text-gray-400">{{ cancelTarget()!.name }} · {{ formatDate(cancelTarget()!.date) }}</p>
           </div>
         </div>
@@ -85,13 +85,13 @@
           <button (click)="dismissCancel()"
                   class="flex-1 border border-ui-line text-ui-ink-muted hover:bg-ui-muted font-semibold
                          py-2.5 rounded-xl text-sm transition-colors">
-            {{ isDeclineTarget(cancelTarget()!) ? 'Go back' : 'Keep' }}
+            {{ isDeclineTarget(cancelTarget()!) ? 'Go back' : 'Keep appointment' }}
           </button>
           <button (click)="confirmCancel()"
                   [disabled]="!cancelReason()"
                   class="flex-1 bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed
                          text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
-            {{ isDeclineTarget(cancelTarget()!) ? 'Decline request' : 'Remove appointment' }}
+            {{ isDeclineTarget(cancelTarget()!) ? 'Decline request' : 'Cancel appointment' }}
           </button>
         </div>
       </div>
@@ -109,7 +109,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-ui-line sticky top-0 bg-white z-10">
           <h2 class="font-bold text-ui-ink">Appointment details</h2>
-          <button (click)="closeDetail()" class="w-10 h-10 rounded-lg bg-ui-canvas-subtle hover:bg-gray-200 flex items-center justify-center transition-colors">
+          <button (click)="closeDetail()" aria-label="Close appointment details" class="w-10 h-10 rounded-lg bg-ui-canvas-subtle hover:bg-gray-200 flex items-center justify-center transition-colors">
             <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -578,51 +578,6 @@
 
     <main class="admin-page flex-1 space-y-5 overflow-auto">
 
-      <!-- ── Subscription banner ───────────────────────────────────────── -->
-      @if (isFree) {
-        <div class="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="w-9 h-9 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
-              <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-            <div>
-              <p class="font-bold text-orange-900 text-sm">Your Free plan stays active</p>
-              <p class="text-orange-700 text-xs mt-0.5">Upgrade to Basic for patient records, doctors, branding, and a custom domain.</p>
-            </div>
-          </div>
-          <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
-             class="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors">
-            View Basic — ₹999/month →
-          </a>
-        </div>
-      }
-
-      <!-- ── Website live banner ─────────────────────────────────────── -->
-      @if (websiteUrl) {
-        <div class="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-              <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-            <div>
-              <p class="font-bold text-emerald-800 text-sm">Your professional dental website is ready!</p>
-              <p class="text-emerald-700 text-xs mt-0.5">Share your unique link with patients and start receiving online bookings.</p>
-            </div>
-          </div>
-          <a [href]="websiteUrl" target="_blank" rel="noopener"
-             class="shrink-0 inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-            View Website
-          </a>
-        </div>
-      }
-
       <!-- ── Success / Error toasts ───────────────────────────────────── -->
       @if (actionSuccess()) {
         <div class="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
@@ -649,7 +604,7 @@
       }
 
       <!-- ── Section Selector Tabs ────────────────────────────────────── -->
-      <div class="flex items-center gap-2 border-b border-ui-line pb-3">
+      <div class="flex flex-wrap items-center gap-2 border-b border-ui-line pb-3">
         <button type="button" (click)="activeSection.set('appointments')"
                 class="px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2.5"
                 [class]="activeSection() === 'appointments'
@@ -690,42 +645,10 @@
       @if (activeSection() === 'appointments') {
         <!-- ── Onboarding checklist ──────────────────────────────────────── -->
       @if (showOnboarding()) {
-        <div class="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
-          <!-- Header row -->
-          <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-50">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                 [style.background]="themeColor.hexLight">
-              <svg class="w-5 h-5" [class]="themeColor.textClass" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-bold text-ui-ink text-sm">Clinic setup checklist</p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                {{ onboardingDoneCount() }} of {{ onboardingTotal() }} steps complete
-              </p>
-            </div>
-            <!-- Progress pct -->
-            <span class="text-sm font-extrabold shrink-0" [class]="themeColor.textClass">
-              {{ onboardingPct() }}%
-            </span>
-            <!-- Dismiss -->
-            <button (click)="dismissOnboarding()" title="Dismiss checklist"
-                    class="w-9 h-9 rounded-lg bg-ui-canvas-subtle hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0">
-              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Progress bar -->
-          <div class="h-1.5 bg-ui-canvas-subtle w-full">
-            <div class="h-full transition-all duration-500 rounded-full"
-                 [style.width]="onboardingPct() + '%'"
-                 [style.background]="themeColor.hex">
-            </div>
-          </div>
-
+        <details class="bg-white rounded-2xl border border-ui-line overflow-hidden">
+          <summary class="cursor-pointer px-5 py-4 text-sm font-semibold text-ui-ink focus-visible:outline focus-visible:outline-2">
+            Clinic setup · {{ onboardingDoneCount() }} of {{ onboardingTotal() }} steps complete
+          </summary>
           <!-- Steps list -->
           <div class="px-5 py-3 space-y-0.5">
             @for (item of onboardingItems(); track item.key) {
@@ -773,263 +696,9 @@
               </div>
             }
           </div>
-        </div>
+          <button type="button" (click)="dismissOnboarding()" class="m-5 text-sm font-semibold text-ui-ink-soft underline">Dismiss checklist</button>
+        </details>
       }
-
-      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4">
-        <div class="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-sm">
-          <div class="px-6 py-6">
-            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-ui-inverse-muted">Clinic overview</p>
-                <h2 class="mt-3 text-3xl font-extrabold leading-tight">{{ greeting }}, {{ greetingLine }}</h2>
-                <p class="mt-2 text-sm text-slate-300 max-w-2xl">
-                  {{ todayFormatted }}. Keep the front desk focused on pending confirmations, today's arrivals and payment follow-ups.
-                </p>
-              </div>
-
-              @if (nextAppointment()) {
-                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 min-w-[240px]">
-                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Next appointment</p>
-                  <p class="mt-2 text-lg font-bold text-white">{{ nextAppointment()!.name }}</p>
-                  <p class="text-sm text-slate-300 mt-1">{{ nextAppointment()!.service }} · {{ nextAppointment()!.time }}</p>
-                  <button (click)="openDetail(nextAppointment()!)"
-                          class="mt-3 text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors">
-                    Open details →
-                  </button>
-                </div>
-              } @else {
-                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 min-w-[240px]">
-                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Next appointment</p>
-                  <p class="mt-2 text-lg font-bold text-white">No active appointments</p>
-                  <p class="text-sm text-slate-300 mt-1">New online bookings will appear here automatically.</p>
-                </div>
-              }
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Completion rate</p>
-                <p class="mt-2 text-2xl font-bold text-white">{{ completionRate() }}%</p>
-                <p class="text-xs text-slate-300 mt-1">Across active appointments</p>
-              </div>
-              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                @if (canViewRevenue) {
-                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Collected revenue</p>
-                  <p class="mt-2 text-2xl font-bold text-emerald-300">{{ formatCurrency(paidRevenue()) }}</p>
-                  <p class="text-xs text-slate-300 mt-1">Paid treatments logged so far</p>
-                } @else {
-                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Confirmed</p>
-                  <p class="mt-2 text-2xl font-bold text-cyan-300">{{ counts().confirmed }}</p>
-                  <p class="text-xs text-slate-300 mt-1">Appointments ready to visit</p>
-                }
-              </div>
-              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Needs action</p>
-                <p class="mt-2 text-2xl font-bold text-amber-300">{{ counts().pending + (canViewRevenue ? unpaidAppointments() : 0) }}</p>
-                <p class="text-xs text-slate-300 mt-1">{{ canViewRevenue ? 'Pending confirmations + unpaid visits' : 'Pending confirmations' }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-4">
-          <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Today's queue</p>
-            <p class="mt-2 text-3xl font-extrabold text-ui-ink">{{ todayQueue().scheduled }}</p>
-            <div class="mt-4 space-y-2 text-sm text-ui-ink-muted">
-              <div class="flex items-center justify-between">
-                <span>Pending</span>
-                <span class="font-semibold text-amber-600">{{ todayQueue().pending }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span>In clinic</span>
-                <span class="font-semibold text-blue-600">{{ todayQueue().inClinic }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span>Completed</span>
-                <span class="font-semibold text-emerald-600">{{ todayQueue().completed }}</span>
-              </div>
-            </div>
-          </div>
-
-          @if (canViewRevenue) {
-            <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
-              <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Today's payments</p>
-              <p class="mt-2 text-3xl font-extrabold text-ui-ink">{{ formatCurrency(todayCollectedRevenue()) }}</p>
-              <p class="mt-2 text-sm text-gray-500">Collected from paid and partial visits scheduled for today.</p>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
-              <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Outstanding revenue</p>
-              <p class="mt-2 text-3xl font-extrabold text-ui-ink">{{ formatCurrency(outstandingRevenue()) }}</p>
-              <p class="mt-2 text-sm text-gray-500">{{ unpaidAppointments() }} unpaid and {{ partialPayments() }} partial payment{{ partialPayments() === 1 ? '' : 's' }} to follow up.</p>
-            </div>
-          } @else {
-            <div class="rounded-2xl border border-purple-200 bg-purple-50 p-5 sm:col-span-2 xl:col-span-1">
-              <p class="text-[11px] font-bold uppercase tracking-wide text-purple-700">Pro feature</p>
-              <p class="mt-2 text-base font-bold text-ui-ink">Revenue and payment insights</p>
-              <p class="mt-2 text-sm text-ui-ink-muted">Upgrade to Pro for daily collections, outstanding balances, and payment follow-up totals.</p>
-              <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
-                 class="mt-4 inline-flex text-xs font-bold text-purple-700 hover:text-purple-800">View Pro plan →</a>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- ── Stat cards ────────────────────────────────────────────────── -->
-      <div class="admin-stat-grid lg:grid-cols-5">
-        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
-             (click)="activeTab.set('all')">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Total</span>
-            <div class="w-8 h-8 bg-ui-canvas-subtle rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-            </div>
-          </div>
-          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().all }}</p>
-          <p class="text-xs text-gray-400 mt-1">appointments</p>
-        </div>
-
-        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
-             (click)="activeTab.set('today')">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Today</span>
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" [style.background]="themeColor.hexLight">
-              <svg class="w-4 h-4" [class]="themeColor.textClass" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-            </div>
-          </div>
-          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().today }}</p>
-          <p class="text-xs text-gray-400 mt-1">scheduled</p>
-        </div>
-
-        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
-             [class.ring-2]="counts().pending > 0" [class.ring-amber-300]="counts().pending > 0"
-             (click)="activeTab.set('pending')">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Pending</span>
-            <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-          </div>
-          <p class="text-2xl font-extrabold" [class]="counts().pending > 0 ? 'text-amber-600' : 'text-gray-900'">{{ counts().pending }}</p>
-          <p class="text-xs text-gray-400 mt-1">need action</p>
-        </div>
-
-        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
-             (click)="activeTab.set('checked_in')">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Arrived</span>
-            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
-            </div>
-          </div>
-          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().checked_in }}</p>
-          <p class="text-xs text-gray-400 mt-1">in clinic now</p>
-        </div>
-
-        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
-             (click)="activeTab.set('completed')">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Done</span>
-            <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-          </div>
-          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().completed }}</p>
-          <p class="text-xs text-gray-400 mt-1">completed</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4">
-        <div class="bg-white rounded-2xl border border-ui-line shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-ui-line flex items-center justify-between gap-3">
-            <div>
-              <h2 class="font-bold text-ui-ink text-sm">Today's agenda</h2>
-              <p class="text-xs text-gray-400 mt-0.5">Who needs attention before the day gets busy</p>
-            </div>
-            <span class="text-xs font-semibold text-gray-500">{{ agendaPreview().length }} visible</span>
-          </div>
-
-          @if (agendaPreview().length > 0) {
-            <div class="divide-y divide-gray-100">
-              @for (appt of agendaPreview(); track appt.id) {
-                <button type="button"
-                        (click)="openDetail(appt)"
-                        class="w-full text-left px-5 py-4 hover:bg-ui-muted transition-colors">
-                  <div class="flex items-start justify-between gap-4">
-                    <div>
-                      <p class="font-semibold text-ui-ink text-sm">{{ appt.name }}</p>
-                      <p class="text-xs text-gray-500 mt-1">{{ appt.service }} · {{ appt.time }}</p>
-                    </div>
-                    <div class="text-right shrink-0">
-                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                            [class]="statusColor(appt.status)">
-                        {{ statusLabel(appt.status) }}
-                      </span>
-                      @if (canManageOperations && appt.paymentStatus) {
-                        <p class="text-[11px] text-gray-400 mt-2">{{ paymentStatusLabel(appt.paymentStatus) }}</p>
-                      }
-                    </div>
-                  </div>
-                </button>
-              }
-            </div>
-          } @else {
-            <div class="px-5 py-10 text-center">
-              <p class="text-sm font-semibold text-ui-ink-soft">No appointments scheduled for today</p>
-              <p class="text-xs text-gray-400 mt-1">New same-day bookings will appear here automatically.</p>
-            </div>
-          }
-        </div>
-
-        @if (canViewRevenue) {
-        <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
-          <h2 class="font-bold text-ui-ink text-sm">Revenue snapshot</h2>
-          <p class="text-xs text-gray-400 mt-1">Use this to spot billing gaps before the end of the day.</p>
-
-          <div class="mt-5 space-y-4">
-            <div class="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-4">
-              <p class="text-[11px] uppercase tracking-wide text-emerald-700">Paid revenue</p>
-              <p class="mt-2 text-2xl font-extrabold text-emerald-900">{{ formatCurrency(paidRevenue()) }}</p>
-            </div>
-
-            <div class="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-4">
-              <p class="text-[11px] uppercase tracking-wide text-amber-700">Outstanding</p>
-              <p class="mt-2 text-2xl font-extrabold text-amber-900">{{ formatCurrency(outstandingRevenue()) }}</p>
-              <p class="mt-2 text-xs text-amber-800">{{ unpaidAppointments() }} unpaid and {{ partialPayments() }} partial visits still need closure.</p>
-            </div>
-
-            <div class="rounded-2xl bg-ui-muted border border-ui-line px-4 py-4">
-              <p class="text-[11px] uppercase tracking-wide text-slate-500">Payment follow-up playbook</p>
-              <ul class="mt-3 space-y-2 text-sm text-ui-ink-muted">
-                <li>Confirm pending patients before clinic hours end.</li>
-                <li>Review partial payments before marking treatment complete.</li>
-                <li>Export CSV when the front desk needs a manual cash tally.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        } @else {
-          <div class="flex flex-col justify-center rounded-2xl border border-purple-200 bg-purple-50 p-6">
-            <span class="w-fit rounded-full bg-purple-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-purple-700">Pro</span>
-            <h2 class="mt-3 text-base font-bold text-ui-ink">Understand clinic revenue at a glance</h2>
-            <p class="mt-2 text-sm leading-relaxed text-ui-ink-muted">Pro adds collected and outstanding revenue totals plus a daily payment follow-up view.</p>
-            <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
-               class="mt-4 inline-flex text-xs font-bold text-purple-700 hover:text-purple-800">Compare plans →</a>
-          </div>
-        }
-      </div>
 
       <!-- ── Appointments panel ────────────────────────────────────────── -->
       <div class="bg-white rounded-2xl border border-ui-line shadow-sm overflow-hidden">
@@ -1041,7 +710,7 @@
             <h2 class="font-bold text-ui-ink text-sm mr-auto">Appointments</h2>
 
             <!-- Search toggle -->
-            <button (click)="showFilters.set(!showFilters())"
+            <button (click)="showFilters.set(!showFilters())" [attr.aria-expanded]="showFilters()" aria-controls="appointment-filters"
                     class="flex items-center gap-1.5 text-xs font-medium border px-3 py-1.5 rounded-lg transition-all"
                     [class]="hasActiveFilters()
                       ? 'bg-blue-50 border-blue-300 text-blue-700'
@@ -1049,7 +718,7 @@
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
               </svg>
-              Filter
+              Search & filters
               @if (hasActiveFilters()) { <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> }
             </button>
 
@@ -1061,19 +730,19 @@
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
               </svg>
-              CSV
+              Export CSV
             </button>
           </div>
 
           <!-- Search + date filters (expandable) -->
           @if (showFilters()) {
-            <div class="px-5 pb-4 space-y-3 border-t border-gray-50 pt-3">
+            <div id="appointment-filters" class="px-5 pb-4 space-y-3 border-t border-gray-50 pt-3">
               <!-- Search -->
               <div class="relative">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input type="text" placeholder="Search by name, phone, service, or ref…"
+                <input type="text" aria-label="Search appointments" placeholder="Search by name, phone, service, or ref…"
                        [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
                        class="w-full pl-9 pr-4 py-2.5 text-sm border border-ui-line rounded-xl outline-none
                               focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white">
@@ -1083,12 +752,12 @@
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div class="flex items-center gap-2 flex-1 min-w-0">
                   <span class="text-xs text-gray-500 font-medium flex-shrink-0 w-8">From</span>
-                  <input type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)"
+                  <input type="date" aria-label="From date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)"
                          class="flex-1 min-w-0 text-xs border border-ui-line rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-300 bg-white">
                 </div>
                 <div class="flex items-center gap-2 flex-1 min-w-0">
                   <span class="text-xs text-gray-500 font-medium flex-shrink-0 w-8">To</span>
-                  <input type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)"
+                  <input type="date" aria-label="To date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)"
                          class="flex-1 min-w-0 text-xs border border-ui-line rounded-lg px-2.5 py-2.5 sm:py-2 outline-none focus:ring-2 focus:ring-blue-300 bg-white">
                 </div>
 
@@ -1123,7 +792,7 @@
               {id:'checked_in',label:'Arrived',   badge: counts().checked_in},
               {id:'completed', label:'Completed', badge: 0}
             ]); track tab.id) {
-              <button (click)="activeTab.set($any(tab.id))"
+              <button (click)="activeTab.set($any(tab.id))" [attr.aria-pressed]="activeTab() === tab.id"
                       class="relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                       [class]="activeTab() === tab.id ? 'text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'"
                       [style.background]="activeTab() === tab.id ? themeColor.hex : ''">
@@ -1391,9 +1060,317 @@
 
       </div>
 
+      <details class="bg-white rounded-2xl border border-ui-line">
+        <summary class="cursor-pointer px-5 py-4 text-sm font-semibold text-ui-ink focus-visible:outline focus-visible:outline-2">Clinic overview and plan</summary>
+        <div class="p-4 space-y-5">
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4">
+        <div class="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-sm">
+          <div class="px-6 py-6">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.25em] text-ui-inverse-muted">Clinic overview</p>
+                <h2 class="mt-3 text-3xl font-extrabold leading-tight">{{ greeting }}, {{ greetingLine }}</h2>
+                <p class="mt-2 text-sm text-slate-300 max-w-2xl">
+                  {{ todayFormatted }}. Keep the front desk focused on pending confirmations, today's arrivals and payment follow-ups.
+                </p>
+              </div>
+
+              @if (nextAppointment()) {
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 min-w-[240px]">
+                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Next appointment</p>
+                  <p class="mt-2 text-lg font-bold text-white">{{ nextAppointment()!.name }}</p>
+                  <p class="text-sm text-slate-300 mt-1">{{ nextAppointment()!.service }} · {{ nextAppointment()!.time }}</p>
+                  <button (click)="openDetail(nextAppointment()!)"
+                          class="mt-3 text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors">
+                    Open details →
+                  </button>
+                </div>
+              } @else {
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 min-w-[240px]">
+                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Next appointment</p>
+                  <p class="mt-2 text-lg font-bold text-white">No active appointments</p>
+                  <p class="text-sm text-slate-300 mt-1">New online bookings will appear here automatically.</p>
+                </div>
+              }
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Completion rate</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ completionRate() }}%</p>
+                <p class="text-xs text-slate-300 mt-1">Across active appointments</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                @if (canViewRevenue) {
+                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Collected revenue</p>
+                  <p class="mt-2 text-2xl font-bold text-emerald-300">{{ formatCurrency(paidRevenue()) }}</p>
+                  <p class="text-xs text-slate-300 mt-1">Paid treatments logged so far</p>
+                } @else {
+                  <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Confirmed</p>
+                  <p class="mt-2 text-2xl font-bold text-cyan-300">{{ counts().confirmed }}</p>
+                  <p class="text-xs text-slate-300 mt-1">Appointments ready to visit</p>
+                }
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                <p class="text-[11px] uppercase tracking-wide text-ui-inverse-muted">Needs action</p>
+                <p class="mt-2 text-2xl font-bold text-amber-300">{{ counts().pending + (canViewRevenue ? unpaidAppointments() : 0) }}</p>
+                <p class="text-xs text-slate-300 mt-1">{{ canViewRevenue ? 'Pending confirmations + unpaid visits' : 'Pending confirmations' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-4">
+          <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Today's queue</p>
+            <p class="mt-2 text-3xl font-extrabold text-ui-ink">{{ todayQueue().scheduled }}</p>
+            <div class="mt-4 space-y-2 text-sm text-ui-ink-muted">
+              <div class="flex items-center justify-between">
+                <span>Pending</span>
+                <span class="font-semibold text-amber-600">{{ todayQueue().pending }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>In clinic</span>
+                <span class="font-semibold text-blue-600">{{ todayQueue().inClinic }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Completed</span>
+                <span class="font-semibold text-emerald-600">{{ todayQueue().completed }}</span>
+              </div>
+            </div>
+          </div>
+
+          @if (canViewRevenue) {
+            <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
+              <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Today's payments</p>
+              <p class="mt-2 text-3xl font-extrabold text-ui-ink">{{ formatCurrency(todayCollectedRevenue()) }}</p>
+              <p class="mt-2 text-sm text-gray-500">Collected from paid and partial visits scheduled for today.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
+              <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Outstanding revenue</p>
+              <p class="mt-2 text-3xl font-extrabold text-ui-ink">{{ formatCurrency(outstandingRevenue()) }}</p>
+              <p class="mt-2 text-sm text-gray-500">{{ unpaidAppointments() }} unpaid and {{ partialPayments() }} partial payment{{ partialPayments() === 1 ? '' : 's' }} to follow up.</p>
+            </div>
+          } @else {
+            <div class="rounded-2xl border border-purple-200 bg-purple-50 p-5 sm:col-span-2 xl:col-span-1">
+              <p class="text-[11px] font-bold uppercase tracking-wide text-purple-700">Pro feature</p>
+              <p class="mt-2 text-base font-bold text-ui-ink">Revenue and payment insights</p>
+              <p class="mt-2 text-sm text-ui-ink-muted">Upgrade to Pro for daily collections, outstanding balances, and payment follow-up totals.</p>
+              <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
+                 class="mt-4 inline-flex text-xs font-bold text-purple-700 hover:text-purple-800">View Pro plan →</a>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Stat cards ────────────────────────────────────────────────── -->
+      <div class="admin-stat-grid lg:grid-cols-5">
+        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
+             (click)="activeTab.set('all')">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Total</span>
+            <div class="w-8 h-8 bg-ui-canvas-subtle rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+            </div>
+          </div>
+          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().all }}</p>
+          <p class="text-xs text-gray-400 mt-1">appointments</p>
+        </div>
+
+        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
+             (click)="activeTab.set('today')">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Today</span>
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" [style.background]="themeColor.hexLight">
+              <svg class="w-4 h-4" [class]="themeColor.textClass" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+          </div>
+          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().today }}</p>
+          <p class="text-xs text-gray-400 mt-1">scheduled</p>
+        </div>
+
+        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
+             [class.ring-2]="counts().pending > 0" [class.ring-amber-300]="counts().pending > 0"
+             (click)="activeTab.set('pending')">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Pending</span>
+            <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+          <p class="text-2xl font-extrabold" [class]="counts().pending > 0 ? 'text-amber-600' : 'text-gray-900'">{{ counts().pending }}</p>
+          <p class="text-xs text-gray-400 mt-1">need action</p>
+        </div>
+
+        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
+             (click)="activeTab.set('checked_in')">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Arrived</span>
+            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+          </div>
+          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().checked_in }}</p>
+          <p class="text-xs text-gray-400 mt-1">in clinic now</p>
+        </div>
+
+        <div class="admin-stat-card cursor-pointer hover:shadow-md transition-shadow"
+             (click)="activeTab.set('completed')">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Done</span>
+            <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+          <p class="text-2xl font-extrabold text-ui-ink">{{ counts().completed }}</p>
+          <p class="text-xs text-gray-400 mt-1">completed</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-4">
+        <div class="bg-white rounded-2xl border border-ui-line shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-ui-line flex items-center justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-ui-ink text-sm">Today's agenda</h2>
+              <p class="text-xs text-gray-400 mt-0.5">Who needs attention before the day gets busy</p>
+            </div>
+            <span class="text-xs font-semibold text-gray-500">{{ agendaPreview().length }} visible</span>
+          </div>
+
+          @if (agendaPreview().length > 0) {
+            <div class="divide-y divide-gray-100">
+              @for (appt of agendaPreview(); track appt.id) {
+                <button type="button"
+                        (click)="openDetail(appt)"
+                        class="w-full text-left px-5 py-4 hover:bg-ui-muted transition-colors">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="font-semibold text-ui-ink text-sm">{{ appt.name }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ appt.service }} · {{ appt.time }}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                            [class]="statusColor(appt.status)">
+                        {{ statusLabel(appt.status) }}
+                      </span>
+                      @if (canManageOperations && appt.paymentStatus) {
+                        <p class="text-[11px] text-gray-400 mt-2">{{ paymentStatusLabel(appt.paymentStatus) }}</p>
+                      }
+                    </div>
+                  </div>
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="px-5 py-10 text-center">
+              <p class="text-sm font-semibold text-ui-ink-soft">No appointments scheduled for today</p>
+              <p class="text-xs text-gray-400 mt-1">New same-day bookings will appear here automatically.</p>
+            </div>
+          }
+        </div>
+
+        @if (canViewRevenue) {
+        <div class="bg-white rounded-2xl border border-ui-line shadow-sm p-5">
+          <h2 class="font-bold text-ui-ink text-sm">Revenue snapshot</h2>
+          <p class="text-xs text-gray-400 mt-1">Use this to spot billing gaps before the end of the day.</p>
+
+          <div class="mt-5 space-y-4">
+            <div class="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-4">
+              <p class="text-[11px] uppercase tracking-wide text-emerald-700">Paid revenue</p>
+              <p class="mt-2 text-2xl font-extrabold text-emerald-900">{{ formatCurrency(paidRevenue()) }}</p>
+            </div>
+
+            <div class="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-4">
+              <p class="text-[11px] uppercase tracking-wide text-amber-700">Outstanding</p>
+              <p class="mt-2 text-2xl font-extrabold text-amber-900">{{ formatCurrency(outstandingRevenue()) }}</p>
+              <p class="mt-2 text-xs text-amber-800">{{ unpaidAppointments() }} unpaid and {{ partialPayments() }} partial visits still need closure.</p>
+            </div>
+
+            <div class="rounded-2xl bg-ui-muted border border-ui-line px-4 py-4">
+              <p class="text-[11px] uppercase tracking-wide text-slate-500">Payment follow-up playbook</p>
+              <ul class="mt-3 space-y-2 text-sm text-ui-ink-muted">
+                <li>Confirm pending patients before clinic hours end.</li>
+                <li>Review partial payments before marking treatment complete.</li>
+                <li>Export CSV when the front desk needs a manual cash tally.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        } @else {
+          <div class="flex flex-col justify-center rounded-2xl border border-purple-200 bg-purple-50 p-6">
+            <span class="w-fit rounded-full bg-purple-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-purple-700">Pro</span>
+            <h2 class="mt-3 text-base font-bold text-ui-ink">Understand clinic revenue at a glance</h2>
+            <p class="mt-2 text-sm leading-relaxed text-ui-ink-muted">Pro adds collected and outstanding revenue totals plus a daily payment follow-up view.</p>
+            <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
+               class="mt-4 inline-flex text-xs font-bold text-purple-700 hover:text-purple-800">Compare plans →</a>
+          </div>
+        }
+      </div>
+
+      <!-- ── Subscription banner ───────────────────────────────────────── -->
+      @if (isFree) {
+        <div class="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="w-9 h-9 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="font-bold text-orange-900 text-sm">Your Free plan stays active</p>
+              <p class="text-orange-700 text-xs mt-0.5">Upgrade to Basic for patient records, doctors, branding, and a custom domain.</p>
+            </div>
+          </div>
+          <a routerLink="/business/clinic/settings" [queryParams]="{tab:'subscription'}"
+             class="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors">
+            View Basic — ₹999/month →
+          </a>
+        </div>
+      }
+
+      <!-- ── Website live banner ─────────────────────────────────────── -->
+      @if (websiteUrl) {
+        <div class="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex items-center gap-3 flex-1">
+            <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="font-bold text-emerald-800 text-sm">Your professional dental website is ready!</p>
+              <p class="text-emerald-700 text-xs mt-0.5">Share your unique link with patients and start receiving online bookings.</p>
+            </div>
+          </div>
+          <a [href]="websiteUrl" target="_blank" rel="noopener"
+             class="shrink-0 inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            View Website
+          </a>
+        </div>
+      }
+
+
+        </div>
+      </details>
+
       <!-- ── Pro feature teasers ────────────────────────────────────────── -->
       @if (showUpgradeBanner) {
-        <div>
+        <details class="bg-white rounded-2xl border border-ui-line p-5">
+          <summary class="cursor-pointer text-sm font-semibold text-ui-ink mb-4">Explore plan features</summary>
           <div class="flex items-center gap-3 mb-4">
             <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ upgradeHeading }}</h2>
             <div class="flex-1 h-px bg-ui-canvas-subtle"></div>
@@ -1457,7 +1434,7 @@
               </div>
             }
           </div>
-        </div>
+        </details>
       }
       } @else if (activeSection() === 'enquiries') {
         <!-- ── Enquiries View ────────────────────────────────────────────── -->
