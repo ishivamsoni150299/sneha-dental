@@ -34,12 +34,15 @@ The completion target is a consistent, maintainable project with passing accepta
 
 MyDentalPlatform is an appointment marketplace first. The clinic software and clinic websites create and retain the supply that makes the marketplace useful.
 
-The product has three clear surfaces under one brand:
+The shared public entry point is `/dentists`. `/business` and `/professional` redirect there. `/account` provides sign-in and account creation for patients, dentists, and clinics; existing login URLs redirect to it. Sign-in opens the workspace associated with the authenticated role. Signup asks for account type and retains the recovery-code handoff before opening the workspace or clinic setup.
+
+These journeys remain separate permission boundaries under one brand:
 
 | Surface | User | Purpose | Primary route or host |
 |---|---|---|---|
 | Patient marketplace | Patients | Discover, compare, and book verified dentists | `mydentalplatform.com/dentists` |
-| Clinic workspace | Clinic owners and staff | Manage dentists, schedules, patients, bookings, verification, and website content | `mydentalplatform.com/business` |
+| Dentist workspace | Dentists | Manage their profile, availability, and appointments | `mydentalplatform.com/professional/workspace` |
+| Clinic workspace | Clinic owners and staff | Manage dentists, schedules, patients, bookings, verification, and website content | `mydentalplatform.com/business/clinic/dashboard` |
 | Clinic website | A clinic's patients | Learn about one clinic and book through the same scheduling system | `{clinic}.mydentalplatform.com` or the clinic's custom domain |
 
 The marketplace is the main product. A clinic website is an optional acquisition channel for a clinic. Both create appointments through the same booking service and write to the same clinic calendar.
@@ -61,7 +64,7 @@ flowchart LR
     I --> J[Verified review]
 ```
 
-Patients should never need to understand the clinic website product. Their global navigation is limited to Find a dentist, My appointments, and urgent-care help.
+Patients should never need to understand the clinic website product. Shared navigation provides Find a dentist, My appointments, and Sign in (or the authenticated account/workspace). Dentist and clinic signup links appear on the shared home page.
 
 ### Clinic flow
 

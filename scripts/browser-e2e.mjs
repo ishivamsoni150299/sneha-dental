@@ -328,6 +328,27 @@ try {
   await clinicPage.getByRole('button', { name: 'Confirm cancellation', exact: true }).click();
   await clinicPage.getByRole('alert').filter({ hasText: 'Self-service cancellation is unavailable' }).waitFor();
 
+  // All public account types share the same signup form and recovery-code handoff.
+  for (const [type, destination] of [['patient', '/appointments'], ['dentist', '/professional/workspace'], ['clinic', '/business/signup']]) {
+    const signupPage = await browser.newPage();
+    await signupPage.goto(`${appUrl}/account?mode=signup&type=${type}`);
+    await signupPage.getByRole('heading', { name: 'Create your account', exact: true }).waitFor();
+    if (type === 'dentist') await signupPage.getByRole('textbox', { name: 'Full name', exact: true }).fill('E2E Unified Dentist');
+    await signupPage.getByRole('textbox', { name: 'Email address', exact: true }).fill(`unified-${type}-${suffix}@example.test`);
+    await signupPage.getByLabel('Password', { exact: true }).fill(password);
+    await signupPage.getByLabel('Confirm password', { exact: true }).fill(password);
+    await signupPage.getByRole('button', { name: 'Create account', exact: true }).click();
+    await signupPage.getByRole('heading', { name: 'Save your recovery code', exact: true }).waitFor();
+    await signupPage.getByRole('button', { name: 'I saved my code — continue', exact: true }).waitFor();
+    assert.ok((await signupPage.getByRole('textbox', { name: 'Recovery code', exact: true }).inputValue()).length > 0);
+    assert.equal(await signupPage.getByRole('button', { name: 'New account', exact: true }).count(), 0);
+    await signupPage.getByRole('button', { name: 'I saved my code — continue', exact: true }).click();
+    await signupPage.waitForURL(url => url.pathname === destination);
+    await signupPage.getByRole('heading').first().waitFor();
+    console.log(`PASS unified signup: ${type} reaches ${destination}`);
+    await signupPage.close();
+  }
+
   if (process.env.E2E_UX_AUDIT === '1') {
     const guestPage = await browser.newPage();
     const failures = await checkUxRoutes(guestPage, appUrl, 'public', [

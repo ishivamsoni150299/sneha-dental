@@ -20,7 +20,10 @@ export async function checkUxRoutes(page, base, role, paths) {
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         assert.ok(overflow <= 1, `Horizontal overflow: ${overflow}px`);
         assert.deepEqual(errors, [], 'No uncaught browser errors');
-        if (role !== 'public') assert.ok(!new URL(page.url()).pathname.endsWith('/login'), 'Authenticated route must not fall back to login');
+        if (role !== 'public') {
+          const pathname = new URL(page.url()).pathname;
+          assert.ok(pathname !== '/account' && !pathname.endsWith('/login'), 'Authenticated route must not fall back to login');
+        }
         console.log(`PASS UX ${role} ${width}px ${path}`);
       } catch (error) {
         const name = `${role}-${width}-${path.replace(/[^a-z0-9]/gi, '_')}`;

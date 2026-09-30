@@ -38,6 +38,14 @@ Run the expanded local browser pass with the same isolated database/environment 
 
 Logs and screenshots are local, untracked artifacts under `artifacts/clinic-ux` and `artifacts/ux-route-checks`. Screenshots 04-settings-desktop, 05-settings-mobile, and 06-reviews-mobile provide visual evidence.
 
+## Unified platform follow-up
+
+The shared home is now `/dentists`, with `/business` and `/professional` redirecting there. `/account` handles sign-in and patient/dentist/clinic signup. Existing login URLs remain aliases. The authenticated role determines the workspace, and role-scoped return URLs preserve patient claim links and video booking selections. The two superseded dentist authentication components were removed; they remain recoverable in Git history.
+
+The follow-up production build passed with 28 prerendered routes. The isolated Playwright transaction suite passed again, including new browser signup tests for all three public account types, recovery-code handoff, and the expected workspace/setup destination. All 192 route/layout checks passed at 1440px, 768px, and 320px. The earlier aborted navigation to the clinic doctors page did not recur. Authenticated route checks now reject fallback to `/account` as well as legacy login URLs.
+
+The final frontend unit-test run passed all 180 tests. Evidence: local `artifacts/unified-account-build.log`, `artifacts/unified-account-e2e-final.log`, and `artifacts/unified-account-tests-final.log`. Signup fixtures use dummy accounts in the isolated database. This follow-up does not validate deployed production behavior or real video/payment/email providers.
+
 ## Release limits
 
 No production deployment or production data changes occurred. Real payment settlement, outbound email delivery, live video media transport, backup restoration, and the previously documented dependency upgrade remain separate release checks. This UX pass does not certify the entire project as production-ready.
