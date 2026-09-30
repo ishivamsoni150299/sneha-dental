@@ -1,41 +1,38 @@
-<div class="ui-shell">
-  <header class="ui-topbar">
-    <div class="ui-container flex min-h-16 items-center justify-between gap-4 py-2">
-      <a routerLink="/business" class="flex min-w-0 items-center gap-2.5" aria-label="mydentalplatform home"><app-platform-brand /></a>
-      @if (!isPlatform()) {
-        <a routerLink="/business/signup" class="ui-btn ui-btn-secondary">Start free</a>
-      }
+<section class="mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="account-title">
+  <div class="ui-card ui-auth-card">
+    <div class="space-y-3">
+      <h1 id="account-title" class="ui-heading ui-heading-interface">{{ signup() ? 'Create your account' : 'Sign in' }}</h1>
+      <p class="ui-body">{{ signup() ? 'Choose how you will use My Dental Platform.' : 'One sign-in for patients, dentists, and clinics. We’ll open the right workspace for your account.' }}</p>
     </div>
-  </header>
-  <main id="main-content" class="ui-auth-layout ui-auth-layout-split">
-    <aside class="hidden lg:block">
-      <p class="ui-eyebrow">{{ isPlatform() ? 'Platform operations' : 'Clinic workspace' }}</p>
-      <h2 class="ui-heading ui-heading-interface">{{ isPlatform() ? 'Secure access for the team running the platform.' : 'Your clinic day, ready when you are.' }}</h2>
-      <p class="ui-body mt-5 max-w-md">
-        {{ isPlatform()
-          ? 'Review clinics, subscriptions, leads, and service health from one protected workspace.'
-          : 'Appointments, patients, doctors, website content, and billing stay together in one focused workspace.' }}
-      </p>
-      <div class="mt-10 grid gap-3 sm:grid-cols-3">
-        @for (item of (isPlatform()
-          ? ['Role checked', 'Tenant isolated', 'Session protected']
-          : ['Today at a glance', 'Patient-safe access', 'Clinic-specific data']); track item) {
-          <p class="ui-caption border-t border-ui-line pt-3">{{ item }}</p>
-        }
+    @if (!ready()) {
+      <p role="status" class="ui-body">Checking your session…</p>
+    } @else {
+      @if (!auth.isAuthenticated) {
+      <div class="flex gap-2" aria-label="Account access">
+        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="!signup()" [attr.aria-pressed]="!signup()" (click)="setMode(false)">Existing account</button>
+        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="signup()" [attr.aria-pressed]="signup()" (click)="setMode(true)">New account</button>
       </div>
-    </aside>
-    <section class="ui-card ui-auth-card">
-      <div class="space-y-3">
-        <p class="ui-eyebrow">{{ isPlatform() ? 'Restricted access' : 'Welcome back' }}</p>
-        <h1 class="ui-heading ui-heading-interface">{{ isPlatform() ? 'Platform staff sign in' : 'Sign in to your clinic' }}</h1>
-        <p class="ui-body">{{ isPlatform() ? 'Only authorised platform accounts can continue.' : 'Use the account connected to your clinic.' }}</p>
-      </div>
-      <app-password-login [portal]="portal()" (authenticated)="onAuthenticated($event)" />
-      @if (!isPlatform()) {
-        <p class="ui-auth-footer">New to mydentalplatform? <a routerLink="/business/signup" class="ui-btn ui-btn-ghost">Start your clinic free</a></p>
-      } @else {
-        <p class="ui-auth-footer">Access is logged and limited to authorised platform staff.</p>
       }
-    </section>
-  </main>
-</div>
+      @if (signup()) {
+        <fieldset class="space-y-2" [disabled]="auth.isAuthenticated || loginForm()?.busy()">
+          <legend class="ui-label mb-2">I’m joining as a</legend>
+          @for (type of types; track type.id) {
+            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-ui-line p-3">
+              <input type="radio" name="account-type" [value]="type.id" [checked]="accountType() === type.id" (change)="setType(type.id)">
+              <span><strong class="text-sm text-ui-ink">{{ type.label }}</strong><span class="block text-xs text-ui-ink-muted">{{ type.help }}</span></span>
+            </label>
+          }
+        </fieldset>
+      }
+      @if (signup()) {
+        @for (type of types; track type.id) {
+          @if (accountType() === type.id) {
+            <app-password-login [portal]="type.id" [signup]="true" (authenticated)="onAuthenticated($event)" />
+          }
+        }
+      } @else {
+        <app-password-login portal="patient" (authenticated)="onAuthenticated($event)" />
+      }
+    }
+  </div>
+</section>

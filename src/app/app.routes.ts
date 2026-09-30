@@ -3,8 +3,13 @@ import { clinicRequiredGuard } from './core/guards/clinic-required.guard';
 import { platformOnlyGuard } from './core/guards/platform-only.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
 import { dentistGuard } from './core/guards/dentist.guard';
+import { accountRedirect, dentistSignupRedirect } from './core/utils/account-navigation';
 
 export const routes: Routes = [
+  { path: 'account', pathMatch: 'full', canActivate: [platformOnlyGuard],
+    loadComponent: () => import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
+    children: [{ path: '', loadComponent: () => import('./features/business/login/login.component').then(m => m.LoginComponent), data: { title: 'Sign in or create an account', noIndex: true } }],
+  },
   { path: 'account/recovery', loadComponent: () => import('./features/professional/account-recovery.component').then(m => m.AccountRecoveryComponent), data: { noIndex: true } },
   { path: 'video-test', loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Private Video Test', noIndex: true } },
 
@@ -14,9 +19,9 @@ export const routes: Routes = [
     canActivate: [platformOnlyGuard],
     children: [
       { path: 'video-test', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Test Video Consultation', noIndex: true, host: true } },
-      { path: '', pathMatch: 'full', loadComponent: () => import('./features/professional/professional-landing.component').then(m => m.ProfessionalLandingComponent), data: { title: 'List Your Dentist Profile', description: 'Create an independent verified dentist profile, add practice locations, publish availability, and receive appointments.' } },
-      { path: 'signup', loadComponent: () => import('./features/professional/professional-signup.component').then(m => m.ProfessionalSignupComponent), data: { title: 'Create Your Dentist Profile', description: 'Create a dentist account, add your qualifications and practice locations, and submit your profile for verification.', noIndex: true } },
-      { path: 'login', loadComponent: () => import('./features/professional/professional-login.component').then(m => m.ProfessionalLoginComponent), data: { title: 'Dentist Sign In', noIndex: true } },
+      { path: '', pathMatch: 'full', redirectTo: '/dentists' },
+      { path: 'signup', redirectTo: dentistSignupRedirect },
+      { path: 'login', redirectTo: accountRedirect },
       { path: 'profile', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-profile.component').then(m => m.ProfessionalProfileComponent), data: { title: 'Dentist Profile', noIndex: true } },
       { path: 'workspace', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-workspace.component').then(m => m.ProfessionalWorkspaceComponent), data: { title: 'Dentist Appointments and Availability', noIndex: true } },
     ],
@@ -353,9 +358,7 @@ export const routes: Routes = [
   // ── Internal platform staff access ───────────────────────────────────────
   {
     path: 'platform/login',
-    canActivate: [platformOnlyGuard],
-    loadComponent: () =>
-      import('./features/business/login/login.component').then(m => m.LoginComponent),
+    redirectTo: accountRedirect,
     data: {
       title: 'Platform Staff Access',
       description: 'Restricted access for authorised mydentalplatform staff.',

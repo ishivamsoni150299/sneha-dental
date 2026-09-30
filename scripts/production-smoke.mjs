@@ -17,13 +17,14 @@ await mkdir(artifactDir, { recursive: true });
 const routes = [
   { path: '/dentists', heading: /Find your dentist/i },
   { path: '/dentists/noida', heading: /Dental Care Directory for Noida/i },
-  { path: '/professional', heading: /Your professional identity/i },
-  { path: '/professional/login', heading: /Welcome back/i },
-  { path: '/business', heading: /clinic/i },
-  { path: '/business/login', heading: /clinic.*sign in|sign in.*clinic/i },
+  { path: '/professional', heading: /Find your dentist/i },
+  { path: '/professional/login', heading: /^Sign in$/i },
+  { path: '/business', heading: /Find your dentist/i },
+  { path: '/business/login', heading: /^Sign in$/i },
+  { path: '/account', heading: /^Sign in$/i },
   { path: '/business/privacy', heading: /privacy/i },
   { path: '/business/terms', heading: /terms/i },
-  { path: '/platform/login', heading: /platform|admin/i },
+  { path: '/platform/login', heading: /^Sign in$/i },
   { path: '/appointments', heading: /appointments|sign in/i },
 ];
 

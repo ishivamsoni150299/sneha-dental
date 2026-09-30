@@ -8,10 +8,11 @@
       <a routerLink="/dentists" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-magnifying-glass" aria-hidden="true"></i>Find a dentist</a>
       <a routerLink="/appointments" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-calendar-blank" aria-hidden="true"></i>My appointments</a>
     </nav>
-    <details #professionalMenu class="professional-menu" (keydown.escape)="professionalMenu.open = false">
-      <summary>For professionals <i class="ph ph-caret-down" aria-hidden="true"></i></summary>
-      <div><a routerLink="/professional" (click)="professionalMenu.open = false">Dentists <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a><a routerLink="/business" (click)="professionalMenu.open = false">Clinics <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a></div>
-    </details>
+    @if (auth.role(); as role) {
+      <a class="account-link ui-btn ui-btn-secondary" [routerLink]="accountDestination(role)">{{ role === 'patient' ? 'My account' : 'Workspace' }}</a>
+    } @else {
+      <a class="account-link ui-btn ui-btn-primary" routerLink="/account">Sign in</a>
+    }
   </header>
   <main id="marketplace-content"><router-outlet /></main>
   <nav class="patient-tab-bar" aria-label="Mobile patient navigation">
@@ -26,6 +27,6 @@
   </nav>
   <footer>
     <div class="footer-brand"><a routerLink="/dentists" aria-label="mydentalplatform patient home"><app-platform-brand size="sm" /></a><p>Good dental care starts with a confident choice.</p><span>Connecting patients with verified dentists in Delhi NCR.</span></div>
-    <nav aria-label="Footer"><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a><a routerLink="/dentists">Patients</a><a routerLink="/professional">Dentists</a><a routerLink="/business">Clinics</a></nav>
+    <nav aria-label="Footer"><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a><a routerLink="/dentists">Patients</a><a routerLink="/account" [queryParams]="{mode: 'signup', type: 'dentist'}">Dentists</a><a routerLink="/account" [queryParams]="{mode: 'signup', type: 'clinic'}">Clinics</a></nav>
   </footer>
 </div>

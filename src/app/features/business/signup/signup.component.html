@@ -3,10 +3,10 @@
   <!-- -- Top bar ------------------------------------------------------------- -->
   <header class="ui-topbar">
     <div class="ui-container flex min-h-16 items-center justify-between gap-4 py-2">
-      <a routerLink="/business" class="flex items-center gap-2 group">
+      <a routerLink="/dentists" class="flex items-center gap-2 group">
         <app-platform-brand />
       </a>
-      <a routerLink="/business/login" class="ui-btn ui-btn-secondary">Sign in</a>
+      <a routerLink="/dentists" class="ui-btn ui-btn-secondary">Back to home</a>
     </div>
   </header>
 
@@ -43,12 +43,10 @@
       @if (step() === 0) {
         <div class="ui-card ui-auth-card">
           <div class="space-y-3">
-            <p class="ui-eyebrow">Start your clinic workspace</p>
-            <h1 class="ui-heading ui-heading-interface">Create your account</h1>
-            <p class="ui-body">Your website setup begins after account creation.</p>
+            <h1 class="ui-heading ui-heading-interface">Clinic setup</h1>
+            <p role="status" class="ui-body">Checking your account…</p>
           </div>
 
-<app-password-login [signup]="true" portal="clinic" (authenticated)="onAuthenticated($event)" />
 
           <p class="ui-auth-footer">
             By creating an account you agree to our

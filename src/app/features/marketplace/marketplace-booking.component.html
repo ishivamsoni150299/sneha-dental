@@ -166,11 +166,14 @@
       @if (!videoUnavailable() && selectedSlot()) {
         @if (consultationMode() === 'video' && (!accountReady() || !patientAuth.isSignedIn())) {
           <section [hidden]="editingTime()" class="video-signin mx-auto mb-10 max-w-lg rounded-2xl border border-ui-line bg-white p-6" aria-labelledby="video-signin-heading">
-            <h2 id="video-signin-heading" class="text-xl font-semibold text-ui-ink">{{ signup() ? 'Create your patient account' : 'Sign in to continue' }}</h2>
+            <h2 id="video-signin-heading" class="text-xl font-semibold text-ui-ink">Sign in to continue</h2>
             <p class="mb-5 mt-2 text-sm text-ui-ink-muted">Use your patient account to book and join your call.</p>
-            @if (accountError()) { <p role="alert" class="mb-4 text-sm text-red-700">{{ accountError() }}</p> }
-            <app-password-login portal="patient" [signup]="signup()" (authenticated)="onAuthenticated($event)" />
-            <button type="button" (click)="signup.set(!signup())" class="mt-4 min-h-11 text-sm font-semibold text-blue-700">{{ signup() ? 'Already registered? Sign in' : 'New here? Create an account' }}</button>
+            @if (patientAuth.role()) {
+              <p class="ui-body mb-4">You are signed in with a work account. Switch to a patient account to book.</p>
+              <button type="button" class="ui-btn ui-btn-primary" (click)="switchAccount()">Switch account</button>
+            } @else {
+              <a routerLink="/account" [queryParams]="accountQuery()" class="ui-btn ui-btn-primary">Sign in or create an account</a>
+            }
           </section>
         } @else {
         <app-appointment

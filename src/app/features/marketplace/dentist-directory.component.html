@@ -258,6 +258,15 @@
 
     </details>
 
+    <section id="professionals" class="ui-card my-8 p-6 sm:p-8" aria-labelledby="professionals-title">
+      <h2 id="professionals-title" class="ui-heading ui-heading-interface">For dentists and clinics</h2>
+      <p class="ui-body mt-3">Join the same platform your patients use. Manage your profile, appointments, and clinic team from your workspace.</p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a routerLink="/account" [queryParams]="{mode: 'signup', type: 'dentist'}" class="ui-btn ui-btn-primary">Join as a dentist</a>
+        <a routerLink="/account" [queryParams]="{mode: 'signup', type: 'clinic'}" class="ui-btn ui-btn-secondary">Set up a clinic</a>
+      </div>
+    </section>
+
     <!-- Dynamic FAQs -->
     <section class="patient-faq">
       <span class="hero-kicker">Before you book</span>

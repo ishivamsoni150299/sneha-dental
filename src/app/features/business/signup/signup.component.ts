@@ -18,7 +18,6 @@ import {
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
-import { PasswordLoginComponent } from '../../../shared/components/password-login/password-login.component';
 
 async function isSlugAvailable(slug: string): Promise<boolean> {
   if (!slug) return false;
@@ -99,7 +98,7 @@ declare const google: any;
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, PasswordLoginComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent],
   templateUrl: './signup.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -405,6 +404,7 @@ export class SignupComponent implements OnInit {
     const user = this.auth.currentUser();
     const role = this.auth.role();
     if (user && role) await this.routeAuthenticatedUser(user, role);
+    else await this.router.navigate(['/account'], { queryParams: { mode: 'signup', type: 'clinic', returnUrl: this.router.url }, replaceUrl: true });
   }
 
   private async routeAuthenticatedUser(user: PlatformUser, role: AuthRole): Promise<void> {
@@ -442,7 +442,7 @@ export class SignupComponent implements OnInit {
 
   back(): void {
     const s = this.step();
-    if (s === 1) this.step.set(0);
+    if (s === 1) void this.router.navigate(['/dentists']);
     else if (s === 2) this.step.set(1);
     else if (s === 4) this.step.set(2);
   }

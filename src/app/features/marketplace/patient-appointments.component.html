@@ -28,10 +28,13 @@
       </div>
     } @else if (step() !== 'appointments') {
       <section class="ui-card ui-auth-card">
-        <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">{{ signup() ? 'Create your patient account' : 'Sign in to your appointments' }}</h1>
-        <p class="ui-body">{{ signup() ? 'Keep your bookings and manage your visits in one place.' : 'Use your patient email and password to manage your visits.' }}</p></div>
-        <app-password-login portal="patient" [signup]="signup()" (authenticated)="authenticated($event)" />
-        <div class="ui-auth-footer"><button type="button" (click)="signup.set(!signup())" class="ui-btn ui-btn-ghost">{{ signup() ? 'Already registered? Sign in' : 'New here? Create an account' }}</button></div>
+        <h1 class="ui-heading ui-heading-interface">My appointments</h1>
+        @if (error()) {
+          <p role="alert" class="ui-alert ui-alert-danger">{{ error() }}</p>
+          <button type="button" class="ui-btn ui-btn-secondary" (click)="loadSession()">Try again</button>
+        } @else {
+          <p role="status" class="ui-body">Opening your account…</p>
+        }
       </section>
     } @else {
       <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">

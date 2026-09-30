@@ -116,15 +116,16 @@ try {
     assert.equal(await page.locator('a[href="/dentists/sector-75"]').count(), 0);
   }
   await page.goto(appUrl + '/business/clinic/expired');
-  await page.waitForURL('**/business/login?**');
+  await page.waitForURL('**/account?**');
   assert.equal(await page.getByRole('button', { name: 'Reactivate with Basic' }).count(), 0);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(appUrl + '/professional');
-  await page.getByRole('heading', { name: /Your professional identity/i }).waitFor();
+  await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/dentists');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
     'Dentist mobile header must fit the viewport');
   const signIn = await page.getByRole('link', { name: 'Sign in', exact: true }).boundingBox();
-  assert.ok(signIn && signIn.height < 30, 'Mobile sign-in label must remain on one line');
+  assert.ok(signIn && signIn.height >= 44, 'Mobile sign-in must have an accessible touch target');
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(appUrl + '/dentists');
   await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
@@ -138,7 +139,7 @@ try {
   assert.equal(unpublishedProfile.status, 404, 'Unverified clinic profiles must stay inaccessible');
 
   await page.goto(appUrl + '/appointments');
-  await page.getByRole('heading', { name: 'Sign in to your appointments' }).waitFor();
+  await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor();
   await page.getByRole('textbox', { name: 'Email address' }).fill(patientEmail);
   await page.locator('#auth-password').fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -206,7 +207,7 @@ try {
     'Platform-admin browser approval must publish the submitted dentist');
 
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await page.getByRole('heading', { name: 'Sign in to your appointments' }).waitFor();
+  await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${appUrl}/dentists/${provider.slug}/book?mode=video`);
   await page.getByRole('heading', { name: 'Book a video consultation', exact: true }).waitFor();
@@ -214,6 +215,10 @@ try {
   await page.locator('app-slot-picker').getByRole('button', { name: /E2E Video Dentist/ }).first().click();
   await page.getByRole('heading', { name: 'Sign in to continue', exact: true }).waitFor();
   assert.equal(await page.locator('#booking-time-picker').isVisible(), false);
+  await page.getByRole('link', { name: 'Sign in or create an account', exact: true }).click();
+  await page.waitForURL('**/account?**');
+  const bookingReturnUrl = new URL(page.url()).searchParams.get('returnUrl');
+  assert.ok(bookingReturnUrl?.includes('doctorId=') && bookingReturnUrl.includes('date=') && bookingReturnUrl.includes('time='), 'Sign-in must preserve the selected booking slot');
   await page.getByRole('textbox', { name: 'Email address' }).fill(patientEmail);
   await page.locator('#auth-password').fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -330,7 +335,7 @@ try {
       '/appointment/confirmed', '/my-appointment', '/privacy', '/terms', '/coming-soon', '/not-a-real-page',
       '/dentists', '/dentists/noida', '/dentists/root-canal/noida', `/dentists/${listingSlug}`,
       `/dentists/${listingSlug}/book`, `/dentist/${provider.slug}`, `/clinic/${listingSlug}`,
-      '/appointments', '/professional', '/professional/signup', '/professional/login', '/account/recovery',
+      '/account', '/account?mode=signup', '/account?mode=signup&type=dentist', '/account?mode=signup&type=clinic', '/appointments', '/professional', '/professional/signup', '/professional/login', '/account/recovery',
       '/business', '/business/signup', '/business/login', '/business/privacy', '/business/terms', '/platform/login', '/video-test',
     ]);
     failures.push(...await checkUxRoutes(clinicPage, appUrl, 'clinic', [

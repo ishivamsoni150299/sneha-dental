@@ -61,7 +61,7 @@ describe('MarketplaceBookingComponent', () => {
         },
         { provide: MarketplaceService, useValue: marketplace },
         { provide: DoctorService, useValue: doctors },
-        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => signedIn, user: () => null } },
+        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => signedIn, user: () => null, role: () => signedIn ? 'patient' : null } },
         { provide: AppointmentService, useValue: { holdSlot: async () => ({ holdToken: 'test-hold', expiresAt: `${date}T10:00:00Z` }), releaseHold: async () => undefined } },
       ],
     }).compileComponents();
@@ -262,7 +262,7 @@ describe('MarketplaceBookingComponent', () => {
     fixture.componentInstance.onSlotSelected({ doctorId: provider.id, doctorName: 'Dr. Asha', date: '2026-12-01', time: '10:00:00' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Sign in to continue');
-    expect(fixture.nativeElement.querySelector('app-password-login')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href^="/account"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-appointment')).toBeNull();
     expect(fixture.componentInstance.selectedSlot()?.time).toBe('10:00:00');
     expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeTrue();

@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import {
   PatientAppointmentApiService,
   type PatientAppointmentSummary,
@@ -57,6 +57,7 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
       { provide: PatientAppointmentApiService, useValue: api },
     ],
   }).compileComponents();
+  spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
   const fixture = TestBed.createComponent(PatientAppointmentsComponent);
   fixture.detectChanges();
   await fixture.whenStable();
@@ -68,8 +69,8 @@ describe('PatientAppointmentsComponent', () => {
   it('requires a password account before loading patient appointment history', async () => {
     const { fixture, api } = await createFixture();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Sign in to your appointments');
-    expect(text).toContain('Email address');
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/account'], { queryParams: { returnUrl: '/' }, replaceUrl: true });
+    expect(text).not.toContain('Email address');
     expect(text).not.toContain('Send verification code');
     expect(api.session).not.toHaveBeenCalled();
   });

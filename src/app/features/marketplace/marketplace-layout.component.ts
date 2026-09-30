@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation, inject } from '@angular/core';
+import { AuthFacade } from '../../core/services/auth-facade.service';
+import { accountDestination } from '../../core/utils/account-navigation';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { PlatformBrandComponent } from '../../shared/components/platform-brand/platform-brand.component';
 
@@ -11,4 +13,7 @@ import { PlatformBrandComponent } from '../../shared/components/platform-brand/p
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MarketplaceLayoutComponent {}
+export class MarketplaceLayoutComponent {
+  readonly auth = inject(AuthFacade);
+  readonly accountDestination = accountDestination;
+}

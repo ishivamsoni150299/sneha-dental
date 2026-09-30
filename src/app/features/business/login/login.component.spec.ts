@@ -43,6 +43,7 @@ describe('LoginComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
+            queryParamMap: of({ get: (key: string) => key === 'returnUrl' ? returnUrl : null }),
             snapshot: {
               data: { portal },
               queryParamMap: { get: (key: string) => key === 'returnUrl' ? returnUrl : null },
@@ -89,9 +90,6 @@ describe('LoginComponent', () => {
     const component = create('clinic');
     await component.onAuthenticated('unverified');
 
-    expect(router.navigate).toHaveBeenCalledWith(['/business/signup'], {
-      queryParams: { resume: 'true' },
-      replaceUrl: true,
-    });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/business/signup?resume=true', { replaceUrl: true });
   });
 });

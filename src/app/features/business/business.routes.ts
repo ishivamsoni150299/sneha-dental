@@ -2,14 +2,14 @@ import type { Routes } from '@angular/router';
 import { superAdminGuard } from '../../core/guards/super-admin.guard';
 import { clinicAdminGuard } from '../../core/guards/clinic-admin.guard';
 import { clinicFeatureGuard } from '../../core/guards/clinic-feature.guard';
+import { accountRedirect } from '../../core/utils/account-navigation';
 
 export const businessRoutes: Routes = [
   // ── Public landing page (no auth required) ────────────────────────────────
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () =>
-      import('./platform-landing/platform-landing.component').then(m => m.PlatformLandingComponent),
+    redirectTo: '/dentists',
     data: {
       title: 'Dental Appointment Booking & Patient Discovery for Clinics',
       description: 'Join the mydentalplatform dentist network. Help nearby patients discover your clinic, compare care, view availability, and request appointments online.',
@@ -31,8 +31,7 @@ export const businessRoutes: Routes = [
   // ── Clinic-owner login ────────────────────────────────────────────────────
   {
     path: 'login',
-    loadComponent: () =>
-      import('./login/login.component').then(m => m.LoginComponent),
+    redirectTo: accountRedirect,
     data: {
       title: 'Clinic Sign In',
       description: 'Sign in to manage your dental clinic appointments, patients, doctors, website, and subscription.',

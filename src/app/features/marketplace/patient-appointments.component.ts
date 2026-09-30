@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
-import { AuthRole } from '../../core/services/auth-facade.service';
 import {
   PatientAppointmentApiService,
   type PatientAppointmentSummary,
@@ -17,17 +15,12 @@ type AccountStep = 'sign-in' | 'appointments';
 @Component({
   selector: 'app-patient-appointments',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, VideoConsultationComponent, PasswordLoginComponent],
+  imports: [ReactiveFormsModule, RouterLink, VideoConsultationComponent],
   templateUrl: './patient-appointments.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PatientAppointmentsComponent implements OnInit {
-  readonly signup = signal(false);
   private readonly router = inject(Router);
-  async authenticated(role: AuthRole): Promise<void> {
-    if (role === 'patient') { await this.loadSession(); return; }
-    await this.router.navigateByUrl(role === 'dentist' ? '/professional/workspace' : role === 'platform-admin' ? '/business/clinics' : role === 'clinic-admin' ? '/business/clinic/dashboard' : '/business/signup');
-  }
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   readonly patientAuth = inject(PatientAuthService);
@@ -71,6 +64,11 @@ export class PatientAppointmentsComponent implements OnInit {
     if (claim) this.claimForm.controls.bookingRef.setValue(claim.toUpperCase());
     await this.patientAuth.ready;
     if (this.patientAuth.isSignedIn()) await this.loadSession();
+    else if (!this.patientAuth.role()) await this.openSignIn();
+  }
+
+  async openSignIn(): Promise<void> {
+    await this.router.navigate(['/account'], { queryParams: { returnUrl: this.router.url }, replaceUrl: true });
   }
 
   async loadSession(): Promise<void> {
@@ -241,6 +239,7 @@ export class PatientAppointmentsComponent implements OnInit {
 
   async logout(): Promise<void> {
     await this.patientAuth.logout();
+    await this.openSignIn();
     this.appointments.set([]);
     this.accountLabel.set('');
     this.step.set('sign-in');

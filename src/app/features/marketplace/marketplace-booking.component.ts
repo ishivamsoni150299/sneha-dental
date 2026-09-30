@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   isClinicOpenAt,
   type BookingClinicContext,
@@ -15,25 +15,29 @@ import {
 } from '../../core/services/marketplace.service';
 import { SlotPickerComponent, type SelectedSlot } from '../../shared/components/slot-picker/slot-picker.component';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
-import { AuthRole } from '../../core/services/auth-facade.service';
-import { PasswordLoginComponent } from '../../shared/components/password-login/password-login.component';
 
 @Component({
   selector: 'app-marketplace-booking',
   standalone: true,
-  imports: [AppointmentComponent, RouterLink, SlotPickerComponent, PasswordLoginComponent],
+  imports: [AppointmentComponent, RouterLink, SlotPickerComponent],
   templateUrl: './marketplace-booking.component.html',
   host: { '[class.video-checkout]': "consultationMode() === 'video'" },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
   readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly marketplace = inject(MarketplaceService);
   private readonly doctors = inject(DoctorService);
   readonly patientAuth = inject(PatientAuthService);
   readonly accountReady = signal(false);
-  readonly signup = signal(false);
-  readonly accountError = signal('');
+  readonly accountQuery = computed(() => {
+    const slot = this.selectedSlot();
+    const returnUrl = this.router.serializeUrl(this.router.createUrlTree(['/dentists', this.route.snapshot.paramMap.get('slug'), 'book'], {
+      queryParams: { mode: this.consultationMode(), date: slot?.date, time: slot?.time, doctorId: slot?.doctorId },
+    }));
+    return { returnUrl };
+  });
 
   readonly clinic = signal<MarketplaceClinic | null>(null);
   readonly context = signal<BookingClinicContext | null>(null);
@@ -153,6 +157,15 @@ export class MarketplaceBookingComponent implements OnInit {
           entryPath: `/dentists/${clinic.marketplaceSlug}/book`,
         },
       });
+      const params = this.route.snapshot.queryParamMap;
+      const date = params.get('date');
+      const time = params.get('time');
+      const doctorId = params.get('doctorId');
+      if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && time && doctorId) {
+        const availability = await this.marketplace.getAvailability(slug, 1, date);
+        const slot = availability.days.find(day => day.date === date)?.slots.find(slot => slot.doctorId === doctorId && slot.time === time);
+        if (slot) this.selectedSlot.set({ doctorId: slot.doctorId, doctorName: slot.doctorName, date, time: slot.time });
+      }
     } catch (error) {
       console.error('[Marketplace] Booking page load failed:', error);
       this.error.set('This booking page could not be loaded. Please try again shortly.');
@@ -166,9 +179,9 @@ export class MarketplaceBookingComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  onAuthenticated(role: AuthRole): void {
-    this.accountReady.set(role === 'patient');
-    this.accountError.set(role === 'patient' ? '' : 'Please sign in with a patient account to book this consultation.');
+  async switchAccount(): Promise<void> {
+    await this.patientAuth.logout();
+    await this.router.navigate(['/account'], { queryParams: this.accountQuery() });
   }
 
   onSlotSelected(slot: SelectedSlot): void {

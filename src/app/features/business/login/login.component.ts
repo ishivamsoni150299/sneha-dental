@@ -1,88 +1,50 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
-import { PlatformBrandComponent } from '../../../shared/components/platform-brand/platform-brand.component';
 import { PasswordLoginComponent } from '../../../shared/components/password-login/password-login.component';
+import { accountDestination } from '../../../core/utils/account-navigation';
 
-type LoginPortal = 'clinic' | 'platform';
-
-
+type AccountType = 'patient' | 'dentist' | 'clinic';
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [RouterLink, PlatformBrandComponent, PasswordLoginComponent],
-  templateUrl: './login.component.html',
+  selector: 'app-login', standalone: true,
+  imports: [PasswordLoginComponent], templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent implements OnInit {
-
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly auth = inject(AuthFacade);
-
-  readonly portal = signal<LoginPortal>(
-    this.route.snapshot.data['portal'] === 'platform' ? 'platform' : 'clinic',
-  );
-  readonly isPlatform = computed(() => this.portal() === 'platform');
-
+  readonly auth = inject(AuthFacade);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly signup = signal(false);
+  readonly accountType = signal<AccountType>('patient');
+  readonly ready = signal(false);
+  readonly loginForm = viewChild(PasswordLoginComponent);
+  readonly types: { id: AccountType; label: string; help: string }[] = [
+    { id: 'patient', label: 'Patient', help: 'Book and manage your dental visits.' },
+    { id: 'dentist', label: 'Dentist', help: 'Create your profile and manage your practice.' },
+    { id: 'clinic', label: 'Clinic', help: 'Set up your clinic and manage your team.' },
+  ];
   async ngOnInit(): Promise<void> {
-    // Resolve the restored session before choosing the correct workspace.
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.signup.set(params.get('mode') === 'signup');
+      const type = params.get('type');
+      this.accountType.set(type === 'dentist' || type === 'clinic' ? type : 'patient');
+    });
     await this.auth.authReady;
     const role = this.auth.role();
-    if (role) await this.routeResolvedUser(role);
+    if (role) await this.onAuthenticated(role);
+    else this.ready.set(true);
   }
-
-  async onAuthenticated(role: AuthRole): Promise<void> { await this.routeResolvedUser(role); }
-
-  private async routeResolvedUser(role: AuthRole): Promise<void> {
-    const returnUrl = this.safeReturnUrl();
-
-    if (role === 'dentist') {
-      await this.router.navigateByUrl('/professional/workspace', { replaceUrl: true });
-      return;
-    }
-
-    if (role === 'patient') {
-      await this.router.navigateByUrl('/appointments', { replaceUrl: true });
-      return;
-    }
-
-    if (role === 'unverified' || role === 'incomplete-signup') {
-      await this.router.navigate(['/business/signup'], {
-        queryParams: { resume: 'true' },
-        replaceUrl: true,
-      });
-      return;
-    }
-
-    if (role === 'platform-admin') {
-      await this.router.navigateByUrl(
-        this.isPlatform() && returnUrl ? returnUrl : '/business/clinics',
-        { replaceUrl: true },
-      );
-      return;
-    }
-
-    if (role === 'clinic-admin') {
-      await this.router.navigateByUrl((!this.isPlatform() && returnUrl) || '/business/clinic/dashboard', { replaceUrl: true });
-      return;
-    }
-
-    await this.router.navigate(['/business/signup'], {
-      queryParams: { resume: 'true' },
-      replaceUrl: true,
-    });
+  setMode(signup: boolean): void {
+    if (this.auth.isAuthenticated || this.loginForm()?.busy()) return;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { mode: signup ? 'signup' : null }, queryParamsHandling: 'merge' });
   }
-
-  private safeReturnUrl(): string | null {
-    const value = this.route.snapshot.queryParamMap.get('returnUrl');
-    if (!value || !value.startsWith('/') || value.startsWith('//')) return null;
-    if (this.isPlatform()) {
-      return value.startsWith('/business/') && !value.startsWith('/business/clinic/')
-        ? value
-        : null;
-    }
-    return value.startsWith('/business/clinic/') ? value : null;
+  setType(type: AccountType): void {
+    if (this.auth.isAuthenticated || this.loginForm()?.busy()) return;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { type }, queryParamsHandling: 'merge' });
   }
-
+  async onAuthenticated(role: AuthRole): Promise<void> {
+    await this.router.navigateByUrl(accountDestination(role, this.route.snapshot.queryParamMap.get('returnUrl')), { replaceUrl: true });
+  }
 }
