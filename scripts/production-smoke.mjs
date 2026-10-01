@@ -17,9 +17,9 @@ await mkdir(artifactDir, { recursive: true });
 const routes = [
   { path: '/dentists', heading: /Find your dentist/i },
   { path: '/dentists/noida', heading: /Dental Care Directory for Noida/i },
-  { path: '/professional', heading: /Find your dentist/i },
+  { path: '/professional', heading: /Build your verified dentist profile/i },
   { path: '/professional/login', heading: /^Sign in$/i },
-  { path: '/business', heading: /Find your dentist/i },
+  { path: '/business', heading: /Manage your dental clinic/i },
   { path: '/business/login', heading: /^Sign in$/i },
   { path: '/account', heading: /^Sign in$/i },
   { path: '/business/privacy', heading: /privacy/i },
@@ -28,7 +28,7 @@ const routes = [
   { path: '/appointments', heading: /appointments|sign in/i },
 ];
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {}) });
 let failed = 0;
 
 async function checkViewport(name, viewport, selectedRoutes) {
