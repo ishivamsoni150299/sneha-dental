@@ -84,14 +84,6 @@ export class AuthFacade {
     return data.recoveryCode;
   }
 
-  async signInProfessional(email: string, password: string): Promise<AuthRole> {
-    await this.authReady;
-    return this.applySession(await this.authRequest('/api/auth/login', { email, password }));
-  }
-
-
-
-
   async sendPasswordReset(email: string): Promise<void> {
     await this.passwordResetRequest('/api/auth/password-reset/request', { email });
   }

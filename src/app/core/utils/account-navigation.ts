@@ -20,5 +20,8 @@ export function accountDestination(role: AuthRole, returnUrl: string | null = nu
 export const accountRedirect: RedirectFunction = ({ queryParams }) =>
   inject(Router).createUrlTree(['/account'], { queryParams });
 
+export const recoveryRedirect: RedirectFunction = ({ queryParams }) =>
+  inject(Router).createUrlTree(['/account/recovery'], { queryParams });
+
 export const dentistSignupRedirect: RedirectFunction = ({ queryParams }) =>
   inject(Router).createUrlTree(['/account'], { queryParams: { ...queryParams, mode: 'signup', type: 'dentist' } });

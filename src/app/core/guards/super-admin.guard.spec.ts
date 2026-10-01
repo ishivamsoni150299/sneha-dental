@@ -8,7 +8,7 @@ describe('superAdminGuard', () => {
 
   function setup(role: 'platform-admin' | 'clinic-admin' | null, authReady: Promise<void> = Promise.resolve()) {
     mockRouter = jasmine.createSpyObj('Router', ['createUrlTree']);
-    mockRouter.createUrlTree.and.returnValue({ urlTree: '/platform/login' } as any);
+    mockRouter.createUrlTree.and.returnValue({ urlTree: '/account' } as any);
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthFacade, useValue: { role: () => role, authReady } },
@@ -25,12 +25,12 @@ describe('superAdminGuard', () => {
     expect(result).toBeTrue();
   });
 
-  it('returns a UrlTree to /platform/login when not logged in', async () => {
+  it('returns a UrlTree to /account when not logged in', async () => {
     setup(null);
     const result = await TestBed.runInInjectionContext(() =>
       superAdminGuard({} as any, { url: '/business/clinics' } as any)
     );
-    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/platform/login'], {
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/account'], {
       queryParams: { returnUrl: '/business/clinics' },
     });
     expect(result).toBeTruthy();

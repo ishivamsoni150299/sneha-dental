@@ -8,6 +8,6 @@ export const dentistGuard: CanActivateFn = async (_route, state) => {
   await auth.authReady;
   return auth.role() === 'dentist'
     ? true
-    : router.createUrlTree(['/professional/login'], { queryParams: { returnUrl: state.url } });
+    : router.createUrlTree(['/account'], { queryParams: { returnUrl: state.url } });
 };
 

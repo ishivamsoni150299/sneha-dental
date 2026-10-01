@@ -124,7 +124,7 @@ try {
   assert.equal(new URL(page.url()).pathname, '/dentists');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
     'Dentist mobile header must fit the viewport');
-  const signIn = await page.getByRole('link', { name: 'Sign in', exact: true }).boundingBox();
+  const signIn = await page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true }).boundingBox();
   assert.ok(signIn && signIn.height >= 44, 'Mobile sign-in must have an accessible touch target');
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(appUrl + '/dentists');
@@ -356,16 +356,16 @@ try {
       '/appointment/confirmed', '/my-appointment', '/privacy', '/terms', '/coming-soon', '/not-a-real-page',
       '/dentists', '/dentists/noida', '/dentists/root-canal/noida', `/dentists/${listingSlug}`,
       `/dentists/${listingSlug}/book`, `/dentist/${provider.slug}`, `/clinic/${listingSlug}`,
-      '/account', '/account?mode=signup', '/account?mode=signup&type=dentist', '/account?mode=signup&type=clinic', '/appointments', '/professional', '/professional/signup', '/professional/login', '/account/recovery',
+      '/workspace', '/business/forgot-password', '/business/reset-password', '/account', '/account?mode=signup', '/account?mode=signup&type=dentist', '/account?mode=signup&type=clinic', '/appointments', '/professional', '/professional/signup', '/professional/login', '/account/recovery',
       '/business', '/business/signup', '/business/login', '/business/privacy', '/business/terms', '/platform/login', '/video-test',
     ]);
     failures.push(...await checkUxRoutes(clinicPage, appUrl, 'clinic', [
-      '/business/clinic/dashboard', '/business/clinic/settings', '/business/clinic/settings?tab=subscription',
+      '/workspace', '/business/clinic/dashboard', '/business/clinic/settings', '/business/clinic/settings?tab=subscription',
       ...['contact', 'hours', 'services', 'testimonials', 'social', 'theme', 'logo'].map(tab => `/business/clinic/settings?tab=${tab}`),
       '/business/clinic/doctors', '/business/clinic/patients', '/business/clinic/reviews',
     ]));
     failures.push(...await checkUxRoutes(adminPage, appUrl, 'platform', [
-      '/business/clinics', '/business/clinics/new', `/business/clinics/${onboarded.clinicId}/edit`,
+      '/workspace', '/business/clinics', '/business/clinics/new', `/business/clinics/${onboarded.clinicId}/edit`,
       '/business/dentists/verification', '/business/reviews', '/business/analytics', '/business/revenue',
       '/business/leads', '/business/leads/new', '/business/leads/discover',
     ]));
@@ -373,7 +373,7 @@ try {
     await passwordLogin(dentistPage, appUrl + '/professional/login', `dentist-${suffix}@example.test`, password);
     await dentistPage.waitForURL('**/professional/workspace**');
     failures.push(...await checkUxRoutes(dentistPage, appUrl, 'dentist', [
-      '/professional/workspace?tab=appointments', '/professional/workspace?tab=profile',
+      '/workspace', '/professional/workspace?tab=appointments', '/professional/workspace?tab=profile',
       '/professional/workspace?tab=availability', '/professional/profile', '/professional/video-test',
     ]));
     assert.deepEqual(failures, [], 'All UX route checks should pass');

@@ -24,7 +24,7 @@ export class ClinicAccountMenuComponent {
     this.signingOut.set(true);
     try {
       await this.auth.logout();
-      await this.router.navigate(['/business/login'], { replaceUrl: true });
+      await this.router.navigate(['/account'], { replaceUrl: true });
     } finally {
       this.signingOut.set(false);
     }

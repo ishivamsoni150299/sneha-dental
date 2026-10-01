@@ -3,14 +3,18 @@ import { clinicRequiredGuard } from './core/guards/clinic-required.guard';
 import { platformOnlyGuard } from './core/guards/platform-only.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
 import { dentistGuard } from './core/guards/dentist.guard';
+import { workspaceGuard } from './core/guards/workspace.guard';
 import { accountRedirect, dentistSignupRedirect } from './core/utils/account-navigation';
 
 export const routes: Routes = [
-  { path: 'account', pathMatch: 'full', canActivate: [platformOnlyGuard],
+  { path: 'workspace', canActivate: [platformOnlyGuard, workspaceGuard], children: [] },
+  { path: 'account', canActivate: [platformOnlyGuard],
     loadComponent: () => import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
-    children: [{ path: '', loadComponent: () => import('./features/business/login/login.component').then(m => m.LoginComponent), data: { title: 'Sign in or create an account', noIndex: true } }],
+    children: [
+      { path: '', pathMatch: 'full', loadComponent: () => import('./features/business/login/login.component').then(m => m.LoginComponent), data: { title: 'Sign in or create an account', noIndex: true } },
+      { path: 'recovery', loadComponent: () => import('./features/professional/account-recovery.component').then(m => m.AccountRecoveryComponent), data: { title: 'Account recovery', noIndex: true } },
+    ],
   },
-  { path: 'account/recovery', loadComponent: () => import('./features/professional/account-recovery.component').then(m => m.AccountRecoveryComponent), data: { noIndex: true } },
   { path: 'video-test', loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Private Video Test', noIndex: true } },
 
   // Independent dentist identity and professional workspace.

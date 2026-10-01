@@ -36,6 +36,8 @@ MyDentalPlatform is an appointment marketplace first. The clinic software and cl
 
 The shared public entry point is `/dentists`. `/business` and `/professional` redirect there. `/account` provides sign-in and account creation for patients, dentists, and clinics; existing login URLs redirect to it. Sign-in opens the workspace associated with the authenticated role. Signup asks for account type and retains the recovery-code handoff before opening the workspace or clinic setup.
 
+`/workspace` is the shared bookmark and navigation entry for an authenticated account. It waits for session restoration and selects the existing role-specific destination, whose guards still enforce permissions and subscription access. `/account/recovery` uses the same platform shell as sign-in; legacy business password-reset links redirect there. Mobile platform navigation offers discovery, appointments (or the staff workspace), and sign-in (or account security).
+
 These journeys remain separate permission boundaries under one brand:
 
 | Surface | User | Purpose | Primary route or host |

@@ -7,12 +7,14 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
   selector: 'app-account-recovery', standalone: true, imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="ui-shell"><main class="ui-auth-layout">
+    <div class="mx-auto max-w-lg px-4 py-8 sm:py-12">
       <section class="ui-card ui-auth-card">
-        <a routerLink="/business/login" class="ui-btn ui-btn-ghost justify-self-start">Back to sign in</a>
+        <a routerLink="/account" class="ui-btn ui-btn-ghost justify-self-start">Back to sign in</a>
         <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">Account recovery</h1>
           <p class="ui-body">Get back to your account with the recovery code you saved when you signed up.</p></div>
-        @if (auth.currentUser()) {
+        @if (!auth.ready()) {
+          <p role="status" class="ui-body">Checking your session…</p>
+        } @else if (auth.currentUser()) {
           <form [formGroup]="generateForm" (ngSubmit)="generate()" class="space-y-4">
             <p class="ui-body">Generate a replacement recovery code. Your previous code will stop working.</p>
             <label class="ui-label">Current password<input type="password" autocomplete="current-password" formControlName="password" class="ui-field mt-2 text-base"></label>
@@ -32,7 +34,7 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
         @if (error()) { <p role="alert" class="ui-alert ui-alert-danger text-sm">{{ error() }}</p> }
         @if (message()) { <p role="status" class="ui-alert ui-alert-success text-sm">{{ message() }}</p> }
       </section>
-    </main></div>
+    </div>
   `,
 })
 export class AccountRecoveryComponent {

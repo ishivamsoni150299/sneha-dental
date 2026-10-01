@@ -2,7 +2,7 @@ import type { Routes } from '@angular/router';
 import { superAdminGuard } from '../../core/guards/super-admin.guard';
 import { clinicAdminGuard } from '../../core/guards/clinic-admin.guard';
 import { clinicFeatureGuard } from '../../core/guards/clinic-feature.guard';
-import { accountRedirect } from '../../core/utils/account-navigation';
+import { accountRedirect, recoveryRedirect } from '../../core/utils/account-navigation';
 
 export const businessRoutes: Routes = [
   // ── Public landing page (no auth required) ────────────────────────────────
@@ -42,7 +42,7 @@ export const businessRoutes: Routes = [
 
   {
     path: 'forgot-password',
-    redirectTo: 'login', pathMatch: 'full',
+    redirectTo: recoveryRedirect, pathMatch: 'full',
     data: {
       title: 'Reset Password',
       description: 'Reset the password for your mydentalplatform clinic account.',
@@ -52,7 +52,7 @@ export const businessRoutes: Routes = [
 
   {
     path: 'reset-password',
-    redirectTo: 'login', pathMatch: 'full',
+    redirectTo: recoveryRedirect, pathMatch: 'full',
     data: {
       title: 'Choose a New Password',
       description: 'Choose a new password for your mydentalplatform clinic account.',

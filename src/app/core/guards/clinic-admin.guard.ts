@@ -22,7 +22,7 @@ export const clinicAdminGuard: CanActivateFn = async (route, state) => {
   await auth.authReady;
 
   if (!auth.isAuthenticated) {
-    return router.createUrlTree(['/business/login'], {
+    return router.createUrlTree(['/account'], {
       queryParams: { returnUrl: state.url },
     });
   }
@@ -34,7 +34,7 @@ export const clinicAdminGuard: CanActivateFn = async (route, state) => {
   }
 
   if (auth.role() !== 'clinic-admin') {
-    return router.createUrlTree(['/business/login']);
+    return router.createUrlTree(['/account']);
   }
 
   if (!clinicCfg.isLoaded || clinicCfg.config.clinicId === 'default') {

@@ -91,9 +91,7 @@ export class PasswordLoginComponent {
         this.accountCreated.set(true);
         this.recoveryCode.set(await this.auth.generateRecoveryCode(v.password));
       } else {
-        const role = this.portal() === 'dentist'
-          ? await this.auth.signInProfessional(v.email.trim(), v.password)
-          : await this.auth.signInWithEmail(v.email.trim(), v.password);
+        const role = await this.auth.signInWithEmail(v.email.trim(), v.password);
         this.authenticated.emit(role);
       }
     } catch (error) { this.error.set(error instanceof Error ? error.message : 'Sign-in failed. Please try again.'); }

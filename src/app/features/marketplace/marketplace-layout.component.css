@@ -194,7 +194,7 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-header .patient-navigation { display: none; }
   .patient-tab-bar {
     @apply fixed inset-x-0 bottom-0 grid gap-2 border-t border-gray-200 bg-white px-4 pt-2;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     z-index: 40;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     box-shadow: var(--ui-shadow-md);
@@ -217,4 +217,12 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
 @media (max-width: 359px) {
   .marketplace-header { padding-inline: 14px; }
   .marketplace-header .platform-brand { gap: .375rem; }
+}
+
+/* Keep account forms in a calm, full-width mobile canvas. */
+@media (max-width: 47.9375rem) {
+  .marketplace-shell:has(#account-title) .account-link { display: none; }
+  .marketplace-shell .ui-auth-card { padding: 1.25rem; gap: 1.25rem; }
+  .marketplace-shell:has(#account-title) main { min-height: auto; }
+  .patient-tab-bar a { min-width: 0; text-align: center; }
 }

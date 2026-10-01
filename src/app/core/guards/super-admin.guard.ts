@@ -9,7 +9,7 @@ export const superAdminGuard: CanActivateFn = async (_route, state) => {
   await auth.authReady;
 
   if (auth.role() === 'platform-admin') return true;
-  return router.createUrlTree(['/platform/login'], {
+  return router.createUrlTree(['/account'], {
     queryParams: { returnUrl: state.url },
   });
 };

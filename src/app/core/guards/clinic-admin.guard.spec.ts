@@ -63,13 +63,13 @@ describe('clinicAdminGuard', () => {
   it('requires authentication on the renewal page', async () => {
     setup({ authenticated: false });
     await run(true);
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/login'], jasmine.anything());
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/account'], jasmine.anything());
   });
 
   it('blocks other roles from clinic renewal', async () => {
     setup({ role: 'platform-admin' });
     await run(true);
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/login']);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/account']);
   });
 
   it('allows an expired owner to renew without a redirect loop', async () => {
@@ -92,7 +92,7 @@ describe('clinicAdminGuard', () => {
   it('preserves the requested page when authentication is required', async () => {
     setup({ authenticated: false, role: null });
     await run();
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/business/login'], {
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/account'], {
       queryParams: { returnUrl: '/business/clinic/patients' },
     });
   });
