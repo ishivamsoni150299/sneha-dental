@@ -7,7 +7,7 @@
             </a>
             <div class="doctor-info">
               <div class="doctor-title"><a [routerLink]="profilePath()"><h2>{{ discoveryType() === 'dentists' ? clinic().doctorName || clinic().name : clinic().name }}</h2></a>
-                <details class="verification"><summary aria-label="View verification checks"><i class="ph ph-seal-check" aria-hidden="true"></i> Registration checked</summary><div><strong>What we checked</strong><p>DCI Registration Checked: State dental council registration, clinic identity, contact number and operating address verified.</p><p>Qualifications are supplied by the clinic.</p></div></details>
+                <details class="verification"><summary aria-label="View verification checks"><i class="ph ph-seal-check" aria-hidden="true"></i> Registration checked</summary><div><strong>Clinic verification: {{ clinic().marketplaceStatus }}</strong><p>Council registration checks apply to the clinic’s approved marketplace dentists. Qualifications are supplied by the clinic.</p>@if (clinic().marketplaceVerifiedAt) { <p>Verified on {{ clinic().marketplaceVerifiedAt?.slice(0, 10) }}</p> } @else { <p>Verification date not published.</p> }</div></details>
               </div>
               <p>{{ clinic().doctorQualification || 'Qualifications not listed' }}@if (clinic().marketplaceProfile?.experienceYears != null) {<span> · {{ clinic().marketplaceProfile?.experienceYears }} years experience</span>}</p>
               @if (clinic().marketplaceProfile?.speciality) {<p class="muted">{{ clinic().marketplaceProfile?.speciality }}</p>}
@@ -29,7 +29,7 @@
               @else if (slots().length && clinic().marketplaceProfile?.acceptingNewPatients) {
                 <span class="availability-title">Available Today</span><p>Next at {{ slotLabel(slots()[0]) }}</p>
                 <div class="slot-options">@for (slot of slots().slice(0, 3); track slot.doctorId + slot.startsAt) {<a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="bookingQuery(videoOnly() ? 'video' : 'in_person', { startsAt: slot.startsAt, doctorId: slot.doctorId })">{{ slotLabel(slot) }}</a>}</div>
-              } @else {<p class="muted">{{ clinic().marketplaceProfile?.acceptingNewPatients ? 'No online times today' : 'Not accepting new patients' }}</p>}
+              } @else {<p class="muted">{{ !clinic().marketplaceProfile?.acceptingNewPatients ? 'Not accepting new patients' : nextAppointment() ? 'Next appointment: ' + nextAppointment() : 'No online times in the next 7 days' }}</p>}
             </div>
             <div class="booking">
               @if (clinic().marketplaceProfile?.acceptingNewPatients) {

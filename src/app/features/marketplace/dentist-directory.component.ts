@@ -14,6 +14,7 @@ import {
   type MarketplaceProvider,
 } from '../../core/services/marketplace.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { RequestDentistComponent } from './request-dentist.component';
 
 export interface ActiveFilterChip {
   id: string;
@@ -23,7 +24,7 @@ export interface ActiveFilterChip {
 @Component({
   selector: 'app-dentist-directory',
   standalone: true,
-  imports: [RouterLink, FormsModule, TreatmentGuideComponent, DentistListingCardComponent],
+  imports: [RouterLink, FormsModule, TreatmentGuideComponent, DentistListingCardComponent, RequestDentistComponent],
   templateUrl: './dentist-directory.component.html',
   styleUrl: './dentist-directory.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -195,14 +196,18 @@ export class DentistDirectoryComponent implements OnInit {
   readonly clinics = signal<MarketplaceClinic[]>([]);
   readonly providers = signal<MarketplaceProvider[]>([]);
   readonly filteredProviders = computed(() => {
-    if (this.discoveryType() !== 'dentists' || this.availableTodayOnly()
+    if (this.discoveryType() !== 'dentists'
       || this.minRating() || this.gender() || this.userCoordinates()) return [];
     const search = this.searchTerm().trim().toLowerCase();
     return this.providers().filter(p => {
+      // Clinic-affiliated dentists use the verified clinic cards and their real booking slugs.
+      if (!p.isIndependent) return false;
+      if (this.availableTodayOnly() && !this.slotsFor(p.id).length) return false;
+      if (!this.videoOnly() && p.isIndependent) return false;
       if (this.videoOnly() && !p.eligibleForVideo && !p.consultationModes?.includes('video')) {
         return false;
       }
-      return (!search || [p.fullName, p.qualification, p.speciality, p.locationName, p.city, p.locality].join(' ').toLowerCase().includes(search)) &&
+      return (!search || [p.fullName, p.qualification, p.speciality, p.locationName, p.city, p.locality, ...(p.serviceIds ?? []).map(id => this.marketplace.serviceLabel(id as MarketplaceDentalServiceId))].join(' ').toLowerCase().includes(search)) &&
         (!this.locality() || [p.city, p.locality].join(' ').toLowerCase().includes(this.locality().toLowerCase())) &&
         (!this.serviceId() || (p.serviceIds ?? []).includes(this.serviceId())) &&
         (!this.language() || p.languages.includes(this.language())) &&
@@ -231,6 +236,9 @@ export class DentistDirectoryComponent implements OnInit {
   readonly locationError = signal<string | null>(null);
   readonly compareIds = signal<string[]>([]);
   readonly availability = signal<Record<string, MarketplaceAvailabilitySlot[]>>({});
+  readonly hasTodaySlots = computed(() => this.filteredClinics().some(item => item.marketplaceProfile?.acceptingNewPatients && this.slotsFor(item.id).length > 0)
+    || this.filteredProviders().some(item => item.acceptingNewPatients && this.slotsFor(item.id).length > 0));
+  readonly nextAppointments = signal<Record<string, string>>({});
   readonly reviewStats = signal<Record<string, { rating: number; count: number }>>({});
   readonly isMobileFilterOpen = signal(false);
   readonly filtersDialog = viewChild<ElementRef<HTMLDialogElement>>('filtersDialog');
@@ -361,12 +369,6 @@ export class DentistDirectoryComponent implements OnInit {
       : `For ${treatment.toLowerCase()}, compare the clinician's relevant experience, the full treatment estimate and the follow-up plan—not only the first consultation fee.`;
   });
 
-  readonly demandRequestHref = computed(() => {
-    const subject = `Dentist request${this.locality() ? ` in ${this.locality()}` : ''}`;
-    const body = `Please notify me when a verified dentist is available.\nTreatment: ${this.currentBreadcrumbTreatment() || 'Not specified'}\nLocation: ${this.locality() || 'Delhi NCR'}`;
-    return `mailto:support@mydentalplatform.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  });
-
   bookingQuery(mode: 'video' | 'in_person'): Record<string, string> {
     return { mode, ...this.bookingContext() };
   }
@@ -479,11 +481,12 @@ export class DentistDirectoryComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.videoOnly.set(this.route.snapshot.queryParamMap?.get('mode') === 'video');
-    const initialLocation = String(this.route.snapshot.data['initialLocation'] ?? '');
+    this.searchTerm.set(this.route.snapshot.queryParamMap?.get('q') ?? '');
+    const initialLocation = String(this.route.snapshot.queryParamMap?.get('location') ?? this.route.snapshot.data['initialLocation'] ?? '');
     if (initialLocation && initialLocation !== 'All Delhi NCR') {
       this.locality.set(initialLocation);
     }
-    this.serviceId.set(String(this.route.snapshot.data['initialServiceId'] ?? ''));
+    this.serviceId.set(String(this.route.snapshot.queryParamMap?.get('treatment') ?? this.route.snapshot.data['initialServiceId'] ?? ''));
     if (!this.isBrowser) {
       if (!this.isDiscoveryHome) {
         this.meta.updateTag({ name: 'robots', content: 'noindex,follow' });
@@ -502,6 +505,7 @@ export class DentistDirectoryComponent implements OnInit {
   private async loadClinics(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    this.availability.set({}); this.availabilityErrors.set({}); this.nextAppointments.set({});
     try {
       const [response, providers] = await Promise.all([
         this.marketplace.getVerifiedClinics('delhi-ncr'), this.marketplace.getVerifiedProviders(),
@@ -515,12 +519,6 @@ export class DentistDirectoryComponent implements OnInit {
         this.meta.updateTag({ name: 'robots', content: 'noindex,follow' });
         this.meta.updateTag({ name: 'googlebot', content: 'noindex,follow' });
       }
-      this.analytics.trackMarketplaceSearch({
-        search_term: this.searchTerm().trim() || undefined,
-        locality: this.locality() || undefined,
-        service: this.serviceId() || undefined,
-        results_count: response.totalCount,
-      });
       await Promise.all(response.dentists.map(async clinic => {
         await this.checkAvailability(clinic);
         try {
@@ -531,6 +529,17 @@ export class DentistDirectoryComponent implements OnInit {
           this.reviewStats.update(current => ({ ...current, [clinic.id]: { rating: 0, count: 0 } }));
         }
       }));
+      await Promise.all(providers.map(async provider => {
+        try {
+          if (!provider.isIndependent) return;
+          const availability = await this.marketplace.getAvailability(provider.slug, 7);
+          this.availability.update(current => ({ ...current, [provider.id]: availability.days[0]?.slots ?? [] }));
+          const next = availability.days.flatMap(day => day.slots)[0]?.startsAt;
+          if (next) this.nextAppointments.update(current => ({ ...current, [provider.id]: this.appointmentLabel(next) }));
+        } catch { this.availabilityErrors.update(current => ({ ...current, [provider.id]: true })); }
+      }));
+      this.analytics.trackMarketplaceSearch({ results_count: this.resultCount() });
+      this.trackResults();
     } catch (error) {
       console.error('[Marketplace] Directory load failed:', error);
       this.error.set('Dentist listings could not be loaded. Please try again shortly.');
@@ -652,11 +661,22 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   findDentists(): void {
+    if (!this.loading() && !this.error()) {
+      this.analytics.trackMarketplaceSearch({ results_count: this.resultCount() });
+      this.trackResults();
+    }
     if (this.isBrowser) {
       const results = document.getElementById('marketplace-results');
       results?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
       results?.focus({ preventScroll: true });
     }
+  }
+
+  private trackResults(): void {
+    if (this.resultCount() === 0) this.analytics.trackEvent('empty_result', { results_count: 0 });
+    const thin = this.route.snapshot.data['noIndex'] === true || this.resultCount() === 0 || this.hasFilters();
+    this.meta.updateTag({ name: 'robots', content: thin ? 'noindex,follow' : 'index,follow' });
+    this.meta.updateTag({ name: 'googlebot', content: thin ? 'noindex,follow' : 'index,follow' });
   }
 
   updateFee(event: Event): void {
@@ -694,6 +714,7 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   closeFilters(): void {
+    this.analytics.trackEvent('filter', { results_count: this.resultCount() });
     this.filtersDialog()?.nativeElement.close();
     this.isMobileFilterOpen.set(false);
   }
@@ -769,9 +790,11 @@ export class DentistDirectoryComponent implements OnInit {
     if (!clinic.marketplaceSlug) return;
     try {
       this.availabilityErrors.update(current => ({...current, [clinic.id]: false}));
-      const response = await this.marketplace.getAvailability(clinic.marketplaceSlug, 1);
+      const response = await this.marketplace.getAvailability(clinic.marketplaceSlug, 7);
       const slots = (response.days[0]?.slots ?? []).slice(0, 4);
       this.availability.update(current => ({ ...current, [clinic.id]: slots }));
+      const next = response.days.flatMap(day => day.slots)[0]?.startsAt;
+      this.nextAppointments.update(current => ({ ...current, [clinic.id]: next ? this.appointmentLabel(next) : '' }));
     } catch {
       this.availabilityErrors.update(current => ({...current, [clinic.id]: true}));
       this.availability.update(current => ({ ...current, [clinic.id]: [] }));
@@ -780,6 +803,10 @@ export class DentistDirectoryComponent implements OnInit {
 
   slotsFor(clinicId: string): MarketplaceAvailabilitySlot[] {
     return this.availability()[clinicId] ?? [];
+  }
+
+  private appointmentLabel(value: string): string {
+    return new Date(value).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
   }
 
   ratingFor(clinicId: string): number {

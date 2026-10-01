@@ -19,7 +19,7 @@ describe('AnalyticsService privacy boundary', () => {
     service.trackBookingSubmitted({ bookingRef: 'PRIVATE-123', service: 'Private treatment', clinicId: 'clinic-123', doctorName: 'Private name', consultationMode: 'video', isIndependent: true });
     const sent = JSON.stringify(gtag.calls.allArgs());
     for (const sensitive of ['PRIVATE-123', 'Private treatment', 'clinic-123', 'Private name']) expect(sent).not.toContain(sensitive);
-    expect(gtag).toHaveBeenCalledWith('event', 'appointment_booked', jasmine.objectContaining({ consultation_mode: 'video', is_independent: true }));
+    expect(gtag).toHaveBeenCalledWith('event', 'booking_submitted', jasmine.objectContaining({ consultation_mode: 'video', is_independent: true }));
   });
   it('drops unknown parameters and free text even from generic callers', () => {
     service.trackEvent('search', { search_term: 'private@example.test', user_name: 'Secret', cta_label: 'Secret', consultation_mode: 'Secret', results_count: 4 });

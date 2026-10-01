@@ -15,6 +15,7 @@ import {
 } from '../../core/services/marketplace.service';
 import { SlotPickerComponent, type SelectedSlot } from '../../shared/components/slot-picker/slot-picker.component';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 
 @Component({
   selector: 'app-marketplace-booking',
@@ -30,6 +31,7 @@ export class MarketplaceBookingComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly doctors = inject(DoctorService);
   readonly patientAuth = inject(PatientAuthService);
+  private readonly analytics = inject(AnalyticsService);
   readonly accountReady = signal(false);
   readonly accountQuery = computed(() => {
     const slot = this.selectedSlot();
@@ -116,7 +118,7 @@ export class MarketplaceBookingComponent implements OnInit {
       if (services.length === 0) {
         const fee = clinic.marketplaceProfile?.videoConsultationFee ?? clinic.marketplaceProfile?.consultationFee;
         services = [{
-          name: 'Video Consultation',
+          name: clinic.isIndependent ? 'Video Consultation' : 'Dental Consultation',
           price: fee != null ? `₹${fee}` : undefined,
         }];
       }
@@ -157,6 +159,7 @@ export class MarketplaceBookingComponent implements OnInit {
           entryPath: `/dentists/${clinic.marketplaceSlug}/book`,
         },
       });
+      this.analytics.trackBeginBooking({ consultation_mode: this.consultationMode() });
       const params = this.route.snapshot.queryParamMap;
       const date = params.get('date');
       const time = params.get('time');
@@ -185,6 +188,7 @@ export class MarketplaceBookingComponent implements OnInit {
   }
 
   onSlotSelected(slot: SelectedSlot): void {
+    this.analytics.trackEvent('slot_selected', { consultation_mode: this.consultationMode() });
     this.selectedSlot.set(slot);
     this.editingTime.set(false);
   }

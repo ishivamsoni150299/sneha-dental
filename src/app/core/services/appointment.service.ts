@@ -5,6 +5,7 @@ import type { Doctor } from './doctor.service';
 import { isBookableDateTime, normalizeTimeValue } from './doctor.service';
 import { AuthenticatedApiService } from './authenticated-api.service';
 import { AuthFacade } from './auth-facade.service';
+import { AnalyticsService } from './analytics.service';
 
 type Unsubscribe = () => void;
 
@@ -189,6 +190,7 @@ export interface Appointment {
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
+  private readonly analytics = inject(AnalyticsService);
   private readonly auth = inject(AuthFacade);
   private readonly clinic = inject(ClinicConfigService);
   private readonly api = inject(AuthenticatedApiService);
@@ -286,6 +288,7 @@ export class AppointmentService {
     data: Omit<Appointment, 'id' | 'clinicId' | 'bookingRef' | 'status' | 'createdAt'>,
     context?: BookingClinicContext,
     holdToken?: string,
+    verificationProof?: string,
   ): Promise<string> {
     if (!this.isBookable(data.date, data.time)) {
       throw new Error('Please choose a current or future appointment slot.');
@@ -297,7 +300,7 @@ export class AppointmentService {
     const book = this.auth.role() === 'patient' ? this.api.fetch.bind(this.api) : globalThis.fetch.bind(globalThis);
     const response = await book('/api/public/appointments', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(verificationProof ? { 'X-Booking-Verification': verificationProof } : {}) },
       body: JSON.stringify({
       ...data,
       clinicId,
@@ -424,6 +427,7 @@ export class AppointmentService {
       body: JSON.stringify({ status, cancellationReason }),
     });
     if (!response.ok) throw await this.error(response, 'Could not update appointment status.');
+    if (status === 'confirmed') this.analytics.trackEvent('booking_confirmed');
   }
 
   /** Save clinical record fields (notes, treatment, payment). Strips undefined. */

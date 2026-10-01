@@ -9,7 +9,8 @@ export const businessRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: '/dentists',
+    loadComponent: () => import('../marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
+    children: [{ path: '', loadComponent: () => import('../professional/professional-entry.component').then(m => m.ProfessionalEntryComponent), data: { audience: 'clinic', title: 'For Clinics — Team and Appointment Management' } }],
     data: {
       title: 'Dental Appointment Booking & Patient Discovery for Clinics',
       description: 'Join the mydentalplatform dentist network. Help nearby patients discover your clinic, compare care, view availability, and request appointments online.',
@@ -178,6 +179,7 @@ export const businessRoutes: Routes = [
           import('./analytics/analytics.component').then(m => m.AnalyticsComponent),
         data: { title: 'Business Analytics', noIndex: true },
       },
+      { path: 'patient-requests', loadComponent: () => import('./patient-requests.component').then(m => m.PatientRequestsComponent), data: { title: 'Patient Dentist Requests', noIndex: true } },
       {
         path: 'reviews',
         loadComponent: () =>

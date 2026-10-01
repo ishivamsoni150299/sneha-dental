@@ -179,12 +179,12 @@ export class AnalyticsService {
       lead_type: 'appointment_booking',
       ...eventParams,
     });
-    this.trackEvent('appointment_booked', eventParams);
+    this.trackEvent('booking_submitted', eventParams);
   }
 
   /** Track when a user begins the booking flow. */
   trackBeginBooking(details?: BeginBookingParams): void {
-    this.trackEvent('begin_booking', {
+    this.trackEvent('booking_started', {
       service: details?.service,
       clinic_id: details?.clinicId ?? details?.clinic_id,
       doctor_name: details?.doctorName ?? details?.doctor_name,
@@ -245,6 +245,7 @@ export class AnalyticsService {
     clinicName?: string,
     isIndependent?: boolean,
   ): void {
+    this.trackEvent('dentist_view');
     if (typeof slugOrDetails === 'object' && slugOrDetails !== null) {
       this.trackEvent('view_item', {
         item_id: slugOrDetails.dentist_id ?? slugOrDetails.dentistId ?? slugOrDetails.slug ?? '',

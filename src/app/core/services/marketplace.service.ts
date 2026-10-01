@@ -26,6 +26,8 @@ export interface MarketplaceSearchResponse {
 }
 
 export interface MarketplaceProvider {
+  photoUrl?: string; verifiedAt?: string; registrationCouncil?: string; verificationStatus?: string;
+  bookingSlug?: string; bookingDoctorId?: string;
   id: string; slug: string; fullName: string; qualification: string | null;
   speciality: string | null; experienceYears: number | null; languages: string[];
   locationId: string; locationName: string; locality: string | null; city: string;
@@ -125,16 +127,21 @@ export class MarketplaceService {
     const normalizedSlug = slug.trim().toLowerCase();
     try {
       const response = await fetch(`/api/v1/providers/${encodeURIComponent(normalizedSlug)}`);
-      if (!response.ok) return null;
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error('Could not load this dentist.');
       const provider = await response.json() as {
         id: string; slug: string; fullName: string; qualification?: string; speciality?: string;
-        biography?: string; phoneE164?: string; city?: string; locality?: string;
+        biography?: string; phoneE164?: string; city?: string; locality?: string; photoUrl?: string; verifiedAt?: string;
+        isIndependent?: boolean; bookingSlug?: string;
         experienceYears?: number; consultationFee?: number; acceptingNewPatients?: boolean;
         services?: (string | {service_id: string})[]; languages?: string[];
         practiceLocations?: { city: string; locality: string; addressLine1: string; consultationFee: number | null;
           acceptingNewPatients: boolean; schedule: Record<string, unknown> }[];
       };
       const practice = provider.practiceLocations?.[0];
+      if (provider.isIndependent === false) {
+        return provider.bookingSlug ? this.getVerifiedClinicBySlug(provider.bookingSlug) : null;
+      }
       return {
         id: String(provider.id),
         name: provider.fullName,
@@ -153,7 +160,9 @@ export class MarketplaceService {
         consultationModes: ['video'],
         marketplaceSlug: provider.slug,
         marketplaceStatus: 'verified',
+        marketplaceVerifiedAt: provider.verifiedAt,
         marketplaceProfile: {
+          listingImageUrl: provider.photoUrl,
           region: 'delhi-ncr',
           locality: practice?.locality || provider.locality || '',
           speciality: provider.speciality,
@@ -177,7 +186,7 @@ export class MarketplaceService {
         marketplaceVerifiedDoctorIds: [String(provider.id)],
       } as unknown as MarketplaceClinic;
     } catch {
-      return null;
+      throw new Error('Could not load this dentist. Please try again.');
     }
   }
 

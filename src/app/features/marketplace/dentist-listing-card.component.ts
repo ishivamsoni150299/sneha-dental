@@ -21,6 +21,7 @@ export class DentistListingCardComponent {
   readonly reviewCount = input(0);
   readonly compared = input(false);
   readonly videoOnly = input(false);
+  readonly nextAppointment = input('');
   readonly bookingContext = input<Record<string, string>>({});
   readonly consultationFee = computed(() => this.videoOnly()
     ? this.clinic().marketplaceProfile?.videoConsultationFee : this.clinic().marketplaceProfile?.consultationFee);

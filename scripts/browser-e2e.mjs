@@ -50,6 +50,20 @@ async function passwordLogin(page, url, email, password) {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 }
 
+async function verifyBookingMobile(page) {
+  if (process.env.E2E_BOOKING_OTP !== '1') return;
+  await page.getByRole('button', { name: 'Send verification code', exact: true }).click();
+  await page.getByLabel('Verification code', { exact: true }).fill('000000');
+  const rejectedCode = page.waitForResponse(response => response.url().endsWith('/api/public/booking-verification/verify'));
+  await page.getByRole('button', { name: 'Verify mobile', exact: true }).click();
+  const rejected = await rejectedCode;
+  assert.equal(rejected.status(), 400, await rejected.text());
+  await page.getByRole('alert').filter({ hasText: 'Incorrect code' }).waitFor();
+  await page.getByLabel('Verification code', { exact: true }).fill('123456');
+  await page.getByRole('button', { name: 'Verify mobile', exact: true }).click();
+  await page.getByText('Mobile verified. Submit your request within 10 minutes.').waitFor();
+}
+
 async function waitFor(url) {
   for (let attempt = 0; attempt < 90; attempt++) {
     try { if ((await fetch(url)).ok) return; } catch { /* server is starting */ }
@@ -59,13 +73,19 @@ async function waitFor(url) {
 }
 
 async function post(path, payload, token, expectedStatus = 200) {
+  let proof;
+  if (process.env.E2E_BOOKING_OTP === '1' && ['/api/v1/appointments', '/api/public/appointments'].includes(path)) {
+    await post('/api/public/booking-verification/request', { phone: payload.phone }, null, 200);
+    proof = (await post('/api/public/booking-verification/verify', { phone: payload.phone, code: '123456' })).proof;
+  }
   const response = await fetch(apiUrl + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(proof ? { 'X-Booking-Verification': proof } : {}) },
     body: JSON.stringify(payload),
   });
   assert.equal(response.status, expectedStatus, `${path} should accept the isolated test fixture`);
-  return expectedStatus === 202 || expectedStatus === 204 ? null : response.json();
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 async function get(path, token) {
@@ -84,6 +104,7 @@ async function patch(path, payload, token, expectedStatus = 204) {
 }
 
 await waitFor(apiUrl + '/api/health');
+if (process.env.E2E_BOOKING_OTP === '1') await sql('delete from dental.auth_otp_limits');
 await waitFor(appUrl + '/dentists');
 const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const password = `Browser-${suffix}-Pass!`;
@@ -103,9 +124,10 @@ const doctor = await post('/api/clinics/current/doctors', {
   available: true, schedule,
 }, clinicOwner.accessToken);
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {}) });
 try {
   const page = await browser.newPage();
+  const admin = await post('/api/auth/login', { email: adminEmail, password: adminPassword });
   for (const [path, location] of [
     ['/dentists/noida', 'Noida'],
     ['/dentists/noida/sector-75', 'Sector 75'],
@@ -120,8 +142,8 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Reactivate with Basic' }).count(), 0);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(appUrl + '/professional');
-  await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
-  assert.equal(new URL(page.url()).pathname, '/dentists');
+  await page.getByRole('heading', { name: 'Build your verified dentist profile' }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/professional');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
     'Dentist mobile header must fit the viewport');
   const signIn = await page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true }).boundingBox();
@@ -137,6 +159,24 @@ try {
     'The new unverified fixture must not appear, even when earlier verified test clinics exist');
   const unpublishedProfile = await fetch(`${apiUrl}/api/v1/dentists/e2e-clinic-${suffix}`);
   assert.equal(unpublishedProfile.status, 404, 'Unverified clinic profiles must stay inaccessible');
+  await page.locator('#dentist-search').fill(`No matching dentist ${suffix}`);
+  await page.getByRole('button', { name: 'Find Dentists', exact: true }).click();
+  const dentistRequest = page.locator('app-request-dentist');
+  await dentistRequest.getByRole('heading', { name: 'Request a dentist' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /All filters/ }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Available today', exact: true }).count(), 0);
+  await dentistRequest.getByLabel('Location', { exact: true }).fill('Noida');
+  await dentistRequest.getByLabel('Treatment or problem', { exact: true }).fill('Root canal advice');
+  const preferredDate = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+  await dentistRequest.getByLabel('Preferred date', { exact: true }).fill(preferredDate);
+  await dentistRequest.getByLabel('Preferred time (India)', { exact: true }).fill('11:00');
+  await dentistRequest.getByLabel('Your name', { exact: true }).fill(`Request ${suffix}`);
+  await dentistRequest.getByLabel('Mobile number', { exact: true }).fill('9876543210');
+  await dentistRequest.getByRole('checkbox').check();
+  await dentistRequest.getByRole('button', { name: 'Send dentist request', exact: true }).click();
+  await dentistRequest.getByRole('status').filter({ hasText: 'Your request has been saved' }).waitFor();
+  const requests = await get('/api/admin/dentist-requests', admin.accessToken);
+  assert.ok(requests.some(request => request.patient_name === `Request ${suffix}` && request.status === 'new'));
 
   await page.goto(appUrl + '/appointments');
   await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor();
@@ -147,7 +187,6 @@ try {
   await page.getByText(patientEmail, { exact: true }).waitFor();
   await page.getByRole('heading', { name: 'No linked appointments yet' }).waitFor();
 
-  const admin = await post('/api/auth/login', { email: adminEmail, password: adminPassword });
   const listingSlug = `e2e-verified-${suffix}`;
   await patch(`/api/admin/clinics/${onboarded.clinicId}/marketplace`, {
     status: 'verified', slug: listingSlug, verifiedDoctorIds: [doctor.id],
@@ -169,15 +208,26 @@ try {
   assert.ok(slot, 'Only the verified dentist should have bookable slots');
 
   const patient = await post('/api/auth/login', { email: patientEmail, password });
-  const booked = await post('/api/v1/appointments', {
-    dentistSlug: listingSlug, serviceId: 'root-canal', doctorId: doctor.id,
-    date: day.date, time: slot.time, patientName: 'E2E Patient',
-    phone: '9876543210', email: patientEmail, consentToShare: true,
-  }, patient.accessToken);
-  assert.equal(booked.status, 'pending');
+  await page.goto(appUrl + '/dentists?treatment=root-canal&location=Noida');
+  const bookingLink = page.locator(`a[href^="/dentists/${listingSlug}/book"]`).filter({ hasText: 'Book Appointment' });
+  await bookingLink.click();
+  await page.getByRole('heading', { name: 'Book your next visit.' }).waitFor();
+  await page.getByRole('button', { name: /In-clinic visit/ }).click();
+  await page.getByRole('group', { name: 'Appointment dates' }).getByRole('button').nth(availability.days.indexOf(day)).click();
+  await page.locator('app-slot-picker').getByRole('button', { name: /E2E Dentist/ }).first().click();
+  await page.locator('#appointment-name').fill('E2E Patient');
+  await page.locator('#appointment-phone').fill('9876543210');
+  await page.getByRole('button', { name: 'Review & Book', exact: true }).click();
+  await page.getByText('Add email & notes (optional)', { exact: true }).click();
+  await page.locator('#appointment-email').fill(patientEmail);
+  await page.locator('#appointment-privacyAccepted').check();
+  await verifyBookingMobile(page);
+  const bookingResponse = page.waitForResponse(response => response.url().endsWith('/api/public/appointments') && response.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Send Appointment Request', exact: true }).click();
+  const booked = { bookingReference: (await (await bookingResponse).json()).bookingRef };
   assert.ok(booked.bookingReference, 'Booking must receive a reference');
-
-  await page.reload();
+  await page.getByRole('heading', { name: 'Your request was sent' }).waitFor();
+  await page.getByRole('link', { name: 'View my appointments', exact: true }).click();
   await page.getByText(booked.bookingReference, { exact: true }).waitFor();
   await page.getByRole('heading', { name: 'E2E Clinic' }).waitFor();
 
@@ -232,6 +282,7 @@ try {
   assert.equal(await page.locator('#appointment-phone').inputValue(), '9876543210');
   await page.getByRole('button', { name: 'Review appointment', exact: true }).click();
   await page.locator('#appointment-privacyAccepted').check();
+  await verifyBookingMobile(page);
   await page.getByRole('button', { name: 'Send request', exact: true }).click();
   await page.getByRole('heading', { name: 'Your request was sent', exact: true }).waitFor();
   await page.getByRole('link', { name: 'View my appointments', exact: true }).click();
@@ -352,7 +403,7 @@ try {
   if (process.env.E2E_UX_AUDIT === '1') {
     const guestPage = await browser.newPage();
     const failures = await checkUxRoutes(guestPage, appUrl, 'public', [
-      '/', '/services', '/about', '/gallery', '/testimonials', '/contact', '/appointment',
+      '/', '/book', '/services', '/about', '/gallery', '/testimonials', '/contact', '/appointment',
       '/appointment/confirmed', '/my-appointment', '/privacy', '/terms', '/coming-soon', '/not-a-real-page',
       '/dentists', '/dentists/noida', '/dentists/root-canal/noida', `/dentists/${listingSlug}`,
       `/dentists/${listingSlug}/book`, `/dentist/${provider.slug}`, `/clinic/${listingSlug}`,
@@ -365,7 +416,7 @@ try {
       '/business/clinic/doctors', '/business/clinic/patients', '/business/clinic/reviews',
     ]));
     failures.push(...await checkUxRoutes(adminPage, appUrl, 'platform', [
-      '/workspace', '/business/clinics', '/business/clinics/new', `/business/clinics/${onboarded.clinicId}/edit`,
+      '/workspace', '/business/patient-requests', '/business/clinics', '/business/clinics/new', `/business/clinics/${onboarded.clinicId}/edit`,
       '/business/dentists/verification', '/business/reviews', '/business/analytics', '/business/revenue',
       '/business/leads', '/business/leads/new', '/business/leads/discover',
     ]));

@@ -59,8 +59,9 @@ public class SecurityConfig {
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/api/health", "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/public/**", "/api/marketplace/**", "/api/v1/**", "/openapi.yaml").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/public/contacts").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/public/contacts", "/api/public/dentist-requests").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/video-tests/join").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/public/booking-verification/request", "/api/public/booking-verification/verify").permitAll()
                 // NOTE: permitAll at filter level, but lookup, cancel, update, review, and video
                 // endpoints enforce patient JWT via PatientIdentity.requirePhone() at the controller.
                 // Authenticated equivalents: /api/patient/account/**. Future: migrate to /api/v1/patient/.

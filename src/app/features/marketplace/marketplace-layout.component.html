@@ -9,6 +9,8 @@
       @if (!auth.role() || auth.role() === 'patient') {
         <a routerLink="/appointments" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-calendar-blank" aria-hidden="true"></i>My appointments</a>
       }
+      <a routerLink="/professional" routerLinkActive="active" ariaCurrentWhenActive="page">For Dentists</a>
+      <a routerLink="/business" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active" ariaCurrentWhenActive="page">For Clinics</a>
     </nav>
     @if (auth.role(); as role) {
       <a class="account-link ui-btn ui-btn-secondary" routerLink="/workspace">{{ role === 'patient' ? 'My account' : 'Workspace' }}</a>
@@ -16,6 +18,7 @@
       <a class="account-link ui-btn ui-btn-primary" routerLink="/account">Sign in</a>
     }
   </header>
+  <nav class="professional-mobile-links" aria-label="Professional areas"><a routerLink="/professional">For Dentists</a><a routerLink="/business">For Clinics</a></nav>
   <main id="marketplace-content"><router-outlet /></main>
   <nav class="patient-tab-bar" aria-label="Mobile platform navigation">
     <a routerLink="/dentists" routerLinkActive="active" ariaCurrentWhenActive="page">

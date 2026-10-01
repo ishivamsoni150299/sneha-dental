@@ -348,7 +348,7 @@ export class SeoService {
     const hostname = this.normalizeHostname(this.document.location.hostname);
     const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-    if (path.startsWith('/dentists') || path.startsWith('/appointments') || path.startsWith('/business') || path.startsWith('/platform') || (!isLocalHost && this.getPlatformHostnames().has(hostname))) {
+    if (['/dentists', '/dentist', '/clinic', '/appointments', '/business', '/platform', '/professional', '/account', '/workspace', '/book'].some(prefix => path === prefix || path.startsWith(`${prefix}/`)) || (!isLocalHost && this.getPlatformHostnames().has(hostname))) {
       return {
         kind: 'platform',
         siteName: PLATFORM_NAME,

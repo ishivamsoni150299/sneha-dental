@@ -84,8 +84,9 @@ public class ProviderController {
         pageParams.add(offset);
         List<Map<String, Object>> providers = jdbcTemplate.query("""
             SELECT p.id, p.slug, p.full_name, p.qualification, p.speciality,
-                   p.experience_years, p.photo_url, p.languages::text AS languages,
+                   p.experience_years, p.photo_url, p.verified_at, p.registration_council, p.languages::text AS languages,
                    l.id AS location_id, l.name AS location_name, l.locality, l.city,
+                   p.legacy_doctor_id, (select c.marketplace_slug from clinics c where c.id = l.clinic_id and c.marketplace_status = 'verified') as booking_slug,
                    m.consultation_fee, m.accepting_new_patients,
                    (SELECT coalesce(jsonb_agg(ps.service_id), '[]'::jsonb)::text
                     FROM provider_services ps WHERE ps.provider_id = p.id AND ps.active) AS service_ids,
@@ -105,6 +106,9 @@ public class ProviderController {
                 value.put("speciality", rs.getString("speciality"));
                 value.put("experienceYears", rs.getObject("experience_years", Integer.class));
                 value.put("photoUrl", rs.getString("photo_url"));
+                value.put("verifiedAt", rs.getString("verified_at"));
+                value.put("registrationCouncil", rs.getString("registration_council"));
+                value.put("verificationStatus", "verified");
                 value.put("languages", jsonList(rs.getString("languages")));
                 value.put("serviceIds", jsonList(rs.getString("service_ids")));
                 value.put("locationId", rs.getObject("location_id", UUID.class));
@@ -113,6 +117,8 @@ public class ProviderController {
                 value.put("city", rs.getString("city"));
                 value.put("consultationFee", rs.getObject("consultation_fee", Integer.class));
                 value.put("acceptingNewPatients", rs.getBoolean("accepting_new_patients"));
+                value.put("bookingSlug", rs.getString("booking_slug"));
+                value.put("bookingDoctorId", rs.getString("legacy_doctor_id"));
                 boolean isIndependent = rs.getBoolean("is_independent");
                 value.put("isIndependent", isIndependent);
                 value.put("eligibleForVideo", true);
@@ -130,7 +136,8 @@ public class ProviderController {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
             SELECT p.id, p.slug, p.full_name, p.qualification, p.speciality, p.biography,
                    p.experience_years, p.photo_url, p.languages::text AS languages,
-                   p.registration_council, l.id AS location_id, l.name AS location_name,
+                   p.registration_council, p.verified_at, l.id AS location_id, l.name AS location_name,
+                   (select c.marketplace_slug from clinics c where c.id = l.clinic_id and c.marketplace_status = 'verified') as booking_slug,
                    l.address_line1, l.address_line2, l.locality, l.city, l.state, l.postal_code,
                    l.latitude, l.longitude, l.timezone, l.phone_e164,
                    m.consultation_fee, m.accepting_new_patients, m.schedule::text AS schedule,
@@ -155,9 +162,11 @@ public class ProviderController {
         profile.put("biography", first.get("biography"));
         profile.put("experienceYears", first.get("experience_years"));
         profile.put("photoUrl", first.get("photo_url"));
+        profile.put("verifiedAt", first.get("verified_at"));
         profile.put("languages", jsonList((String) first.get("languages")));
         boolean isIndependent = Boolean.TRUE.equals(first.get("is_independent"));
         profile.put("isIndependent", isIndependent);
+        profile.put("bookingSlug", first.get("booking_slug"));
         profile.put("eligibleForVideo", true);
         profile.put("eligibleForInClinic", !isIndependent);
         profile.put("consultationModes", isIndependent ? List.of("video") : List.of("in_person", "video"));

@@ -13,6 +13,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 final class PrerenderedPageController {
+    private final org.springframework.core.io.ResourceLoader resources;
+    private final String[] staticLocations;
+    PrerenderedPageController(org.springframework.core.io.ResourceLoader resources,
+        @org.springframework.beans.factory.annotation.Value("${spring.web.resources.static-locations:classpath:/static/}") String[] staticLocations) {
+        this.resources = resources; this.staticLocations = staticLocations;
+    }
     @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     ResponseEntity<Resource> home(HttpServletRequest request) {
@@ -27,8 +33,18 @@ final class PrerenderedPageController {
 
     @GetMapping(value = "/dentists", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
-    Resource dentists() {
+    Resource dentists(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        if (request.getParameterMap().keySet().stream().anyMatch(java.util.Set.of("q", "treatment", "location", "mode", "fee", "rating", "gender")::contains))
+            response.setHeader("X-Robots-Tag", "noindex, follow");
         return new ClassPathResource("static/dentists/index.html");
+    }
+
+    @GetMapping(value = {"/privacy", "/terms"}, produces = MediaType.TEXT_HTML_VALUE)
+    @ResponseBody
+    ResponseEntity<Resource> legalAlias(HttpServletRequest request) {
+        if (java.util.Set.of("mydentalplatform.com", "www.mydentalplatform.com").contains(request.getServerName().toLowerCase()))
+            return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).header("Location", "/business" + request.getRequestURI()).build();
+        return ResponseEntity.ok(new ClassPathResource("static/index.html"));
     }
 
     @GetMapping(value = {
@@ -48,11 +64,13 @@ final class PrerenderedPageController {
         return new ClassPathResource("static" + request.getRequestURI() + "/index.html");
     }
 
-    @GetMapping(value = "/business", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(value = {"/business", "/professional", "/account", "/account/recovery", "/business/privacy", "/business/terms"}, produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
-    ResponseEntity<Void> business() {
-        return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT)
-            .header("Location", "/dentists")
-            .build();
+    Resource platformPage(HttpServletRequest request) {
+        for (String location : staticLocations) {
+            Resource page = resources.getResource(location + request.getRequestURI().substring(1) + "/index.html");
+            if (page.exists()) return page;
+        }
+        return resources.getResource(staticLocations[0] + "index.html");
     }
 }

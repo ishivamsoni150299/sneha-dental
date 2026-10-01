@@ -5,6 +5,7 @@ import { AuthenticatedApiService } from '../../core/services/authenticated-api.s
 import { AuthFacade } from '../../core/services/auth-facade.service';
 import { VideoConsultationComponent } from '../../shared/components/video-consultation/video-consultation.component';
 import { ProfessionalProfileComponent } from './professional-profile.component';
+import { AnalyticsService } from '../../core/services/analytics.service';
 
 interface Visit {
   id: string; booking_ref: string; patient_name: string; phone_e164: string;
@@ -147,6 +148,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
   `,
 })
 export class ProfessionalWorkspaceComponent implements OnInit {
+  private readonly analytics = inject(AnalyticsService);
   private readonly api = inject(AuthenticatedApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthFacade);
@@ -211,6 +213,7 @@ export class ProfessionalWorkspaceComponent implements OnInit {
     this.busy.set(true); this.error.set(null); this.message.set(null);
     try {
       await this.request(`/api/providers/me/appointments/${visit.id}/status`, { status, cancellationReason: reason?.trim() });
+      if (status === 'confirmed') this.analytics.trackEvent('booking_confirmed', { consultation_mode: visit.consultation_mode });
       this.declining.set(null); await this.loadVisits(); this.message.set('Appointment updated.');
     } catch (e) { this.error.set((e as Error).message); }
     finally { this.busy.set(false); }

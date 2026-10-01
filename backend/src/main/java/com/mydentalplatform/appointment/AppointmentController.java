@@ -32,13 +32,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class AppointmentController {
     private final AppointmentService appointmentService;
+    private final com.mydentalplatform.auth.BookingMobileVerification verification;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService, com.mydentalplatform.auth.BookingMobileVerification verification) {
         this.appointmentService = appointmentService;
+        this.verification = verification;
     }
 
     @PostMapping("/public/appointments")
-    Map<String, String> book(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody BookingRequest request) {
+    @org.springframework.transaction.annotation.Transactional
+    Map<String, String> book(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody BookingRequest request,
+        @org.springframework.web.bind.annotation.RequestHeader(value = "X-Booking-Verification", required = false) String proof) {
+        verification.consume(request.phone(), proof);
         UUID account = jwt != null && "patient".equals(jwt.getClaimAsString("role")) ? UUID.fromString(jwt.getSubject()) : null;
         if ("video".equals(request.consultationMode()) && account == null)
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Sign in to your patient account before booking a video consultation.");

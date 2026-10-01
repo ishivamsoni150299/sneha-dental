@@ -193,8 +193,11 @@ describe('DentistDirectoryComponent', () => {
       speciality: 'Endodontics', experienceYears: 2, languages: ['Hindi'],
       locationId: 'location-1', locationName: 'Noida', locality: 'Kanchanjunga', city: 'Noida',
       consultationFee: 200, acceptingNewPatients: true, serviceIds: ['root-canal'],
+      isIndependent: true, eligibleForVideo: true,
     }]);
     const { fixture, component } = await setupComponent();
+    component.videoOnly.set(true);
+    fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Sneha Soni');
     expect(fixture.nativeElement.querySelector('a[href="/dentist/sneha-soni"]')).not.toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('We’re verifying the first dentists.');
@@ -219,7 +222,7 @@ describe('DentistDirectoryComponent', () => {
     expect(text).toContain('Dr. Rajesh Khanna');
     expect(text).toContain('₹500');
     expect(text).toContain('₹800');
-    expect(text).toContain('DCI Registration Checked');
+    expect(text).toContain('Council registration checks');
     expect(text).toContain('Available Today');
   });
 

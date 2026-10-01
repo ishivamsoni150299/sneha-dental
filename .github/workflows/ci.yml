@@ -42,6 +42,7 @@ jobs:
         image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: browser_e2e
         ports:
           - 5432:5432
         options: >-
@@ -52,16 +53,17 @@ jobs:
     env:
       DATABASE_HOST: localhost
       DATABASE_PORT: '5432'
-      DATABASE_NAME: postgres
+      DATABASE_NAME: browser_e2e
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
-      JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/postgres?currentSchema=dental,public,extensions
+      JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/browser_e2e?currentSchema=dental,public,extensions
       SPRING_FLYWAY_DEFAULT_SCHEMA: dental
       SPRING_FLYWAY_SCHEMAS: dental
       JWT_SECRET: browser-e2e-only-secret-with-at-least-32-bytes
       JWT_ISSUER: http://localhost:8080
       PUBLIC_BASE_URL: http://localhost:4200
       E2E_ISOLATED_DB: '1'
+      E2E_BOOKING_OTP: '1'
       BOOTSTRAP_ADMIN_EMAIL: browser-admin@example.test
       BOOTSTRAP_ADMIN_PASSWORD: BrowserAdminOnlyPass123!
       # Enables claim-email outbox creation while preventing external delivery from CI.
@@ -86,12 +88,12 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Provision isolated database roles
         run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c 'CREATE EXTENSION IF NOT EXISTS pgcrypto'
+          PGPASSWORD=postgres psql -h localhost -U postgres -d browser_e2e -c 'CREATE EXTENSION IF NOT EXISTS pgcrypto'
           PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c 'CREATE ROLE anon NOLOGIN'
           PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c 'CREATE ROLE authenticated NOLOGIN'
       - name: Start API and Angular
         run: |
-          (cd backend && ./mvnw -B spring-boot:run > ../backend-e2e.log 2>&1) &
+          (cd backend && ./mvnw -B test-compile dependency:build-classpath -Dmdep.outputFile=target/e2e-classpath.txt && java -cp "target/test-classes:target/classes:$(cat target/e2e-classpath.txt)" com.mydentalplatform.BookingFunnelTestApplication > ../backend-e2e.log 2>&1) &
           npm start -- --host 127.0.0.1 > frontend-e2e.log 2>&1 &
       - name: Run Playwright browser journeys
         run: npm run test:e2e

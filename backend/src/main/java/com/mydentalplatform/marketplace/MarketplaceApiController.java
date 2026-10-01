@@ -33,10 +33,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class MarketplaceApiController {
     private final MarketplaceApiService marketplace;
     private final AppointmentService appointments;
+    private final com.mydentalplatform.auth.BookingMobileVerification verification;
 
-    public MarketplaceApiController(MarketplaceApiService marketplace, AppointmentService appointments) {
+    public MarketplaceApiController(MarketplaceApiService marketplace, AppointmentService appointments, com.mydentalplatform.auth.BookingMobileVerification verification) {
         this.marketplace = marketplace;
         this.appointments = appointments;
+        this.verification = verification;
     }
 
     @GetMapping("/dentists")
@@ -71,7 +73,10 @@ public class MarketplaceApiController {
     }
 
     @PostMapping("/appointments")
-    BookingResponse book(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, @Valid @RequestBody BookingRequest request) {
+    @org.springframework.transaction.annotation.Transactional
+    BookingResponse book(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, @Valid @RequestBody BookingRequest request,
+        @org.springframework.web.bind.annotation.RequestHeader(value = "X-Booking-Verification", required = false) String proof) {
+        verification.consume(request.phone(), proof);
         MarketplaceApiService.BookingContext context = marketplace.validateBooking(
             request.dentistSlug(), request.serviceId(), request.doctorId(), request.date(), request.time());
         String bookingRef = appointments.book(new AppointmentController.BookingRequest(

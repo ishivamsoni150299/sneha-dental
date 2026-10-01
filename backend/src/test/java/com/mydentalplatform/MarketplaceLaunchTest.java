@@ -55,8 +55,8 @@ class MarketplaceLaunchTest {
                 assertEquals(0, app.getBean(Flyway.class).info().pending().length);
                 var business = http.send(HttpRequest.newBuilder(URI.create(base + "/business"))
                     .header("Accept", "text/html").GET().build(), HttpResponse.BodyHandlers.ofString());
-                assertEquals(308, business.statusCode());
-                assertEquals("/dentists", business.headers().firstValue("Location").orElseThrow());
+                assertEquals(200, business.statusCode());
+                assertTrue(business.headers().firstValue("Location").isEmpty());
                 for (String route : new String[] {"/account", "/account?mode=signup&type=clinic", "/account/recovery"}) {
                     var response = http.send(HttpRequest.newBuilder(URI.create(base + route)).GET().build(),
                         HttpResponse.BodyHandlers.ofString());
@@ -89,6 +89,21 @@ class MarketplaceLaunchTest {
                 request("GET", "/api/patient/account/session", null, patient, 200);
                 request("GET", "/api/patient/account/missing", null, patient, 404);
                 request("GET", "/api/admin/clinics", null, admin, 200);
+                var dentistRequest = Map.of("location", "Noida", "problem", "Toothache", "preferredDate",
+                    java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata")).plusDays(2).toString(), "preferredTime", "10:00", "name", "Test Patient", "mobile", "+919999999999");
+                String requestId = request("POST", "/api/public/dentist-requests", dentistRequest, null, 201).path("id").asText();
+                assertFalse(requestId.isBlank());
+                request("GET", "/api/admin/dentist-requests", null, null, 401);
+                request("GET", "/api/admin/dentist-requests", null, patient, 403);
+                var inbox = request("GET", "/api/admin/dentist-requests", null, admin, 200);
+                assertEquals(requestId, inbox.get(0).path("id").asText());
+                assertEquals("new", inbox.get(0).path("status").asText());
+                request("PATCH", "/api/admin/dentist-requests/" + requestId, Map.of("status", "contacted"), patient, 403);
+                request("PATCH", "/api/admin/dentist-requests/" + requestId, Map.of("status", "contacted"), admin, 200);
+                request("PATCH", "/api/admin/dentist-requests/" + requestId, Map.of("status", "invented"), admin, 400);
+                var invalidRequest = new java.util.HashMap<>(dentistRequest); invalidRequest.put("mobile", "123");
+                request("POST", "/api/public/dentist-requests", invalidRequest, null, 400);
+                request("POST", "/api/public/booking-verification/request", Map.of("phone", "9999999999"), null, 503);
 
                 String owner = token(request("POST", "/api/auth/clinic/signup", Map.of("email", "owner@example.test", "password", password), null, 200));
                 JsonNode clinic = request("POST", "/api/clinics/onboarding", Map.of("name", "Launch Dental", "phone", "9999999999", "slug", "launch-dental", "plan", "trial", "city", "Delhi"), owner, 200);

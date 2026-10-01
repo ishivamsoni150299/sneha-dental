@@ -13,7 +13,7 @@ export function accountDestination(role: AuthRole, returnUrl: string | null = nu
   const allowed = role === 'patient' ? /^(?:\/appointments|\/my-appointment|\/appointment|\/dentists\/[^/]+\/book)$/.test(path)
     : role === 'dentist' ? /^\/professional\/(?:workspace|profile|video-test)$/.test(path)
       : role === 'clinic-admin' ? /^\/business\/clinic\/(?:dashboard|settings|doctors|patients|reviews|expired)$/.test(path)
-        : role === 'platform-admin' ? /^\/business\/(?:clinics(?:\/new|\/[^/]+\/edit)?|dentists\/verification|reviews|analytics|revenue|leads(?:\/new|\/discover|\/[^/]+\/edit)?)$/.test(path) : path === '/business/signup';
+        : role === 'platform-admin' ? /^\/business\/(?:clinics(?:\/new|\/[^/]+\/edit)?|dentists\/verification|reviews|analytics|patient-requests|revenue|leads(?:\/new|\/discover|\/[^/]+\/edit)?)$/.test(path) : path === '/business/signup';
   return allowed ? returnUrl : fallback;
 }
 

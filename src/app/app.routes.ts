@@ -7,6 +7,9 @@ import { workspaceGuard } from './core/guards/workspace.guard';
 import { accountRedirect, dentistSignupRedirect } from './core/utils/account-navigation';
 
 export const routes: Routes = [
+  { path: 'book', canActivate: [platformOnlyGuard], loadComponent: () => import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent), children: [
+    { path: '', loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent), data: { title: 'Choose a Dentist to Request an Appointment', noIndex: true } },
+  ] },
   { path: 'workspace', canActivate: [platformOnlyGuard, workspaceGuard], children: [] },
   { path: 'account', canActivate: [platformOnlyGuard],
     loadComponent: () => import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent),
@@ -23,7 +26,9 @@ export const routes: Routes = [
     canActivate: [platformOnlyGuard],
     children: [
       { path: 'video-test', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/video-test.component').then(m => m.VideoTestComponent), data: { title: 'Test Video Consultation', noIndex: true, host: true } },
-      { path: '', pathMatch: 'full', redirectTo: '/dentists' },
+      { path: '', pathMatch: 'full', loadComponent: () => import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent), children: [
+        { path: '', loadComponent: () => import('./features/professional/professional-entry.component').then(m => m.ProfessionalEntryComponent), data: { title: 'For Dentists — Profile, Verification and Appointments' } },
+      ] },
       { path: 'signup', redirectTo: dentistSignupRedirect },
       { path: 'login', redirectTo: accountRedirect },
       { path: 'profile', canActivate: [dentistGuard], loadComponent: () => import('./features/professional/professional-profile.component').then(m => m.ProfessionalProfileComponent), data: { title: 'Dentist Profile', noIndex: true } },

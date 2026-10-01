@@ -7,7 +7,7 @@ const checks = [
   ['/account', 200, 'html'],
   ['/account?mode=signup&type=clinic', 200, 'html'],
   ['/account/recovery', 200, 'html'],
-  ['/business', 308, 'directory-redirect'],
+  ['/business', 200, 'html'],
   ['/business/signup', 200, 'html'],
   ['/api/health', 200, 'health'],
   ['/api/marketplace/clinics?region=Delhi', 200, 'json'],
@@ -18,9 +18,6 @@ for (const [route, expected, kind] of checks) {
   try {
     const response = await fetch(new URL(route, base), { redirect: 'manual', signal: AbortSignal.timeout(20_000) });
     if (response.status !== expected) throw new Error('expected ' + expected + ', received ' + response.status);
-    if (kind === 'directory-redirect' && response.headers.get('location') !== '/dentists') {
-      throw new Error('expected redirect to the shared dentist directory');
-    }
     if (kind === 'json' || kind === 'health') {
       if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('expected JSON');
       const body = await response.json();

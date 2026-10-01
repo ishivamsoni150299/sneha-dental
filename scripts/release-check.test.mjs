@@ -8,7 +8,7 @@ for (const mock of [false, true]) {
     const server = http.createServer((request, response) => {
       const route = request.url;
       if (route === '/business') {
-        response.writeHead(308, { Location: '/dentists' }).end();
+        response.writeHead(200, { 'Content-Type': 'text/html' }).end('<!doctype html><html><body><app-root></app-root></body></html>');
       } else if (route.startsWith('/api/auth/') || route.startsWith('/api/admin/')) {
         response.writeHead(401).end();
       } else if (route.startsWith('/api/')) {

@@ -267,7 +267,8 @@
 
       <section aria-labelledby="verification-heading" class="border-t border-ui-line pt-7">
         <h2 id="verification-heading" class="text-lg font-bold text-ui-ink">Provider verification</h2>
-        <p class="mt-3 text-sm leading-6 text-ui-ink-muted">Identity, dentist registration, clinic phone, and operating address were checked by mydentalplatform.</p>
+        <p class="mt-3 text-sm leading-6 text-ui-ink-muted">{{ currentClinic.isIndependent ? 'Council registration verified for this independent dentist. Video consultation only.' : 'Clinic identity and the registration of approved marketplace dentists were checked by mydentalplatform.' }}</p>
+        <p class="mt-2 text-sm text-ui-ink-muted">{{ currentClinic.marketplaceVerifiedAt ? 'Verified on ' + currentClinic.marketplaceVerifiedAt.slice(0, 10) : 'Verification date not published.' }}</p>
         <p class="mt-2 text-xs leading-5 text-gray-500">Verification does not guarantee a clinical outcome. Discuss diagnosis, treatment options, and total cost directly with your dentist.</p>
       </section>
 

@@ -3108,7 +3108,7 @@ textarea.ui-field {
     opacity: 0.6;
   }
 
-  .booking-page:has(input:not([type='checkbox']):not([type='radio']):focus, select:focus, textarea:focus) .booking-mobile-dock {
+  .booking-page:has(input:not([type='checkbox']):not([type='radio']):focus, select:focus, textarea:focus, app-booking-otp:focus-within) .booking-mobile-dock {
     display: none;
   }
 }

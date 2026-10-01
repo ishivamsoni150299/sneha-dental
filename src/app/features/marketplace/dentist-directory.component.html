@@ -53,7 +53,7 @@
     <form class="search-bar" role="search" (submit)="$event.preventDefault(); findDentists()">
       <div class="search-field">
         <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <div><label for="dentist-search">Dentist, clinic or treatment</label>
+        <div><label for="dentist-search">Treatment or problem</label>
           <input id="dentist-search" type="search" placeholder="e.g. root canal" [value]="searchTerm()" (input)="updateSearch($event)">
         </div>
       </div>
@@ -103,12 +103,14 @@
       <div><h2>Search results</h2></div>
       <button type="button" class="edit-search" (click)="editSearch()"><i class="ph ph-magnifying-glass" aria-hidden="true"></i> Change search</button>
     </div>
+    @if (!loading() && !error() && resultCount() > 0) {
     <div class="toolbar">
       <div class="quick-filters">
-        <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly())" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()">Available today</button>
+        @if (hasTodaySlots()) { <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly()); findDentists()" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()">Available today</button> }
         <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-haspopup="dialog" aria-controls="advanced-filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> All filters @if (activeFilterCount()) {<span class="filter-count">{{ activeFilterCount() }}</span>}</button>
       </div>
     </div>
+    }
     @if (videoOnly()) {
       <div role="status" class="mb-5 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900">
         <i class="ph ph-video-camera mt-1 text-xl" aria-hidden="true"></i>
@@ -137,7 +139,7 @@
     </dialog>
     <div class="result-summary">
       <p aria-live="polite">{{ loading() ? 'Finding your next dentist…' : error() ? 'Listings temporarily unavailable' : resultCount() + ' verified ' + (discoveryType() === 'dentists' ? 'dentist locations' : 'clinics') }}{{ locality() ? ' in ' + locality() : ' across Delhi NCR' }}</p>
-      <select aria-label="Sort results" [value]="sortBy()" (change)="updateSort($event)"><option value="recommended">Recommended</option><option value="earliest">Earliest available</option><option value="rating">Highest rated</option><option value="experience">Most experienced</option><option value="fee">Fee: low to high</option>@if (userCoordinates()) {<option value="distance">Nearest</option>}</select>
+      @if (resultCount() > 0) { <select aria-label="Sort results" [value]="sortBy()" (change)="updateSort($event)"><option value="recommended">Recommended</option><option value="earliest">Earliest available</option><option value="rating">Highest rated</option><option value="experience">Most experienced</option><option value="fee">Fee: low to high</option>@if (userCoordinates()) {<option value="distance">Nearest</option>}</select> }
     </div>
     @if (hasFilters()) {
       <div class="active-filters">
@@ -164,15 +166,23 @@
                     <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800"><i class="ph ph-map-pin" aria-hidden="true"></i> In-Clinic &amp; Video</span>
                   }
                 </div>
+                @if (dentist.photoUrl) { <img [src]="dentist.photoUrl" [alt]="dentist.fullName" width="80" height="80" loading="lazy" class="mt-3 h-20 w-20 rounded-xl object-cover"> }
+                @else { <span class="mt-3 inline-flex h-20 w-20 items-center justify-center rounded-xl bg-ui-muted text-xs text-ui-ink-muted">Photo not provided</span> }
                 <h3 class="mt-2 text-xl font-bold text-ui-ink">{{ dentist.fullName }}</h3>
-                <p class="mt-1 text-sm text-ui-ink-muted">{{ dentist.qualification }} · {{ dentist.speciality }}</p>
+                <p class="mt-2 text-sm text-emerald-800">Council registration verified{{ dentist.registrationCouncil ? ' · ' + dentist.registrationCouncil : '' }}</p>
+                @if (dentist.verifiedAt) { <p class="text-xs text-ui-ink-muted">Verified on {{ dentist.verifiedAt.slice(0, 10) }}</p> }
+                @else { <p class="text-xs text-ui-ink-muted">Verification date not published.</p> }
+                <p class="mt-1 text-sm text-ui-ink-muted">{{ dentist.qualification || 'Qualification not listed' }}{{ dentist.speciality ? ' · ' + dentist.speciality : '' }}</p>
               </div>
               <p class="text-sm font-semibold text-ui-ink">{{ dentist.consultationFee != null ? '₹' + dentist.consultationFee + ' consultation' : 'Contact for fee' }}</p>
             </div>
             <p class="mt-4 text-sm text-ui-ink-muted">{{ dentist.locationName }} · {{ dentist.locality }} · {{ dentist.city }}</p>
-            <p class="mt-2 text-sm text-gray-500">{{ dentist.experienceYears ?? 'Not listed' }} years experience · {{ dentist.languages.join(', ') }}</p>
+            <p class="mt-2 text-sm text-gray-500">{{ dentist.experienceYears != null ? dentist.experienceYears + ' years experience' : 'Experience not listed' }} · {{ dentist.languages.join(', ') }}</p>
+            @if (slotsFor(dentist.id).length && dentist.acceptingNewPatients) { <p class="mt-3 text-sm font-semibold">Next appointment today: {{ slotsFor(dentist.id)[0].time }}</p> }
+            @else { <p class="mt-3 text-sm">{{ availabilityErrors()[dentist.id] ? 'Appointment times could not be loaded. Check the booking page.' : nextAppointments()[dentist.id] ? 'Next appointment: ' + nextAppointments()[dentist.id] : 'No online times in the next 7 days. Check other dates.' }}</p> }
             <div class="mt-5 flex flex-wrap gap-3">
-              @if (dentist.isIndependent) {
+              @if (!dentist.acceptingNewPatients) { <span class="ui-body">Not accepting new patients</span> }
+              @else if (dentist.isIndependent) {
                 <a [routerLink]="['/dentists', dentist.slug, 'book']" [queryParams]="bookingQuery('video')" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Book Video Consultation</a>
               } @else {
                 <a [routerLink]="['/dentists', dentist.slug, 'book']" [queryParams]="bookingQuery(videoOnly() ? 'video' : 'in_person')" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">Book Appointment</a>
@@ -186,6 +196,7 @@
             [videoOnly]="videoOnly()"
             [bookingContext]="bookingContext()"
             [clinic]="clinic" [discoveryType]="discoveryType()" [slots]="slotsFor(clinic.id)"
+            [nextAppointment]="nextAppointments()[clinic.id] || ''"
             [availabilityError]="!!availabilityErrors()[clinic.id]" [distance]="distanceFor(clinic)"
             [rating]="ratingFor(clinic.id)" [reviewCount]="reviewCountFor(clinic.id)" [compared]="isCompared(clinic.id)"
             (compareToggled)="toggleCompare(clinic.id)" (retryAvailability)="checkAvailability(clinic)" />
@@ -201,10 +212,11 @@
                   <button type="button" (click)="clearFilters()" class="ui-btn ui-btn-primary">Show all dentists</button>
                   <button type="button" (click)="changeLocation()" class="ui-btn ui-btn-secondary">Change location</button>
                 } @else {
-                  <a [href]="demandRequestHref()" class="ui-btn ui-btn-primary">Email us about availability</a>
+                  <p>Tell us where and when you need care using the request form below.</p>
                 }
               </div>
             </div>
+            <app-request-dentist [location]="locality()" [problem]="searchTerm() || currentBreadcrumbTreatment()" />
             <p class="provider-invite">Dental professional? <a routerLink="/professional/signup">Create your independent profile</a></p>
           </div>
         }
@@ -280,4 +292,3 @@
     </section>
   </div>
 </section>
-

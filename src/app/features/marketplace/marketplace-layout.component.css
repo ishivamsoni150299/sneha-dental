@@ -100,6 +100,7 @@
 .marketplace-header .patient-navigation { margin-left: auto; }
 .marketplace-shell main { min-height: 65vh; }
 .patient-tab-bar { display: none; }
+.professional-mobile-links { display: none; }
 /* Checkout owns the mobile action dock; discovery navigation must not cover it. */
 .marketplace-shell:has(.video-booking) .patient-tab-bar { display: none; }
 
@@ -156,6 +157,9 @@
   .video-checkout .video-receipt { max-width: 48rem; }
 }
 @media (max-width: 47.9375rem) {
+  .professional-mobile-links { display: flex; justify-content: center; gap: 1.5rem; border-bottom: 1px solid var(--ui-line); font-size: .8125rem; }
+  .professional-mobile-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ui-primary-hover); }
+  .marketplace-shell:has(.video-checkout) .professional-mobile-links { display: none; }
   .video-checkout .booking-mobile-dock { padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
 }
 html:has(.filter-dialog[open]) { overflow: hidden; }

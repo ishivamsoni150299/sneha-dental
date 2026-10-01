@@ -8,6 +8,7 @@ import {
   Output,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
@@ -30,6 +31,7 @@ import { MarketplaceService } from '../../core/services/marketplace.service';
 import { formatLocalDateInput } from '../../core/utils/date-input';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { BookingOtpComponent } from '../../shared/components/booking-otp.component';
 
 export interface BookingSubmission {
   consultationMode?: 'in_person' | 'video';
@@ -43,11 +45,12 @@ export interface BookingSubmission {
 @Component({
   selector: 'app-appointment',
   standalone: true,
-  imports: [DecimalPipe, NgClass, ReactiveFormsModule, RouterLink],
+  imports: [DecimalPipe, NgClass, ReactiveFormsModule, RouterLink, BookingOtpComponent],
   templateUrl: './appointment.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
+  readonly mobileVerification = viewChild(BookingOtpComponent);
   @Input() bookingContext: BookingClinicContext | null = null;
   @Input() preselectedSlot: { doctorId: string; doctorName: string; date: string; time: string } | null = null;
   @Output() readonly bookingCompleted = new EventEmitter<BookingSubmission>();
@@ -130,10 +133,10 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     if (step === 1) {
       const ok = await this.acquireSlotHold();
       if (!ok) return;
-      this.analytics.trackBeginBooking({
+      if (!this.bookingContext) this.analytics.trackBeginBooking({
         service: this.form.get('service')?.value || undefined,
-        clinic_id: this.bookingContext?.clinicId ?? this.clinic.config.clinicId,
-        consultation_mode: this.bookingContext?.consultationMode ?? 'in_person',
+        clinic_id: this.clinic.config.clinicId,
+        consultation_mode: 'in_person',
         doctor_name: this.selectedDoctor?.name,
       });
     }
@@ -319,10 +322,9 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     if (this.preselectedSlot === slot && this.availableSlots().includes(time)) {
       this.form.patchValue({ time });
       this.validateScheduleFields();
-      if (this.bookingContext?.consultationMode === 'video') {
-        this.currentStep.set(1);
-        await this.nextStep();
-      }
+      if (!this.form.controls.service.value) this.form.patchValue({ service: 'Other / Not Sure' });
+      this.currentStep.set(1);
+      await this.nextStep();
     }
   }
 
@@ -546,6 +548,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
+    if (!this.mobileVerification()?.canSubmit()) return;
     this.submitting.set(true);
     this.error.set(null);
 
@@ -563,7 +566,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
         doctorName: doctor?.name,
         message:    val.message || undefined,
         patientUid: this.patientAuth.matchingPatientUid(val.phone!),
-      }, this.bookingContext ?? undefined, this.holdToken() ?? undefined);
+      }, this.bookingContext ?? undefined, this.holdToken() ?? undefined, this.mobileVerification()?.proof() || undefined);
       this.holdToken.set(null);
       this.holdExpiresAt.set(null);
       const submission: BookingSubmission = {
