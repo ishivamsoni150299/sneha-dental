@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
+import { ModalDirective } from '../../../shared/directives/modal.directive';
 import {
   DoctorService, Doctor, WEEK_DAYS, DEFAULT_SCHEDULE,
   formatSlotDisplay, generateSlots, type DaySchedule,
@@ -25,7 +26,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
 @Component({
   selector: 'app-admin-doctors',
   standalone: true,
-  imports: [FormsModule, RouterLink, ClinicAccountMenuComponent],
+  imports: [FormsModule, RouterLink, ClinicAccountMenuComponent, ModalDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Toast -->
@@ -194,12 +195,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
          ADD / EDIT DOCTOR MODAL
     ══════════════════════════════════════════════════════════════════════════ -->
     @if (showModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="closeModal()"></div>
-
-        <!-- Modal panel -->
-        <div class="admin-modal relative w-full max-w-2xl" role="dialog" aria-labelledby="doctor-editor-title">
+        <dialog appModal (dismissed)="closeModal()" class="admin-modal ui-modal max-w-2xl" aria-labelledby="doctor-editor-title">
 
           <!-- Modal header -->
           <div class="sticky top-0 bg-white px-6 py-4 border-b border-ui-line flex items-center justify-between z-10">
@@ -342,15 +338,13 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               }
             </button>
           </div>
-        </div>
-      </div>
+        </dialog>
     }
 
     <!-- ── Delete confirmation modal ──────────────────────────────────────── -->
     @if (deleteTarget()) {
-      <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="deleteTarget.set(null)"></div>
-        <div class="admin-modal relative w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200" role="dialog" aria-labelledby="doctor-delete-title">
+        <dialog appModal (dismissed)="deleteTarget.set(null)" class="admin-modal ui-modal max-w-sm" aria-labelledby="doctor-delete-title">
+          <div class="p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -364,7 +358,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
           </div>
           <p class="text-sm text-ui-ink-muted mb-5">This will permanently remove the doctor. Existing appointments will not be affected.</p>
           <div class="flex gap-3">
-            <button (click)="deleteTarget.set(null)"
+            <button (click)="deleteTarget.set(null)" autofocus
                     class="ui-btn ui-btn-secondary flex-1">
               Keep
             </button>
@@ -374,8 +368,9 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               Remove
             </button>
           </div>
-        </div>
-      </div>
+          @if (errorMsg()) { <p role="alert" class="mt-4 text-sm text-red-600">{{ errorMsg() }}</p> }
+          </div>
+        </dialog>
     }
   `,
 })
@@ -521,7 +516,10 @@ export class AdminDoctorsComponent implements OnInit {
     }
   }
 
-  confirmDelete(doctor: Doctor) { this.deleteTarget.set(doctor); }
+  confirmDelete(doctor: Doctor) {
+    this.errorMsg.set(null);
+    this.deleteTarget.set(doctor);
+  }
 
   async doDelete() {
     const target = this.deleteTarget();

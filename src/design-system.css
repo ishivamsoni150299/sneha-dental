@@ -4638,6 +4638,30 @@ textarea.ui-field {
   background: linear-gradient(90deg, var(--clinic-marigold, #d78316) 0 42%, var(--ui-primary) 42% 68%, var(--clinic-peacock, #176b5b) 68%);
 }
 
+dialog.ui-modal {
+  margin: auto;
+  padding: 0;
+  width: calc(100% - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  color: var(--ui-ink);
+  border: 1px solid var(--ui-line);
+  background: var(--ui-surface);
+}
+
+dialog.ui-modal::backdrop {
+  background: rgb(0 0 0 / 50%);
+  backdrop-filter: blur(4px);
+}
+
+dialog.ui-modal-drawer {
+  margin: 0 0 0 auto;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-radius: 0;
+}
+
 .admin-modal {
   max-height: min(90vh, 52rem);
   overflow-y: auto;

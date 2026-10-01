@@ -16,6 +16,7 @@ import {
   type ProviderVerification,
 } from '../../../core/config/clinic.config';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
+import { ModalDirective } from '../../../shared/directives/modal.directive';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import {
   buildClinicApiPayload,
@@ -82,7 +83,7 @@ function normalizeHostedDomain(value: string): string {
 @Component({
   selector: 'app-clinic-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ModalDirective],
   templateUrl: './clinic-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

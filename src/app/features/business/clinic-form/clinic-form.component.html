@@ -1,7 +1,6 @@
 <!-- ── Credentials Modal ──────────────────────────────────────────────────────── -->
 @if (ownerLoginSynced()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <dialog appModal aria-labelledby="owner-login-title" class="ui-modal max-w-md bg-white rounded-3xl shadow-2xl">
       <!-- Header -->
       <div class="bg-gradient-to-br from-green-500 to-emerald-600 px-6 py-5 text-white">
         <div class="flex items-center gap-3 mb-1">
@@ -10,7 +9,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
           </div>
-          <p class="font-bold text-lg">Client Login Ready</p>
+          <h2 id="owner-login-title" class="font-bold text-lg">Client Login Ready</h2>
         </div>
         <p class="text-green-100 text-sm">Share these with your client (the clinic owner). They log in at the URL below — this is their dashboard, not your admin panel. Credentials cannot be retrieved again.</p>
       </div>
@@ -67,8 +66,7 @@
           I've saved the credentials — Continue
         </button>
       </div>
-    </div>
-  </div>
+    </dialog>
 }
 
 <div class="clinic-form-page platform-page max-w-5xl pb-32">
@@ -240,11 +238,12 @@
             @for (_ of doctorBioArr.controls; track $index) {
               <div class="flex gap-2">
                 <textarea [formControlName]="$index" rows="3"
+                          [attr.aria-label]="'Doctor biography paragraph ' + ($index + 1)"
                           placeholder="Bio paragraph — e.g. Dr. Sharma has 10+ years of experience…"
                           class="form-input flex-1 resize-none text-sm"></textarea>
                 <button type="button" (click)="removeBio($index)"
-                        class="self-start mt-1 w-9 h-9 flex items-center justify-center rounded-lg
-                               text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all">
+                        [attr.aria-label]="'Remove doctor biography paragraph ' + ($index + 1)"
+                        class="ui-btn ui-btn-ghost ui-btn-icon self-start mt-1 shrink-0 text-ui-ink-muted hover:text-red-600 hover:bg-red-50">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                   </svg>
@@ -379,14 +378,14 @@
         <div formArrayName="hours" class="space-y-2">
           @for (hourGroup of hoursArr.controls; track $index) {
             <div [formGroupName]="$index" class="flex gap-2 items-center group">
-              <input formControlName="days" type="text" placeholder="Mon – Sat"
+              <input [attr.aria-label]="'Opening days for row ' + ($index + 1)" formControlName="days" type="text" placeholder="Mon – Sat"
                      class="form-input flex-1 text-sm">
               <span class="text-gray-300 shrink-0 text-sm">→</span>
-              <input formControlName="time" type="text" placeholder="9:00 AM – 8:00 PM"
+              <input [attr.aria-label]="'Opening times for row ' + ($index + 1)" formControlName="time" type="text" placeholder="9:00 AM – 8:00 PM"
                      class="form-input flex-1 text-sm">
               <button type="button" (click)="removeHour($index)"
-                      class="w-9 h-9 flex items-center justify-center rounded-lg shrink-0
-                             text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+                      [attr.aria-label]="'Remove opening hours row ' + ($index + 1)"
+                      class="ui-btn ui-btn-ghost ui-btn-icon shrink-0 text-ui-ink-muted hover:text-red-600 hover:bg-red-50">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -749,11 +748,12 @@
                   @for (_ of planFeaturesArr(planI).controls; track $index; let featI = $index) {
                     <div class="flex gap-2">
                       <input [formControlName]="featI" type="text"
+                             [attr.aria-label]="'Feature ' + (featI + 1) + ' for plan ' + (planI + 1)"
                              placeholder="e.g. 2 free check-ups per year"
                              class="form-input flex-1 text-sm">
                       <button type="button" (click)="removePlanFeature(planI, featI)"
-                              class="w-9 h-9 flex items-center justify-center rounded-lg shrink-0
-                                     text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all">
+                              [attr.aria-label]="'Remove feature ' + (featI + 1) + ' from plan ' + (planI + 1)"
+                              class="ui-btn ui-btn-ghost ui-btn-icon shrink-0 text-ui-ink-muted hover:text-red-600 hover:bg-red-50">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>

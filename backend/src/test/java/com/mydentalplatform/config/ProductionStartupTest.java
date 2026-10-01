@@ -49,7 +49,7 @@ class ProductionStartupTest {
                 assertStatus(client, port, "/api/marketplace/clinics", 400);
                 assertStatus(client, port, "/api/auth/me", 401);
                 if (System.getenv("SPRING_WEB_RESOURCES_STATIC_LOCATIONS") != null) {
-                    for (String route : new String[] {"/", "/index.html", "/platform/login", "/appointments"}) {
+                    for (String route : new String[] {"/", "/index.html", "/account", "/account/recovery", "/platform/login", "/appointments"}) {
                         var page = assertStatus(client, port, route, 200);
                         assertTrue(page.body().contains("<app-root"), route);
                     }

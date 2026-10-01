@@ -7,7 +7,9 @@ for (const mock of [false, true]) {
   test(mock ? 'rejects preview health even when all routes appear healthy' : 'accepts healthy backend and protected routes', async () => {
     const server = http.createServer((request, response) => {
       const route = request.url;
-      if (route.startsWith('/api/auth/') || route.startsWith('/api/admin/')) {
+      if (route === '/business') {
+        response.writeHead(308, { Location: '/dentists' }).end();
+      } else if (route.startsWith('/api/auth/') || route.startsWith('/api/admin/')) {
         response.writeHead(401).end();
       } else if (route.startsWith('/api/')) {
         response.setHeader('Content-Type', 'application/json');

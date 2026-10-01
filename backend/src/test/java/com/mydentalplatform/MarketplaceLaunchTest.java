@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
 import org.flywaydb.core.Flyway;
@@ -33,8 +34,12 @@ class MarketplaceLaunchTest {
             database.execute("CREATE ROLE anon NOLOGIN");
             database.execute("CREATE ROLE authenticated NOLOGIN");
             String password = "Launch-" + UUID.randomUUID();
+            var shellDirectory = Files.createTempDirectory("marketplace-shell-");
+            var shell = shellDirectory.resolve("index.html");
+            Files.writeString(shell, "<!doctype html><html><body><app-root>Account shell</app-root></body></html>");
             try (var app = SpringApplication.run(PlatformApplication.class,
                 "--server.port=0", "--spring.profiles.active=production",
+                "--spring.web.resources.static-locations=" + shellDirectory.toUri(),
                 "--spring.datasource.url=" + postgres.getJdbcUrl("postgres", "postgres"),
                 "--spring.datasource.username=postgres", "--spring.datasource.password=",
                 "--platform.public-base-url=https://marketplace.example.test",
@@ -48,6 +53,32 @@ class MarketplaceLaunchTest {
                 "--VIDEO_PROVIDER=daily", "--DAILY_API_KEY=")) {
                 base = "http://127.0.0.1:" + app.getEnvironment().getRequiredProperty("local.server.port");
                 assertEquals(0, app.getBean(Flyway.class).info().pending().length);
+                var business = http.send(HttpRequest.newBuilder(URI.create(base + "/business"))
+                    .header("Accept", "text/html").GET().build(), HttpResponse.BodyHandlers.ofString());
+                assertEquals(308, business.statusCode());
+                assertEquals("/dentists", business.headers().firstValue("Location").orElseThrow());
+                for (String route : new String[] {"/account", "/account?mode=signup&type=clinic", "/account/recovery"}) {
+                    var response = http.send(HttpRequest.newBuilder(URI.create(base + route)).GET().build(),
+                        HttpResponse.BodyHandlers.ofString());
+                    assertEquals(200, response.statusCode(), "Anonymous account navigation: " + route);
+                    assertTrue(response.body().contains("<app-root>Account shell</app-root>"), route);
+                }
+                var missingPage = http.send(HttpRequest.newBuilder(URI.create(base + "/missing-page"))
+                    .header("Accept", "text/html").GET().build(), HttpResponse.BodyHandlers.ofString());
+                assertEquals(200, missingPage.statusCode());
+                assertTrue(missingPage.body().contains("<app-root>Account shell</app-root>"));
+                for (String path : new String[] {"/api/private-missing", "/actuator/env"}) {
+                    var protectedResponse = http.send(HttpRequest.newBuilder(URI.create(base + path))
+                        .header("Accept", "text/html").GET().build(), HttpResponse.BodyHandlers.ofString());
+                    assertEquals(401, protectedResponse.statusCode(), "Browser fallback must not expose " + path);
+                    assertFalse(protectedResponse.body().contains("Account shell"));
+                }
+                for (String path : new String[] {"/api/v1/missing", "/webhooks/private", "/missing.js"}) {
+                    var response = http.send(HttpRequest.newBuilder(URI.create(base + path))
+                        .header("Accept", "text/html").GET().build(), HttpResponse.BodyHandlers.ofString());
+                    assertEquals(404, response.statusCode(), "Missing resources must not use the shell: " + path);
+                    assertFalse(response.body().contains("Account shell"));
+                }
                 assertEquals("ok", request("GET", "/api/health", null, null, 200).path("status").asText());
                 request("GET", "/api/auth/me", null, null, 401);
                 request("GET", "/api/marketplace/clinics?region=Delhi", null, null, 200);
@@ -177,6 +208,9 @@ class MarketplaceLaunchTest {
                 request("GET", "/api/admin/clinics", null, dentist, 403);
                 request("GET", "/api/providers/me", null, patient, 403);
                 request("GET", "/api/v1/providers", null, null, 200);
+            } finally {
+                Files.deleteIfExists(shell);
+                Files.deleteIfExists(shellDirectory);
             }
         }
     }

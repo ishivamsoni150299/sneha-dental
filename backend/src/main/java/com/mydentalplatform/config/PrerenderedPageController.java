@@ -50,7 +50,9 @@ final class PrerenderedPageController {
 
     @GetMapping(value = "/business", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
-    Resource business() {
-        return new ClassPathResource("static/business/index.html");
+    ResponseEntity<Void> business() {
+        return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT)
+            .header("Location", "/dentists")
+            .build();
     }
 }
