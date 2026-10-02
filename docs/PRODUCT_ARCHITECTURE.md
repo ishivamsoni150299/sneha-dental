@@ -40,6 +40,8 @@ The patient discovery entry point is `/dentists`. `/business` and `/professional
 
 These journeys remain separate permission boundaries under one brand:
 
+The patient appointment screen keeps booking, confirmation status and visit actions in one column. Linking an older guest booking is expandable and opens automatically for a booking-reference link. Dentist setup shows the next action from the saved practice, hours and verification state; workspace task selection is retained in the URL. Clinic signup keeps required clinic details, services/hours and plan selection in three steps, with website colours and preview optional. These changes reuse the existing forms and do not change identity or marketplace publication rules.
+
 | Surface | User | Purpose | Primary route or host |
 |---|---|---|---|
 | Patient marketplace | Patients | Discover, compare, and book verified dentists | `mydentalplatform.com/dentists` |

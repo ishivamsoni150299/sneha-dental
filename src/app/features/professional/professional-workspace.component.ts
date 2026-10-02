@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthenticatedApiService } from '../../core/services/authenticated-api.service';
 import { AuthFacade } from '../../core/services/auth-facade.service';
 import { VideoConsultationComponent } from '../../shared/components/video-consultation/video-consultation.component';
@@ -30,17 +30,29 @@ interface Practice { id: string; name: string; city: string; status: string; sch
         <h1 class="ui-heading ui-heading-interface">Manage your practice</h1>
         <p class="mt-2 text-sm text-ui-ink-muted">One place for your profile, hours and patient visits. Times are in India Standard Time.</p>
         @if (verificationStatus() && verificationStatus() !== 'verified') {
-          <p class="mt-5 ui-alert" role="status">To accept patient bookings: save your profile, add a practice, set its hours, then submit for verification.</p>
+          <section class="mt-5 ui-card p-5" aria-labelledby="dentist-setup-title">
+            <h2 id="dentist-setup-title" class="font-semibold">{{ verificationStatus() === 'pending' ? 'Your profile is under review' : 'Get ready for patient bookings' }}</h2>
+            @if (verificationStatus() === 'pending') {
+              <p class="ui-body mt-2">Your details have been submitted. You can review your profile and hours while the team checks your registration.</p>
+            } @else {
+              <ol class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                <li>1. Profile and practice <span class="block text-ui-ink-muted">{{ practices().length ? 'Practice added · review your details' : 'Add your details and practice' }}</span></li>
+                <li>2. Appointment hours <span class="block text-ui-ink-muted">{{ hasBookableHours() ? 'Hours saved' : 'Choose when patients can book' }}</span></li>
+                <li>3. Verification <span class="block text-ui-ink-muted">{{ verificationStatus() === 'rejected' ? 'Update the details flagged in your profile' : 'Submit your council registration for review' }}</span></li>
+              </ol>
+              <button (click)="selectTab(practices().length && !hasBookableHours() ? 'availability' : 'profile')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" class="ui-btn ui-btn-primary mt-4">{{ practices().length && !hasBookableHours() ? 'Set appointment hours' : hasBookableHours() ? 'Review and submit profile' : 'Complete your profile' }}</button>
+            }
+          </section>
         }
         <nav class="mt-6 flex flex-wrap gap-2" aria-label="Workspace">
-          <button (click)="tab.set('profile')" [disabled]="profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'profile'" [class.ui-tab-active]="tab() === 'profile'" class="ui-btn ui-btn-secondary flex-1">Profile</button>
-          <button (click)="tab.set('availability')" [disabled]="profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'availability'" [class.ui-tab-active]="tab() === 'availability'" class="ui-btn ui-btn-secondary flex-1">Hours</button>
-          <button (click)="tab.set('appointments')" [disabled]="profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'appointments'" [class.ui-tab-active]="tab() === 'appointments'" class="ui-btn ui-btn-secondary flex-1">Appointments</button>
+          <button (click)="selectTab('appointments')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'appointments'" [class.ui-tab-active]="tab() === 'appointments'" class="ui-btn ui-btn-secondary flex-1">Appointments</button>
+          <button (click)="selectTab('availability')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'availability'" [class.ui-tab-active]="tab() === 'availability'" class="ui-btn ui-btn-secondary flex-1">Hours</button>
+          <button (click)="selectTab('profile')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'profile'" [class.ui-tab-active]="tab() === 'profile'" class="ui-btn ui-btn-secondary flex-1">Profile</button>
         </nav>
         @if (error()) { <p role="alert" class="mt-4 ui-alert ui-alert-danger">{{ error() }}</p> }
         @if (message()) { <p role="status" class="mt-4 ui-alert">{{ message() }}</p> }
         @if (tab() === 'profile') {
-          <app-professional-profile [embedded]="true" [hasHours]="hasBookableHours()" (locationAdded)="onLocationAdded()" />
+          <app-professional-profile [embedded]="true" [hasHours]="hasBookableHours()" (locationAdded)="onLocationAdded()" (profileChanged)="loadPractices()" />
         } @else if (tab() === 'appointments') {
           <a routerLink="/professional/video-test" class="ui-btn ui-btn-secondary mt-5">Test video call</a>
           <div class="my-5 flex flex-wrap items-center justify-between gap-3">
@@ -106,7 +118,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
             <h2 class="text-xl font-bold text-ui-ink">Practice hours</h2>
             <p class="mt-2 text-sm text-ui-ink-muted">30-minute appointments. Schedule changes cannot remove a time with an upcoming booking.</p>
             @if (profileLoading()) { <p class="mt-6" role="status">Loading locations…</p> }
-            @else if (!practices().length) { <p class="mt-6 text-ui-ink-muted">Add a practice in the <button (click)="tab.set('profile')" class="ui-btn ui-btn-ghost">Profile tab</button> first.</p> }
+            @else if (!practices().length) { <p class="mt-6 text-ui-ink-muted">Add a practice in the <button (click)="selectTab('profile')" class="ui-btn ui-btn-ghost">Profile tab</button> first.</p> }
             @else {
               <label class="mt-5 block text-sm font-semibold">Practice location
                 <select [ngModel]="selectedId" (ngModelChange)="selectLocation($event)" [disabled]="saving()" class="ui-field mt-2 text-base">
@@ -152,6 +164,7 @@ export class ProfessionalWorkspaceComponent implements OnInit {
   private readonly analytics = inject(AnalyticsService);
   private readonly api = inject(AuthenticatedApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly auth = inject(AuthFacade);
   readonly tab = signal<'profile' | 'appointments' | 'availability'>('profile');
   readonly verificationStatus = signal('');
@@ -183,7 +196,12 @@ export class ProfessionalWorkspaceComponent implements OnInit {
     if (requested === 'profile' || requested === 'appointments' || requested === 'availability') this.tab.set(requested);
     else this.tab.set(this.verificationStatus() === 'verified' ? 'appointments' : 'profile');
   }
-  async onLocationAdded(): Promise<void> { await this.loadPractices(); this.tab.set('availability'); this.message.set('Practice added. Set your weekly hours next.'); }
+  selectTab(tab: 'profile' | 'appointments' | 'availability'): void {
+    if (this.saving() || this.profileEditor()?.saving() || this.profileEditor()?.savingLocation()) return;
+    this.tab.set(tab);
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { tab }, queryParamsHandling: 'merge', replaceUrl: true });
+  }
+  async onLocationAdded(): Promise<void> { await this.loadPractices(); this.selectTab('availability'); this.message.set('Practice added. Set your weekly hours next.'); }
   async logout(): Promise<void> { await this.auth.logout(); location.assign('/professional'); }
   private async request<T>(url: string, body?: object): Promise<T> {
     const response = await this.api.fetch(url, body ? { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
@@ -239,7 +257,11 @@ export class ProfessionalWorkspaceComponent implements OnInit {
       await this.request(`/api/providers/me/locations/${this.selectedId}/schedule`, { schedule });
       this.practices.update(items => items.map(p => p.id === this.selectedId ? { ...p, schedule } : p));
       this.message.set('Availability saved. Existing appointments are unchanged.');
-      if (this.verificationStatus() !== 'verified') this.tab.set('profile');
+      if (this.verificationStatus() !== 'verified') {
+        this.saving.set(false);
+        this.selectTab('profile');
+        this.message.set('Hours saved. Review your profile and submit for verification when ready.');
+      }
     } catch (e) { this.error.set((e as Error).message); }
     finally { this.saving.set(false); }
   }

@@ -93,6 +93,7 @@ export class ProfessionalProfileComponent implements OnInit {
   readonly embedded = input(false);
   readonly hasHours = input(false);
   readonly locationAdded = output<void>();
+  readonly profileChanged = output<void>();
   readonly profile = signal<ProviderProfile | null>(null);
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -138,7 +139,7 @@ export class ProfessionalProfileComponent implements OnInit {
       const v = this.profileForm.getRawValue();
       const r = await this.api.fetch('/api/providers/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...v, languages: v.languages.split(',').map(x => x.trim()).filter(Boolean), photoUrl: this.profile()?.photoUrl ?? '' }) });
       if (!r.ok) throw new Error('Could not save profile.');
-      await this.load(); this.message.set('Professional details saved.');
+      await this.load(); this.profileChanged.emit(); this.message.set('Professional details saved.');
     } catch (error) { this.error.set((error as Error).message); }
     finally { this.saving.set(false); }
   }
@@ -170,7 +171,7 @@ export class ProfessionalProfileComponent implements OnInit {
       const r = await this.api.fetch('/api/providers/me/submit-verification', { method: 'POST' });
       const body = await r.json().catch(() => ({})) as { message?: string };
       if (!r.ok) throw new Error(body.message ?? 'Complete all required details first.');
-      await this.load(); this.message.set('Profile submitted for verification.');
+      await this.load(); this.profileChanged.emit(); this.message.set('Profile submitted for verification.');
     } catch (error) { this.error.set((error as Error).message); }
   }
 }

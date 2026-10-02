@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { AuthenticatedApiService } from '../../core/services/authenticated-api.service';
 import { ProfessionalWorkspaceComponent } from './professional-workspace.component';
 
@@ -42,6 +42,16 @@ describe('ProfessionalWorkspaceComponent', () => {
     await component.ngOnInit();
     expect(component.tab()).toBe('profile');
     expect(component.hasBookableHours()).toBeFalse();
+  });
+  it('keeps the selected task in the URL for reloads', () => {
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const component = TestBed.createComponent(ProfessionalWorkspaceComponent).componentInstance;
+    component.selectTab('availability');
+    expect(component.tab()).toBe('availability');
+    expect(navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { tab: 'availability' }, queryParamsHandling: 'merge' }));
+    component.saving.set(true);
+    component.selectTab('profile');
+    expect(component.tab()).toBe('availability');
   });
   it('opens appointments for a verified dentist', async () => {
     api.fetch.and.callFake(async url => new Response(

@@ -95,6 +95,13 @@ describe('PatientAppointmentsComponent', () => {
     const { fixture } = await createFixture({ claim: 'sc-abcd1234' });
     expect(fixture.componentInstance.claimForm.controls.bookingRef.value).toBe('SC-ABCD1234');
   });
+  it('keeps the guest-booking confirmation visible after clearing the reference', async () => {
+    const { fixture } = await createFixture({ signedIn: true });
+    fixture.componentInstance.claimForm.reset();
+    fixture.componentInstance.claimMessage.set('Appointment linked to your account.');
+    fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('details') as HTMLDetailsElement).open).toBeTrue();
+  });
 
   it('offers only server-approved times when rescheduling', async () => {
     const { fixture, api } = await createFixture({ signedIn: true });

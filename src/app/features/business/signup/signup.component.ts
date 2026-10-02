@@ -454,7 +454,7 @@ export class SignupComponent implements OnInit {
 
   back(): void {
     const s = this.step();
-    if (s === 1) void this.router.navigate(['/dentists']);
+    if (s === 1) void this.router.navigate(['/business']);
     else if (s === 2) this.step.set(1);
     else if (s === 4) this.step.set(2);
   }
@@ -550,7 +550,7 @@ export class SignupComponent implements OnInit {
 
   // ── Step label helper (visual steps 1–3) ─────────────────────────────────
   stepLabel(vs: number): string {
-    return ['', 'Clinic', 'Services', 'Plan'][vs] ?? '';
+    return ['', 'Clinic', 'Services & hours', 'Plan'][vs] ?? '';
   }
 
   // ── Step 5 — Congratulation page ─────────────────────────────────────────

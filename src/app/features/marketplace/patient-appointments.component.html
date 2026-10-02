@@ -37,7 +37,7 @@
         }
       </section>
     } @else {
-      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div class="grid gap-6">
         <div>
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -45,7 +45,10 @@
               <a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a>
               <h2 class="mt-1 text-2xl font-bold text-ui-ink">Appointments</h2>
             </div>
-            <button type="button" (click)="loadSession()" [disabled]="loading()" class="ui-btn ui-btn-secondary">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>
+            <div class="flex flex-wrap gap-2">
+              <a routerLink="/dentists" class="ui-btn ui-btn-primary">Book an appointment</a>
+              <button type="button" (click)="loadSession()" [disabled]="loading()" class="ui-btn ui-btn-secondary">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>
+            </div>
           </div>
 
           @if (error()) {
@@ -71,6 +74,9 @@
                   <span class="self-start rounded-full px-3 py-1 text-xs font-bold" [class]="statusClass(appointment.status)">{{ statusLabel(appointment.status) }}</span>
                 </div>
 
+                @if (appointment.status === 'pending') {
+                  <p class="border-b border-ui-line bg-amber-50 px-5 py-3 text-sm text-amber-900">Request sent. Wait for confirmation here before visiting the clinic or joining a video call.</p>
+                }
                 @if (appointment.status === 'declined' || appointment.status === 'expired') {
                   <div class="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
                     {{ appointment.status === 'declined' ? 'The clinic could not confirm this request.' : 'The confirmation window passed and the reserved time was released.' }}
@@ -206,9 +212,8 @@
           </div>
         </div>
 
-        <aside class="ui-card p-5 sm:p-6">
-          <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Find an account booking</p>
-          <h2 class="mt-2 text-xl font-bold text-ui-ink">Have a booking reference?</h2>
+        <details class="ui-card p-5 sm:p-6" [open]="claimForm.controls.bookingRef.value || claimChallengeId() || claimMessage()">
+          <summary class="cursor-pointer text-lg font-semibold text-ui-ink">Add a booking made while signed out</summary>
           <p class="mt-2 text-sm leading-6 text-ui-ink-muted">For an older guest booking, request a one-time code sent to the email on that booking. If it has no email, contact the clinic.</p>
           <form [formGroup]="claimForm" (ngSubmit)="claimBooking()" class="mt-5">
             <label for="claim-booking-ref" class="text-sm font-bold text-ui-ink-soft">Booking reference</label>
@@ -234,7 +239,7 @@
               <button type="submit" [disabled]="claiming()" class="ui-btn ui-btn-primary mt-4 w-full">{{ claiming() ? 'Linking...' : 'Link appointment' }}</button>
             </form>
           }
-        </aside>
+        </details>
       </div>
     }
   </div>

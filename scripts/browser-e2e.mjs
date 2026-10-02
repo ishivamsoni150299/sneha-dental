@@ -308,6 +308,7 @@ try {
     consultationMode: 'in_person',
   });
   await page.goto(appUrl + '/appointments');
+  await page.getByText('Add a booking made while signed out', { exact: true }).click();
   await page.locator('#claim-booking-ref').fill(guest.bookingRef);
   await page.getByRole('button', { name: 'Send linking code', exact: true }).click();
   await page.getByText(/sent a linking code/i).waitFor();
@@ -382,6 +383,7 @@ try {
   // All public account types share the same signup form and recovery-code handoff.
   for (const [type, destination] of [['patient', '/appointments'], ['dentist', '/professional/workspace'], ['clinic', '/business/signup']]) {
     const signupPage = await browser.newPage();
+    await signupPage.setViewportSize({ width: 390, height: 844 });
     await signupPage.goto(`${appUrl}/account?mode=signup&type=${type}`);
     await signupPage.getByRole('heading', { name: 'Create your account', exact: true }).waitFor();
     if (type === 'dentist') await signupPage.getByRole('textbox', { name: 'Full name', exact: true }).fill('E2E Unified Dentist');
@@ -396,7 +398,34 @@ try {
     await signupPage.getByRole('button', { name: 'I saved my code — continue', exact: true }).click();
     await signupPage.waitForURL(url => url.pathname === destination);
     await signupPage.getByRole('heading').first().waitFor();
+    if (type === 'dentist') {
+      await signupPage.getByRole('button', { name: 'Complete your profile', exact: true }).waitFor();
+      await signupPage.getByRole('button', { name: 'Hours', exact: true }).click();
+      await signupPage.waitForURL('**tab=availability');
+      await signupPage.reload();
+      await signupPage.getByRole('heading', { name: 'Practice hours', exact: true }).waitFor();
+      await signupPage.getByRole('button', { name: 'Profile tab', exact: true }).click();
+      await signupPage.waitForURL('**tab=profile');
+    }
+    if (type === 'clinic') {
+      await signupPage.setViewportSize({ width: 390, height: 844 });
+      await signupPage.getByRole('heading', { name: 'Set up your clinic', exact: true }).waitFor();
+      assert.equal(await signupPage.locator('details').filter({ hasText: 'Website colours (optional)' }).getAttribute('open'), null);
+      await signupPage.locator('#signup-clinic-name').fill('E2E Guided Clinic');
+      await signupPage.locator('#signup-clinic-phone').fill('9876543210');
+      await signupPage.locator('#signup-clinic-slug').fill(`guided${Date.now()}`);
+      await signupPage.getByRole('button', { name: 'Continue → Services and hours' }).click();
+      await signupPage.getByRole('heading', { name: 'What do you offer?', exact: true }).waitFor();
+      assert.ok(await signupPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      await signupPage.getByRole('button', { name: 'Choose plan', exact: true }).click();
+      await signupPage.getByRole('button', { name: 'Create free clinic workspace', exact: true }).click();
+      await signupPage.getByRole('heading', { name: 'Your clinic workspace is ready', exact: true }).waitFor();
+      await signupPage.getByRole('link', { name: 'Open dashboard', exact: true }).click();
+      await signupPage.waitForURL('**/business/clinic/dashboard');
+      assert.equal(new URL(signupPage.url()).origin, new URL(appUrl).origin, 'Clinic onboarding must retain the signed-in platform session');
+    }
     console.log(`PASS unified signup: ${type} reaches ${destination}`);
+    await signupPage.screenshot({ path: `artifacts/ux-route-checks/journeys/${type}-mobile.png`, fullPage: true });
     await signupPage.close();
   }
 
