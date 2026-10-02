@@ -138,6 +138,18 @@
       </nav>
 
       <!-- ── Clinic Info ──────────────────────────────────────────────────── -->
+      @if (activeTab() === 'doctors') {
+        @if (canManageDoctors) {
+          <app-admin-doctors />
+        } @else {
+          <section class="settings-form-card space-y-4">
+            <h2 class="ui-title">Doctors</h2>
+            <p class="ui-body">Upgrade to Basic to manage doctors, schedules, and availability.</p>
+            <button type="button" class="ui-btn ui-btn-primary" (click)="activeTab.set('subscription')">View plans</button>
+          </section>
+        }
+      }
+
       @if (activeTab() === 'info') {
         <form [formGroup]="infoForm" (ngSubmit)="saveInfo()"
               class="settings-form-card space-y-5">
@@ -1510,4 +1522,3 @@
     }
   </main>
 </div>
-

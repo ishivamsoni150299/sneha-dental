@@ -24,6 +24,10 @@ These are code inspection findings, not a completed visual or functional audit.
 
 ### Evidence required for completion
 
+Clinic Doctors now opens within Clinic Settings at `settings?tab=doctors`, alongside Plan and the existing settings sections. The legacy `clinic/doctors` URL redirects into that flow. The settings container checks the doctor-management entitlement before creating the existing doctor component; backend permissions remain unchanged. The component uses the settings header and account menu, with its own section heading and add action. Loading, retry, empty, and existing edit/delete interactions remain in the reused component; an error no longer also shows the empty-state add prompt.
+
+Validation on 2026-10-02: lint and Angular production build passed. Authenticated desktop/mobile layout, keyboard/modal interactions, and live doctor save/delete actions still require browser verification with an isolated API/database.
+
 For each migrated screen, record desktop and narrow-screen checks, keyboard/focus behavior, applicable loading/empty/error/success states, and its primary user action against the real application. Record responsive or accessibility exceptions rather than silently declaring them covered.
 
 Run focused tests plus lint/build appropriate to each change. Backend refactors require relevant service/integration tests, including tenant isolation and ownership when affected. Browser journeys require an isolated database; compiled artifact smoke checks are not browser tests. Use `docs/LAUNCH_READINESS.md` for deployment acceptance and keep unverified external integrations explicitly open.

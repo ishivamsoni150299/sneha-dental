@@ -114,9 +114,8 @@ export const businessRoutes: Routes = [
       },
       {
         path: 'doctors',
-        canActivate: [clinicFeatureGuard],
-        loadComponent: () =>
-          import('../admin/admin-doctors/admin-doctors.component').then(m => m.AdminDoctorsComponent),
+        redirectTo: 'settings?tab=doctors',
+        pathMatch: 'full',
         data: { title: 'Doctor Management', noIndex: true, platformFeature: 'doctorManagement' },
       },
       {

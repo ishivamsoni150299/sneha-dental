@@ -24,6 +24,7 @@ import { BillingService, BillingPlan, BillingCycle, type SubscriptionStatus } fr
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { VideoSettingsComponent } from './video-settings.component';
+import { AdminDoctorsComponent } from '../admin-doctors/admin-doctors.component';
 import { phoneDigits } from '../../../core/utils/phone';
 
 const httpUrlValidator: ValidatorFn = control => {
@@ -38,6 +39,7 @@ const httpUrlValidator: ValidatorFn = control => {
 
 type TabId =
   | 'info'
+  | 'doctors'
   | 'contact'
   | 'hours'
   | 'services'
@@ -109,7 +111,7 @@ const DEFAULT_SERVICE_LIBRARY: ClinicService[] = [
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ClinicAccountMenuComponent, VideoSettingsComponent],
+  imports: [ReactiveFormsModule, RouterLink, ClinicAccountMenuComponent, VideoSettingsComponent, AdminDoctorsComponent],
   templateUrl: './admin-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -156,6 +158,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     { id: 'info',         label: 'Profile' },
     { id: 'contact',      label: 'Contact' },
     { id: 'hours',        label: 'Hours' },
+    { id: 'doctors',      label: 'Doctors' },
     { id: 'services',     label: 'Services' },
     { id: 'testimonials', label: 'Testimonials' },
     { id: 'social',       label: 'Social' },
@@ -320,12 +323,16 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
   isTabDirty(tab: TabId) { return this.dirtyTabs().has(tab); }
 
+  get canManageDoctors() { return clinicHasPlatformFeature(this.cfg, 'doctorManagement'); }
+
   ngOnInit() {
     if (this.isStarter || this.isPro) void this.loadSubscriptionStatus();
-    const tab = this.route.snapshot.queryParamMap.get('tab') as TabId | null;
-    if (tab && this.tabs.some(item => item.id === tab)) {
-      this.activeTab.set(tab);
-    }
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const tab = params.get('tab') as TabId | null;
+      if (tab && this.tabs.some(item => item.id === tab)) {
+        this.activeTab.set(tab);
+      }
+    });
 
     const cfg = this.clinicCfg.config;
     this.infoForm.patchValue({

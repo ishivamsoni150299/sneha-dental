@@ -2,9 +2,7 @@ import {
   Component, signal, ChangeDetectionStrategy, inject, OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { ModalDirective } from '../../../shared/directives/modal.directive';
 import {
   DoctorService, Doctor, WEEK_DAYS, DEFAULT_SCHEDULE,
@@ -26,7 +24,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
 @Component({
   selector: 'app-admin-doctors',
   standalone: true,
-  imports: [FormsModule, RouterLink, ClinicAccountMenuComponent, ModalDirective],
+  imports: [FormsModule, ModalDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Toast -->
@@ -39,20 +37,14 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
       </div>
     }
 
-    <div class="clinic-admin-shell min-h-screen">
+    <div class="space-y-6">
 
       <!-- ── Header ───────────────────────────────────────────────────────── -->
-      <div class="admin-topbar">
-        <div class="admin-topbar-inner max-w-5xl">
+      <div class="settings-form-card">
+        <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3">
-            <a routerLink="/business/clinic/dashboard" aria-label="Back to clinic dashboard"
-               class="ui-btn ui-btn-ghost ui-btn-icon">
-              <svg class="w-4 h-4 text-ui-ink-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-              </svg>
-            </a>
             <div>
-              <h1 class="admin-page-title leading-none">Doctor Management</h1>
+              <h2 class="ui-title">Doctors</h2>
               <p class="admin-page-subtitle">Manage doctors, schedules, and availability</p>
             </div>
           </div>
@@ -62,14 +54,13 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
               </svg>
-              <span class="hidden sm:inline">Add Doctor</span>
+              <span>Add Doctor</span>
             </button>
-            <app-clinic-account-menu />
           </div>
         </div>
       </div>
 
-      <div class="admin-page max-w-5xl">
+      <div>
 
         <!-- ── Loading ───────────────────────────────────────────────────── -->
         @if (loading()) {
@@ -96,7 +87,7 @@ function blankDoctor(): Omit<Doctor, 'id' | 'createdAt'> {
         }
 
         <!-- ── Empty state ───────────────────────────────────────────────── -->
-        @if (!loading() && doctors().length === 0) {
+        @if (!loading() && !errorMsg() && doctors().length === 0) {
           <div class="admin-panel py-16 text-center">
             <div class="w-16 h-16 bg-[var(--accent-lt)] rounded-2xl flex items-center justify-center mx-auto mb-5">
               <svg class="w-8 h-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
