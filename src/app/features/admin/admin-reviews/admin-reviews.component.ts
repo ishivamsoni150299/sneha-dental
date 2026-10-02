@@ -1,17 +1,15 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import {
   AppointmentReviewManagementService,
   type ManagedAppointmentReview,
 } from '../../../core/services/appointment-review-management.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 
 @Component({
   selector: 'app-admin-reviews',
   standalone: true,
-  imports: [FormsModule, RouterLink, ClinicAccountMenuComponent],
+  imports: [FormsModule],
   templateUrl: './admin-reviews.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

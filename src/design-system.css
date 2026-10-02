@@ -4594,6 +4594,14 @@ textarea.ui-field {
   padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 3vw, 1.5rem) 3rem;
 }
 
+.clinic-workspace-content {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .clinic-workspace-content { padding-bottom: 0; }
+}
+
 .admin-page-title {
   color: var(--ui-ink);
   font-size: clamp(1rem, 2vw, 1.2rem);

@@ -1,4 +1,4 @@
-<div class="clinic-admin-shell clinic-settings-shell min-h-screen">
+<div class="clinic-settings-shell">
 
   <!-- Toast -->
   @if (toast()) {
@@ -18,25 +18,9 @@
   }
 
   <!-- Header -->
-  <header class="admin-topbar clinic-settings-header z-40">
-    <div class="admin-topbar-inner max-w-5xl">
-      <div class="flex items-center gap-3">
-        <a routerLink="/business/clinic/dashboard" aria-label="Back to appointments"
-           class="text-gray-400 hover:text-ui-ink-muted transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-          </svg>
-        </a>
-        <div>
-          <p class="admin-page-title text-sm leading-none">Clinic Settings</p>
-          <p class="admin-page-subtitle">{{ cfg.name || 'Edit your clinic website content and branding' }}</p>
-        </div>
-      </div>
-      <app-clinic-account-menu />
-    </div>
-  </header>
 
-  <main class="admin-page max-w-5xl space-y-6">
+  <main class="admin-page space-y-6">
+    <div><h1 class="admin-page-title">Clinic Settings</h1><p class="admin-page-subtitle">Manage your clinic, doctors, and plan</p></div>
 
     <!-- Loading skeleton -->
     @if (loading()) {
@@ -83,7 +67,7 @@
           @for (item of setupChecklist; track item.label) {
             <button type="button" class="w-full text-left flex items-center gap-3 py-1.5 px-3 rounded-xl transition-colors cursor-pointer group"
                  [class]="item.done ? 'bg-gray-50' : 'bg-amber-50 hover:bg-amber-100'"
-                 (click)="activeTab.set(item.tab)">
+                 (click)="selectTab(item.tab)">
               <!-- Status icon -->
               <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
                    [class]="item.done ? 'bg-green-100' : 'bg-amber-100'">
@@ -122,7 +106,7 @@
       <!-- Tab bar -->
       <nav aria-label="Clinic settings sections" class="settings-tab-bar flex flex-wrap gap-1">
         @for (tab of tabs; track tab.id) {
-          <button (click)="activeTab.set(tab.id)" [attr.aria-pressed]="activeTab() === tab.id"
+          <button type="button" (click)="selectTab(tab.id)" [attr.aria-pressed]="activeTab() === tab.id"
                   class="ui-tab relative shrink-0 flex-1 min-w-fit whitespace-nowrap"
                   [class]="activeTab() === tab.id
                     ? 'ui-tab ui-tab-active'
@@ -145,7 +129,7 @@
           <section class="settings-form-card space-y-4">
             <h2 class="ui-title">Doctors</h2>
             <p class="ui-body">Upgrade to Basic to manage doctors, schedules, and availability.</p>
-            <button type="button" class="ui-btn ui-btn-primary" (click)="activeTab.set('subscription')">View plans</button>
+            <button type="button" class="ui-btn ui-btn-primary" (click)="selectTab('subscription')">View plans</button>
           </section>
         }
       }
@@ -1329,7 +1313,7 @@
               <p class="text-sm text-gray-500 mb-4 max-w-sm mx-auto">
                 The AI Voice Receptionist helps website visitors in Hindi and English, answers clinic questions, and submits confirmed appointment requests.
               </p>
-              <button type="button" (click)="activeTab.set('subscription')"
+              <button type="button" (click)="selectTab('subscription')"
                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white shadow-md transition-all hover:scale-105"
                       style="background: linear-gradient(135deg, #7c3aed, #9333ea)">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>

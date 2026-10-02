@@ -1,15 +1,7 @@
-<div class="clinic-admin-shell min-h-screen">
-  <header class="admin-topbar">
-    <div class="admin-topbar-inner max-w-5xl">
-      <div class="flex items-center gap-3">
-        <a routerLink="/business/clinic/dashboard" class="grid size-9 place-items-center rounded-lg bg-ui-canvas-subtle text-ui-ink-soft" aria-label="Back to dashboard">←</a>
-        <div><h1 class="admin-page-title leading-none">Patient reviews</h1><p class="admin-page-subtitle">Respond to published appointment reviews</p></div>
-      </div>
-      <app-clinic-account-menu />
-    </div>
-  </header>
+<div>
 
-  <main class="admin-page max-w-5xl">
+  <main class="admin-page">
+    <div class="mb-6"><h1 class="admin-page-title">Patient reviews</h1><p class="admin-page-subtitle">Respond to published appointment reviews</p></div>
     @if (error()) { <div role="alert" class="mb-5 flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800"><span>{{ error() }}</span><button type="button" (click)="load()" [disabled]="loading()" class="rounded-lg border border-red-300 px-3 py-1.5 font-bold text-red-800 disabled:opacity-60">{{ loading() ? 'Retrying...' : 'Try again' }}</button></div> }
     @if (message()) { <div role="status" class="mb-5 border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ message() }}</div> }
     <div class="space-y-4">

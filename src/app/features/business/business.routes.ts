@@ -1,4 +1,5 @@
-import type { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, type Routes } from '@angular/router';
 import { superAdminGuard } from '../../core/guards/super-admin.guard';
 import { clinicAdminGuard } from '../../core/guards/clinic-admin.guard';
 import { clinicFeatureGuard } from '../../core/guards/clinic-feature.guard';
@@ -97,6 +98,7 @@ export const businessRoutes: Routes = [
   {
     path: 'clinic',
     canActivate: [clinicAdminGuard],
+    loadComponent: () => import('../../shared/components/clinic-workspace/clinic-workspace.component').then(m => m.ClinicWorkspaceComponent),
     data: { noIndex: true },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -114,7 +116,7 @@ export const businessRoutes: Routes = [
       },
       {
         path: 'doctors',
-        redirectTo: 'settings?tab=doctors',
+        redirectTo: () => inject(Router).createUrlTree(['/business/clinic/settings'], { queryParams: { tab: 'doctors' } }),
         pathMatch: 'full',
         data: { title: 'Doctor Management', noIndex: true, platformFeature: 'doctorManagement' },
       },

@@ -8,7 +8,6 @@ import { RouterLink } from '@angular/router';
 import { AppointmentService, Appointment, PaymentStatus, PaymentMethod } from '../../../core/services/appointment.service';
 import { clinicHasPlatformFeature } from '../../../core/config/clinic.config';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
-import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { ClinicApiService, ContactMessage } from '../../../core/services/clinic-api.service';
 import { VideoConsultationComponent } from '../../../shared/components/video-consultation/video-consultation.component';
 import { DoctorService, Doctor, DEFAULT_BOOKING_SLOTS, filterBookableSlots, formatSlotDisplay } from '../../../core/services/doctor.service';
@@ -56,7 +55,7 @@ type UpgradeTeaser = {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe, ClinicAccountMenuComponent, VideoConsultationComponent, ModalDirective],
+  imports: [RouterLink, FormsModule, DecimalPipe, VideoConsultationComponent, ModalDirective],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -162,7 +161,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   actionError     = signal<string | null>(null);
   actionSuccess   = signal<string | null>(null);
   updatingId      = signal<string | null>(null);
-  sidebarOpen     = signal(false);
+  planCardDismissed = signal(false);
 
   // ── Search & filter ──────────────────────────────────────────────────────
   searchQuery     = signal('');

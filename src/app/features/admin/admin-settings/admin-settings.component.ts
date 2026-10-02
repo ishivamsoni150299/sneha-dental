@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators, ValidatorFn,
 } from '@angular/forms';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 import { ClinicApiService } from '../../../core/services/clinic-api.service';
 import {
@@ -22,7 +22,6 @@ import {
 } from '../../../core/config/clinic.config';
 import { BillingService, BillingPlan, BillingCycle, type SubscriptionStatus } from '../../../core/services/billing.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
-import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { VideoSettingsComponent } from './video-settings.component';
 import { AdminDoctorsComponent } from '../admin-doctors/admin-doctors.component';
 import { phoneDigits } from '../../../core/utils/phone';
@@ -111,7 +110,7 @@ const DEFAULT_SERVICE_LIBRARY: ClinicService[] = [
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ClinicAccountMenuComponent, VideoSettingsComponent, AdminDoctorsComponent],
+  imports: [ReactiveFormsModule, VideoSettingsComponent, AdminDoctorsComponent],
   templateUrl: './admin-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -122,6 +121,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   private api        = inject(AuthenticatedApiService);
   private fb         = inject(FormBuilder);
   private route      = inject(ActivatedRoute);
+  private router     = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   loading            = signal(true);
@@ -323,6 +323,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   }
   isTabDirty(tab: TabId) { return this.dirtyTabs().has(tab); }
 
+  selectTab(tab: TabId): void {
+    this.activeTab.set(tab);
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { tab }, queryParamsHandling: 'merge' });
+  }
+
   get canManageDoctors() { return clinicHasPlatformFeature(this.cfg, 'doctorManagement'); }
 
   ngOnInit() {
@@ -331,6 +336,8 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       const tab = params.get('tab') as TabId | null;
       if (tab && this.tabs.some(item => item.id === tab)) {
         this.activeTab.set(tab);
+      } else {
+        this.activeTab.set('info');
       }
     });
 

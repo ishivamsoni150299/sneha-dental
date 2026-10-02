@@ -24,6 +24,12 @@ These are code inspection findings, not a completed visual or functional audit.
 
 ### Evidence required for completion
 
+The clinic dashboard, patients, reviews, and settings now share a route-level workspace header/account menu and section navigation. Desktop uses header navigation; narrow screens use persistent bottom navigation. Enquiries remains a dashboard section, and Doctors remains a settings section. Settings section buttons preserve the tab in the URL. The existing Free-to-Basic card uses shared controls and can be dismissed for the current dashboard visit.
+
+Focused verification: nine ChromeHeadless tests passed, including shell continuity, active navigation, the production Doctors redirect with its tab query, and existing dashboard behavior. The redirect now returns an explicit URL tree because a relative string redirect dropped the tab query during router verification.
+
+Advertising reference: Practo Reach describes contextual clinic/hospital information cards (https://help.practo.com/practo-reach/practo-reach-faqs/). Any future patient-facing paid placement should have an explicit Sponsored label, a factual clinic summary, and a link to the existing verified profile, separate from organic ranking. This change does not implement paid placement, campaign management, or sponsored API data. Authenticated responsive layouts, keyboard/modal use, and live appointment/patient/review actions still require isolated browser verification.
+
 Clinic Doctors now opens within Clinic Settings at `settings?tab=doctors`, alongside Plan and the existing settings sections. The legacy `clinic/doctors` URL redirects into that flow. The settings container checks the doctor-management entitlement before creating the existing doctor component; backend permissions remain unchanged. The component uses the settings header and account menu, with its own section heading and add action. Loading, retry, empty, and existing edit/delete interactions remain in the reused component; an error no longer also shows the empty-state add prompt.
 
 Validation on 2026-10-02: lint and Angular production build passed. Authenticated desktop/mobile layout, keyboard/modal interactions, and live doctor save/delete actions still require browser verification with an isolated API/database.

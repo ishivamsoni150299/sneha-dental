@@ -625,18 +625,6 @@ body {
     background: color-mix(in srgb, var(--color-primary-soft) 58%, white);
   }
 
-  .clinic-settings-shell {
-    background:
-      radial-gradient(780px circle at 10% -8%, var(--page-orb-left) 0, transparent 52%),
-      radial-gradient(860px circle at 90% -18%, var(--page-orb-right) 0, transparent 54%),
-      var(--color-bg);
-  }
-
-  .clinic-settings-shell .clinic-settings-header {
-    border-bottom: 1px solid var(--color-line);
-    background: rgba(255, 255, 255, 0.97);
-  }
-
   .clinic-settings-shell .settings-progress-card,
   .clinic-settings-shell .settings-form-card {
     @apply rounded-[28px] border p-5 sm:p-6;
