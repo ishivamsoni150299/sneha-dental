@@ -221,6 +221,33 @@ Motion explains state; it does not decorate empty space.
   state.
 - `prefers-reduced-motion` is handled globally by the design system.
 
+### Discovery campaigns
+
+The dentist directory includes brand-owned care highlights below search, inspired
+by the image-led service promotions on Practo's public website, not copied assets
+or campaign text. Search stays primary. This is curated platform content, not a
+paid sponsored-listing system or a third-party advertising integration.
+
+- Campaign definitions live in `DentistDirectoryComponent.promotions`; actions
+  reuse treatment search or the existing cost guide. Location context follows
+  the selected locality. Do not invent discounts, providers, reviews or slots.
+- Rotation is every eight seconds and pauses on hover, keyboard focus, manual
+  selection and background tabs. Reduced-motion users start paused and see no
+  reveal animation. Icon controls use the shared button system and Phosphor.
+- Keep all slides the same height at each breakpoint. Urgent-care journeys hide
+  promotions so emergency guidance is not displaced.
+- Illustrative photography is bundled as local WebP assets and labelled on each
+  campaign; never represent it as a listed practice or verified provider.
+- Verified with 26 discovery unit tests and isolated local Playwright checks at
+  320/390/768/1440px, including image loading, stable height, overflow, rotation,
+  pause behavior, reduced motion, guide focus and urgent-care exclusion. Mocked
+  directory responses are UI evidence, not live marketplace availability.
+
+Photo sources (Unsplash):
+- `dental-preventive.webp`: https://images.unsplash.com/photo-1606811971618-4486d14f3f99
+- `dental-alignment.webp`: https://images.unsplash.com/photo-1588776814546-1ffcf47267a5
+- `dental-planning.webp`: https://images.unsplash.com/photo-1629909613654-28e377c37b09
+
 ## 10. Accessibility baseline
 
 - All interactive elements are keyboard reachable.

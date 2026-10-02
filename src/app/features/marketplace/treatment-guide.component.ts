@@ -18,7 +18,7 @@ export interface TreatmentCostGuideItem {
       <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div class="max-w-2xl">
           <p class="text-xs font-semibold uppercase tracking-widest text-blue-700">Plan your visit</p>
-          <h2 id="cost-guide-heading" class="mt-3 scroll-mt-32 text-3xl font-semibold leading-tight text-ui-ink sm:text-4xl">Understand your care.<br> Plan your budget.</h2>
+          <h2 id="cost-guide-heading" tabindex="-1" class="mt-3 scroll-mt-32 text-3xl font-semibold leading-tight text-ui-ink sm:text-4xl">Understand your care.<br> Plan your budget.</h2>
           <p class="mt-4 text-sm leading-6 text-gray-500">Explore dental treatments and indicative cost ranges for Delhi NCR. These are estimates, not clinic quotes.</p>
         </div>
         <span class="flex items-center gap-2 text-xs text-gray-500"><i class="ph ph-info text-lg" aria-hidden="true"></i> Final fees confirmed by your dentist</span>

@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, OnInit, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { TreatmentGuideComponent, type TreatmentCostGuideItem } from './treatment-guide.component';
 import { DentistListingCardComponent } from './dentist-listing-card.component';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Meta } from '@angular/platform-browser';
@@ -39,6 +39,71 @@ export class DentistDirectoryComponent implements OnInit {
   readonly routeHeading = this.route.snapshot.data['initialLocation']
     ? String(this.route.snapshot.data['title']).replace(/^Best /, '')
     : 'Good dental care. Close to you.';
+
+  private readonly document = inject(DOCUMENT);
+  private readonly reducedMotion = this.isBrowser && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  readonly promotions = [
+    {
+      id: 'preventive', label: 'Everyday dental care', title: 'A little care. A healthier smile.',
+      description: 'Explore dental check-ups and professional cleaning. Your dentist recommends the right care for you.',
+      action: 'Explore cleaning', serviceId: 'cleaning-scaling',
+      image: '/assets/dental-preventive.webp',
+      imageAlt: 'Illustrative dental examination',
+    },
+    {
+      id: 'alignment', label: 'Smile alignment', title: 'Your smile. Your options.',
+      description: 'Explore braces and orthodontic care. Suitability, treatment time and fees depend on your consultation.',
+      action: 'Explore orthodontics', serviceId: 'braces-orthodontics',
+      image: '/assets/dental-alignment.webp',
+      imageAlt: 'Illustrative dentist reviewing dental imaging',
+    },
+    {
+      id: 'planning', label: 'Plan your visit', title: 'Understand care before you book.',
+      description: 'Explore treatments and indicative costs for Delhi NCR. Final treatment plans and fees come from your dentist.',
+      action: 'See treatment guide', serviceId: '',
+      image: '/assets/dental-planning.webp',
+      imageAlt: 'Illustrative dental treatment room',
+    },
+  ];
+  readonly promotionIndex = signal(0);
+  readonly activePromotion = computed(() => this.promotions[this.promotionIndex()]);
+  readonly promotionsPaused = signal(this.reducedMotion);
+  readonly promotionHovered = signal(false);
+  readonly promotionFocused = signal(false);
+
+  constructor() {
+    if (!this.isBrowser) return;
+    const zone = inject(NgZone);
+    const timer = zone.runOutsideAngular(() => window.setInterval(() => {
+      if (!this.document.hidden) zone.run(() => this.rotatePromotion());
+    }, 8000));
+    inject(DestroyRef).onDestroy(() => window.clearInterval(timer));
+  }
+
+  rotatePromotion(): void {
+    if (this.serviceId() === 'emergency-dental-care' || this.promotionsPaused() || this.promotionHovered() || this.promotionFocused()) return;
+    this.promotionIndex.update(index => (index + 1) % this.promotions.length);
+  }
+
+  selectPromotion(index: number): void {
+    this.promotionsPaused.set(true);
+    this.promotionIndex.set((index + this.promotions.length) % this.promotions.length);
+  }
+
+  leavePromotionFocus(event: FocusEvent): void {
+    this.promotionFocused.set(Boolean(event.relatedTarget && (event.currentTarget as HTMLElement).contains(event.relatedTarget as Node)));
+  }
+
+  openPromotion(): void {
+    this.promotionsPaused.set(true);
+    const service = this.activePromotion().serviceId;
+    if (service) this.chooseService(service);
+    else {
+      const guide = this.document.getElementById('cost-guide-heading');
+      guide?.scrollIntoView({ behavior: this.reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      guide?.focus({ preventScroll: true });
+    }
+  }
 
   readonly pageHeading = computed(() => {
     const service = this.serviceId();

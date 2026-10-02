@@ -174,6 +174,70 @@ describe('DentistDirectoryComponent', () => {
     return { fixture, component: fixture.componentInstance };
   }
 
+  it('cycles highlights in both directions and pauses after manual selection', async () => {
+    const { fixture, component } = await setupComponent();
+    component.selectPromotion(-1);
+    fixture.detectChanges();
+    expect(component.activePromotion().id).toBe('planning');
+    expect(component.promotionsPaused()).toBeTrue();
+    expect(fixture.nativeElement.querySelectorAll('.promotion-campaign:not([hidden])').length).toBe(1);
+    component.selectPromotion(component.promotionIndex() + 1);
+    expect(component.activePromotion().id).toBe('preventive');
+  });
+
+  it('does not rotate while paused, hovered or keyboard focused', async () => {
+    const { component } = await setupComponent();
+    component.promotionsPaused.set(false);
+    component.promotionHovered.set(true);
+    component.rotatePromotion();
+    expect(component.promotionIndex()).toBe(0);
+    component.promotionHovered.set(false);
+    component.promotionFocused.set(true);
+    component.rotatePromotion();
+    expect(component.promotionIndex()).toBe(0);
+    component.promotionFocused.set(false);
+    component.rotatePromotion();
+    expect(component.promotionIndex()).toBe(1);
+    component.promotionsPaused.set(true);
+    component.rotatePromotion();
+    expect(component.promotionIndex()).toBe(1);
+  });
+
+  it('opens the existing treatment search while retaining the selected location', async () => {
+    const { component } = await setupComponent({ initialLocation: 'Noida' });
+    spyOn(component, 'findDentists');
+    component.openPromotion();
+    expect(component.serviceId()).toBe('cleaning-scaling');
+    expect(component.locality()).toBe('Noida');
+    expect(component.findDentists).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves keyboard focus to the existing guide from the planning highlight', async () => {
+    const { fixture, component } = await setupComponent();
+    component.selectPromotion(2);
+    fixture.detectChanges();
+    const guide = fixture.nativeElement.querySelector('#cost-guide-heading') as HTMLElement;
+    const scroll = spyOn(guide, 'scrollIntoView');
+    component.openPromotion();
+    expect(scroll).toHaveBeenCalled();
+    expect(document.activeElement).toBe(guide);
+  });
+
+  it('keeps promotions out of the urgent-care guidance journey', async () => {
+    const { fixture, component } = await setupComponent({ initialServiceId: 'emergency-dental-care' });
+    expect(fixture.nativeElement.querySelector('.discovery-promotions')).toBeNull();
+    component.promotionsPaused.set(false);
+    component.rotatePromotion();
+    expect(component.promotionIndex()).toBe(0);
+  });
+
+  it('cleans up highlight rotation when the directory is destroyed', async () => {
+    const { fixture } = await setupComponent();
+    const clearTimer = spyOn(window, 'clearInterval').and.callThrough();
+    fixture.destroy();
+    expect(clearTimer).toHaveBeenCalled();
+  });
+
   it('selects the route location after options render', async () => {
     const { fixture } = await setupComponent({ initialLocation: 'Noida' });
     expect(fixture.nativeElement.querySelector('#dentist-locality').value).toBe('Noida');

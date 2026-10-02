@@ -2843,6 +2843,53 @@ textarea.ui-field {
     var(--ui-canvas);
 }
 
+.discovery-promotions { padding: 24px 0 12px; background: var(--ui-surface); }
+.discovery-promotions .promotion-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.discovery-promotions .promotion-brand { font-size: 11px; color: var(--ui-ink-muted); line-height: 1.5; }
+.discovery-promotions .promotion-heading h2 { margin-top: 3px; font-size: 21px; font-weight: 650; letter-spacing: 0; line-height: 1.3; }
+.discovery-promotions .promotion-controls { display: flex; align-items: center; gap: 4px; flex: none; }
+.discovery-promotions .promotion-count { margin-right: 8px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ui-ink-muted); }
+.discovery-promotions .promotion-icon { font-size: 18px; }
+.discovery-promotions .promotion-campaign { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 36%); min-height: 250px; overflow: hidden; border: 1px solid var(--ui-line); border-radius: 8px; background: var(--ui-primary-soft); animation: ui-promotion-reveal var(--ui-duration) var(--ui-ease) both; }
+.discovery-promotions .promotion-campaign[hidden] { display: none; }
+.discovery-promotions .promotion-campaign[data-campaign=alignment] { background: var(--ui-surface-muted); }
+.discovery-promotions .promotion-campaign[data-campaign=planning] { background: var(--ui-canvas); }
+.discovery-promotions .promotion-copy { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 26px 32px; }
+.discovery-promotions .promotion-eyebrow { font-size: 11px; font-weight: 650; line-height: 1.5; color: var(--ui-ink-muted); }
+.discovery-promotions .promotion-copy h3 { margin-top: 8px; font-family: var(--ui-font-display); font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: 0; overflow-wrap: anywhere; }
+.discovery-promotions .promotion-description { max-width: 470px; margin: 10px 0 18px; font-size: 14px; line-height: 1.6; color: var(--ui-ink-soft); }
+.discovery-promotions .promotion-action { margin-top: auto; gap: 8px; min-height: 44px; letter-spacing: 0; }
+.discovery-promotions .promotion-media { position: relative; min-width: 0; min-height: 100%; margin: 0; background: var(--ui-surface-muted); }
+.discovery-promotions .promotion-media img { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.discovery-promotions .promotion-media figcaption { position: absolute; right: 8px; bottom: 8px; left: 8px; width: fit-content; padding: 3px 6px; border-radius: 4px; background: var(--ui-surface); color: var(--ui-ink-soft); font-size: 10px; line-height: 1.4; }
+.discovery-promotions .promotion-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 12px; color: var(--ui-ink-muted); }
+.discovery-promotions .promotion-footer > p { min-width: 0; overflow-wrap: anywhere; }
+.discovery-promotions .promotion-selectors { display: flex; flex: none; gap: 2px; }
+.discovery-promotions .promotion-selectors button { display: grid; place-items: center; }
+.discovery-promotions .promotion-selectors span { display: block; width: 20px; height: 4px; border-radius: 2px; background: var(--ui-line-strong); }
+.discovery-promotions .promotion-selectors button[aria-pressed=true] span { background: var(--ui-primary); }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .discovery-promotions .promotion-campaign { min-height: 280px; }
+}
+
+@media (max-width: 767px) {
+  .discovery-promotions { padding-top: 20px; }
+  .discovery-promotions .promotion-heading { gap: 8px; }
+  .discovery-promotions .promotion-heading h2 { font-size: 19px; }
+  .discovery-promotions .promotion-controls { gap: 2px; }
+  .discovery-promotions .promotion-count { display: none; }
+  .discovery-promotions .promotion-campaign { grid-template-columns: minmax(0, 1fr) 28%; min-height: 312px; }
+  .discovery-promotions .promotion-copy { padding: 20px 16px; }
+  .discovery-promotions .promotion-copy h3 { font-size: 23px; }
+  .discovery-promotions .promotion-description { font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+  .discovery-promotions .promotion-action { font-size: 12px; padding-inline: 10px; text-align: left; }
+  .discovery-promotions .promotion-media figcaption { right: 4px; bottom: 4px; left: 4px; padding: 3px 4px; }
+}
+
+@keyframes ui-promotion-reveal { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .discovery-promotions .promotion-campaign { animation: none; } }
+
 .clinic-workflow-page {
   position: relative;
   isolation: isolate;
