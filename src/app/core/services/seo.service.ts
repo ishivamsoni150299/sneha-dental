@@ -6,6 +6,7 @@ import { DOCUMENT } from '@angular/common';
 import { ClinicConfigService } from './clinic-config.service';
 import { PLATFORM_PLANS } from '../config/clinic.config';
 import { PLATFORM_FAQS } from '../content/platform-marketing.content';
+import type { MarketplaceClinic } from './marketplace.service';
 
 interface SeoRouteData {
   title?: string;
@@ -43,6 +44,7 @@ export class SeoService {
   private readonly meta = inject(Meta);
   private readonly clinic = inject(ClinicConfigService);
   private readonly document = inject(DOCUMENT);
+  private publicProfile: MarketplaceClinic | null = null;
 
   constructor() {
     this.router.events
@@ -53,9 +55,69 @@ export class SeoService {
     this.update();
   }
 
+  setPublicProfile(profile: MarketplaceClinic): void {
+    this.publicProfile = profile;
+    const dentist = profile.profileEntity === 'dentist';
+    const path = `/${dentist ? 'dentist' : 'clinic'}/${profile.marketplaceSlug}`;
+    const url = `${PLATFORM_ORIGIN}${path}`;
+    const name = dentist ? profile.doctorName : profile.name;
+    const title = `${name}${dentist ? ', Dentist' : ' — Dental Clinic'}${profile.city ? ` in ${profile.city}` : ''} | My Dental Platform`;
+    const description = dentist
+      ? `View ${name}, qualifications, treatments, practice locations and consultation fees. Appointment requests require confirmation.`
+      : `View ${name}, verified dentists, published consultation fees, address and appointment availability.`;
+    const source = profile.marketplaceProfile?.listingImageUrl;
+    const image = source ? new URL(source, PLATFORM_ORIGIN).href : `${PLATFORM_ORIGIN}/og-default.svg`;
+    this.title.setTitle(title);
+    this.setMeta('description', description);
+    this.setMeta('robots', INDEXABLE_ROBOTS);
+    this.setMeta('googlebot', INDEXABLE_ROBOTS);
+    for (const [key, value] of Object.entries({ title, description, url, image, type: 'website' })) this.setMeta(`og:${key}`, value, true);
+    for (const [key, value] of Object.entries({ title, description, image, card: 'summary_large_image' })) this.setMeta(`twitter:${key}`, value);
+    this.setMeta('og:image:alt', name, true); this.setMeta('twitter:image:alt', name);
+    this.setCanonical(url);
+    for (const name of ['geo.region', 'geo.placename', 'geo.position', 'ICBM']) this.meta.removeTag(`name="${name}"`);
+    const entity: Record<string, unknown> = { '@type': dentist ? 'Person' : 'Dentist', '@id': `${url}#${dentist ? 'person' : 'clinic'}`, name, url };
+    if (source) entity['image'] = image;
+    if (dentist) {
+      const affiliations = (profile.practiceLocations ?? []).filter(location => location.clinicSlug).map(location => ({
+        '@type': 'Dentist', '@id': `${PLATFORM_ORIGIN}/clinic/${location.clinicSlug}#clinic`,
+        name: location.name, url: `${PLATFORM_ORIGIN}/clinic/${location.clinicSlug}`,
+      }));
+      if (affiliations.length) entity['affiliation'] = affiliations;
+    } else {
+      const address = [profile.addressLine1, profile.addressLine2, profile.marketplaceProfile?.locality, profile.city].filter(Boolean).join(', ');
+      if (address) entity['address'] = { '@type': 'PostalAddress', streetAddress: address, addressLocality: profile.city, addressCountry: 'IN' };
+      if (profile.phone) entity['telephone'] = profile.phone;
+    }
+    this.document.querySelectorAll('script[type="application/ld+json"]').forEach(script => script.remove());
+    const script = this.document.createElement('script'); script.id = 'seo-schema'; script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': [entity,
+      { '@type': 'WebPage', '@id': `${url}#page`, url, name: title, mainEntity: { '@id': entity['@id'] } },
+      { '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Dentists', item: `${PLATFORM_ORIGIN}/dentists` },
+        { '@type': 'ListItem', position: 2, name, item: url },
+      ] },
+    ] }).replace(/</g, '\\u003c');
+    this.document.head.appendChild(script);
+  }
+
+  publicProfileUnavailable(): void {
+    this.publicProfile = null;
+    this.title.setTitle('Profile unavailable | My Dental Platform');
+    this.setMeta('robots', 'noindex,follow'); this.setMeta('googlebot', 'noindex,follow');
+    this.document.getElementById('seo-schema')?.remove();
+    this.setMeta('description', 'This public profile is currently unavailable.');
+  }
+
   private update(): void {
     const data = this.getRouteData(this.route);
     const path = this.normalizePath(this.router.url.split('?')[0] || '/');
+    if (this.publicProfile && [
+      `/${this.publicProfile.profileEntity === 'dentist' ? 'dentist' : 'clinic'}/${this.publicProfile.marketplaceSlug}`,
+      `/dentists/${this.publicProfile.marketplaceSlug}`,
+    ].includes(path)) { this.setPublicProfile(this.publicProfile); return; }
+    this.publicProfile = null;
+    const publicProfileRoute = /^\/(dentist|clinic)\/[^/]+$/.test(path);
     const context = this.getSeoContext(path);
     const title = this.buildTitle(data.title, context);
     const description = data.description ?? context.defaultDescription;
@@ -65,7 +127,7 @@ export class SeoService {
     const imageAlt = context.kind === 'platform'
       ? 'Find verified dentists and book a dental appointment on mydentalplatform'
       : `${context.siteName} dental clinic preview`;
-    const robots = data.noIndex ? NOINDEX_ROBOTS : INDEXABLE_ROBOTS;
+    const robots = data.noIndex || publicProfileRoute ? NOINDEX_ROBOTS : INDEXABLE_ROBOTS;
 
     this.title.setTitle(title);
     this.setMeta('description', description);
@@ -88,6 +150,11 @@ export class SeoService {
     this.setMeta('twitter:image:alt', imageAlt);
 
     this.setCanonical(url);
+
+    if (publicProfileRoute) {
+      this.document.querySelectorAll('script[type="application/ld+json"]').forEach(script => script.remove());
+      return;
+    }
 
     // Regional Geo-Targeting (Delhi NCR / India)
     const geo = this.getGeoCoordinates(path, context);
@@ -589,6 +656,7 @@ export class SeoService {
       this.document.head.appendChild(link);
     }
     link.setAttribute('href', url);
+    this.document.querySelectorAll<HTMLLinkElement>('link[rel="alternate"][hreflang]').forEach(alternate => alternate.setAttribute('href', url));
   }
 
   private absoluteUrl(path: string, origin = this.document.location.origin): string {

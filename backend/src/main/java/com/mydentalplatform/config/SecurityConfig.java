@@ -72,7 +72,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**",
                     "/media/**", "/fonts/**", "/**/*.woff2", "/**/*.woff", "/**/*.ttf", "/**/*.svg").permitAll()
                 .requestMatchers(HttpMethod.GET, SpaRoutingConfig.ROUTES).permitAll()
-                .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/favicon.ico",
+                .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/sitemap-pages.xml", "/sitemap-profiles/*.xml", "/favicon.ico",
                     "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
                 .requestMatchers(
                     "/api/auth/otp/request", "/api/auth/otp/verify", "/api/auth/otp/exchange-link",

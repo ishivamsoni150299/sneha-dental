@@ -27,7 +27,7 @@ export class DentistListingCardComponent {
     ? this.clinic().marketplaceProfile?.videoConsultationFee : this.clinic().marketplaceProfile?.consultationFee);
   readonly compareToggled = output<void>();
   readonly retryAvailability = output<void>();
-  readonly profilePath = computed(() => [this.discoveryType() === 'dentists' ? '/dentist' : '/clinic', this.clinic().marketplaceSlug ?? '']);
+  readonly profilePath = computed(() => [this.clinic().profileEntity === 'dentist' ? '/dentist' : '/clinic', this.clinic().marketplaceSlug ?? '']);
   readonly listingImage = computed(() => this.marketplace.listingImage(this.clinic()));
   readonly hasListingPhoto = computed(() => this.marketplace.hasListingPhoto(this.clinic()));
   readonly serviceLabels = computed(() => this.clinic().marketplaceProfile?.serviceIds.map(id => this.marketplace.serviceLabel(id)) ?? []);

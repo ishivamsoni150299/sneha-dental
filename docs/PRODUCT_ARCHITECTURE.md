@@ -42,6 +42,8 @@ The completion target is a consistent, maintainable project with passing accepta
 
 ## Product decision
 
+The implementation and validation of search visibility for existing verified dentist and clinic profiles are documented in [DENTIST_SEO.md](DENTIST_SEO.md). Public identity, server-rendered profile content, canonical URLs, and live sitemap coverage are implemented. Production routing and search-engine indexing require external verification; first-place rankings are not guaranteed.
+
 MyDentalPlatform is an appointment marketplace first. The clinic software and clinic websites create and retain the supply that makes the marketplace useful.
 
 The patient discovery entry point is `/dentists`. `/business` and `/professional` provide dedicated clinic and dentist entry pages. `/book` opens patient discovery with booking filters preserved. `/account` provides sign-in and account creation for patients, dentists, and clinics; existing login URLs and duplicate dentist signup URLs redirect to it. Sign-in opens the workspace associated with the authenticated role. Signup asks for account type and retains the recovery-code handoff before opening the workspace or clinic setup.

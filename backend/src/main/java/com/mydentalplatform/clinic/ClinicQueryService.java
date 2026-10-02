@@ -139,15 +139,24 @@ public class ClinicQueryService {
     }
 
     public Optional<Map<String, Object>> findMarketplaceBySlug(String slug) {
-        Optional<Map<String, Object>> clinic = clinicQuery("""
-            where active = true and marketplace_status = 'verified'
-              and marketplace_slug = ?
-            limit 1
-            """, slug).stream().findFirst();
+        Optional<Map<String, Object>> clinic = findPublishedClinicBySlug(slug);
         if (clinic.isPresent()) {
             return clinic;
         }
         return findIndependentProviderBySlug(slug);
+    }
+
+    public List<String> publishedSlugs() {
+        return jdbcTemplate.queryForList("""
+            SELECT marketplace_slug FROM clinics
+            WHERE active = true AND marketplace_status = 'verified' AND marketplace_slug IS NOT NULL
+            ORDER BY marketplace_slug
+            """, String.class);
+    }
+
+    public Optional<Map<String, Object>> findPublishedClinicBySlug(String slug) {
+        return clinicQuery("where active = true and marketplace_status = 'verified' and marketplace_slug = ? limit 1", slug)
+            .stream().findFirst();
     }
 
     private Optional<Map<String, Object>> findIndependentProviderBySlug(String slug) {
@@ -284,12 +293,13 @@ public class ClinicQueryService {
 
     private List<Map<String, Object>> clinicQuery(String suffix, Object... arguments) {
         String sql = """
-            select id, active, marketplace_status, marketplace_slug,
+            select id, name, active, marketplace_status, marketplace_slug,
                    subscription_plan, subscription_status, rating_count, average_rating, public_config::text as public_config
             from clinics
             """ + suffix;
         return new ArrayList<>(jdbcTemplate.query(sql, (resultSet, rowNumber) -> {
             Map<String, Object> clinic = json(resultSet.getString("public_config"));
+            if (clinic.get("name") == null || clinic.get("name").toString().isBlank()) clinic.put("name", resultSet.getString("name"));
             String id = resultSet.getObject("id", UUID.class).toString();
             clinic.put("id", id);
             clinic.put("clinicId", id);

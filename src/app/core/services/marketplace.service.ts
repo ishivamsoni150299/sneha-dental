@@ -8,6 +8,10 @@ import { clinicHasPlatformFeature } from '../config/platform-entitlements';
 import { MARKETPLACE_DENTAL_SERVICES } from '../config/marketplace.config';
 
 export interface MarketplaceClinic extends ClinicConfig {
+  profileEntity?: 'dentist' | 'clinic';
+  bookingSlug?: string;
+  practiceLocations?: PublicPracticeLocation[];
+  publicDentists?: { name: string; slug: string }[];
   providerSchedule?: Record<string, unknown>;
   id: string;
   averageRating?: number;
@@ -16,6 +20,18 @@ export interface MarketplaceClinic extends ClinicConfig {
   eligibleForInClinic?: boolean;
   eligibleForVideo?: boolean;
   consultationModes?: ('in_person' | 'video')[];
+}
+
+export interface PublicPracticeLocation {
+  id?: string;
+  name?: string;
+  clinicSlug?: string;
+  city: string;
+  locality: string;
+  addressLine1: string;
+  consultationFee: number | null;
+  acceptingNewPatients: boolean;
+  schedule: Record<string, unknown>;
 }
 
 export interface MarketplaceSearchResponse {
@@ -111,20 +127,23 @@ export class MarketplaceService {
     };
   }
 
-  async getVerifiedClinicBySlug(slug: string): Promise<MarketplaceClinic | null> {
+  async getVerifiedClinicBySlug(slug: string, allowProviderFallback = true): Promise<MarketplaceClinic | null> {
     const normalizedSlug = slug.trim().toLowerCase();
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedSlug)) return null;
 
     const response = await fetch(`/api/marketplace/clinics/${encodeURIComponent(normalizedSlug)}`);
     if (response.status === 404) {
-      return await this.getVerifiedProviderBySlug(normalizedSlug);
+      return allowProviderFallback ? this.getVerifiedProviderBySlug(normalizedSlug) : null;
     }
     if (!response.ok) throw new Error('Could not load this dentist.');
-    return await response.json() as MarketplaceClinic;
+    const clinic = await response.json() as MarketplaceClinic;
+    if (clinic.isIndependent) return allowProviderFallback ? this.getVerifiedProviderBySlug(normalizedSlug) : null;
+    return clinic;
   }
 
   async getVerifiedProviderBySlug(slug: string): Promise<MarketplaceClinic | null> {
     const normalizedSlug = slug.trim().toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedSlug)) return null;
     try {
       const response = await fetch(`/api/v1/providers/${encodeURIComponent(normalizedSlug)}`);
       if (response.status === 404) return null;
@@ -135,17 +154,19 @@ export class MarketplaceService {
         isIndependent?: boolean; bookingSlug?: string;
         experienceYears?: number; consultationFee?: number; acceptingNewPatients?: boolean;
         services?: (string | {service_id: string})[]; languages?: string[];
-        practiceLocations?: { city: string; locality: string; addressLine1: string; consultationFee: number | null;
-          acceptingNewPatients: boolean; schedule: Record<string, unknown> }[];
+        practiceLocations?: PublicPracticeLocation[];
       };
       const practice = provider.practiceLocations?.[0];
-      if (provider.isIndependent === false) {
-        return provider.bookingSlug ? this.getVerifiedClinicBySlug(provider.bookingSlug) : null;
-      }
+      const independent = provider.isIndependent !== false;
+      const bookingClinic = !independent && provider.bookingSlug
+        ? await this.getVerifiedClinicBySlug(provider.bookingSlug, false) : null;
       return {
         id: String(provider.id),
+        profileEntity: 'dentist',
+        bookingSlug: independent ? provider.slug : provider.bookingSlug,
+        practiceLocations: provider.practiceLocations ?? [],
         name: provider.fullName,
-        tagline: provider.speciality || 'Independent Dental Professional',
+        tagline: provider.speciality || 'Dental Professional',
         doctorName: provider.fullName,
         doctorQualification: provider.qualification || '',
         doctorBio: provider.biography ? [provider.biography] : [],
@@ -154,10 +175,10 @@ export class MarketplaceService {
         city: practice?.city || provider.city || '',
         addressLine1: practice?.addressLine1 || '',
         bookingRefPrefix: 'MDP',
-        isIndependent: true,
-        eligibleForInClinic: false,
-        eligibleForVideo: true,
-        consultationModes: ['video'],
+        isIndependent: independent,
+        eligibleForInClinic: !independent,
+        eligibleForVideo: independent || bookingClinic?.marketplaceProfile?.videoConsultationEnabled === true,
+        consultationModes: independent ? ['video'] : ['in_person'],
         marketplaceSlug: provider.slug,
         marketplaceStatus: 'verified',
         marketplaceVerifiedAt: provider.verifiedAt,
@@ -169,16 +190,16 @@ export class MarketplaceService {
           experienceYears: provider.experienceYears,
           consultationFee: practice?.consultationFee ?? provider.consultationFee,
           videoConsultationFee: practice?.consultationFee ?? provider.consultationFee,
-          videoConsultationEnabled: true,
-          acceptingNewPatients: practice?.acceptingNewPatients ?? false,
+          videoConsultationEnabled: independent || bookingClinic?.marketplaceProfile?.videoConsultationEnabled === true,
+          acceptingNewPatients: (practice?.acceptingNewPatients ?? false) && (independent || bookingClinic?.marketplaceProfile?.acceptingNewPatients === true),
           serviceIds: (provider.services ?? []).map(s => typeof s === 'string' ? s : s.service_id),
           languages: provider.languages || [],
         },
         services: [{
-          name: 'Video Consultation',
+          name: independent ? 'Video Consultation' : 'Consultation',
           price: practice?.consultationFee != null ? `₹${practice.consultationFee}` : undefined,
           duration: '30 mins',
-          description: 'Remote video consultation with verified independent dentist',
+          description: independent ? 'Remote video consultation with verified independent dentist' : 'Consultation at a published clinic',
         }],
         testimonials: [],
         hours: [],
@@ -196,6 +217,12 @@ export class MarketplaceService {
     const response = await fetch(`/api/marketplace/clinics/${encodeURIComponent(normalizedClinicId)}/reviews`);
     if (!response.ok) throw new Error('Could not load reviews.');
     return await response.json() as MarketplaceReview[];
+  }
+
+  async getPublicClinicDentists(slug: string): Promise<{ name: string; slug: string }[]> {
+    const response = await fetch(`/api/marketplace/clinics/${encodeURIComponent(slug)}/dentists`);
+    if (!response.ok) throw new Error('Could not load the published clinic team.');
+    return response.json();
   }
 
   async getAvailability(slug: string, days = 7, from?: string): Promise<MarketplaceAvailability> {

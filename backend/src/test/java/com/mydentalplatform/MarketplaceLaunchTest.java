@@ -36,7 +36,8 @@ class MarketplaceLaunchTest {
             String password = "Launch-" + UUID.randomUUID();
             var shellDirectory = Files.createTempDirectory("marketplace-shell-");
             var shell = shellDirectory.resolve("index.html");
-            Files.writeString(shell, "<!doctype html><html><body><app-root>Account shell</app-root></body></html>");
+            Files.writeString(shell, "<!doctype html><html><head><title>Account</title></head><body><app-root>Account shell</app-root></body></html>");
+            Files.writeString(shellDirectory.resolve("sitemap.xml"), "<urlset><url><loc>https://marketplace.example.test/dentists</loc></url></urlset>");
             try (var app = SpringApplication.run(PlatformApplication.class,
                 "--server.port=0", "--spring.profiles.active=production",
                 "--spring.web.resources.static-locations=" + shellDirectory.toUri(),
@@ -246,6 +247,7 @@ class MarketplaceLaunchTest {
                 request("GET", "/api/admin/clinics", null, dentist, 403);
                 request("GET", "/api/providers/me", null, patient, 403);
                 request("GET", "/api/v1/providers", null, null, 200);
+                verifyPublicProfileDiscovery(jdbc);
 
                 request("POST", "/api/admin/leads", Map.of("clinicName", "QA Lead", "phone", "12345",
                     "city", "Noida", "status", "new", "source", "other"), admin, 400);
@@ -277,9 +279,75 @@ class MarketplaceLaunchTest {
                 assertNull(jdbc.queryForObject("select doctor_id from appointments where id = ?", UUID.class, unassigned));
             } finally {
                 Files.deleteIfExists(shell);
+                Files.deleteIfExists(shellDirectory.resolve("sitemap.xml"));
                 Files.deleteIfExists(shellDirectory);
             }
         }
+    }
+
+    private void verifyPublicProfileDiscovery(JdbcTemplate jdbc) throws Exception {
+        UUID firstClinic = UUID.randomUUID(), secondClinic = UUID.randomUUID();
+        UUID firstLocation = UUID.randomUUID(), secondLocation = UUID.randomUUID();
+        jdbc.update("insert into clinics(id, name, marketplace_status, marketplace_slug, public_config) values (?, 'SEO Pune Clinic', 'verified', 'seo-person-0', '{\"city\":\"Pune\"}'::jsonb)", firstClinic);
+        jdbc.update("insert into clinics(id, name, marketplace_status, marketplace_slug, public_config) values (?, 'SEO Mumbai Clinic', 'verified', 'seo-mumbai', '{\"city\":\"Mumbai\"}'::jsonb)", secondClinic);
+        jdbc.update("insert into practice_locations(id, clinic_id, name, address_line1, city) values (?, ?, 'Pune Practice', 'Real Road', 'Pune')", firstLocation, firstClinic);
+        jdbc.update("insert into practice_locations(id, clinic_id, name, address_line1, city) values (?, ?, 'Mumbai Practice', 'Second Road', 'Mumbai')", secondLocation, secondClinic);
+        UUID selected = null;
+        for (int i = 0; i < 60; i++) {
+            UUID provider = UUID.randomUUID(); if (i == 0) selected = provider;
+            jdbc.update("insert into providers(id, slug, full_name, qualification, phone_e164, verification_status) values (?, ?, ?, 'BDS', '+919876543219', 'verified')", provider, "seo-person-" + i, "SEO Dentist " + i);
+            jdbc.update("insert into provider_marketplace_listings(provider_id, publication_status) values (?, 'published')", provider);
+            jdbc.update("insert into provider_location_memberships(provider_id, location_id, status, consultation_fee) values (?, ?, 'active', 500), (?, ?, 'active', 700)", provider, firstLocation, provider, secondLocation);
+        }
+        var profile = request("GET", "/api/v1/providers/seo-person-0", null, null, 200);
+        assertEquals("SEO Dentist 0", profile.path("fullName").asText());
+        assertEquals(2, profile.path("practiceLocations").size());
+        assertFalse(profile.has("phoneE164")); assertFalse(profile.has("userId"));
+        var page = publicPage("/dentist/seo-person-0", 200);
+        assertTrue(page.contains("<h1>SEO Dentist 0</h1>")); assertTrue(page.contains("Pune Practice")); assertTrue(page.contains("Mumbai Practice"));
+        assertTrue(page.contains("https://marketplace.example.test/dentist/seo-person-0"));
+        assertFalse(page.contains("+919876543219"));
+        assertTrue(publicPage("/clinic/seo-person-0", 200).contains("<h1>SEO Pune Clinic</h1>"));
+        assertEquals(60, request("GET", "/api/marketplace/clinics/seo-person-0/dentists", null, null, 200).size());
+        var alias = http.send(HttpRequest.newBuilder(URI.create(base + "/dentists/seo-person-0")).GET().build(), HttpResponse.BodyHandlers.ofString());
+        assertEquals(308, alias.statusCode());
+        assertEquals("https://marketplace.example.test/clinic/seo-person-0", alias.headers().firstValue("Location").orElse(""));
+        assertTrue(publicPage("/sitemap.xml", 200).contains("/sitemap-profiles/1.xml"));
+        assertTrue(publicPage("/sitemap-pages.xml", 200).contains("/dentists</loc>"));
+        String sitemap = publicPage("/sitemap-profiles/1.xml", 200);
+        for (int i = 0; i < 60; i++) assertTrue(sitemap.contains("/dentist/seo-person-" + i + "</loc>"));
+        assertEquals(1, sitemap.split("/dentist/seo-person-0</loc>").length - 1);
+        for (String state : java.util.List.of("unlisted", "pending", "suspended")) {
+            jdbc.update("update provider_marketplace_listings set publication_status = ? where provider_id = ?", state, selected);
+            publicPage("/dentist/seo-person-0", 404);
+            assertFalse(publicPage("/sitemap-profiles/1.xml", 200).contains("/dentist/seo-person-0</loc>"));
+        }
+        jdbc.update("update provider_marketplace_listings set publication_status = 'published' where provider_id = ?", selected);
+        for (String state : java.util.List.of("draft", "pending", "rejected", "suspended")) {
+            jdbc.update("update providers set verification_status = ? where id = ?", state, selected);
+            publicPage("/dentist/seo-person-0", 404);
+        }
+        jdbc.update("update providers set verification_status = 'verified', active = false where id = ?", selected);
+        publicPage("/dentist/seo-person-0", 404);
+        jdbc.update("update providers set active = true where id = ?", selected);
+        jdbc.update("update provider_location_memberships set status = 'inactive' where provider_id = ?", selected);
+        publicPage("/dentist/seo-person-0", 404);
+        jdbc.update("update provider_location_memberships set status = 'active' where provider_id = ?", selected);
+        jdbc.update("update practice_locations set active = false where id in (?, ?)", firstLocation, secondLocation);
+        publicPage("/dentist/seo-person-0", 404);
+        assertFalse(publicPage("/sitemap-profiles/1.xml", 200).contains("/dentist/seo-person-"));
+        jdbc.update("update practice_locations set active = true where id in (?, ?)", firstLocation, secondLocation);
+        jdbc.update("update clinics set marketplace_status = 'suspended' where id = ?", firstClinic);
+        publicPage("/clinic/seo-person-0", 404);
+        assertFalse(publicPage("/sitemap-profiles/1.xml", 200).contains("/clinic/seo-person-0</loc>"));
+        assertFalse(publicPage("/dentist/seo-person-0", 200).contains("href=\"/clinic/seo-person-0\""));
+    }
+
+    private String publicPage(String path, int status) throws Exception {
+        var response = http.send(HttpRequest.newBuilder(URI.create(base + path)).GET().build(), HttpResponse.BodyHandlers.ofString());
+        assertEquals(status, response.statusCode(), path);
+        if (status == 404) assertEquals("noindex", response.headers().firstValue("X-Robots-Tag").orElse(""));
+        return response.body();
     }
 
     private HttpResponse<byte[]> photoRequest(String method, String path, byte[] body, String token) throws Exception {

@@ -63,6 +63,29 @@ describe('MarketplaceService public URLs', () => {
     expect(service.clinicWebsiteUrl(clinic())).toBe('https://smilecare.mydentalplatform.com');
   });
 
+  it('preserves an affiliated dentist and every practice instead of substituting the booking clinic', async () => {
+    const locations = [
+      { id: 'pune', name: 'Pune Practice', clinicSlug: 'smile-care-noida', city: 'Pune', consultationFee: 500, acceptingNewPatients: true },
+      { id: 'mumbai', name: 'Mumbai Practice', clinicSlug: 'mumbai-clinic', city: 'Mumbai', consultationFee: 700, acceptingNewPatients: false },
+    ];
+    spyOn(window, 'fetch').and.callFake(async input => new Response(JSON.stringify(
+      String(input).includes('/api/v1/providers/')
+        ? { id: 'person-id', slug: 'asha-verma', fullName: 'Dr Asha Verma', isIndependent: false, bookingSlug: 'smile-care-noida', practiceLocations: locations, services: ['root-canal'] }
+        : clinic(),
+    )));
+    const profile = await service.getVerifiedProviderBySlug('asha-verma');
+    expect(profile?.id).toBe('person-id'); expect(profile?.name).toBe('Dr Asha Verma');
+    expect(profile?.marketplaceSlug).toBe('asha-verma'); expect(profile?.bookingSlug).toBe('smile-care-noida');
+    expect(profile?.profileEntity).toBe('dentist'); expect(profile?.practiceLocations?.length).toBe(2);
+    expect(profile?.marketplaceProfile?.consultationFee).toBe(500);
+  });
+
+  it('does not use a provider fallback for the strict clinic namespace', async () => {
+    const fetch = spyOn(window, 'fetch').and.resolveTo(new Response('', { status: 404 }));
+    expect(await service.getVerifiedClinicBySlug('unpublished', false)).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it('uses the custom domain only for an active paid entitlement', () => {
     const basicClinic = clinic({ subscriptionPlan: 'starter', subscriptionStatus: 'active' });
     const expiredClinic = clinic({ subscriptionPlan: 'starter', subscriptionStatus: 'expired' });

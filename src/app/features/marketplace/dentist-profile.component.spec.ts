@@ -1,4 +1,6 @@
 import { signal } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { SeoService } from '../../core/services/seo.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { DEFAULT_SCHEDULE, DoctorService } from '../../core/services/doctor.service';
@@ -53,10 +55,16 @@ function verifiedClinic(acceptingNewPatients = true): MarketplaceClinic {
   };
 }
 
-async function renderProfile(acceptingNewPatients = true) {
+async function renderProfile(acceptingNewPatients = true, dentist = false) {
   const clinic = verifiedClinic(acceptingNewPatients);
+  if (dentist) {
+    clinic.profileEntity = 'dentist'; clinic.name = clinic.doctorName;
+    clinic.bookingSlug = 'smile-care-noida'; clinic.marketplaceSlug = 'asha-verma';
+    clinic.practiceLocations = [{ id: 'location-1', name: 'Smile Care Dental', clinicSlug: 'smile-care-noida', city: 'Noida', locality: 'Sector 18', addressLine1: 'Main Road', consultationFee: 500, acceptingNewPatients, schedule: {} }];
+  }
   const marketplace = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
     'getVerifiedClinicBySlug',
+    'getVerifiedProviderBySlug', 'getPublicClinicDentists',
     'getPublishedReviews',
     'serviceLabel',
     'listingImage',
@@ -64,6 +72,10 @@ async function renderProfile(acceptingNewPatients = true) {
     'clinicWebsiteUrl',
   ]);
   marketplace.getVerifiedClinicBySlug.and.resolveTo(clinic);
+  marketplace.getVerifiedProviderBySlug.and.resolveTo(clinic);
+  marketplace.getPublicClinicDentists.and.resolveTo([]);
+  const params = new BehaviorSubject(convertToParamMap({ slug: dentist ? 'asha-verma' : 'smile-care-noida' }));
+  const seo = jasmine.createSpyObj<SeoService>('SeoService', ['setPublicProfile', 'publicProfileUnavailable']);
   marketplace.getPublishedReviews.and.resolveTo([{
     id: 'review-1', clinicId: clinic.id, rating: 5, text: 'Clear and gentle care.',
     patientAlias: 'Riya S.', publishedAt: '2026-08-15T10:00:00.000Z',
@@ -103,12 +115,13 @@ async function renderProfile(acceptingNewPatients = true) {
       provideRouter([]),
       {
         provide: ActivatedRoute,
-        useValue: { snapshot: { paramMap: convertToParamMap({ slug: 'smile-care-noida' }) } },
+        useValue: { paramMap: params, snapshot: { parent: { routeConfig: { path: dentist ? 'dentist' : 'clinic' } } } },
       },
       { provide: MarketplaceService, useValue: marketplace },
       { provide: DoctorService, useValue: doctors },
       { provide: PatientAppointmentApiService, useValue: patientApi },
       { provide: PatientAuthService, useValue: patientAuth },
+      { provide: SeoService, useValue: seo },
     ],
   }).compileComponents();
 
@@ -116,7 +129,7 @@ async function renderProfile(acceptingNewPatients = true) {
   fixture.detectChanges();
   await fixture.whenStable();
   fixture.detectChanges();
-  return { fixture, marketplace, patientApi };
+  return { fixture, marketplace, patientApi, seo, doctors, params };
 }
 
 describe('DentistProfileComponent', () => {
@@ -126,7 +139,7 @@ describe('DentistProfileComponent', () => {
     const { fixture, marketplace } = await renderProfile();
     const text = fixture.nativeElement.textContent as string;
 
-    expect(marketplace.getVerifiedClinicBySlug).toHaveBeenCalledWith('smile-care-noida');
+    expect(marketplace.getVerifiedClinicBySlug).toHaveBeenCalledWith('smile-care-noida', false);
     expect(text).toContain('Smile Care Dental');
     expect(text).toContain('Dr. Asha Verma');
     expect(text).toContain('Dr. Rohan Mehta');
@@ -148,6 +161,27 @@ describe('DentistProfileComponent', () => {
 
     expect(links.some(link => link.textContent?.includes('Request appointment'))).toBeFalse();
     expect(fixture.nativeElement.textContent).toContain('Call first');
+  });
+
+  it('retains affiliated dentist identity and links to the clinic without borrowing clinic reviews', async () => {
+    const { fixture, marketplace, doctors, seo } = await renderProfile(true, true);
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Dr. Asha Verma');
+    expect(fixture.nativeElement.textContent).toContain('Verified Dentist');
+    expect(fixture.nativeElement.querySelector('a[href="/clinic/smile-care-noida"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href="/dentists/smile-care-noida/book"]')).not.toBeNull();
+    expect(marketplace.getPublishedReviews).not.toHaveBeenCalled();
+    expect(doctors.getDoctors).not.toHaveBeenCalled();
+    expect(seo.setPublicProfile).toHaveBeenCalled();
+  });
+
+  it('clears the previous profile and metadata on same-route navigation to a missing dentist', async () => {
+    const { fixture, marketplace, seo, params } = await renderProfile(true, true);
+    marketplace.getVerifiedProviderBySlug.and.resolveTo(null);
+    params.next(convertToParamMap({ slug: 'missing' }));
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Profile not found');
+    expect(fixture.nativeElement.textContent).not.toContain('Dr. Asha Verma');
+    expect(seo.publicProfileUnavailable).toHaveBeenCalled();
   });
 
   it('submits a review report from a verified patient session', async () => {

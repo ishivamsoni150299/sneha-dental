@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type { Doctor } from '../../core/services/doctor.service';
@@ -11,7 +12,7 @@ import {
 import { PatientAppointmentApiService } from '../../core/services/patient-appointment-api.service';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
-import { Title, Meta } from '@angular/platform-browser';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-dentist-profile',
@@ -27,8 +28,9 @@ export class DentistProfileComponent implements OnInit {
   private readonly doctorService = inject(DoctorService);
   private readonly patientApi = inject(PatientAppointmentApiService);
   private readonly analytics = inject(AnalyticsService);
-  private readonly title = inject(Title);
-  private readonly meta = inject(Meta);
+  private readonly seo = inject(SeoService);
+  private readonly destroyRef = inject(DestroyRef);
+  private loadId = 0;
   readonly patientAuth = inject(PatientAuthService);
 
   readonly clinic = signal<MarketplaceClinic | null>(null);
@@ -51,18 +53,32 @@ export class DentistProfileComponent implements OnInit {
     details: ['', Validators.maxLength(500)],
   });
 
-  async ngOnInit(): Promise<void> {
-    const slug = this.route.snapshot.paramMap.get('slug') ?? '';
+  ngOnInit(): void {
+    this.destroyRef.onDestroy(() => { this.loadId++; });
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      void this.loadProfile(params.get('slug') ?? '');
+    });
+  }
+
+  private async loadProfile(slug: string): Promise<void> {
+    const loadId = ++this.loadId;
+    this.loading.set(true); this.clinic.set(null); this.error.set(null); this.notFound.set(false);
+    this.reviews.set([]); this.verifiedDoctors.set([]); this.reportId.set(null); this.reportMessage.set(null);
+    this.seo.publicProfileUnavailable();
     try {
-      const clinic = await this.marketplace.getVerifiedClinicBySlug(slug);
+      const namespace = this.route.snapshot.parent?.routeConfig?.path;
+      const clinic = namespace === 'dentist'
+        ? await this.marketplace.getVerifiedProviderBySlug(slug)
+        : await this.marketplace.getVerifiedClinicBySlug(slug, namespace !== 'clinic');
+      if (loadId !== this.loadId) return;
       if (!clinic) {
         this.notFound.set(true);
+        this.seo.publicProfileUnavailable();
         return;
       }
 
       this.clinic.set(clinic);
-      this.title.setTitle(`${clinic.doctorName || clinic.name} — ${clinic.name} | My Dental Platform`);
-      this.meta.updateTag({ name: 'description', content: `View ${clinic.doctorName || clinic.name}, qualifications, consultation fees and available appointments${clinic.city ? ` in ${clinic.city}` : ''}. Requests require confirmation.` });
+      this.seo.setPublicProfile(clinic);
       this.analytics.trackDentistProfileView({
         dentist_id: clinic.id,
         dentist_name: clinic.doctorName,
@@ -70,25 +86,38 @@ export class DentistProfileComponent implements OnInit {
         city: clinic.city,
         is_independent: clinic.isIndependent ?? false,
       });
-      try {
-        this.reviews.set(await this.marketplace.getPublishedReviews(clinic.id));
+      if (clinic.profileEntity !== 'dentist') try {
+        const reviews = await this.marketplace.getPublishedReviews(clinic.id);
+        if (loadId !== this.loadId) return;
+        this.reviews.set(reviews);
       } catch (error) {
         console.error('[Marketplace] Published reviews could not be loaded:', error);
       }
+      if (clinic.profileEntity !== 'dentist') {
+        try {
+          const publicDentists = await this.marketplace.getPublicClinicDentists(clinic.marketplaceSlug ?? slug);
+          if (loadId !== this.loadId) return;
+          clinic.publicDentists = publicDentists; this.clinic.set({ ...clinic });
+        }
+        catch { /* Verified legacy team remains visible when public identity links are unavailable. */ }
+      }
       const verifiedIds = new Set(clinic.marketplaceVerifiedDoctorIds ?? []);
-      if (verifiedIds.size > 0) {
+      if (clinic.profileEntity !== 'dentist' && verifiedIds.size > 0) {
         try {
           const doctors = await this.doctorService.getDoctors(clinic.id);
+          if (loadId !== this.loadId) return;
           this.verifiedDoctors.set(doctors.filter(doctor => doctor.id && verifiedIds.has(doctor.id)));
         } catch (error) {
           console.error('[Marketplace] Verified doctors could not be loaded:', error);
         }
       }
     } catch (error) {
+      if (loadId !== this.loadId) return;
       console.error('[Marketplace] Profile load failed:', error);
-      this.error.set('This clinic profile could not be loaded. Please try again shortly.');
+      this.error.set('This profile could not be loaded. Please try again shortly.');
+      this.seo.publicProfileUnavailable();
     } finally {
-      this.loading.set(false);
+      if (loadId === this.loadId) this.loading.set(false);
     }
   }
 
