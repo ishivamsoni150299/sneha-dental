@@ -400,6 +400,22 @@ try {
     await signupPage.getByRole('heading').first().waitFor();
     if (type === 'dentist') {
       await signupPage.getByRole('button', { name: 'Complete your profile', exact: true }).waitFor();
+      const photoFixture = Buffer.from(await signupPage.evaluate(() => {
+        const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
+        const context = canvas.getContext('2d'); context.fillStyle = '#2563eb'; context.fillRect(0, 0, 32, 32);
+        return canvas.toDataURL('image/png').split(',')[1];
+      }), 'base64');
+      await signupPage.locator('#dentist-photo').setInputFiles({ name: 'test-profile.png', mimeType: 'image/png', buffer: photoFixture });
+      await signupPage.getByText('Profile photo saved.', { exact: true }).waitFor();
+      await signupPage.reload();
+      await signupPage.getByRole('img', { name: 'Your dentist profile photo', exact: true }).waitFor();
+      await signupPage.waitForFunction(() => document.querySelector('img[alt="Your dentist profile photo"]')?.naturalWidth === 32);
+      await signupPage.getByLabel('Replace photo', { exact: true }).setInputFiles({ name: 'replacement.png', mimeType: 'image/png', buffer: photoFixture });
+      await signupPage.getByText('Profile photo saved.', { exact: true }).waitFor();
+      await signupPage.getByRole('button', { name: 'Remove photo', exact: true }).click();
+      await signupPage.getByText('Profile photo removed.', { exact: true }).waitFor();
+      await signupPage.reload();
+      await signupPage.getByText('No photo added yet.', { exact: true }).waitFor();
       await signupPage.getByRole('button', { name: 'Hours', exact: true }).click();
       await signupPage.waitForURL('**tab=availability');
       await signupPage.reload();

@@ -20,6 +20,19 @@ describe('Professional profile feedback', () => {
     expect(component.error()).toContain('required professional details');
     expect(api.fetch).not.toHaveBeenCalled();
   });
+  it('rejects unsupported photo files without sending them', async () => {
+    const component = TestBed.createComponent(ProfessionalProfileComponent).componentInstance;
+    await component.uploadPhoto({ target: { files: [new File(['svg'], 'photo.svg', { type: 'image/svg+xml' })], value: '' } } as unknown as Event);
+    expect(component.error()).toContain('JPG or PNG');
+    expect(api.fetch).not.toHaveBeenCalled();
+  });
+  it('shows an upload failure and allows another attempt', async () => {
+    const component = TestBed.createComponent(ProfessionalProfileComponent).componentInstance;
+    api.fetch.and.resolveTo(new Response('{"message":"Photo unavailable"}', { status: 503 }));
+    await component.uploadPhoto({ target: { files: [new File(['png'], 'photo.png', { type: 'image/png' })], value: '' } } as unknown as Event);
+    expect(component.error()).toContain('Photo unavailable');
+    expect(component.saving()).toBeFalse();
+  });
 
   it('explains invalid practice fees without making a request', async () => {
     const component = TestBed.createComponent(ProfessionalProfileComponent).componentInstance;

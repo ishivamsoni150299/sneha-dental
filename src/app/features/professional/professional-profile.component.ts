@@ -40,6 +40,16 @@ interface ProviderProfile {
             <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="ui-card p-5 sm:p-6">
               <h3 class="text-lg font-bold text-ui-ink">1. Professional details</h3>
               <p class="mt-1 text-sm text-ui-ink-muted">Save these before submitting for verification.</p>
+              <section class="mt-5 rounded-xl border border-ui-line p-4" aria-labelledby="dentist-photo-title">
+                <h4 id="dentist-photo-title" class="font-semibold">Profile photo</h4>
+                <p id="dentist-photo-help" class="mt-1 text-sm text-ui-ink-muted">Add a clear photo of yourself. JPG or PNG, up to 5 MB and 20 megapixels. It appears on your public dentist profile after verification.</p>
+                @if (photoPreview()) { <img [src]="photoPreview()" alt="Your dentist profile photo" class="mt-3 h-28 w-28 rounded-xl object-cover" width="112" height="112"> }
+                @else { <p class="mt-3 text-sm text-ui-ink-muted">No photo added yet.</p> }
+                <label for="dentist-photo" class="mt-3 block text-sm font-semibold">{{ profile()?.photoUrl ? 'Replace photo' : 'Add photo' }}</label>
+                <input id="dentist-photo" type="file" accept="image/jpeg,image/png" aria-describedby="dentist-photo-help" [disabled]="saving()" (change)="uploadPhoto($event)" class="mt-2 block w-full min-w-0 text-sm">
+                @if (profile()?.photoUrl) { <button type="button" (click)="removePhoto()" [disabled]="saving()" class="ui-btn ui-btn-ghost mt-3">Remove photo</button> }
+                <p class="mt-2 text-xs text-ui-ink-muted">Photo changes save immediately. Save other details below.</p>
+              </section>
               <div class="mt-5 grid gap-4 sm:grid-cols-2">
                 <label class="text-sm font-semibold">Full name<input formControlName="fullName" required class="ui-field mt-1.5 text-base"></label>
                 <label class="text-sm font-semibold">Qualification<input formControlName="qualification" required class="ui-field mt-1.5 text-base" placeholder="BDS"></label>
@@ -100,11 +110,13 @@ export class ProfessionalProfileComponent implements OnInit {
   readonly savingLocation = signal(false);
   readonly message = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  readonly photoPreview = signal('');
+  private photoObjectUrl = '';
   readonly profileForm = this.fb.nonNullable.group({ fullName: ['', Validators.required], qualification: ['', Validators.required], speciality: ['', Validators.required], biography: [''], experienceYears: [0, [Validators.min(0), Validators.max(80)]], registrationNumber: ['', Validators.required], registrationCouncil: ['', Validators.required], phoneE164: [''], languages: [''] });
   readonly locationForm = this.fb.nonNullable.group({ name: ['', Validators.required], addressLine1: ['', Validators.required], locality: [''], city: ['', Validators.required], consultationFee: [0, [Validators.required, Validators.min(0)]] });
 
   constructor() {
-    this.destroyRef.onDestroy(() => { this.destroyed = true; });
+    this.destroyRef.onDestroy(() => { this.destroyed = true; if (this.photoObjectUrl) URL.revokeObjectURL(this.photoObjectUrl); });
   }
 
   async ngOnInit(): Promise<void> {
@@ -123,8 +135,55 @@ export class ProfessionalProfileComponent implements OnInit {
       const p = await r.json() as ProviderProfile;
       this.profile.set(p);
       this.profileForm.patchValue({ fullName: p.fullName, qualification: p.qualification ?? '', speciality: p.speciality ?? '', biography: p.biography ?? '', experienceYears: p.experienceYears ?? 0, registrationNumber: p.registrationNumber ?? '', registrationCouncil: p.registrationCouncil ?? '', phoneE164: p.phoneE164 ?? '', languages: (p.languages ?? []).join(', ') });
+      await this.loadPhoto(p.photoUrl);
     } catch (error) { this.error.set((error as Error).message); }
     finally { this.loading.set(false); }
+  }
+  private async loadPhoto(url: string | null): Promise<void> {
+    let preview = url ?? '';
+    if (url?.startsWith('/api/public/provider-photos/')) {
+      const response = await this.api.fetch('/api/providers/me/photo');
+      if (!response.ok) throw new Error('Your photo could not be loaded. Refresh to try again.');
+      const blob = await response.blob();
+      if (this.destroyed) return;
+      preview = URL.createObjectURL(blob);
+    }
+    if (this.destroyed) return;
+    if (this.photoObjectUrl) URL.revokeObjectURL(this.photoObjectUrl);
+    this.photoObjectUrl = preview.startsWith('blob:') ? preview : '';
+    this.photoPreview.set(preview);
+  }
+  async uploadPhoto(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0]; input.value = '';
+    if (!file || this.saving()) return;
+    this.error.set(null); this.message.set(null);
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      this.error.set('Choose a JPG or PNG photo smaller than 5 MB.'); return;
+    }
+    this.saving.set(true);
+    try {
+      const response = await this.api.fetch('/api/providers/me/photo', { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.detail || result.message || 'Photo could not be saved. Please try again.');
+      if (this.destroyed) return;
+      this.profile.update(p => p ? { ...p, photoUrl: result.photoUrl } : p);
+      await this.loadPhoto(result.photoUrl);
+      this.message.set('Profile photo saved.');
+    } catch (e) { this.error.set((e as Error).message); }
+    finally { this.saving.set(false); }
+  }
+  async removePhoto(): Promise<void> {
+    if (this.saving()) return;
+    this.saving.set(true); this.error.set(null); this.message.set(null);
+    try {
+      const response = await this.api.fetch('/api/providers/me/photo', { method: 'DELETE' });
+      if (!response.ok) throw new Error('Photo could not be removed. Please try again.');
+      if (this.destroyed) return;
+      this.profile.update(p => p ? { ...p, photoUrl: null } : p);
+      await this.loadPhoto(null); this.message.set('Profile photo removed.');
+    } catch (e) { this.error.set((e as Error).message); }
+    finally { this.saving.set(false); }
   }
   async saveProfile(): Promise<void> {
     if (this.saving()) return;

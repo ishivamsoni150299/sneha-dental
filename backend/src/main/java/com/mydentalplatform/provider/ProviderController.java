@@ -191,7 +191,7 @@ public class ProviderController {
         jdbcTemplate.update("""
             UPDATE providers SET full_name = ?, qualification = ?, speciality = ?, biography = ?,
                 experience_years = ?, registration_number = ?, registration_council = ?,
-                phone_e164 = ?, photo_url = ?, languages = cast(? AS jsonb), updated_at = now()
+                phone_e164 = ?, photo_url = CASE WHEN photo_bytes IS NULL THEN ? ELSE photo_url END, languages = cast(? AS jsonb), updated_at = now()
             WHERE id = ?
             """, request.fullName().trim(), blank(request.qualification()), blank(request.speciality()),
             blank(request.biography()), request.experienceYears(), blank(request.registrationNumber()),

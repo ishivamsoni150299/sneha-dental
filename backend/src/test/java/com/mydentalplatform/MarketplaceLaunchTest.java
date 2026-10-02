@@ -219,6 +219,29 @@ class MarketplaceLaunchTest {
 
                 String dentist = token(request("POST", "/api/auth/professional/signup", Map.of("email", "dentist@example.test", "password", password, "fullName", "Independent Dentist"), null, 200));
                 request("GET", "/api/providers/me", null, dentist, 200);
+                var imageBytes = new java.io.ByteArrayOutputStream();
+                javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(32, 32, java.awt.image.BufferedImage.TYPE_INT_RGB), "png", imageBytes);
+                assertEquals(403, photoRequest("PUT", "/api/providers/me/photo", imageBytes.toByteArray(), patient).statusCode());
+                assertEquals(400, photoRequest("PUT", "/api/providers/me/photo", "invalid image".getBytes(), dentist).statusCode());
+                assertEquals(413, photoRequest("PUT", "/api/providers/me/photo", new byte[5 * 1024 * 1024 + 1], dentist).statusCode());
+                var uploadedPhoto = photoRequest("PUT", "/api/providers/me/photo", imageBytes.toByteArray(), dentist);
+                assertEquals(200, uploadedPhoto.statusCode());
+                String photoUrl = json.readTree(uploadedPhoto.body()).path("photoUrl").asText();
+                request("PATCH", "/api/providers/me", Map.of("fullName", "Independent Dentist", "languages", java.util.List.of("English"), "photoUrl", ""), dentist, 204);
+                assertEquals(photoUrl, request("GET", "/api/providers/me", null, dentist, 200).path("photoUrl").asText());
+                assertEquals(200, photoRequest("GET", "/api/providers/me/photo", null, dentist).statusCode());
+                assertEquals(404, photoRequest("GET", photoUrl, null, null).statusCode());
+                String otherDentist = token(request("POST", "/api/auth/professional/signup", Map.of("email", "other-dentist@example.test", "password", password, "fullName", "Other Dentist"), null, 200));
+                assertEquals(404, photoRequest("GET", "/api/providers/me/photo", null, otherDentist).statusCode());
+                request("DELETE", "/api/providers/me/photo", null, otherDentist, 204);
+                assertEquals(200, photoRequest("GET", "/api/providers/me/photo", null, dentist).statusCode());
+                jdbc.update("update providers set verification_status = 'verified' where photo_url = ?", photoUrl);
+                var publicPhoto = photoRequest("GET", photoUrl, null, null);
+                assertEquals(200, publicPhoto.statusCode());
+                assertEquals("image/jpeg", publicPhoto.headers().firstValue("Content-Type").orElse(""));
+                jdbc.update("update providers set verification_status = 'draft' where photo_url = ?", photoUrl);
+                request("DELETE", "/api/providers/me/photo", null, dentist, 204);
+                assertEquals(404, photoRequest("GET", "/api/providers/me/photo", null, dentist).statusCode());
                 request("GET", "/api/providers/me/appointments", null, dentist, 200);
                 request("GET", "/api/admin/clinics", null, dentist, 403);
                 request("GET", "/api/providers/me", null, patient, 403);
@@ -257,6 +280,12 @@ class MarketplaceLaunchTest {
                 Files.deleteIfExists(shellDirectory);
             }
         }
+    }
+
+    private HttpResponse<byte[]> photoRequest(String method, String path, byte[] body, String token) throws Exception {
+        var builder = HttpRequest.newBuilder(URI.create(base + path)).header("Content-Type", "image/png");
+        if (token != null) builder.header("Authorization", "Bearer " + token);
+        return http.send(builder.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofByteArray(body)).build(), HttpResponse.BodyHandlers.ofByteArray());
     }
 
     private String token(JsonNode response) {
