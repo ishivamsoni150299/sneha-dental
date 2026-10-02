@@ -667,10 +667,13 @@
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Facebook</label>
-                <input formControlName="facebook" type="url" placeholder="https://facebook.com/yourclinic" autofocus
-                       class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
-                              focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                  <label for="settings-facebook" class="ui-label mb-1.5">Facebook</label>
+                  <input id="settings-facebook" formControlName="facebook" type="url" placeholder="https://facebook.com/yourclinic" autofocus
+                    [attr.aria-invalid]="socialForm.controls.facebook.invalid && socialForm.controls.facebook.touched"
+                    aria-describedby="settings-facebook-error" class="ui-field"/>
+                  @if (socialForm.controls.facebook.invalid && socialForm.controls.facebook.touched) {
+                    <p id="settings-facebook-error" role="alert" class="ui-helper text-status-danger">Enter a full http or https URL, or leave it blank.</p>
+                  }
               </div>
             </div>
             <!-- Instagram -->
@@ -682,10 +685,13 @@
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">Instagram</label>
-                <input aria-label="Instagram" formControlName="instagram" type="url" placeholder="https://instagram.com/yourclinic"
-                       class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
-                              focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                  <label for="settings-instagram" class="ui-label mb-1.5">Instagram</label>
+                  <input id="settings-instagram" formControlName="instagram" type="url" placeholder="https://instagram.com/yourclinic"
+                    [attr.aria-invalid]="socialForm.controls.instagram.invalid && socialForm.controls.instagram.touched"
+                    aria-describedby="settings-instagram-error" class="ui-field"/>
+                  @if (socialForm.controls.instagram.invalid && socialForm.controls.instagram.touched) {
+                    <p id="settings-instagram-error" role="alert" class="ui-helper text-status-danger">Enter a full http or https URL, or leave it blank.</p>
+                  }
               </div>
             </div>
             <!-- LinkedIn -->
@@ -696,10 +702,13 @@
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="block text-xs font-semibold text-ui-ink-muted mb-1.5">LinkedIn</label>
-                <input aria-label="LinkedIn" formControlName="linkedin" type="url" placeholder="https://linkedin.com/in/yourdoctor"
-                       class="w-full text-sm border border-ui-line rounded-xl px-3 py-2.5
-                              focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"/>
+                  <label for="settings-linkedin" class="ui-label mb-1.5">LinkedIn</label>
+                  <input id="settings-linkedin" formControlName="linkedin" type="url" placeholder="https://linkedin.com/in/yourdoctor"
+                    [attr.aria-invalid]="socialForm.controls.linkedin.invalid && socialForm.controls.linkedin.touched"
+                    aria-describedby="settings-linkedin-error" class="ui-field"/>
+                  @if (socialForm.controls.linkedin.invalid && socialForm.controls.linkedin.touched) {
+                    <p id="settings-linkedin-error" role="alert" class="ui-helper text-status-danger">Enter a full http or https URL, or leave it blank.</p>
+                  }
               </div>
             </div>
 

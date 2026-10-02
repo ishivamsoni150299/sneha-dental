@@ -431,7 +431,7 @@ export class AppointmentService {
   }
 
   /** Save clinical record fields (notes, treatment, payment). Strips undefined. */
-  async reschedule(id: string, date: string, time: string, doctorId: string): Promise<void> {
+  async reschedule(id: string, date: string, time: string, doctorId: string | null): Promise<void> {
     const response = await this.api.fetch(`/api/clinics/current/appointments/${encodeURIComponent(id)}/reschedule`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date, time, doctorId }),

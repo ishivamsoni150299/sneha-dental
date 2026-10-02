@@ -53,6 +53,32 @@ describe('SignupComponent', () => {
     expect(component.step()).toBe(0);
   });
 
+  it('keeps reversed working hours on the hours step with an explanation', () => {
+    const component = create('incomplete-signup');
+    component.step.set(2);
+    component.clinicHours.set([{ day: 'Monday', open: '18:00', close: '09:00', closed: false }]);
+    component.next();
+    expect(component.step()).toBe(2);
+    expect(component.error()).toContain('Monday');
+  });
+
+  it('allows closed days without requiring bookable hours', () => {
+    const component = create('incomplete-signup');
+    component.step.set(2);
+    component.clinicHours.set([{ day: 'Sunday', open: '', close: '', closed: true }]);
+    component.next();
+    expect(component.step()).toBe(4);
+    expect(component.error()).toBeNull();
+  });
+
+  it('rejects equal opening and closing times', () => {
+    const component = create('incomplete-signup');
+    component.step.set(2);
+    component.clinicHours.set([{ day: 'Monday', open: '09:00', close: '09:00', closed: false }]);
+    component.next();
+    expect(component.step()).toBe(2);
+  });
+
   it('keeps a patient identity out of clinic onboarding', async () => {
     const component = create('patient');
 

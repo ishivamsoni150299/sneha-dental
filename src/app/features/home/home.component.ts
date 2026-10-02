@@ -81,6 +81,6 @@ export class HomeComponent {
 
   readonly finalCtaTitle = computed<string>(() => this.homeContent().finalCtaTitle ?? 'A healthier smile starts close to home.');
   readonly finalCtaSubtitle = computed<string>(() => {
-    return this.homeContent().finalCtaSubtitle ?? 'Same-day slots available. Confirmed within 2 hours. No hidden charges.';
+    return this.homeContent().finalCtaSubtitle ?? 'Request your preferred time. The clinic will confirm availability and treatment pricing.';
   });
 }

@@ -23,7 +23,7 @@
         </p>
       }
       <p class="clinic-workflow-lede mt-3 max-w-2xl text-sm leading-6 text-ui-ink-muted md:mx-auto md:text-base">
-        Choose a convenient time. The clinic will confirm your request {{ isClinicOpenNow ? 'within two working hours' : confirmationWindowLabel.toLowerCase() }}.
+        Choose a convenient time. Your request is pending until the clinic confirms it.
       </p>
       <div class="clinic-trust-rail mt-5 hidden grid-cols-3 divide-x divide-gray-200 px-2 py-3 sm:grid md:mx-auto md:max-w-xl">
         <div class="px-2 text-center">
@@ -128,7 +128,7 @@
               } @else {
                 <span class="inline-flex items-center gap-1.5 bg-ui-muted text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full border border-ui-line">
                   <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
-                  We confirm within 2 hrs
+                  Await clinic confirmation
                 </span>
               }
             </div>
@@ -150,6 +150,9 @@
             }
             @if (currentStep() === 1 && !compactVideoBooking) {
               <div class="space-y-5">
+                @if (error()) {
+                  <p role="alert" class="ui-alert ui-alert-danger">{{ error() }}</p>
+                }
 
                 <!-- Service -->
                 <div>
@@ -772,8 +775,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs font-semibold text-ui-ink-soft leading-tight">Confirmed within 2 hours</p>
-                <p class="text-xs text-gray-400 leading-snug mt-0.5">We call you to confirm your slot — no guessing.</p>
+                <p class="text-xs font-semibold text-ui-ink-soft leading-tight">Request, then confirmation</p>
+                <p class="text-xs text-gray-400 leading-snug mt-0.5">Your preferred time is not confirmed until the clinic accepts it.</p>
               </div>
             </div>
             <div class="flex items-start gap-3">

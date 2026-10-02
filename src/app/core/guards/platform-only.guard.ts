@@ -27,7 +27,7 @@ export const platformOnlyGuard: CanActivateFn = (_route, state): boolean => {
 
   if (isClinicSubdomain) {
     // Hard cross-origin redirect — preserve the path so /business/login still works
-    window.location.href = `https://www.mydentalplatform.com${window.location.pathname}${window.location.search}`;
+    window.location.href = `https://www.mydentalplatform.com${state.url}`;
     return false;
   }
 

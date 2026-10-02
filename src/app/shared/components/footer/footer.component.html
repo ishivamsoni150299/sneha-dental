@@ -36,7 +36,7 @@
           @if (clinic.address) { <p>{{ clinic.address }}</p> }
           @if (config.hours.length > 0) {
             <div>
-              @for (slot of config.hours.slice(0, 4); track slot.days) {
+              @for (slot of config.hours; track slot.days) {
                 <p class="flex justify-between gap-4"><span>{{ slot.days }}</span><span class="text-white/75">{{ slot.time }}</span></p>
               }
             </div>

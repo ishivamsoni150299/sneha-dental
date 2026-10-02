@@ -1,9 +1,10 @@
 import { Component, signal, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import {
   LeadApiService, LeadStatus, LeadSource,
 } from '../../../../core/services/lead-api.service';
+import { phoneDigits } from '../../../../core/utils/phone';
 
 @Component({
   selector: 'app-lead-form',
@@ -26,7 +27,8 @@ export class LeadFormComponent implements OnInit {
   form = this.fb.nonNullable.group({
     clinicName:   ['', Validators.required],
     doctorName:   [''],
-    phone:        ['', Validators.required],
+    phone:        ['', [Validators.required, Validators.pattern(/^\+?[\d\s()-]+$/), (control: AbstractControl) =>
+      /^[1-9]\d{9,14}$/.test(phoneDigits(String(control.value ?? ''))) ? null : { phone: true }]],
     city:         ['', Validators.required],
     source:       ['google_maps' as LeadSource],
     status:       ['new' as LeadStatus],
@@ -91,14 +93,14 @@ export class LeadFormComponent implements OnInit {
   }
 
   async onSubmit() {
+    if (this.saving()) return;
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     this.error.set(null);
     try {
       const v = this.form.getRawValue();
       // Normalise phone to E.164
-      const digits = v.phone.replace(/\D/g, '');
-      const phone  = digits.startsWith('91') ? digits : `91${digits}`;
+      const phone = phoneDigits(v.phone);
       const payload = { ...v, phone, referredBy: v.referredBy || undefined, notes: v.notes || undefined, followUpDate: v.followUpDate || undefined };
 
       const id = this.editId();

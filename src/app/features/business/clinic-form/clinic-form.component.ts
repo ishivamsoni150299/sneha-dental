@@ -635,7 +635,6 @@ export class ClinicFormComponent implements OnInit, OnDestroy {
           throw new Error('You must be signed in to create a clinic.');
         }
 
-        clinicPayload['rating'] = '4.9';
         savedClinicId = await this.clinicStore.create(
           clinicPayload as Omit<StoredClinic, 'id' | 'createdAt'>,
         );

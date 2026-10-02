@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthenticatedApiService } from '../../core/services/authenticated-api.service';
@@ -68,7 +68,7 @@ interface ProviderProfile {
                   <label class="block text-sm font-semibold">Street address<input formControlName="addressLine1" required class="ui-field mt-1 text-base"></label>
                   <div class="grid grid-cols-2 gap-3"><label class="text-sm font-semibold">Locality<input formControlName="locality" class="ui-field mt-1 text-base"></label><label class="text-sm font-semibold">City<input formControlName="city" required class="ui-field mt-1 text-base"></label></div>
                   <label class="block text-sm font-semibold">Consultation fee (₹)<input formControlName="consultationFee" type="number" min="0" required class="ui-field mt-1 text-base"></label>
-                  <button class="ui-btn ui-btn-secondary w-full">Add practice and set hours →</button>
+                  <button class="ui-btn ui-btn-secondary w-full" [disabled]="savingLocation()">{{ savingLocation() ? 'Saving practice…' : 'Add practice and set hours' }}</button>
                 </form>
               </section>
               <section class="ui-card p-5 sm:p-6">
@@ -88,16 +88,23 @@ export class ProfessionalProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(AuthenticatedApiService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private destroyed = false;
   readonly embedded = input(false);
   readonly hasHours = input(false);
   readonly locationAdded = output<void>();
   readonly profile = signal<ProviderProfile | null>(null);
   readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly savingLocation = signal(false);
   readonly message = signal<string | null>(null);
   readonly error = signal<string | null>(null);
-  readonly profileForm = this.fb.nonNullable.group({ fullName: ['', Validators.required], qualification: ['', Validators.required], speciality: ['', Validators.required], biography: [''], experienceYears: [0], registrationNumber: ['', Validators.required], registrationCouncil: ['', Validators.required], phoneE164: [''], languages: [''] });
+  readonly profileForm = this.fb.nonNullable.group({ fullName: ['', Validators.required], qualification: ['', Validators.required], speciality: ['', Validators.required], biography: [''], experienceYears: [0, [Validators.min(0), Validators.max(80)]], registrationNumber: ['', Validators.required], registrationCouncil: ['', Validators.required], phoneE164: [''], languages: [''] });
   readonly locationForm = this.fb.nonNullable.group({ name: ['', Validators.required], addressLine1: ['', Validators.required], locality: [''], city: ['', Validators.required], consultationFee: [0, [Validators.required, Validators.min(0)]] });
+
+  constructor() {
+    this.destroyRef.onDestroy(() => { this.destroyed = true; });
+  }
 
   async ngOnInit(): Promise<void> {
     if (!this.embedded()) { await this.router.navigateByUrl('/professional/workspace?tab=profile', { replaceUrl: true }); return; }
@@ -119,8 +126,13 @@ export class ProfessionalProfileComponent implements OnInit {
     finally { this.loading.set(false); }
   }
   async saveProfile(): Promise<void> {
+    if (this.saving()) return;
+    this.message.set(null);
     this.profileForm.markAllAsTouched();
-    if (this.profileForm.invalid || this.saving()) return;
+    if (this.profileForm.invalid) {
+      this.error.set('Complete all required professional details. Experience must be between 0 and 80 years.');
+      return;
+    }
     this.saving.set(true); this.error.set(null);
     try {
       const v = this.profileForm.getRawValue();
@@ -131,16 +143,25 @@ export class ProfessionalProfileComponent implements OnInit {
     finally { this.saving.set(false); }
   }
   async addLocation(): Promise<void> {
+    if (this.savingLocation()) return;
+    this.message.set(null);
     this.locationForm.markAllAsTouched();
-    if (this.locationForm.invalid) return;
+    if (this.locationForm.invalid) {
+      this.error.set('Enter a practice name, street address and city, with a consultation fee of zero or more.');
+      return;
+    }
+    this.savingLocation.set(true);
     this.error.set(null);
     try {
       const v = this.locationForm.getRawValue();
       const r = await this.api.fetch('/api/providers/me/locations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...v, addressLine2: '', state: '', postalCode: '', phoneE164: '', acceptingNewPatients: true, schedule: {} }) });
       if (!r.ok) throw new Error('Could not add location.');
+      if (this.destroyed) return;
       this.locationForm.reset({ name: '', addressLine1: '', locality: '', city: '', consultationFee: 0 });
-      await this.load(); this.locationAdded.emit();
+      await this.load();
+      if (!this.destroyed) this.locationAdded.emit();
     } catch (error) { this.error.set((error as Error).message); }
+    finally { this.savingLocation.set(false); }
   }
   async submitVerification(): Promise<void> {
     if (!this.canSubmitVerification()) return;

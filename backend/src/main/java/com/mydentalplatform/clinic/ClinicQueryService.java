@@ -42,7 +42,7 @@ public class ClinicQueryService {
     }
 
     public Optional<Map<String, Object>> findCurrent(UUID clinicId) {
-        return clinicQuery("where id = ? and active = true limit 1", clinicId).stream().findFirst();
+        return clinicQuery("where id = ? limit 1", clinicId).stream().findFirst();
     }
 
     public List<Map<String, Object>> findMarketplace(String region) {
@@ -369,6 +369,29 @@ public class ClinicQueryService {
             }
         }
         Object gaId = settings.get("googleAnalyticsId");
+        Object social = settings.get("social");
+        if (social != null && !(social instanceof Map)) {
+            throw new IllegalArgumentException("Social links must be an object.");
+        }
+        if (social instanceof Map<?, ?> links) {
+            for (String key : List.of("facebook", "instagram", "linkedin")) {
+                Object value = links.get(key);
+                if (value == null) continue;
+                if (!(value instanceof String link)) {
+                    throw new IllegalArgumentException("Social links must be http or https URLs.");
+                }
+                if (link.isBlank()) continue;
+                java.net.URI uri;
+                try { uri = java.net.URI.create(link.trim()); }
+                catch (IllegalArgumentException error) {
+                    throw new IllegalArgumentException("Social links must be http or https URLs.");
+                }
+                if ((!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme())) ||
+                    uri.getHost() == null || uri.getUserInfo() != null) {
+                    throw new IllegalArgumentException("Social links must be http or https URLs.");
+                }
+            }
+        }
         if (gaId instanceof String gid && !gid.isBlank() && !gid.matches("^G-[A-Za-z0-9]+$")) {
             throw new IllegalArgumentException("Google Analytics ID must be in the format G-XXXXXXXXXX.");
         }

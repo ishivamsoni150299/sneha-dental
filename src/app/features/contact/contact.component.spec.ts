@@ -51,4 +51,11 @@ describe('ContactComponent', () => {
     await component.onSubmit();
     expect(request).not.toHaveBeenCalled();
   });
+
+  it('marks an invalid optional email for visible feedback without sending', async () => {
+    component.form.controls.email.setValue('not-an-email');
+    await component.onSubmit();
+    expect(component.isInvalid('email')).toBeTrue();
+    expect(request).not.toHaveBeenCalled();
+  });
 });

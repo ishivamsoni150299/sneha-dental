@@ -333,17 +333,22 @@ public class AppointmentService {
     @Transactional
     public void reschedule(UUID clinicId, UUID appointmentId, AppointmentController.RescheduleRequest request) {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-            select status::text as status, consultation_mode from appointments
+            select doctor_id, status::text as status, consultation_mode from appointments
             where id = ? and clinic_id = ? for update
             """, appointmentId, clinicId);
         if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
         if (!List.of("pending", "confirmed").contains(rows.getFirst().get("status")))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Only pending or confirmed appointments can be rescheduled.");
-        validateSlot(clinicId, request.doctorId(), request.date(), request.time());
-        validateHold(clinicId, request.doctorId(), request.date(), request.time(), null);
+        if (request.doctorId() == null && rows.getFirst().get("doctor_id") != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select an available doctor for this assigned appointment.");
+        }
+        UUID targetDoctor = request.doctorId() == null
+            ? resolveDoctor(clinicId, request.date(), request.time()) : request.doctorId();
+        validateSlot(clinicId, targetDoctor, request.date(), request.time());
+        validateHold(clinicId, targetDoctor, request.date(), request.time(), null);
         if ("video".equals(rows.getFirst().get("consultation_mode"))) {
             validateVideoBooking(new AppointmentController.BookingRequest(clinicId, null, "", "", null,
-                "Video Consultation", request.date(), request.time(), request.doctorId(), null,
+                "Video Consultation", request.date(), request.time(), targetDoctor, null,
                 "clinic_website", null, null, null, "video"));
         }
         try {
@@ -351,11 +356,11 @@ public class AppointmentService {
             jdbcTemplate.update("""
                 insert into appointment_slots(clinic_id, doctor_id, appointment_id, appointment_date, appointment_time)
                 values (?, ?, ?, ?, ?)
-                """, clinicId, request.doctorId(), appointmentId, request.date(), request.time());
+                """, clinicId, targetDoctor, appointmentId, request.date(), request.time());
             jdbcTemplate.update("""
                 update appointments set doctor_id = ?, appointment_date = ?, appointment_time = ?,
                     updated_at = now() where id = ? and clinic_id = ?
-                """, request.doctorId(), request.date(), request.time(), appointmentId, clinicId);
+                """, targetDoctor, request.date(), request.time(), appointmentId, clinicId);
         } catch (DuplicateKeyException error) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "That time was just booked. The original appointment is unchanged.", error);
         }

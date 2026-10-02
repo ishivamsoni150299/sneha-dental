@@ -223,6 +223,35 @@ class MarketplaceLaunchTest {
                 request("GET", "/api/admin/clinics", null, dentist, 403);
                 request("GET", "/api/providers/me", null, patient, 403);
                 request("GET", "/api/v1/providers", null, null, 200);
+
+                request("POST", "/api/admin/leads", Map.of("clinicName", "QA Lead", "phone", "12345",
+                    "city", "Noida", "status", "new", "source", "other"), admin, 400);
+                String leadId = request("POST", "/api/admin/leads", Map.of("clinicName", "QA Lead", "phone", "919876543210",
+                    "city", "Noida", "status", "new", "source", "other"), admin, 200).path("id").asText();
+                request("POST", "/api/admin/leads/" + leadId + "/do-not-call", Map.of("reason", "Explicit QA opt-out evidence"), owner, 403);
+                request("POST", "/api/admin/leads/" + leadId + "/do-not-call", Map.of("reason", ""), admin, 400);
+                request("POST", "/api/admin/leads/" + leadId + "/do-not-call", Map.of("reason", "Explicit QA opt-out evidence"), admin, 200);
+                request("PATCH", "/api/admin/leads/" + leadId, Map.of("notes", "QA edit", "doNotCall", false, "callConsent", "granted"), admin, 204);
+                JsonNode optedOut = request("GET", "/api/admin/leads/" + leadId, null, admin, 200);
+                assertTrue(optedOut.path("doNotCall").asBoolean());
+                assertEquals("revoked", optedOut.path("callConsent").asText());
+                assertEquals("lost", optedOut.path("status").asText());
+                assertEquals(1, request("GET", "/api/admin/leads/" + leadId + "/activities", null, admin, 200).size());
+
+                String secondOwner = token(request("POST", "/api/auth/clinic/signup", Map.of("email", "second-owner@example.test", "password", password), null, 200));
+                String secondClinic = request("POST", "/api/clinics/onboarding", Map.of("name", "QA Unassigned Clinic", "phone", "9999999999", "slug", "qa-unassigned", "plan", "trial", "city", "Noida"), secondOwner, 200).path("clinicId").asText();
+                secondOwner = token(request("POST", "/api/auth/login", Map.of("email", "second-owner@example.test", "password", password), null, 200));
+                jdbc.update("update clinics set active = false where id = ?", UUID.fromString(secondClinic));
+                assertFalse(request("GET", "/api/clinics/current", null, secondOwner, 200).path("active").asBoolean());
+                request("GET", "/api/public/clinics/resolve?host=qa-unassigned.mydentalplatform.com", null, null, 404);
+                jdbc.update("update clinics set active = true where id = ?", UUID.fromString(secondClinic));
+                request("POST", "/api/public/appointments", Map.of("clinicId", secondClinic, "name", "QA Unassigned Patient", "phone", "9999999997",
+                    "service", "General Dentistry", "source", "clinic_website", "date", date, "time", "11:00"), null, 200);
+                UUID unassigned = jdbc.queryForObject("select id from appointments where clinic_id = ?", UUID.class, UUID.fromString(secondClinic));
+                request("PATCH", "/api/clinics/current/appointments/" + unassigned + "/reschedule", Map.of("date", date, "time", "12:00"), owner, 404);
+                request("PATCH", "/api/clinics/current/appointments/" + unassigned + "/reschedule", Map.of("date", date, "time", "12:00"), secondOwner, 204);
+                assertEquals("12:00", jdbc.queryForObject("select to_char(appointment_time, 'HH24:MI') from appointments where id = ?", String.class, unassigned));
+                assertNull(jdbc.queryForObject("select doctor_id from appointments where id = ?", UUID.class, unassigned));
             } finally {
                 Files.deleteIfExists(shell);
                 Files.deleteIfExists(shellDirectory);

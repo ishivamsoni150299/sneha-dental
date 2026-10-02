@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthFacade } from '../../core/services/auth-facade.service';
 
 @Component({
@@ -10,17 +10,24 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
     <div class="mx-auto max-w-lg px-4 py-8 sm:py-12">
       <section class="ui-card ui-auth-card">
         <a routerLink="/account" class="ui-btn ui-btn-ghost justify-self-start">Back to sign in</a>
-        <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">Account recovery</h1>
-          <p class="ui-body">Get back to your account with the recovery code you saved when you signed up.</p></div>
+        <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">{{ workspaceUnavailable ? 'Workspace unavailable' : 'Account recovery' }}</h1>
+          @if (!workspaceUnavailable) { <p class="ui-body">Get back to your account with the recovery code you saved when you signed up.</p> }</div>
+        @if (workspaceUnavailable) { <p role="alert" class="ui-alert ui-alert-danger">Your clinic workspace could not be loaded. Try again, or sign out and contact support.</p> }
         @if (!auth.ready()) {
           <p role="status" class="ui-body">Checking your session…</p>
         } @else if (auth.currentUser()) {
-          <form [formGroup]="generateForm" (ngSubmit)="generate()" class="space-y-4">
-            <p class="ui-body">Generate a replacement recovery code. Your previous code will stop working.</p>
-            <label class="ui-label">Current password<input type="password" autocomplete="current-password" formControlName="password" class="ui-field mt-2 text-base"></label>
-            <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">Generate recovery code</button>
-          </form>
-          @if (code()) { <p class="ui-body">Save this privately. It is shown only once.</p><textarea readonly aria-label="Recovery code" [value]="code()" class="ui-field font-mono text-sm" (focus)="$any($event.target).select()"></textarea> }
+          @if (!workspaceUnavailable) {
+            <form [formGroup]="generateForm" (ngSubmit)="generate()" class="space-y-4">
+              <p class="ui-body">Generate a replacement recovery code. Your previous code will stop working.</p>
+              <label class="ui-label">Current password<input type="password" autocomplete="current-password" formControlName="password" class="ui-field mt-2 text-base"></label>
+              <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">Generate recovery code</button>
+            </form>
+            @if (code()) { <p class="ui-body">Save this privately. It is shown only once.</p><textarea readonly aria-label="Recovery code" [value]="code()" class="ui-field font-mono text-sm" (focus)="$any($event.target).select()"></textarea> }
+          }
+          <div class="ui-auth-footer flex flex-wrap gap-3">
+            <a routerLink="/workspace" class="ui-btn ui-btn-secondary">{{ workspaceUnavailable ? 'Try workspace again' : 'Return to workspace' }}</a>
+            <button type="button" (click)="logout()" [disabled]="busy()" class="ui-btn ui-btn-ghost">Sign out</button>
+          </div>
         } @else {
           <form [formGroup]="form" (ngSubmit)="reset()" class="space-y-4">
             <label class="ui-label">Email address<input type="email" autocomplete="username" formControlName="email" class="ui-field mt-2 text-base"></label>
@@ -39,10 +46,22 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
 })
 export class AccountRecoveryComponent {
   readonly auth = inject(AuthFacade);
+  private readonly router = inject(Router);
+  readonly workspaceUnavailable = inject(ActivatedRoute).snapshot.queryParamMap.get('workspace') === 'unavailable';
   private readonly fb = inject(FormBuilder);
   readonly busy = signal(false); readonly error = signal(''); readonly message = signal(''); readonly code = signal('');
   readonly generateForm = this.fb.nonNullable.group({ password: ['', Validators.required] });
   readonly form = this.fb.nonNullable.group({ email: ['', [Validators.required, Validators.email]], code: ['', Validators.required], password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]], confirm: ['', Validators.required] });
+  async logout(): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.auth.logout();
+      await this.router.navigateByUrl('/account', { replaceUrl: true });
+    } catch { this.error.set('Could not finish signing out. Try again.'); }
+    finally { this.busy.set(false); }
+  }
   async generate(): Promise<void> {
     if (this.generateForm.invalid || this.busy()) return;
     this.busy.set(true); this.error.set('');
@@ -52,6 +71,7 @@ export class AccountRecoveryComponent {
   }
   async reset(): Promise<void> {
     if (this.busy()) return;
+    this.message.set('');
     const v = this.form.getRawValue();
     if (this.form.invalid || v.password !== v.confirm) { this.error.set('Enter your email, saved code and matching passwords of 8–72 characters.'); return; }
     this.busy.set(true); this.error.set('');

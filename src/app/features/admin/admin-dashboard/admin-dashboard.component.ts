@@ -11,8 +11,10 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { ClinicApiService, ContactMessage } from '../../../core/services/clinic-api.service';
 import { VideoConsultationComponent } from '../../../shared/components/video-consultation/video-consultation.component';
-import { DoctorService, Doctor, formatSlotDisplay } from '../../../core/services/doctor.service';
+import { DoctorService, Doctor, DEFAULT_BOOKING_SLOTS, filterBookableSlots, formatSlotDisplay } from '../../../core/services/doctor.service';
 import { ModalDirective } from '../../../shared/directives/modal.directive';
+import { phoneDigits, phoneHref } from '../../../core/utils/phone';
+import { formatIndiaDate } from '../../../core/utils/date';
 
 const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: string; bgClass: string }> = {
   blue:    { hex: '#1E56DC', hexLight: '#EBF2FF', textClass: 'text-blue-700',    bgClass: 'bg-blue-700'    },
@@ -108,7 +110,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.rescheduleError.set('');
     this.rescheduleLoading.set(true);
     try {
-      if (!appt || !doctor || !this.rescheduleDate) return;
+      if (!appt || !this.rescheduleDate) return;
+      if (!doctor) {
+        if (appt.doctorId) {
+          this.rescheduleError.set('No schedulable doctor is available. Set up an available doctor and working hours before rescheduling.');
+        } else {
+          this.rescheduleSlots.set(filterBookableSlots(this.rescheduleDate, DEFAULT_BOOKING_SLOTS));
+        }
+        return;
+      }
       const slots = await this.doctorService.getAvailableSlots(appt.clinicId, doctor, this.rescheduleDate);
       if (request === this.slotRequest) this.rescheduleSlots.set(slots);
     } catch {
@@ -124,7 +134,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.rescheduleSaving.set(true);
     this.rescheduleError.set('');
     try {
-      await this.appointmentService.reschedule(appt.id, this.rescheduleDate, this.rescheduleTime, this.rescheduleDoctorId);
+      await this.appointmentService.reschedule(appt.id, this.rescheduleDate, this.rescheduleTime, this.rescheduleDoctorId || null);
       const updated = { ...appt, date: this.rescheduleDate, time: this.rescheduleTime, doctorId: this.rescheduleDoctorId,
         doctorName: this.rescheduleDoctors().find(d => d.id === this.rescheduleDoctorId)?.name };
       this.appointments.update(list => list.map(a => a.id === appt.id ? updated : a));
@@ -763,9 +773,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(`${dateStr  }T00:00:00`).toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric',
-    });
+    return formatIndiaDate(dateStr);
   }
 
   isToday(dateStr: string): boolean { return dateStr === this.today; }
@@ -802,7 +810,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   whatsappUrl(appt: Appointment): string {
     const msg = `Hi ${appt.name}! Your appointment at ${this.clinicConfig.name} is confirmed for ${this.formatDate(appt.date)} at ${appt.time}. Booking Ref: ${appt.bookingRef}. Address: ${this.clinic.address}. See you soon! — ${this.clinicConfig.doctorName}`;
-    return this.clinic.whatsappUrl(msg);
+    return `https://wa.me/${phoneDigits(appt.phone)}?text=${encodeURIComponent(msg)}`;
+  }
+
+  patientPhoneHref(phone: string): string { return phoneHref(phone); }
+
+  patientPhoneLabel(phone: string): string {
+    const digits = phoneDigits(phone);
+    return digits ? `+${digits}` : '';
   }
 
   statusColor(status: string): string {

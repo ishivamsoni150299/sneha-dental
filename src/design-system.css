@@ -3053,6 +3053,10 @@ textarea.ui-field {
     padding-inline: 0.45rem;
   }
 
+  .clinic-workflow-page.booking-page {
+    isolation: auto;
+  }
+
   .booking-mobile-dock {
     position: fixed;
     right: 0.75rem;
@@ -3108,9 +3112,6 @@ textarea.ui-field {
     opacity: 0.6;
   }
 
-  .booking-page:has(input:not([type='checkbox']):not([type='radio']):focus, select:focus, textarea:focus, app-booking-otp:focus-within) .booking-mobile-dock {
-    display: none;
-  }
 }
 
 @media (max-width: 359px) {

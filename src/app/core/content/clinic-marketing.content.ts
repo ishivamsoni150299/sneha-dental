@@ -69,7 +69,7 @@ export const HOME_FAQS: readonly ClinicFaq[] = [
   },
   {
     q: 'How do I know my booking went through?',
-    a: 'You will receive a booking reference number on screen immediately. The clinic will call or WhatsApp you within 2 hours to confirm the exact time slot.',
+    a: 'You will receive a booking reference number on screen immediately. Your request remains pending until the clinic confirms the appointment time.',
   },
 ];
 

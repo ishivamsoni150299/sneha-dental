@@ -153,7 +153,7 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 
-    public record RescheduleRequest(@NotNull LocalDate date, @NotNull LocalTime time, @NotNull UUID doctorId) {}
+    public record RescheduleRequest(@NotNull LocalDate date, @NotNull LocalTime time, UUID doctorId) {}
 
     public record HoldSlotRequest(
         @NotNull UUID clinicId,

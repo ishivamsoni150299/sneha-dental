@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators,
+  ReactiveFormsModule, FormBuilder, FormArray, FormGroup, Validators, ValidatorFn,
 } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
@@ -24,6 +24,17 @@ import { BillingService, BillingPlan, BillingCycle, type SubscriptionStatus } fr
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { ClinicAccountMenuComponent } from '../../../shared/components/clinic-account-menu/clinic-account-menu.component';
 import { VideoSettingsComponent } from './video-settings.component';
+import { phoneDigits } from '../../../core/utils/phone';
+
+const httpUrlValidator: ValidatorFn = control => {
+  const value = String(control.value ?? '').trim();
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) && !!url.hostname && !url.username && !url.password
+      ? null : { httpUrl: true };
+  } catch { return { httpUrl: true }; }
+};
 
 type TabId =
   | 'info'
@@ -215,9 +226,9 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
   });
 
   socialForm = this.fb.nonNullable.group({
-    facebook:          [''],
-    instagram:         [''],
-    linkedin:          [''],
+    facebook:          ['', httpUrlValidator],
+    instagram:         ['', httpUrlValidator],
+    linkedin:          ['', httpUrlValidator],
     googleAnalyticsId: ['', [Validators.pattern(/^G-[A-Za-z0-9]+$/)]],
   });
 
@@ -534,8 +545,7 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     this.savingContact.set(true);
     try {
       const values = this.contactForm.getRawValue();
-      const digits = values.phone.replace(/\D/g, '');
-      const e164 = digits.startsWith('91') ? digits : `91${digits}`;
+      const e164 = phoneDigits(values.phone);
 
       await this.store.updateClinicSettings(this.clinicId, {
         phone:            values.phone,

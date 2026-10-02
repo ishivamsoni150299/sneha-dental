@@ -157,6 +157,12 @@ export class ClinicConfigService {
     return String(this.config.name || '').trim() || 'Dental Clinic';
   }
 
+  get reviewRating(): string | null {
+    const average = Number(this.config.averageRating);
+    return Number(this.config.ratingCount) > 0 && Number.isFinite(average) && average >= 1 && average <= 5
+      ? average.toFixed(1) : null;
+  }
+
   get hasPhone(): boolean {
     return Boolean(String(this.config.phone || '').trim() && String(this.config.phoneE164 || '').trim());
   }

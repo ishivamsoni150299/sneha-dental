@@ -60,6 +60,15 @@ describe('clinicAdminGuard', () => {
     expect(await run()).toBeTrue();
   });
 
+  it('offers account recovery instead of looping through setup when clinic loading fails', async () => {
+    const clinic = setup({ loaded: false });
+    clinic.loadByUid.and.resolveTo(false);
+    await run();
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/account/recovery'], {
+      queryParams: { workspace: 'unavailable' },
+    });
+  });
+
   it('requires authentication on the renewal page', async () => {
     setup({ authenticated: false });
     await run(true);

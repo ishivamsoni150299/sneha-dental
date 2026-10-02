@@ -25,7 +25,7 @@ class AppointmentSchedulingTest {
     }
     @BeforeEach void setup() {
         when(jdbc.queryForList(contains("consultation_mode from appointments"), eq(appointment), eq(clinic)))
-            .thenReturn(List.of(Map.of("status", "confirmed", "consultation_mode", "in_person")));
+            .thenReturn(List.of(Map.of("doctor_id", doctor, "status", "confirmed", "consultation_mode", "in_person")));
         when(jdbc.queryForList(contains("for update of d"), eq(String.class), eq(doctor), eq(clinic)))
             .thenReturn(List.of(schedule()));
     }
@@ -33,6 +33,18 @@ class AppointmentSchedulingTest {
         service.reschedule(clinic, appointment, request(LocalTime.of(10, 0)));
         verify(jdbc).update(contains("insert into appointment_slots"), eq(clinic), eq(doctor), eq(appointment), eq(date), eq(LocalTime.of(10, 0)));
         verify(jdbc).update(contains("updated_at = now() where id = ? and clinic_id = ?"), eq(doctor), eq(date), eq(LocalTime.of(10, 0)), eq(appointment), eq(clinic));
+    }
+    @Test void reschedulesAnUnassignedClinicAppointmentWithoutInventingADoctor() {
+        when(jdbc.queryForList(contains("consultation_mode from appointments"), eq(appointment), eq(clinic)))
+            .thenReturn(List.of(Map.of("status", "confirmed", "consultation_mode", "in_person")));
+        service.reschedule(clinic, appointment, new AppointmentController.RescheduleRequest(date, LocalTime.of(10, 0), null));
+        verify(jdbc).update(contains("insert into appointment_slots"), eq(clinic), isNull(), eq(appointment), eq(date), eq(LocalTime.of(10, 0)));
+    }
+    @Test void cannotRemoveAssignedDoctorToBypassScheduleValidation() {
+        var error = assertThrows(ResponseStatusException.class, () -> service.reschedule(clinic, appointment,
+            new AppointmentController.RescheduleRequest(date, LocalTime.of(10, 0), null)));
+        assertEquals(400, error.getStatusCode().value());
+        verify(jdbc, never()).update(anyString(), any(Object[].class));
     }
     @Test void anotherClinicCannotRescheduleAppointment() {
         var error = assertThrows(ResponseStatusException.class,

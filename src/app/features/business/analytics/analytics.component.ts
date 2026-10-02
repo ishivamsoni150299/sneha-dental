@@ -117,10 +117,27 @@ export class AnalyticsComponent implements OnInit {
     return {
       pending:   appts.filter(a => a.status === 'pending').length,
       confirmed: appts.filter(a => a.status === 'confirmed').length,
+      checked_in: appts.filter(a => a.status === 'checked_in').length,
+      completed: appts.filter(a => a.status === 'completed').length,
+      no_show: appts.filter(a => a.status === 'no_show').length,
       cancelled: appts.filter(a => a.status === 'cancelled').length,
       declined:  appts.filter(a => a.status === 'declined').length,
       expired:   appts.filter(a => a.status === 'expired').length,
     };
+  });
+
+  statusRows = computed(() => {
+    const counts = this.statusCounts();
+    return [
+      { label: 'Pending', count: counts.pending, tone: 'bg-status-warning' },
+      { label: 'Confirmed', count: counts.confirmed, tone: 'bg-status-success' },
+      { label: 'Arrived', count: counts.checked_in, tone: 'bg-status-info' },
+      { label: 'Completed', count: counts.completed, tone: 'bg-status-success' },
+      { label: 'No Show', count: counts.no_show, tone: 'bg-ui-ink-muted' },
+      { label: 'Cancelled', count: counts.cancelled, tone: 'bg-status-danger' },
+      { label: 'Declined', count: counts.declined, tone: 'bg-status-danger' },
+      { label: 'Expired', count: counts.expired, tone: 'bg-ui-ink-muted' },
+    ];
   });
 
   marketplaceReliability = computed(() => {

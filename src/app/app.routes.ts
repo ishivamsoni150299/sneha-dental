@@ -293,13 +293,8 @@ export const routes: Routes = [
       },
       {
         path: 'my-appointment',
-        loadComponent: () =>
-          import('./features/marketplace/patient-appointments.component').then(m => m.PatientAppointmentsComponent),
-        data: {
-          title: 'Manage Appointment',
-          description: 'Sign in to view, reschedule, or cancel your appointments.',
-          noIndex: true,
-        },
+        redirectTo: '/appointments',
+        pathMatch: 'full',
       },
       {
         path: 'gallery',

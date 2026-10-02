@@ -48,7 +48,12 @@ export class LeadAiCallService {
   }
 
   async doNotCall(leadId: string, reason: string): Promise<ControlLeadAiCallResponse> {
-    return this.control('do_not_call', leadId, reason);
+    const response = await this.api.fetch(`/api/admin/leads/${encodeURIComponent(leadId)}/do-not-call`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }),
+    });
+    const payload = await response.json().catch(() => ({})) as Partial<ControlLeadAiCallResponse>;
+    if (!response.ok) throw new Error('Do-not-call was not saved. Check the reason and try again.');
+    return payload as ControlLeadAiCallResponse;
   }
 
   async recordConsent(leadId: string, evidence: string): Promise<ControlLeadAiCallResponse> {

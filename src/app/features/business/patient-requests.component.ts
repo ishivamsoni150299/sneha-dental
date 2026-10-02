@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { AuthFacade } from '../../core/services/auth-facade.service';
+import { formatIndiaDate } from '../../core/utils/date';
 
 interface PatientRequest { id: string; location: string; problem: string; preferred_date: string; preferred_time: string; patient_name: string; mobile: string; email: string | null; status: string; }
 @Component({
@@ -9,12 +10,13 @@ interface PatientRequest { id: string; location: string; problem: string; prefer
     @if (loading()) { <p role="status" class="ui-body mt-4">Loading requests…</p> }
     @for (request of requests(); track request.id) {
       <article class="ui-card mt-4 space-y-3 p-5"><h2 class="text-lg font-semibold">{{ request.patient_name }} · {{ request.location }}</h2><p>{{ request.problem }}</p>
-      <p>Preferred: {{ request.preferred_date }} {{ request.preferred_time }} (India)</p><p class="break-words">{{ request.mobile }} · {{ request.email || 'No email supplied' }}</p>
+      <p>Preferred: {{ formatDate(request.preferred_date) }} {{ request.preferred_time }} (India)</p><p class="break-words">{{ request.mobile }} · {{ request.email || 'No email supplied' }}</p>
       <label class="ui-label">Status<select class="ui-field mt-2" [value]="request.status" [disabled]="saving() === request.id" (change)="update(request, $event)"><option value="new">New</option><option value="contacted">Contacted</option><option value="closed">Closed</option></select></label></article>
     } @empty { @if (!loading() && !error()) { <p class="ui-body mt-6">No dentist requests yet.</p> } }
   </section>`,
 })
 export class PatientRequestsComponent implements OnInit {
+  readonly formatDate = formatIndiaDate;
   private readonly auth = inject(AuthFacade);
   readonly requests = signal<PatientRequest[]>([]); readonly loading = signal(true); readonly error = signal(''); readonly saving = signal('');
   async ngOnInit(): Promise<void> { await this.load(); }

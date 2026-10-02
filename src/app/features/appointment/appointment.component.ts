@@ -229,8 +229,8 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly nextSteps = [
     { text: 'Submit the form in under 60 seconds' },
-    { text: 'We call you within 2 hours to confirm your slot' },
-    { text: 'Arrive at your scheduled time with your booking reference' },
+    { text: 'Wait for the clinic to confirm availability' },
+    { text: 'Visit at the confirmed time with your booking reference' },
   ];
 
   readonly quickDates = Array.from({ length: 3 }, (_, offset) => {

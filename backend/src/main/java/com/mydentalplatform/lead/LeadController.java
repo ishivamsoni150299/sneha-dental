@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -56,12 +57,13 @@ public class LeadController {
     Map<String, String> create(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, Object> request) {
         requirePlatformAdmin(jwt);
         require(request, "clinicName", "phone", "city", "status", "source");
+        validatePhone(request.get("phone"));
         UUID id = UUID.randomUUID();
         jdbcTemplate.update("""
             insert into leads (id, name, phone_e164, email, status, source, data)
             values (?, ?, ?, ?, ?, ?, cast(? as jsonb))
             """, id, text(request.get("clinicName")), text(request.get("phone")),
-            blankToNull(request.get("email")), text(request.get("status")), text(request.get("source")), json(request));
+            blankToNull(request.get("email")), text(request.get("status")), text(request.get("source")), leadData(request));
         return Map.of("id", id.toString());
     }
 
@@ -72,6 +74,7 @@ public class LeadController {
         @RequestBody Map<String, Object> request
     ) {
         requirePlatformAdmin(jwt);
+        if (request.containsKey("phone")) validatePhone(request.get("phone"));
         int updated = jdbcTemplate.update("""
             update leads set
                 name = coalesce(nullif(?, ''), name),
@@ -83,7 +86,7 @@ public class LeadController {
             where id = ?
             """, text(request.get("clinicName")), text(request.get("phone")), request.containsKey("email"),
             blankToNull(request.get("email")), text(request.get("status")), text(request.get("source")),
-            json(request), leadId);
+            leadData(request), leadId);
         return updated == 1 ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
@@ -92,6 +95,39 @@ public class LeadController {
         requirePlatformAdmin(jwt);
         int deleted = jdbcTemplate.update("delete from leads where id = ?", leadId);
         return deleted == 1 ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{leadId}/do-not-call")
+    @Transactional
+    Map<String, Object> doNotCall(
+        @AuthenticationPrincipal Jwt jwt, @PathVariable UUID leadId,
+        @RequestBody Map<String, Object> request
+    ) {
+        requirePlatformAdmin(jwt);
+        String reason = text(request.get("reason"));
+        if (reason.length() < 3 || reason.length() > 2000) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provide an opt-out reason between 3 and 2000 characters.");
+        }
+        Map<String, Object> changes = new LinkedHashMap<>();
+        changes.put("doNotCall", true);
+        changes.put("callConsent", "revoked");
+        changes.put("callConsentAt", OffsetDateTime.now(java.time.ZoneOffset.UTC).toInstant().toString());
+        changes.put("aiCallStatus", "opted_out");
+        changes.put("aiCallLastOutcome", "opted_out");
+        changes.put("aiCallSummary", reason);
+        changes.put("aiCallScheduledFor", null);
+        changes.put("aiCallRequestId", null);
+        int updated = jdbcTemplate.update("""
+            update leads set status = 'lost', data = data || cast(? as jsonb), updated_at = now()
+            where id = ?
+            """, json(changes), leadId);
+        if (updated != 1) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lead not found.");
+        jdbcTemplate.update("""
+            insert into lead_activities (lead_id, actor_id, activity_type, data)
+            values (?, ?, ?, cast(? as jsonb))
+            """, leadId, UUID.fromString(jwt.getSubject()), "note",
+            json(Map.of("action", "do_not_call", "note", reason)));
+        return Map.of("ok", true, "status", "opted_out", "providerCallCancelled", false);
     }
 
     @GetMapping("/{leadId}/activities")
@@ -159,6 +195,12 @@ public class LeadController {
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    private void validatePhone(Object value) {
+        if (!text(value).matches("^\\+?[1-9][0-9]{9,14}$")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone must contain 10-15 digits with an optional leading plus.");
+        }
+    }
+
     private String blankToNull(Object value) {
         String result = text(value);
         return result.isBlank() ? null : result;
@@ -170,6 +212,12 @@ public class LeadController {
         } catch (JacksonException error) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lead data is invalid.", error);
         }
+    }
+
+    private String leadData(Map<String, Object> request) {
+        Map<String, Object> data = new LinkedHashMap<>(request);
+        for (String field : List.of("doNotCall", "callConsent", "callConsentSource", "callConsentAt")) data.remove(field);
+        return json(data);
     }
 
     private Map<String, Object> parse(String value) {

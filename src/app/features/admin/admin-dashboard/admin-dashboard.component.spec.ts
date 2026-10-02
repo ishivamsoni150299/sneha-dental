@@ -31,6 +31,33 @@ describe('Clinic appointment scheduling', () => {
   });
   afterEach(() => component.ngOnDestroy());
 
+  it('targets the patient rather than the clinic in contact actions', () => {
+    const patient = { ...appointment, phone: '+919876543210' };
+    expect(component.whatsappUrl(patient)).toContain('https://wa.me/919876543210?text=');
+    expect(component.patientPhoneHref(patient.phone)).toBe('tel:+919876543210');
+    expect(component.patientPhoneLabel(patient.phone)).toBe('+919876543210');
+  });
+
+  it('explains rescheduling when no schedulable doctor exists', async () => {
+    doctors.getDoctors.and.resolveTo([]);
+    await component.openReschedule(appointment);
+    expect(component.rescheduleLoading()).toBeFalse();
+    expect(component.rescheduleError()).toContain('No schedulable doctor');
+    expect(doctors.getAvailableSlots).not.toHaveBeenCalled();
+  });
+
+  it('allows clinic-level rescheduling without a fictitious doctor', async () => {
+    doctors.getDoctors.and.resolveTo([]);
+    const future = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+    await component.openReschedule({ ...appointment, doctorId: undefined, date: future });
+    expect(component.rescheduleError()).toBe('');
+    expect(component.rescheduleSlots()).toContain('10:00');
+    component.rescheduleTime = '10:00';
+    appointments.reschedule.and.resolveTo();
+    await component.saveReschedule();
+    expect(appointments.reschedule).toHaveBeenCalledWith('appt', future, '10:00', null);
+  });
+
   it('keeps the original appointment visible when a competing booking rejects rescheduling', async () => {
     await component.openReschedule(appointment);
     component.rescheduleTime = '10:00';

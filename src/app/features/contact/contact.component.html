@@ -126,7 +126,13 @@
               type="email"
               autocomplete="email"
               placeholder="you@example.com"
+              [attr.aria-invalid]="isInvalid('email')"
+              [attr.aria-describedby]="isInvalid('email') ? 'contact-email-error' : null"
+              [class.ui-field-invalid]="isInvalid('email')"
               class="ui-field">
+            @if (isInvalid('email')) {
+              <p id="contact-email-error" role="alert" class="ui-helper text-status-danger">Enter a valid email address or leave it blank.</p>
+            }
           </div>
 
           <div class="mt-5">
@@ -206,7 +212,7 @@
             <div class="clinic-contact-detail">
               <p class="text-sm font-extrabold text-ui-ink">Hours</p>
               <ul class="mt-2 space-y-2 text-sm text-ui-ink-muted">
-                @for (slot of config.hours.slice(0, 4); track slot.days) {
+                @for (slot of config.hours; track slot.days) {
                   <li class="flex items-center justify-between gap-4">
                     <span class="font-semibold text-ui-ink-soft">{{ slot.days }}</span>
                     <span>{{ slot.time }}</span>

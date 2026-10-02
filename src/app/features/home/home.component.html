@@ -43,12 +43,12 @@
           <span class="block truncate text-xs text-white/70">{{ config.doctorQualification || (config.city ? 'Serving ' + config.city : 'Dental care team') }}</span>
         </div>
         <div class="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
-          <strong class="block truncate text-sm font-bold text-white">⭐ {{ config.rating || '4.9' }} Rating</strong>
-          <span class="block truncate text-xs text-white/70">{{ config.patientCount || '1,000+' }} patients</span>
+          <strong class="block truncate text-sm font-bold text-white">{{ clinic.reviewRating ? clinic.reviewRating + '/5' : 'Not yet rated' }}</strong>
+          <span class="block truncate text-xs text-white/70">{{ config.ratingCount || 0 }} published reviews</span>
         </div>
         <div class="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
-          <strong class="block truncate text-sm font-bold text-white">Same-day slots</strong>
-          <span class="block truncate text-xs text-white/70">Subject to availability</span>
+          <strong class="block truncate text-sm font-bold text-white">Request a visit</strong>
+          <span class="block truncate text-xs text-white/70">Confirmation required</span>
         </div>
         <div class="rounded-xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
           <strong class="block truncate text-sm font-bold text-white">Clear pricing</strong>

@@ -429,6 +429,7 @@ export class SignupComponent implements OnInit {
   }
 
   next(): void {
+    this.error.set(null);
     const s = this.step();
     if (s === 1) {
       this.step1.markAllAsTouched();
@@ -436,8 +437,19 @@ export class SignupComponent implements OnInit {
       if (this.slugStatus() === 'taken' || this.slugStatus() === 'checking') return;
       this.step.set(2);
     } else if (s === 2) {
+      if (!this.validateHours()) return;
       this.step.set(4);
     }
+  }
+
+  private validateHours(): boolean {
+    const invalid = this.clinicHours().find(hour => !hour.closed &&
+      (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hour.open) ||
+       !/^([01]\d|2[0-3]):[0-5]\d$/.test(hour.close) || hour.open >= hour.close));
+    if (!invalid) return true;
+    this.error.set(`${invalid.day}: choose a closing time after the opening time, or mark the day closed.`);
+    this.step.set(2);
+    return false;
   }
 
   back(): void {
@@ -461,6 +473,7 @@ export class SignupComponent implements OnInit {
     if (this.submitting()) return;
     const user = this.authUser();
     if (!user) { this.error.set('Session expired. Please go back and sign in again.'); return; }
+    if (!this.validateHours()) return;
 
     this.error.set(null);
     this.submitting.set(true);

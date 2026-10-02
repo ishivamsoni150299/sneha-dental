@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthenticatedApiService } from '../../core/services/authenticated-api.service';
@@ -33,9 +33,9 @@ interface Practice { id: string; name: string; city: string; status: string; sch
           <p class="mt-5 ui-alert" role="status">To accept patient bookings: save your profile, add a practice, set its hours, then submit for verification.</p>
         }
         <nav class="mt-6 flex flex-wrap gap-2" aria-label="Workspace">
-          <button (click)="tab.set('profile')" [attr.aria-pressed]="tab() === 'profile'" [class.ui-tab-active]="tab() === 'profile'" class="ui-btn ui-btn-secondary flex-1">Profile</button>
-          <button (click)="tab.set('availability')" [attr.aria-pressed]="tab() === 'availability'" [class.ui-tab-active]="tab() === 'availability'" class="ui-btn ui-btn-secondary flex-1">Hours</button>
-          <button (click)="tab.set('appointments')" [attr.aria-pressed]="tab() === 'appointments'" [class.ui-tab-active]="tab() === 'appointments'" class="ui-btn ui-btn-secondary flex-1">Appointments</button>
+          <button (click)="tab.set('profile')" [disabled]="profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'profile'" [class.ui-tab-active]="tab() === 'profile'" class="ui-btn ui-btn-secondary flex-1">Profile</button>
+          <button (click)="tab.set('availability')" [disabled]="profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'availability'" [class.ui-tab-active]="tab() === 'availability'" class="ui-btn ui-btn-secondary flex-1">Hours</button>
+          <button (click)="tab.set('appointments')" [disabled]="profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'appointments'" [class.ui-tab-active]="tab() === 'appointments'" class="ui-btn ui-btn-secondary flex-1">Appointments</button>
         </nav>
         @if (error()) { <p role="alert" class="mt-4 ui-alert ui-alert-danger">{{ error() }}</p> }
         @if (message()) { <p role="status" class="mt-4 ui-alert">{{ message() }}</p> }
@@ -148,6 +148,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
   `,
 })
 export class ProfessionalWorkspaceComponent implements OnInit {
+  readonly profileEditor = viewChild(ProfessionalProfileComponent);
   private readonly analytics = inject(AnalyticsService);
   private readonly api = inject(AuthenticatedApiService);
   private readonly route = inject(ActivatedRoute);
