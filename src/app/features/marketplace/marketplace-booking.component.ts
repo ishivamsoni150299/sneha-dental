@@ -4,7 +4,7 @@ import {
   isClinicOpenAt,
   type BookingClinicContext,
 } from '../../core/services/appointment.service';
-import { DoctorService, type Doctor } from '../../core/services/doctor.service';
+import { DoctorService, formatSlotDisplay, type Doctor } from '../../core/services/doctor.service';
 import {
   AppointmentComponent,
   type BookingSubmission,
@@ -22,10 +22,11 @@ import { AnalyticsService } from '../../core/services/analytics.service';
   standalone: true,
   imports: [AppointmentComponent, RouterLink, SlotPickerComponent],
   templateUrl: './marketplace-booking.component.html',
-  host: { '[class.video-checkout]': "consultationMode() === 'video'" },
+  host: { class: 'booking-checkout' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
+  readonly formatSlotDisplay = formatSlotDisplay;
   readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly marketplace = inject(MarketplaceService);
@@ -68,9 +69,8 @@ export class MarketplaceBookingComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const slug = this.route.snapshot.paramMap.get('slug') ?? '';
     try {
-      await this.patientAuth.ready;
+      const [clinic] = await Promise.all([this.marketplace.getVerifiedClinicBySlug(slug), this.patientAuth.ready]);
       this.accountReady.set(this.patientAuth.isSignedIn());
-      const clinic = await this.marketplace.getVerifiedClinicBySlug(slug);
       if (!clinic) {
         this.notFound.set(true);
         return;
@@ -161,12 +161,21 @@ export class MarketplaceBookingComponent implements OnInit {
       });
       this.analytics.trackBeginBooking({ consultation_mode: this.consultationMode() });
       const params = this.route.snapshot.queryParamMap;
-      const date = params.get('date');
-      const time = params.get('time');
+      let date = params.get('date');
+      let time = params.get('time');
       const doctorId = params.get('doctorId');
+      const startsAt = params.get('startsAt');
+      if (!date && startsAt) {
+        const instant = new Date(startsAt);
+        if (Number.isFinite(instant.getTime()) && instant.getTime() > Date.now()) {
+          const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(instant);
+          const part = (type: string) => parts.find(item => item.type === type)?.value ?? '';
+          date = `${part('year')}-${part('month')}-${part('day')}`; time = `${part('hour')}:${part('minute')}`;
+        }
+      }
       if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && time && doctorId) {
         const availability = await this.marketplace.getAvailability(slug, 1, date);
-        const slot = availability.days.find(day => day.date === date)?.slots.find(slot => slot.doctorId === doctorId && slot.time === time);
+        const slot = availability.days.find(day => day.date === date)?.slots.find(slot => slot.doctorId === doctorId && slot.time.slice(0, 5) === time?.slice(0, 5));
         if (slot) this.selectedSlot.set({ doctorId: slot.doctorId, doctorName: slot.doctorName, date, time: slot.time });
       }
     } catch (error) {

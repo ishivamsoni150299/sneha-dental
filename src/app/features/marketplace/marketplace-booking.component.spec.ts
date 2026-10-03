@@ -34,7 +34,7 @@ describe('MarketplaceBookingComponent', () => {
     } }] });
   });
 
-  async function createStateFixture(result: MarketplaceClinic | null, videoReady = false, mode = '', signedIn = false) {
+  async function createStateFixture(result: MarketplaceClinic | null, videoReady = false, mode = '', signedIn = false, query: Record<string, string> = {}) {
     const marketplace = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
       'getVerifiedClinicBySlug', 'serviceLabel', 'videoAvailable', 'getAvailability',
     ]);
@@ -42,10 +42,10 @@ describe('MarketplaceBookingComponent', () => {
     marketplace.videoAvailable.and.resolveTo(videoReady);
     const date = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     marketplace.getAvailability.and.resolveTo({ dentistSlug: 'missing-clinic', timezone: 'Asia/Kolkata', days: [{
-      date, slots: [{ doctorId: result?.id ?? 'doctor-1', doctorName: 'Dr. Asha', time: '10:00:00', startsAt: `${date}T10:00:00+05:30` }],
+      date, slots: [{ doctorId: result?.isIndependent ? result.id : 'doctor-1', doctorName: 'Dr. Asha', time: '10:00:00', startsAt: `${date}T10:00:00+05:30` }],
     }] });
     const doctors = jasmine.createSpyObj<DoctorService>('DoctorService', ['getDoctors']);
-    doctors.getDoctors.and.resolveTo([]);
+    doctors.getDoctors.and.resolveTo([{ id: 'doctor-1', name: 'Dr. Asha', available: true, qualification: 'BDS', speciality: '', schedule: DEFAULT_SCHEDULE }]);
     await TestBed.configureTestingModule({
       imports: [MarketplaceBookingComponent],
       providers: [
@@ -55,14 +55,14 @@ describe('MarketplaceBookingComponent', () => {
           useValue: {
             snapshot: {
               paramMap: convertToParamMap({ slug: 'missing-clinic' }),
-              queryParamMap: convertToParamMap({ mode }),
+              queryParamMap: convertToParamMap({ mode, ...query }),
             },
           },
         },
         { provide: MarketplaceService, useValue: marketplace },
         { provide: DoctorService, useValue: doctors },
-        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => signedIn, user: () => null, role: () => signedIn ? 'patient' : null } },
-        { provide: AppointmentService, useValue: { holdSlot: async () => ({ holdToken: 'test-hold', expiresAt: `${date}T10:00:00Z` }), releaseHold: async () => undefined } },
+        { provide: PatientAuthService, useValue: { ready: Promise.resolve(), isSignedIn: () => signedIn, user: () => null, matchingPatientUid: () => null, role: () => signedIn ? 'patient' : null } },
+        { provide: AppointmentService, useValue: { holdSlot: async () => ({ holdToken: 'test-hold', expiresAt: `${date}T10:00:00Z` }), releaseHold: async () => undefined, bookAppointment: jasmine.createSpy('bookAppointment').and.resolveTo('TEST-REQUEST') } },
       ],
     }).compileComponents();
 
@@ -282,5 +282,83 @@ describe('MarketplaceBookingComponent', () => {
     expect(receipt.textContent).toContain('10 minutes before your call');
     expect(receipt.querySelectorAll('a').length).toBe(1);
     expect(receipt.textContent).not.toContain('two working hours');
+  });
+
+  it('lets a patient choose a time and submit details directly without a review screen', async () => {
+    const fixture = await createStateFixture(clinic());
+    const slot = fixture.nativeElement.querySelector('button[aria-label="10:00 AM · Dr. Asha"]') as HTMLButtonElement;
+    slot.click(); fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    const form = fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance as AppointmentComponent;
+    expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeTrue();
+    expect(fixture.nativeElement.textContent).not.toContain('Review appointment');
+    expect(fixture.nativeElement.querySelector('[aria-label="Booking progress"]')).toBeNull();
+    form.form.patchValue({ name: 'Test Patient', phone: '9876543210' });
+    spyOn(form.mobileVerification()!, 'canSubmit').and.returnValue(true);
+    await form.onSubmit();
+    expect(TestBed.inject(AppointmentService).bookAppointment).not.toHaveBeenCalled();
+    form.form.patchValue({ privacyAccepted: true });
+    await form.onSubmit(); fixture.detectChanges();
+    expect(TestBed.inject(AppointmentService).bookAppointment).toHaveBeenCalledWith(
+      jasmine.objectContaining({ name: 'Test Patient', phone: '9876543210', service: 'Other / Not Sure', doctorId: 'doctor-1', time: '10:00' }),
+      jasmine.objectContaining({ source: 'marketplace' }), 'test-hold', undefined,
+    );
+    expect(fixture.nativeElement.textContent).toContain('Your request was sent');
+    expect(fixture.nativeElement.textContent).toContain('Pending clinic confirmation');
+  });
+
+  it('retains entered details when changing an in-clinic time', async () => {
+    const fixture = await createStateFixture(clinic());
+    fixture.nativeElement.querySelector('button[aria-label="10:00 AM · Dr. Asha"]').click();
+    fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    const form = fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance as AppointmentComponent;
+    form.form.patchValue({ name: 'Saved Patient', phone: '9876543210' });
+    const change = Array.from(fixture.nativeElement.querySelectorAll('button')).find(button => (button as HTMLButtonElement).textContent?.trim() === 'Change time') as HTMLButtonElement;
+    change.click(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-appointment').hidden).toBeTrue();
+    fixture.componentInstance.editingTime.set(false); fixture.detectChanges();
+    expect(form.form.value.name).toBe('Saved Patient'); expect(form.form.value.phone).toBe('9876543210');
+  });
+
+  it('honours a directory slot link after validating availability in India time', async () => {
+    const date = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const fixture = await createStateFixture(clinic(), false, '', false, { doctorId: 'doctor-1', startsAt: `${date}T04:30:00Z` });
+    expect(fixture.componentInstance.selectedSlot()?.time).toBe('10:00:00');
+    expect(fixture.nativeElement.querySelector('#booking-time-picker').hidden).toBeTrue();
+    expect(fixture.nativeElement.querySelector('#appointment-name')).not.toBeNull();
+  });
+
+  it('releases a late hold rather than overwriting the current time reservation', async () => {
+    const fixture = await createStateFixture(clinic());
+    const service = TestBed.inject(AppointmentService);
+    let completeOld!: (value: { holdToken: string; expiresAt: string }) => void;
+    let firstStarted!: () => void, secondStarted!: () => void;
+    const first = new Promise<void>(resolve => { firstStarted = resolve; });
+    const second = new Promise<void>(resolve => { secondStarted = resolve; });
+    const oldHold = new Promise<{ holdToken: string; expiresAt: string }>(resolve => { completeOld = resolve; });
+    let calls = 0;
+    spyOn(service, 'holdSlot').and.callFake(async () => {
+      if (++calls === 1) { firstStarted(); return oldHold; }
+      secondStarted(); return { holdToken: 'current-hold', expiresAt: '2030-01-01T00:00:00Z' };
+    });
+    const release = spyOn(service, 'releaseHold').and.resolveTo();
+    fixture.nativeElement.querySelector('button[aria-label="10:00 AM · Dr. Asha"]').click(); fixture.detectChanges();
+    await first;
+    fixture.componentInstance.onSlotSelected({ ...fixture.componentInstance.selectedSlot()! }); fixture.detectChanges();
+    await second;
+    completeOld({ holdToken: 'stale-hold', expiresAt: '2030-01-01T00:00:00Z' });
+    await fixture.whenStable(); fixture.detectChanges();
+    const form = fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance as AppointmentComponent;
+    expect(form.holdToken()).toBe('current-hold'); expect(release).toHaveBeenCalledWith('stale-hold');
+  });
+
+  it('offers recovery when a displayed slot disappears before it can be reserved', async () => {
+    const fixture = await createStateFixture(clinic());
+    const marketplace = TestBed.inject(MarketplaceService) as jasmine.SpyObj<MarketplaceService>;
+    marketplace.getAvailability.and.resolveTo({ dentistSlug: 'missing-clinic', timezone: 'Asia/Kolkata', days: [] });
+    fixture.nativeElement.querySelector('button[aria-label="10:00 AM · Dr. Asha"]').click();
+    fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('This time is no longer available');
+    expect(fixture.nativeElement.textContent).toContain('Choose another time');
+    expect(TestBed.inject(AppointmentService).bookAppointment).not.toHaveBeenCalled();
   });
 });

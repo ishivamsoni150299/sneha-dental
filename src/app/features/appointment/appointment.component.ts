@@ -60,6 +60,10 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     return this.isMarketplaceBooking && this.bookingContext?.consultationMode === 'video';
   }
 
+  get simpleBooking(): boolean {
+    return this.isMarketplaceBooking && this.preselectedSlot !== null;
+  }
+
   private readonly fb                 = inject(FormBuilder);
   private readonly appointmentService = inject(AppointmentService);
   private readonly document           = inject(DOCUMENT);
@@ -93,6 +97,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   };
 
   private async acquireSlotHold(): Promise<boolean> {
+    const request = ++this.holdRequest;
     const clinicId = this.bookingContext?.clinicId ?? this.clinic.config.clinicId;
     const date = this.form.get('date')?.value;
     const time = this.form.get('time')?.value;
@@ -103,20 +108,27 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     this.error.set(null);
     try {
       if (this.holdToken()) {
-        await this.appointmentService.releaseHold(this.holdToken()!);
+        const token = this.holdToken()!;
         this.holdToken.set(null);
         this.holdExpiresAt.set(null);
+        await this.appointmentService.releaseHold(token);
       }
+      if (request !== this.holdRequest) return false;
       const res = await this.appointmentService.holdSlot(clinicId, date, time, doctorId);
+      if (request !== this.holdRequest) {
+        await this.appointmentService.releaseHold(res.holdToken);
+        return false;
+      }
       this.holdToken.set(res.holdToken);
       this.holdExpiresAt.set(res.expiresAt);
       return true;
     } catch (err: unknown) {
+      if (request !== this.holdRequest) return false;
       const msg = err instanceof Error ? err.message : 'That slot is temporarily held by another patient. Please choose another slot.';
       this.error.set(msg);
       return false;
     } finally {
-      this.holdingSlot.set(false);
+      if (request === this.holdRequest) this.holdingSlot.set(false);
     }
   }
 
@@ -181,6 +193,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   doctorSchedulesRequired = signal(false);
   doctorLoadFailed = signal(false);
   private slotRequest = 0;
+  private holdRequest = 0;
   availableSlots   = signal<string[]>([]);
   slotsLoading     = signal(false);
 
@@ -265,6 +278,11 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
       this.form.patchValue({ service: match });
     }
     if (this.bookingContext?.consultationMode === 'video') this.form.patchValue({ service: 'Video Consultation' });
+    const patient = this.patientAuth.user();
+    if (this.isMarketplaceBooking && patient) {
+      const phone = (patient.phoneNumber ?? '').replace(/^\+91/, '');
+      this.form.patchValue({ email: patient.email ?? '', phone: /^[6-9]\d{9}$/.test(phone) ? phone : '' });
+    }
 
     if (this.bookingContext) {
       this.doctors.set(this.bookingContext.doctors.filter(doctor => doctor.available));
@@ -313,8 +331,14 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private async applyPreselectedSlot(): Promise<void> {
+    this.holdRequest++;
+    this.holdingSlot.set(false);
     const slot = this.preselectedSlot;
-    if (!slot || isPastDate(slot.date) || !this.doctors().some(doctor => doctor.id === slot.doctorId)) return;
+    if (!slot) return;
+    if (isPastDate(slot.date) || !this.doctors().some(doctor => doctor.id === slot.doctorId)) {
+      this.error.set('This time is no longer available. Choose another time.');
+      return;
+    }
     this.selectedDoctorId.set(slot.doctorId);
     this.form.patchValue({ date: slot.date, time: '' }, { emitEvent: false });
     await this.refreshSlots();
@@ -325,6 +349,8 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
       if (!this.form.controls.service.value) this.form.patchValue({ service: 'Other / Not Sure' });
       this.currentStep.set(1);
       await this.nextStep();
+    } else if (this.preselectedSlot === slot) {
+      this.error.set('This time is no longer available. Choose another time.');
     }
   }
 
@@ -350,6 +376,8 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.holdRequest++;
+    this.slotRequest++;
     this.subs.unsubscribe();
     const token = this.holdToken();
     if (token) {
@@ -535,7 +563,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
       this.error.set('Sign in to your patient account before booking a video consultation.');
       return;
     }
-    if (this.submitting()) {
+    if (this.submitting() || this.holdingSlot()) {
       return;
     }
 

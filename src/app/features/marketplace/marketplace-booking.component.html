@@ -88,13 +88,12 @@
     }
   } @else {
     @if (selectedContext(); as bookingContext) {
-      <section class="mx-auto px-4 py-6 sm:px-6 sm:py-8" [class.video-booking]="consultationMode() === 'video'" [class.max-w-2xl]="consultationMode() === 'video'" [class.max-w-5xl]="consultationMode() !== 'video'">
+      <section class="mx-auto px-4 py-4 sm:px-6 sm:py-6" [class.video-booking]="consultationMode() === 'video'" [class.max-w-2xl]="consultationMode() === 'video'" [class.max-w-2xl]="consultationMode() !== 'video'">
         <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700"><i class="ph ph-arrow-left" aria-hidden="true"></i> Back to profile</a>
-        <div class="mt-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div><h1 class="booking-title mt-3 text-3xl font-semibold text-ui-ink sm:text-4xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Book your next visit.' }}</h1><p class="booking-provider mt-3 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
-          @if (consultationMode() !== 'video') {<span class="inline-flex items-center gap-2 text-sm text-gray-500"><i class="ph ph-seal-check text-lg text-blue-600" aria-hidden="true"></i> No platform booking fee</span>}
+        <div class="mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+          <div><h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1><p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
         </div>
-        @if (!isIndependent() && consultationMode() !== 'video') {
+        @if (!isIndependent() && videoReady() && clinic()!.marketplaceProfile?.videoConsultationEnabled) {
         <fieldset class="mt-7">
           <legend class="mb-3 text-sm font-semibold text-ui-ink">How would you like to meet?</legend>
           <div class="grid gap-3 sm:grid-cols-2">
@@ -134,31 +133,24 @@
           </div>
         </fieldset>
         } @else {
-          <p class="mt-3 text-sm text-ui-ink-muted">{{ clinic()!.marketplaceProfile?.videoConsultationFee == null ? 'Confirm fee with dentist' : '₹' + clinic()!.marketplaceProfile!.videoConsultationFee + ' consultation fee' }} · No platform booking fee</p>
+          <p class="mt-3 text-sm text-ui-ink-muted">{{ (consultationMode() === 'video' ? clinic()!.marketplaceProfile?.videoConsultationFee : clinic()!.marketplaceProfile?.consultationFee) == null ? 'Confirm fee with dentist' : '₹' + (consultationMode() === 'video' ? clinic()!.marketplaceProfile!.videoConsultationFee : clinic()!.marketplaceProfile!.consultationFee) + ' consultation fee' }} · No platform booking fee</p>
         }
         @if (videoUnavailable()) {
           <p role="alert" class="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">Video consultations are unavailable right now. @if (!isIndependent()) { <button type="button" (click)="chooseMode('in_person')" class="font-semibold underline">Choose an in-clinic visit</button> or }<a routerLink="/dentists" class="font-semibold underline">browse other dentists</a>.</p>
         } @else {
-        @if (consultationMode() !== 'video') {
-        <ol class="my-7 grid grid-cols-3 gap-3 border-y border-ui-line py-5 text-xs sm:text-sm" aria-label="Booking progress">
-          <li class="flex items-center gap-2 font-semibold text-blue-700" [attr.aria-current]="selectedSlot() ? null : 'step'"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-100">1</span> Choose a time</li>
-          <li class="flex items-center gap-2 font-semibold" [class.text-gray-500]="!selectedSlot()" [class.text-blue-700]="selectedSlot()" [attr.aria-current]="selectedSlot() ? 'step' : null"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ui-canvas-subtle">2</span> Your details</li>
-          <li class="flex items-center gap-2 text-gray-500"><span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ui-canvas-subtle">3</span> Dentist confirms</li>
-        </ol>
-        }
-        @if (consultationMode() === 'video' && selectedSlot(); as slot) {
+        @if (selectedSlot(); as slot) {
           <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-line bg-white p-4" aria-label="Selected appointment">
-            <p class="text-sm font-semibold text-ui-ink">{{ formattedDate(slot.date) }} · {{ slot.time.slice(0, 5) }} IST</p>
+            <p class="text-sm font-semibold text-ui-ink">{{ formattedDate(slot.date) }} · {{ formatSlotDisplay(slot.time) }} IST</p>
             <button type="button" (click)="editingTime.set(!editingTime())" [attr.aria-expanded]="editingTime()" aria-controls="booking-time-picker" class="min-h-11 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">{{ editingTime() ? 'Keep this time' : 'Change time' }}</button>
           </div>
         }
-        <div id="booking-time-picker" [hidden]="consultationMode() === 'video' && selectedSlot() && !editingTime()" class="mt-5 rounded-2xl border border-ui-line bg-white p-5 shadow-sm sm:p-6">
+        <div id="booking-time-picker" [hidden]="selectedSlot() && !editingTime()" class="mt-5 rounded-2xl border border-ui-line bg-white p-5 shadow-sm sm:p-6">
         <div class="mb-5"><h2 class="text-xl font-semibold text-ui-ink">Choose a time</h2></div>
         <app-slot-picker
-          [compact]="consultationMode() === 'video'"
+          [compact]="true"
           [slug]="route.snapshot.paramMap.get('slug') ?? ''"
           (slotSelected)="onSlotSelected($event)"
-          (slotCleared)="consultationMode() === 'video' ? editingTime.set(true) : selectedSlot.set(null)"
+          (slotCleared)="editingTime.set(true)"
         />
         </div>
         }
@@ -177,7 +169,7 @@
           </section>
         } @else {
         <app-appointment
-          [hidden]="consultationMode() === 'video' && editingTime()"
+          [hidden]="editingTime()"
           [bookingContext]="bookingContext"
           [preselectedSlot]="selectedSlot()"
           (bookingCompleted)="onBooked($event)"

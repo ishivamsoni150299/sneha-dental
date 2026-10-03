@@ -42,6 +42,10 @@ The completion target is a consistent, maintainable project with passing accepta
 
 ## Product decision
 
+Patient booking simplification (2026-10-03): the marketplace journey is now time selection, a short patient-details form, and one appointment-request submission. The selected time stays editable without discarding details. In-person booking reuses the same compact journey as video; optional reason/email/notes are collapsed, consent remains explicit, and video still requires a patient account. Directory availability links are validated and retain their doctor/time rather than making patients select again. The existing checkout shell suppresses competing navigation during booking. Legacy tenant booking keeps its existing form.
+
+Validation covers booking/service/slot-picker tests, real browser submission against intercepted fixtures at 390px and 1440px, responsive overflow, hold-token transmission, retained details, unavailable-slot recovery, and stale reservation responses. Backend ownership, verification policy, publication checks and pending confirmation are preserved. Production booking and actual clinic confirmation remain unverified by the fixture checks.
+
 The implementation and validation of search visibility for existing verified dentist and clinic profiles are documented in [DENTIST_SEO.md](DENTIST_SEO.md). Public identity, server-rendered profile content, canonical URLs, and live sitemap coverage are implemented. Production routing and search-engine indexing require external verification; first-place rankings are not guaranteed.
 
 MyDentalPlatform is an appointment marketplace first. The clinic software and clinic websites create and retain the supply that makes the marketplace useful.
