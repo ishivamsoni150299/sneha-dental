@@ -185,6 +185,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     clinicNotes:   '',
     treatmentDone: '',
     amountCharged: '',
+    amountPaid: '',
     paymentStatus: '' as PaymentStatus | '',
     paymentMethod: '' as PaymentMethod | '',
   });
@@ -304,20 +305,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   paidRevenue = computed(() =>
     this.appointments().reduce((sum, appt) =>
-      appt.paymentStatus === 'paid' ? sum + (appt.amountCharged ?? 0) : sum, 0),
+      sum + (appt.amountPaid ?? (appt.paymentStatus === 'paid' ? appt.amountCharged ?? 0 : 0)), 0),
   );
 
   todayCollectedRevenue = computed(() =>
     this.todayAppointmentsList().reduce((sum, appt) =>
       appt.paymentStatus === 'paid' || appt.paymentStatus === 'partial'
-        ? sum + (appt.amountCharged ?? 0)
+        ? sum + (appt.amountPaid ?? (appt.paymentStatus === 'paid' ? appt.amountCharged ?? 0 : 0))
         : sum, 0),
   );
 
   outstandingRevenue = computed(() =>
     this.appointments().reduce((sum, appt) =>
       appt.paymentStatus === 'unpaid' || appt.paymentStatus === 'partial'
-        ? sum + (appt.amountCharged ?? 0)
+        ? sum + ((appt.amountCharged ?? 0) - (appt.amountPaid ?? 0))
         : sum, 0),
   );
 
@@ -659,6 +660,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       clinicNotes:   appt.clinicNotes   ?? '',
       treatmentDone: appt.treatmentDone ?? '',
       amountCharged: appt.amountCharged != null ? String(appt.amountCharged) : '',
+      amountPaid: appt.amountPaid != null ? String(appt.amountPaid) : '',
       paymentStatus: appt.paymentStatus ?? '',
       paymentMethod: appt.paymentMethod ?? '',
     });
@@ -669,6 +671,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   setNotesTreatment(v: string)            { this.notesForm.update(f => ({ ...f, treatmentDone: v })); }
   setNotesText(v: string)                 { this.notesForm.update(f => ({ ...f, clinicNotes: v })); }
   setNotesAmount(v: string)               { this.notesForm.update(f => ({ ...f, amountCharged: v })); }
+  setNotesPaid(v: string) { this.notesForm.update(f => ({ ...f, amountPaid: v })); }
   setNotesPayStatus(v: PaymentStatus | '') { this.notesForm.update(f => ({ ...f, paymentStatus: v })); }
   setNotesPayMethod(v: PaymentMethod | '') { this.notesForm.update(f => ({ ...f, paymentMethod: v })); }
 
@@ -679,6 +682,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         clinicNotes:   appt.clinicNotes   ?? '',
         treatmentDone: appt.treatmentDone ?? '',
         amountCharged: appt.amountCharged != null ? String(appt.amountCharged) : '',
+      amountPaid: appt.amountPaid != null ? String(appt.amountPaid) : '',
         paymentStatus: appt.paymentStatus ?? '',
         paymentMethod: appt.paymentMethod ?? '',
       });
@@ -693,10 +697,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     try {
       const f = this.notesForm();
       const charged = f.amountCharged ? parseFloat(f.amountCharged) : undefined;
+      const paid = f.paymentStatus === 'paid' ? charged : f.paymentStatus === 'unpaid' ? 0 : f.amountPaid !== '' ? Number(f.amountPaid) : undefined;
+      if ((charged !== undefined && (!Number.isFinite(charged) || charged < 0)) ||
+          (f.paymentStatus === 'partial' && (charged === undefined || paid === undefined || !Number.isFinite(paid) || paid <= 0 || paid >= charged))) {
+        this.setError('Enter the charge and a partial payment greater than zero and less than the charge.');
+        return;
+      }
       const data: Partial<Appointment> = {
         clinicNotes:   f.clinicNotes   || undefined,
         treatmentDone: f.treatmentDone || undefined,
-        amountCharged: charged && !isNaN(charged) ? charged : undefined,
+        amountCharged: charged,
+        amountPaid: paid,
         paymentStatus: f.paymentStatus || undefined,
         paymentMethod: f.paymentMethod || undefined,
       };

@@ -19,12 +19,42 @@ export interface SubscriptionResult {
 export interface SubscriptionStatus {
   subscriptionId?: string | null;
   status?: string;
+  plan?: BillingPlan | 'trial';
+  providerStatus?: string;
+  currentPeriodEnd?: string | null;
+  paymentUrl?: string | null;
+  payments?: { reference: string; amount: number; currency: string; paidAt: string; provider: string }[];
   cancellationEffectiveAt?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
 export class BillingService {
   private readonly api = inject(AuthenticatedApiService);
+
+  async collectionSummary(): Promise<{ collectedTotal: number; collectedThisMonth: number }> {
+    const res = await this.api.fetch('/api/admin/billing/summary');
+    if (!res.ok) throw await this.responseError(res, 'Could not load recorded payments.');
+    return res.json() as Promise<{ collectedTotal: number; collectedThisMonth: number }>;
+  }
+
+  async reconcileClinic(clinicId: string, subscriptionId: string): Promise<SubscriptionStatus> {
+    const res = await this.api.fetch(`/api/admin/billing/clinics/${encodeURIComponent(clinicId)}/reconcile`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscriptionId }),
+    });
+    if (!res.ok) throw await this.responseError(res, 'Could not reconcile this checkout.');
+    return res.json() as Promise<SubscriptionStatus>;
+  }
+
+  async refreshSubscription(): Promise<SubscriptionStatus> {
+    const res = await this.api.fetch('/api/billing/subscriptions/current/refresh', { method: 'POST' });
+    if (!res.ok) throw await this.responseError(res, 'Could not refresh payment status.');
+    return res.json() as Promise<SubscriptionStatus>;
+  }
+
+  private async responseError(res: Response, fallback: string): Promise<Error> {
+    const body = await res.json().catch(() => ({})) as { detail?: string; message?: string; error?: string };
+    return new Error(body.detail || body.message || body.error || fallback);
+  }
 
   async currentSubscription(): Promise<SubscriptionStatus> {
     const res = await this.api.fetch('/api/billing/subscriptions/current');
@@ -55,11 +85,13 @@ export class BillingService {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error((err as Record<string, string>)['error'] ?? 'Failed to create subscription');
+      throw await this.responseError(res, 'Failed to create subscription');
     }
 
-    return res.json() as Promise<SubscriptionResult>;
+    const result = await res.json() as SubscriptionResult;
+    const url = new URL(result.paymentUrl);
+    if (url.protocol !== 'https:' || url.username || url.password) throw new Error('Invalid payment link. Contact billing support.');
+    return result;
   }
 
   planAmount(plan: BillingPlan, billingCycle: BillingCycle): number {

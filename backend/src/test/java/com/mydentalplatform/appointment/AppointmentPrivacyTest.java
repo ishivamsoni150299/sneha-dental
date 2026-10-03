@@ -43,7 +43,7 @@ class AppointmentPrivacyTest {
         assertEquals("paid", staff.get("paymentStatus"));
         assertFalse(staff.containsKey("rawClinicId"));
         var patient = service.lookup(clinicId, "BK-ABC", "9999999999");
-        for (var key : List.of("clinicNotes", "treatmentDone", "amountCharged", "paymentStatus", "paymentMethod", "rawClinicId")) {
+        for (var key : List.of("clinicNotes", "treatmentDone", "amountCharged", "amountPaid", "paymentStatus", "paymentMethod", "rawClinicId")) {
             assertFalse(patient.containsKey(key), key + " must not be exposed publicly");
         }
     }

@@ -1108,6 +1108,7 @@
 
       <!-- ── Subscription ─────────────────────────────────────────────────── -->
       @if (activeTab() === 'subscription') {
+        <app-billing-status [checkoutUrl]="checkoutUrl()" (statusChange)="subscriptionStatus.set($event)" />
         <div class="space-y-6">
 
           <!-- Current plan status card -->
@@ -1161,7 +1162,7 @@
           <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ui-line bg-white px-4 py-3">
             <div>
               <p class="text-sm font-semibold text-ui-ink">Billing cycle</p>
-              <p class="text-xs text-gray-500 mt-0.5">Monthly Razorpay subscriptions are active. Yearly billing is temporarily disabled.</p>
+              <p class="text-xs text-gray-500 mt-0.5">Monthly billing is available through secure checkout. Yearly billing is temporarily disabled.</p>
             </div>
             <div class="inline-flex rounded-xl border border-ui-line bg-ui-muted p-1">
               <button type="button" (click)="selectedBillingCycle.set('monthly')"
@@ -1177,7 +1178,7 @@
             </div>
           </div>
 
-          @if (subscriptionStatus()?.subscriptionId) {
+          @if (subscriptionStatus()?.subscriptionId && !['cancelled', 'completed', 'expired'].includes(subscriptionStatus()?.providerStatus ?? '')) {
             <div class="rounded-2xl border border-ui-line bg-white p-5">
               <h3 class="text-sm font-bold text-ui-ink">Manage subscription</h3>
               @if (subscriptionStatus()?.cancellationEffectiveAt) {

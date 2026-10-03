@@ -221,6 +221,9 @@
                 <div>
                   <p class="text-[11px] text-gray-400 font-medium mb-0.5">Amount charged</p>
                   <p class="text-sm font-bold text-ui-ink">₹{{ detailAppt()!.amountCharged | number }}</p>
+                  @if (detailAppt()!.paymentStatus === 'partial') {
+                    <p class="ui-helper">{{ detailAppt()!.amountPaid == null ? 'Amount received needs reconciliation' : 'Received ₹' + detailAppt()!.amountPaid }}</p>
+                  }
                   @if (detailAppt()!.paymentMethod) {
                     <p class="text-[11px] text-gray-400 capitalize">via {{ detailAppt()!.paymentMethod }}</p>
                   }
@@ -293,6 +296,14 @@
                   </select>
                 </div>
               </div>
+              @if (notesForm().paymentStatus === 'partial') {
+                <div>
+                  <label for="amount-paid" class="ui-label">Amount received (₹)</label>
+                  <input id="amount-paid" type="number" min="0.01" step="0.01" class="ui-field"
+                    [ngModel]="notesForm().amountPaid" (ngModelChange)="setNotesPaid($event)" aria-describedby="amount-paid-help">
+                  <p id="amount-paid-help" class="ui-helper">Record the amount already received. This does not collect an online payment.</p>
+                </div>
+              }
               @if (notesForm().paymentStatus) {
                 <div>
                   <label class="text-xs font-medium text-gray-500 mb-1 block">Payment method</label>

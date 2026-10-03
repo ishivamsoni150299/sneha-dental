@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ClinicApiService, StoredClinic, AppointmentDoc } from '../../../core/services/clinic-api.service';
 import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
+import { BillingService } from '../../../core/services/billing.service';
 
 @Component({
   selector: 'app-revenue',
@@ -13,6 +14,8 @@ import { PLATFORM_PLANS } from '../../../core/config/clinic.config';
 })
 export class RevenueComponent implements OnInit {
   private clinicStore = inject(ClinicApiService);
+  private readonly billing = inject(BillingService);
+  readonly collections = signal({ collectedTotal: 0, collectedThisMonth: 0 });
 
   clinics      = signal<StoredClinic[]>([]);
   appointments = signal<AppointmentDoc[]>([]);
@@ -94,12 +97,14 @@ export class RevenueComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [clinics, costs, appointments] = await Promise.all([
+      const [clinics, costs, appointments, collections] = await Promise.all([
         this.clinicStore.getAll(),
         this.clinicStore.getPlatformSettings(),
         this.clinicStore.getAllAppointments(),
+        this.billing.collectionSummary(),
       ]);
       this.clinics.set(clinics);
+      this.collections.set(collections);
       this.costs.set(costs);
       this.appointments.set(appointments);
     } catch (error) {

@@ -1,6 +1,7 @@
+import { BillingStatusComponent } from '../../../shared/components/billing-status/billing-status.component';
 import {
   Component, signal, ChangeDetectionStrategy,
-  inject, OnInit, OnDestroy, DestroyRef,
+  inject, OnInit, OnDestroy, DestroyRef, viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -110,7 +111,7 @@ const DEFAULT_SERVICE_LIBRARY: ClinicService[] = [
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, VideoSettingsComponent, AdminDoctorsComponent],
+  imports: [BillingStatusComponent, ReactiveFormsModule, VideoSettingsComponent, AdminDoctorsComponent],
   templateUrl: './admin-settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -126,8 +127,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
 
   loading            = signal(true);
   upgrading          = signal(false);
+  checkoutUrl = signal<string | null>(null);
   upgradeError       = signal<string | null>(null);
   subscriptionStatus = signal<SubscriptionStatus | null>(null);
+  private readonly paymentStatusPanel = viewChild(BillingStatusComponent);
   cancellationError = signal<string | null>(null);
   confirmingCancellation = signal(false);
   cancellingSubscription = signal(false);
@@ -428,7 +431,10 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
       const result = await this.billing.cancelSubscription(id);
       this.subscriptionStatus.update(current => ({ ...(current ?? {}), cancellationEffectiveAt: result.effectiveAt }));
       this.confirmingCancellation.set(false);
-      this.showToast('Cancellation scheduled. Paid access continues until the current cycle ends.', 'success');
+      this.paymentStatusPanel()?.refresh();
+      this.showToast(result.status === 'scheduled'
+        ? 'Cancellation scheduled. Paid access continues until the current cycle ends.'
+        : 'Checkout cancelled. Payment status is being refreshed.', 'success');
     } catch (error) {
       this.cancellationError.set(error instanceof Error ? error.message : 'Could not schedule cancellation.');
     } finally {
@@ -850,7 +856,9 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
         this.cfg.name,
         this.cfg.phone,
       );
-      window.open(paymentUrl, '_blank', 'noopener');
+      this.checkoutUrl.set(paymentUrl);
+      this.activeTab.set('subscription');
+      await this.loadSubscriptionStatus();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not initiate payment. Try again.';
       this.upgradeError.set(message);

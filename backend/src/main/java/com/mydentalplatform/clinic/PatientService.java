@@ -52,8 +52,8 @@ public class PatientService {
                 to_char(min(appointment_date) filter (where status in ('pending', 'confirmed') and appointment_date >= current_date), 'YYYY-MM-DD') as next_appointment_date,
                 to_char(min(appointment_date), 'YYYY-MM-DD') as first_seen,
                 coalesce(sum(amount_charged), 0) as total_charged,
-                coalesce(sum(case when payment_status = 'paid' then amount_charged else 0 end), 0) as total_paid,
-                coalesce(sum(case when payment_status != 'paid' or payment_status is null then amount_charged else 0 end), 0) as pending_balance
+                coalesce(sum(coalesce(amount_paid, case when payment_status = 'paid' then amount_charged else 0 end)), 0) as total_paid,
+                coalesce(sum(amount_charged - coalesce(amount_paid, case when payment_status = 'paid' then amount_charged else 0 end)), 0) as pending_balance
             from appointments
             where clinic_id = ?
               and (cast(? as text) is null or lower(patient_name) like ? or phone_e164 like ?)
@@ -90,6 +90,7 @@ public class PatientService {
                 map.put("clinicNotes", rs.getString("clinic_notes"));
                 map.put("treatmentDone", rs.getString("treatment_done"));
                 map.put("amountCharged", rs.getBigDecimal("amount_charged"));
+                map.put("amountPaid", rs.getBigDecimal("amount_paid"));
                 map.put("paymentStatus", rs.getString("payment_status"));
                 map.put("paymentMethod", rs.getString("payment_method"));
                 return map;

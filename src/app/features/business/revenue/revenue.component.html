@@ -1,6 +1,13 @@
 <div class="platform-page">
 
   <!-- Header -->
+  @if (!loading() && !error()) {
+    <section class="ui-card p-5 mb-5" aria-label="Recorded collections">
+      <h2 class="text-base font-bold text-ui-ink">Recorded collections</h2>
+      <p class="mt-2 text-sm">This month: ₹{{ collections().collectedThisMonth.toLocaleString('en-IN') }} · Total: ₹{{ collections().collectedTotal.toLocaleString('en-IN') }}</p>
+      <p class="ui-helper mt-2">Captured Razorpay charges and staff-verified manual payments recorded here. Gross amounts before refunds and fees; these are not bank settlements. MRR and ARR below are plan-based estimates.</p>
+    </section>
+  }
   <div class="platform-page-header">
     <div>
     <h1 class="text-xl font-bold text-ui-ink">Revenue</h1>

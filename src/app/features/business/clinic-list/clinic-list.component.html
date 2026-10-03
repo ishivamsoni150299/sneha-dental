@@ -366,7 +366,20 @@
                       </section>
                     </div>
 
+                    @if (preparedPayment()?.clinicId === clinic.id) {
+                      <div class="mt-4 flex flex-wrap gap-2" role="status">
+                        <a class="ui-btn ui-btn-secondary" [href]="preparedPayment()!.url" target="_blank" rel="noopener">Open payment link</a>
+                        <a class="ui-btn ui-btn-secondary" [href]="preparedPayment()!.whatsappUrl" target="_blank" rel="noopener">Share with WhatsApp</a>
+                      </div>
+                    }
                     @if (billingClinicId() === clinic.id) {
+                      <details class="mt-4 ui-card p-4">
+                        <summary class="cursor-pointer text-sm font-semibold">Recover or reconcile a Razorpay checkout</summary>
+                        <p class="ui-helper mt-3">Use the subscription ID from Razorpay. Only a subscription matching this clinic's recorded checkout can be reconciled.</p>
+                        <label class="ui-label mt-3" [for]="'recover-' + clinic.id">Razorpay subscription ID</label>
+                        <input class="ui-field" [id]="'recover-' + clinic.id" [(ngModel)]="recoverySubscriptionId" placeholder="sub_…">
+                        <button type="button" class="ui-btn ui-btn-secondary mt-3" [disabled]="reconcilingPayment() || !recoverySubscriptionId.trim()" (click)="reconcilePayment(clinic)">{{ reconcilingPayment() ? 'Checking…' : 'Reconcile payment' }}</button>
+                      </details>
                       <section class="mt-5 border-t border-ui-line pt-5">
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                           <div>
@@ -396,7 +409,7 @@
                             class="ui-btn ui-btn-primary"
                             [disabled]="sendingPayment() === clinic.id"
                             (click)="sendPaymentLink(clinic)">
-                            {{ sendingPayment() === clinic.id ? 'Creating link...' : 'Send with WhatsApp' }}
+                            {{ sendingPayment() === clinic.id ? 'Creating link...' : 'Create payment link' }}
                           </button>
                           <button type="button" class="ui-btn ui-btn-ghost" (click)="closeBilling()">Cancel</button>
                         </div>

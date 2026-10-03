@@ -612,42 +612,14 @@
           </div>
         </div>
 
-        <!-- Payment CTA (paid plans only) -->
-        @if (result()!.paymentUrl) {
-          <div class="s-card3 w-full rounded-2xl border border-green-200 bg-green-50 p-5 mb-3 space-y-3">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-green-700">Payment</p>
-                <p class="mt-1 text-sm font-semibold text-ui-ink">
-                  {{ result()!.plan === 'pro' ? 'Pro' : 'Basic' }} - {{ result()!.billingCycle === 'yearly' ? 'Yearly' : 'Monthly' }}
-                </p>
-                <p class="mt-1 text-xs text-ui-ink-muted">
-                  @if (result()!.paymentMode === 'subscription') {
-                    Razorpay subscription checkout. After the first payment, renewals stay automatic.
-                  } @else {
-                    Razorpay.me manual payment link. Complete payment and keep the confirmation handy.
-                  }
-                </p>
-              </div>
-              <span class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
-                    [class]="result()!.paymentMode === 'subscription' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
-                {{ result()!.paymentMode === 'subscription' ? 'Auto renew' : 'Manual pay' }}
-              </span>
-            </div>
-
-            <a [href]="result()!.paymentUrl" target="_blank" rel="noopener"
-               class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl
-                      text-sm transition-all hover:shadow-lg text-center">
-              {{ result()!.paymentMode === 'subscription' ? 'Activate plan with Razorpay' : 'Pay now on Razorpay.me' }}
-            </a>
-
-            @if (result()!.paymentMode === 'subscription' && result()!.manualPaymentUrl) {
-              <a [href]="result()!.manualPaymentUrl || result()!.paymentUrl" target="_blank" rel="noopener"
-                 class="block w-full border border-green-200 bg-white hover:bg-green-100 text-green-800 font-semibold py-3 rounded-xl
-                        text-sm transition-all text-center">
-                Manual backup payment link
-              </a>
+        @if (result()!.plan !== 'trial') {
+          <div class="w-full mb-3 space-y-3">
+            @if (checkoutLoading()) { <p role="status" class="ui-helper">Preparing secure checkout…</p> }
+            @if (checkoutError()) {
+              <p role="alert" class="ui-error">{{ checkoutError() }}</p>
+              <button type="button" class="ui-btn ui-btn-secondary" (click)="prepareCheckout()" [disabled]="checkoutLoading()">Retry checkout</button>
             }
+            <app-billing-status [checkoutUrl]="result()!.paymentUrl" />
           </div>
         }
 

@@ -89,9 +89,7 @@ export class AdminPatientsComponent implements OnInit {
 
       // Financials
       const totalCharged = group.reduce((s, a) => s + (a.amountCharged ?? 0), 0);
-      const totalPaid    = group
-        .filter(a => a.paymentStatus === 'paid')
-        .reduce((s, a) => s + (a.amountCharged ?? 0), 0);
+      const totalPaid = group.reduce((s, a) => s + (a.amountPaid ?? (a.paymentStatus === 'paid' ? a.amountCharged ?? 0 : 0)), 0);
 
       // First seen
       const firstSeen = [...group].sort((a, b) => a.date.localeCompare(b.date))[0].date;

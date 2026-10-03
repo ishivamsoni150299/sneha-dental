@@ -110,6 +110,9 @@
               @if (appt.amountCharged != null) {
                 <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
                   <p class="text-xs font-bold text-ui-ink-soft">₹{{ appt.amountCharged | number }}</p>
+                  @if (appt.paymentStatus === 'partial') {
+                    <p class="ui-helper">{{ appt.amountPaid == null ? 'Amount received needs reconciliation' : 'Received ₹' + appt.amountPaid }}</p>
+                  }
                   @if (appt.paymentStatus) {
                     <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full" [class]="paymentColor(appt.paymentStatus)">
                       {{ appt.paymentStatus === 'paid' ? 'Paid' : appt.paymentStatus === 'unpaid' ? 'Unpaid' : 'Partial' }}

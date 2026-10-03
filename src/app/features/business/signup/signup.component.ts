@@ -1,3 +1,5 @@
+import { BillingService } from '../../../core/services/billing.service';
+import { BillingStatusComponent } from '../../../shared/components/billing-status/billing-status.component';
 import {
   Component, ChangeDetectionStrategy, signal, computed,
   inject, DestroyRef, OnInit, NgZone,
@@ -98,7 +100,7 @@ declare const google: any;
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent],
+  imports: [ReactiveFormsModule, RouterLink, PlatformBrandComponent, BillingStatusComponent],
   templateUrl: './signup.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -113,6 +115,10 @@ export class SignupComponent implements OnInit {
 
   // ── Step: 0=auth, 1=clinic, 2=services, 4=plan, 5=success ───────────────
   readonly step       = signal<0 | 1 | 2 | 4 | 5>(0);
+  private readonly billing = inject(BillingService);
+  readonly checkoutError = signal<string | null>(null);
+  readonly checkoutLoading = signal(false);
+  private createdClinicId = '';
   readonly submitting = signal(false);
   readonly error      = signal<string | null>(null);
   readonly result     = signal<{
@@ -513,7 +519,7 @@ export class SignupComponent implements OnInit {
       });
 
       const data = await resp.json() as {
-        siteUrl?: string; adminUrl?: string; email?: string;
+        clinicId?: string; siteUrl?: string; adminUrl?: string; email?: string;
         plan?: string;
         billingCycle?: SignupBillingCycle;
         paymentUrl?: string | null;
@@ -541,11 +547,26 @@ export class SignupComponent implements OnInit {
         paymentMode:  data.paymentMode  ?? null,
         trialEndDate: data.trialEndDate ?? null,
       });
+      this.createdClinicId = data.clinicId ?? '';
       this.step.set(5);
+      if (data.plan === 'starter' || data.plan === 'pro') await this.prepareCheckout();
     } catch {
       this.error.set('Network error. Please check your connection and try again.');
     }
     this.submitting.set(false);
+  }
+
+  async prepareCheckout(): Promise<void> {
+    const result = this.result();
+    if (!result || this.checkoutLoading() || !this.createdClinicId || (result.plan !== 'starter' && result.plan !== 'pro')) return;
+    this.checkoutLoading.set(true);
+    this.checkoutError.set(null);
+    try {
+      const checkout = await this.billing.createSubscription(this.createdClinicId, result.plan, 'monthly', this.step1.getRawValue().name);
+      this.result.update(value => value ? { ...value, ...checkout } : value);
+    } catch (error) {
+      this.checkoutError.set(error instanceof Error ? error.message : 'Checkout is unavailable. Open your Plan settings to retry.');
+    } finally { this.checkoutLoading.set(false); }
   }
 
   // ── Step label helper (visual steps 1–3) ─────────────────────────────────

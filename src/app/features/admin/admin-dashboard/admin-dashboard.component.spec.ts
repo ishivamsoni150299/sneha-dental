@@ -15,7 +15,7 @@ describe('Clinic appointment scheduling', () => {
   let doctors: jasmine.SpyObj<DoctorService>;
 
   beforeEach(() => {
-    appointments = jasmine.createSpyObj('AppointmentService', ['reschedule', 'setStatus']);
+    appointments = jasmine.createSpyObj('AppointmentService', ['reschedule', 'setStatus', 'updateClinicalDetails']);
     doctors = jasmine.createSpyObj('DoctorService', ['getDoctors', 'getAvailableSlots']);
     doctors.getDoctors.and.resolveTo([doctor]);
     doctors.getAvailableSlots.and.resolveTo(['10:00']);
@@ -30,6 +30,26 @@ describe('Clinic appointment scheduling', () => {
     component.detailAppt.set(appointment);
   });
   afterEach(() => component.ngOnDestroy());
+
+  it('uses the amount received for partial collection and outstanding totals', () => {
+    component.appointments.set([{ ...appointment, amountCharged: 1000, amountPaid: 400, paymentStatus: 'partial' }]);
+    expect(component.paidRevenue()).toBe(400);
+    expect(component.outstandingRevenue()).toBe(600);
+  });
+
+  it('saves zero charges and rejects an invalid partial payment', async () => {
+    appointments.updateClinicalDetails.and.resolveTo();
+    component.openDetail(appointment);
+    component.setNotesAmount('0');
+    await component.saveNotes();
+    expect(appointments.updateClinicalDetails).toHaveBeenCalledWith('appt', jasmine.objectContaining({ amountCharged: 0 }));
+    appointments.updateClinicalDetails.calls.reset();
+    component.setNotesAmount('1000');
+    component.setNotesPayStatus('partial');
+    component.setNotesPaid('1200');
+    await component.saveNotes();
+    expect(appointments.updateClinicalDetails).not.toHaveBeenCalled();
+  });
 
   it('targets the patient rather than the clinic in contact actions', () => {
     const patient = { ...appointment, phone: '+919876543210' };

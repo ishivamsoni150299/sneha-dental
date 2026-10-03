@@ -45,6 +45,7 @@ public class ClinicOnboardingService {
 
         String plan = allowed(request.get("plan"), List.of("trial", "starter", "pro"), "trial");
         String billingCycle = allowed(request.get("billingCycle"), List.of("monthly", "yearly"), "monthly");
+        if (!"monthly".equals(billingCycle)) throw new IllegalArgumentException("Yearly billing is temporarily disabled.");
         String theme = allowed(request.get("theme"),
             List.of("blue", "teal", "emerald", "purple", "rose", "caramel"), "blue");
         String domain = slug + ".mydentalplatform.com";

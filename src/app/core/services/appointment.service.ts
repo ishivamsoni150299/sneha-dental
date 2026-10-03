@@ -175,6 +175,7 @@ export interface Appointment {
   clinicNotes?:    string;
   treatmentDone?:  string;
   amountCharged?:  number;
+  amountPaid?: number | null;
   paymentStatus?:  PaymentStatus;
   paymentMethod?:  PaymentMethod;
   createdAt?: string;
@@ -441,7 +442,7 @@ export class AppointmentService {
 
   async updateClinicalDetails(
     id: string,
-    data: Partial<Pick<Appointment, 'clinicNotes' | 'treatmentDone' | 'amountCharged' | 'paymentStatus' | 'paymentMethod'>>,
+    data: Partial<Pick<Appointment, 'clinicNotes' | 'treatmentDone' | 'amountCharged' | 'amountPaid' | 'paymentStatus' | 'paymentMethod'>>,
   ): Promise<void> {
     const payload = Object.fromEntries(
       Object.entries(data).filter(([, v]) => v !== undefined && v !== '' && v !== null),

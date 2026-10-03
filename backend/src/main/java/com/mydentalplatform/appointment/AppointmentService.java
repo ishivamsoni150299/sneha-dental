@@ -1,5 +1,7 @@
 package com.mydentalplatform.appointment;
 
+import java.math.BigDecimal;
+
 import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -610,14 +612,30 @@ public class AppointmentService {
         }
     }
 
+    @Transactional
     public void updateClinical(UUID clinicId, UUID appointmentId, AppointmentController.ClinicalRequest request) {
+        var records = jdbcTemplate.queryForList("select amount_charged, amount_paid, payment_status from appointments where id = ? and clinic_id = ? for update", appointmentId, clinicId);
+        if (records.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
+        var record = records.getFirst();
+        BigDecimal charged = request.amountCharged() != null ? request.amountCharged() : (BigDecimal) record.get("amount_charged");
+        BigDecimal paid = request.amountPaid() != null ? request.amountPaid() : (BigDecimal) record.get("amount_paid");
+        String status = request.paymentStatus() != null ? request.paymentStatus() : (String) record.get("payment_status");
+        boolean paymentChanged = request.amountCharged() != null || request.amountPaid() != null || request.paymentStatus() != null;
+        if (paymentChanged) {
+            if ("paid".equals(status)) paid = charged;
+            else if ("unpaid".equals(status)) paid = BigDecimal.ZERO;
+            if (charged == null || charged.signum() < 0 || (paid != null && (paid.signum() < 0 || paid.compareTo(charged) > 0)) ||
+                ("partial".equals(status) && (paid == null || paid.signum() <= 0 || paid.compareTo(charged) >= 0)))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a valid charge and the amount received. Partial payment must be greater than zero and less than the charge.");
+            if (status == null && paid != null) status = paid.compareTo(charged) == 0 ? "paid" : paid.signum() == 0 ? "unpaid" : "partial";
+        }
         int updated = jdbcTemplate.update("""
             update appointments set clinic_notes = coalesce(?, clinic_notes),
                 treatment_done = coalesce(?, treatment_done), amount_charged = coalesce(?, amount_charged),
-                payment_status = coalesce(?, payment_status), payment_method = coalesce(?, payment_method),
+                payment_status = ?, payment_method = coalesce(?, payment_method), amount_paid = ?,
                 updated_at = now() where id = ? and clinic_id = ?
             """, blankToNull(request.clinicNotes()), blankToNull(request.treatmentDone()), request.amountCharged(),
-            blankToNull(request.paymentStatus()), blankToNull(request.paymentMethod()), appointmentId, clinicId);
+            status, blankToNull(request.paymentMethod()), paid, appointmentId, clinicId);
         if (updated != 1) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found.");
     }
 
@@ -643,6 +661,7 @@ public class AppointmentService {
         result.remove("clinicNotes");
         result.remove("treatmentDone");
         result.remove("amountCharged");
+        result.remove("amountPaid");
         result.remove("paymentStatus");
         result.remove("paymentMethod");
         return result;
@@ -702,6 +721,7 @@ public class AppointmentService {
         value.put("clinicNotes", resultSet.getString("clinic_notes"));
         value.put("treatmentDone", resultSet.getString("treatment_done"));
         value.put("amountCharged", resultSet.getBigDecimal("amount_charged"));
+        value.put("amountPaid", resultSet.getBigDecimal("amount_paid"));
         value.put("paymentStatus", resultSet.getString("payment_status"));
         value.put("paymentMethod", resultSet.getString("payment_method"));
         value.put("confirmationDeadline", instant(resultSet, "confirmation_deadline"));

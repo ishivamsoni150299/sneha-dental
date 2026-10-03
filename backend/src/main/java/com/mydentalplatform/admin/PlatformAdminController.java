@@ -41,15 +41,18 @@ public class PlatformAdminController {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
+    private final com.mydentalplatform.billing.BillingService billing;
 
     public PlatformAdminController(
         JdbcTemplate jdbcTemplate,
         ObjectMapper objectMapper,
-        PasswordEncoder passwordEncoder
+        PasswordEncoder passwordEncoder,
+        com.mydentalplatform.billing.BillingService billing
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.passwordEncoder = passwordEncoder;
+        this.billing = billing;
     }
 
     @GetMapping("/clinics")
@@ -91,6 +94,10 @@ public class PlatformAdminController {
             blankToNull(request.get("marketplaceSlug")),
             allowed(request.get("subscriptionPlan"), List.of("trial", "starter", "pro"), "trial"),
             textOr(request.get("subscriptionStatus"), "trial"), json(publicData));
+        billing.recordAdminPayment(id, UUID.fromString(jwt.getSubject()), request);
+        privateData = privateData(request);
+        jdbcTemplate.update("update clinics set subscription_status = ?, public_config = public_config || cast(? as jsonb) where id = ?",
+            textOr(request.get("subscriptionStatus"), "trial"), json(publicData(request)), id);
         jdbcTemplate.update("""
             insert into clinic_private_accounts (clinic_id, billing_email, billing_config)
             values (?, ?, cast(? as jsonb))
@@ -106,6 +113,7 @@ public class PlatformAdminController {
         @RequestBody Map<String, Object> request
     ) {
         requireAdmin(jwt);
+        billing.recordAdminPayment(clinicId, UUID.fromString(jwt.getSubject()), request);
         Map<String, Object> publicData = publicData(request);
         Map<String, Object> privateData = privateData(request);
         boolean activeFlag = request.get("active") instanceof Boolean flag ? flag : true;

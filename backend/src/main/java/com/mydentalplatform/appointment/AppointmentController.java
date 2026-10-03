@@ -226,8 +226,9 @@ public class AppointmentController {
     public record ClinicalRequest(
         String clinicNotes,
         String treatmentDone,
-        BigDecimal amountCharged,
+        @jakarta.validation.constraints.DecimalMin("0.00") @jakarta.validation.constraints.Digits(integer = 10, fraction = 2) BigDecimal amountCharged,
         @Pattern(regexp = "paid|unpaid|partial") String paymentStatus,
-        @Pattern(regexp = "cash|upi|card|insurance|other") String paymentMethod
+        @Pattern(regexp = "cash|upi|card|insurance|other") String paymentMethod,
+        @jakarta.validation.constraints.DecimalMin("0.00") @jakarta.validation.constraints.Digits(integer = 10, fraction = 2) BigDecimal amountPaid
     ) {}
 }

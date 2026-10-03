@@ -1,3 +1,4 @@
+import { BillingStatusComponent } from '../../../shared/components/billing-status/billing-status.component';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { formatPlatformPlanPrice } from '../../../core/config/clinic.config';
@@ -8,7 +9,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
 @Component({
   selector: 'app-admin-expired',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, BillingStatusComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="clinic-admin-shell min-h-screen flex flex-col">
@@ -98,6 +99,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
             </div>
           </div>
 
+          <app-billing-status [checkoutUrl]="checkoutUrl()" (statusChange)="onPaymentStatus($event.status)" />
           @if (checkoutError()) {
             <p role="alert" class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-700">
               {{ checkoutError() }}
@@ -105,7 +107,7 @@ import { ClinicConfigService } from '../../../core/services/clinic-config.servic
           }
 
           <p class="mb-3 text-xs text-gray-500">
-            Secure Razorpay checkout opens in a new tab. Your website reactivates after payment confirmation.
+            Use the secure payment link above. Your website reactivates after payment confirmation.
           </p>
           <p class="text-xs text-gray-400">
             Questions? Email
@@ -124,6 +126,7 @@ export class AdminExpiredComponent {
   private readonly billing = inject(BillingService);
 
   readonly upgrading = signal<BillingPlan | null>(null);
+  readonly checkoutUrl = signal<string | null>(null);
   readonly checkoutError = signal<string | null>(null);
 
   get clinicName(): string {
@@ -162,12 +165,16 @@ export class AdminExpiredComponent {
         this.clinicName,
         this.clinicCfg.config.phone,
       );
-      window.open(paymentUrl, '_blank', 'noopener');
+      this.checkoutUrl.set(paymentUrl);
     } catch (error) {
       this.checkoutError.set(error instanceof Error ? error.message : 'Could not open checkout. Please try again.');
     } finally {
       this.upgrading.set(null);
     }
+  }
+
+  onPaymentStatus(status?: string): void {
+    if (status === 'active' || status === 'trial') void this.router.navigate(['/business/clinic/dashboard']);
   }
 
   async logout(): Promise<void> {

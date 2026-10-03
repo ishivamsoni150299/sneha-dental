@@ -117,6 +117,7 @@ class DeploymentSecurityTest {
             return new com.mydentalplatform.auth.TestPhoneOtp(false, "1970-01-01T00:00:00Z");
         }
         @Bean JdbcTemplate jdbcTemplate() { return mock(JdbcTemplate.class); }
+        @Bean com.mydentalplatform.billing.BillingService billingService() { return mock(com.mydentalplatform.billing.BillingService.class); }
         @Bean ObjectMapper objectMapper() { return new ObjectMapper(); }
         @Bean VideoConsultationService videoConsultationService() { return mock(VideoConsultationService.class); }
         @Bean VideoRoomClient dailyVideoClient() { return mock(VideoRoomClient.class); }

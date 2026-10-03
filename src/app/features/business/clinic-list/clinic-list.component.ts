@@ -257,6 +257,7 @@ export class ClinicListComponent implements OnInit {
 
   closeBilling() {
     this.billingClinicId.set(null);
+    this.recoverySubscriptionId = '';
   }
 
   billingPlanPrice(plan: BillingPlan): string {
@@ -265,7 +266,25 @@ export class ClinicListComponent implements OnInit {
     return `₹${amount.toLocaleString('en-IN')}${suffix}`;
   }
 
+  readonly preparedPayment = signal<{ clinicId: string; url: string; whatsappUrl: string } | null>(null);
+  recoverySubscriptionId = '';
+  readonly reconcilingPayment = signal(false);
+
+  async reconcilePayment(clinic: StoredClinic): Promise<void> {
+    if (this.reconcilingPayment()) return;
+    this.reconcilingPayment.set(true);
+    try {
+      const status = await this.billing.reconcileClinic(clinic.id, this.recoverySubscriptionId.trim());
+      this.showToast(`Payment status checked: ${status.status ?? 'pending'}.`, 'success');
+      if (status.plan && status.status) this.clinics.update(list => list.map(c => c.id === clinic.id
+        ? { ...c, subscriptionPlan: status.plan!, subscriptionStatus: status.status as StoredClinic['subscriptionStatus'] } : c));
+    } catch (error) {
+      this.showToast(error instanceof Error ? error.message : 'Could not reconcile payment.', 'error');
+    } finally { this.reconcilingPayment.set(false); }
+  }
+
   async sendPaymentLink(clinic: StoredClinic) {
+    if (this.sendingPayment()) return;
     this.sendingPayment.set(clinic.id);
     try {
       const phone = clinic.whatsappNumber || clinic.phone?.replace(/\D/g, '');
@@ -285,10 +304,8 @@ export class ClinicListComponent implements OnInit {
         result.paymentUrl,
         result.paymentMode,
       );
-      window.open(waUrl, '_blank');
-
-      this.billingClinicId.set(null);
-      this.showToast('Payment link sent via WhatsApp!', 'success');
+      this.preparedPayment.set({ clinicId: clinic.id, url: result.paymentUrl, whatsappUrl: waUrl });
+      this.showToast('Payment link ready. Open it or share it with the clinic.', 'success');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create payment link.';
       this.showToast(msg, 'error');
