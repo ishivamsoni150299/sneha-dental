@@ -1,5 +1,5 @@
 @if (loading()) {
-  <div class="animate-pulse space-y-4 py-6">
+  <div role="status" aria-label="Loading available appointment times" class="animate-pulse space-y-4 py-6">
     <div class="flex gap-2 overflow-hidden">
       @for (i of [1,2,3,4,5,6,7]; track i) {
         <div class="h-16 w-20 shrink-0 rounded-lg bg-gray-200"></div>
@@ -18,8 +18,14 @@
   </div>
 } @else if (!hasAnySlots()) {
   <div class="rounded-lg border border-ui-line bg-ui-muted px-5 py-8 text-center">
-    <p class="text-sm font-semibold text-ui-ink-soft">No slots available this week</p>
-    <p class="mt-1 text-xs text-gray-500">Please call the clinic directly to arrange an appointment.</p>
+    <p role="status" class="text-sm font-semibold text-ui-ink-soft">No slots available this week</p>
+    <p class="mt-1 text-sm text-ui-ink-muted">Check again for updated availability@if (phoneHref(contactPhone)) { or call the practice to ask about another time}.</p>
+    <div class="mt-4 flex flex-wrap justify-center gap-3">
+      @if (phoneHref(contactPhone); as contactHref) {
+        <a [href]="contactHref" class="ui-btn ui-btn-primary">Call practice</a>
+      }
+      <button type="button" (click)="loadAvailability()" class="ui-btn ui-btn-secondary">Check again</button>
+    </div>
   </div>
 } @else {
   <div class="space-y-5">

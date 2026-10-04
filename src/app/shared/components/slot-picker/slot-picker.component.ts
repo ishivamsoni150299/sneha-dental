@@ -9,6 +9,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
+import { phoneHref } from '../../../core/utils/phone';
 import {
   MarketplaceService,
   type MarketplaceAvailability,
@@ -34,6 +35,8 @@ export class SlotPickerComponent implements OnInit {
 
   @Input({ required: true }) slug!: string;
   @Input() compact = false;
+  @Input() contactPhone = '';
+  readonly phoneHref = phoneHref;
   @Output() slotSelected = new EventEmitter<SelectedSlot>();
   @Output() slotCleared = new EventEmitter<void>();
 

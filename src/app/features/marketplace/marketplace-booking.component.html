@@ -148,6 +148,7 @@
         <div class="mb-5"><h2 id="booking-time-title" tabindex="-1" class="scroll-mt-20 text-xl font-semibold text-ui-ink">Choose a time</h2></div>
         <app-slot-picker
           [compact]="true"
+          [contactPhone]="clinic()!.phoneE164 || clinic()!.phone || ''"
           [slug]="route.snapshot.paramMap.get('slug') ?? ''"
           (slotSelected)="onSlotSelected($event)"
           (slotCleared)="editingTime.set(true)"

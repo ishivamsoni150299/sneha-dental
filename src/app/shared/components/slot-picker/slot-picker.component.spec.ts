@@ -10,10 +10,10 @@ describe('SlotPickerComponent', () => {
     ],
   };
 
-  async function setup(failed = false) {
+  async function setup(failed = false, empty = false) {
     const service = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', ['getAvailability']);
     if (failed) service.getAvailability.and.rejectWith(new Error('Offline'));
-    else service.getAvailability.and.resolveTo(availability);
+    else service.getAvailability.and.resolveTo(empty ? { ...availability, days: [] } : availability);
     await TestBed.configureTestingModule({ imports: [SlotPickerComponent], providers: [{ provide: MarketplaceService, useValue: service }] }).compileComponents();
     const fixture = TestBed.createComponent(SlotPickerComponent);
     fixture.componentRef.setInput('slug', 'sample');
@@ -52,5 +52,27 @@ describe('SlotPickerComponent', () => {
     fixture.detectChanges();
     expect(component.error()).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('10:00 AM');
+  });
+
+  it('offers a valid practice call link and recovers when empty availability changes', async () => {
+    const { fixture, service } = await setup(false, true);
+    fixture.componentRef.setInput('contactPhone', '9876543210');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a').getAttribute('href')).toBe('tel:+919876543210');
+    service.getAvailability.and.resolveTo(availability);
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]').getAttribute('aria-label')).toContain('Loading');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('10:00 AM');
+    expect(fixture.nativeElement.textContent).not.toContain('No slots available');
+  });
+
+  it('keeps empty availability recoverable without a published phone number', async () => {
+    const { fixture } = await setup(false, true);
+    expect(fixture.nativeElement.querySelector('a')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Check again');
+    expect(fixture.nativeElement.textContent).not.toContain('call the practice');
   });
 });

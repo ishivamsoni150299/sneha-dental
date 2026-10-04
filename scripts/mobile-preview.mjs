@@ -31,7 +31,8 @@ http.createServer(async (req, res) => {
   if (p.startsWith('/__preview/')) {
     const role = p.split('/').pop();
     if (!Object.hasOwn(roles, role)) return json({},404);
-    res.writeHead(302, {'Set-Cookie':`mobile-preview=${role}; Path=/; HttpOnly; SameSite=Strict`, Location:roles[role]}); return res.end();
+    const availability = url.searchParams.get('availability') === 'empty' ? 'empty' : 'normal';
+    res.writeHead(302, {'Set-Cookie':[`mobile-preview=${role}; Path=/; HttpOnly; SameSite=Strict`, `preview-availability=${availability}; Path=/; HttpOnly; SameSite=Strict`], Location:roles[role]}); return res.end();
   }
   if (p.startsWith('/api/')) {
     const role = /mobile-preview=([^;]+)/.exec(req.headers.cookie ?? '')?.[1] ?? 'public';
@@ -40,7 +41,7 @@ http.createServer(async (req, res) => {
     if (p === '/api/v1/providers') return json({providers:[],totalCount:0});
     if (p === '/api/marketplace/clinics') return json({dentists:[clinic],totalCount:1});
     if (p === '/api/marketplace/clinics/preview-clinic' || p === '/api/clinics/current') return json(clinic);
-    if (p.endsWith('/availability')) return json({dentistSlug:clinic.marketplaceSlug,timezone:'Asia/Kolkata',days:[{date,slots:['10:00','10:30','11:00'].map(time=>({doctorId:doctor.id,doctorName:doctor.name,time,startsAt:`${date}T${time}:00+05:30`}))}]});
+    if (p.endsWith('/availability')) return json({dentistSlug:clinic.marketplaceSlug,timezone:'Asia/Kolkata',days:req.headers.cookie?.includes('preview-availability=empty') ? [] : [{date,slots:['10:00','10:30','11:00'].map(time=>({doctorId:doctor.id,doctorName:doctor.name,time,startsAt:`${date}T${time}:00+05:30`}))}]});
     if (p.endsWith('/dentists')) return json([]);
     if (p.endsWith('/doctors')) return json([doctor]);
     if (p.endsWith('/reviews')) return json([]);
