@@ -146,8 +146,23 @@ try {
   assert.equal(new URL(page.url()).pathname, '/professional');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
     'Dentist mobile header must fit the viewport');
-  const signIn = await page.getByRole('banner').getByRole('link', { name: 'Sign in', exact: true }).boundingBox();
-  assert.ok(signIn && signIn.height >= 44, 'Mobile sign-in must have an accessible touch target');
+  const menuButton = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+  const menuBounds = await menuButton.boundingBox();
+  assert.ok(menuBounds && menuBounds.height >= 44, 'Mobile navigation must have an accessible touch target');
+  await menuButton.click();
+  const menu = page.getByRole('dialog', { name: 'Explore My Dental Platform' });
+  await menu.waitFor();
+  const signIn = menu.getByRole('link', { name: 'Sign in or create an account', exact: true });
+  const signInBounds = await signIn.boundingBox();
+  assert.ok(signInBounds && signInBounds.height >= 44, 'Mobile sign-in must have an accessible touch target');
+  await menu.getByRole('button', { name: 'Close navigation menu' }).press('Escape');
+  await menu.waitFor({ state: 'hidden' });
+  assert.equal(await menuButton.evaluate(element => element === document.activeElement), true,
+    'Closing mobile navigation must restore focus to its opener');
+  await menuButton.click();
+  await signIn.click();
+  await page.waitForURL('**/account');
+  assert.equal(await menu.count(), 0, 'Navigation must close after choosing a destination');
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto(appUrl + '/dentists');
   await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
