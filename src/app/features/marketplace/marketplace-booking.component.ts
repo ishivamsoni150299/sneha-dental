@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   isClinicOpenAt,
@@ -26,6 +26,8 @@ import { AnalyticsService } from '../../core/services/analytics.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   readonly formatSlotDisplay = formatSlotDisplay;
   readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -200,6 +202,21 @@ export class MarketplaceBookingComponent implements OnInit {
     this.analytics.trackEvent('slot_selected', { consultation_mode: this.consultationMode() });
     this.selectedSlot.set(slot);
     this.editingTime.set(false);
+    this.focusBookingStep(false);
+  }
+
+  setEditingTime(editing: boolean): void {
+    this.editingTime.set(editing);
+    this.focusBookingStep(editing);
+  }
+
+  private focusBookingStep(editing: boolean): void {
+    afterNextRender(() => {
+      const selector = editing ? '#booking-time-title' : '#quick-booking-title, #video-signin-heading';
+      const heading = this.element.nativeElement.querySelector<HTMLElement>(selector);
+      heading?.focus({ preventScroll: true });
+      heading?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }, { injector: this.injector });
   }
 
   chooseMode(mode: 'in_person' | 'video'): void {

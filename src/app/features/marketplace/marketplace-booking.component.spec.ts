@@ -184,6 +184,28 @@ describe('MarketplaceBookingComponent', () => {
     expect(text).not.toContain('Booking confirmed');
   });
 
+  it('moves focus between time selection and details without losing entered information', async () => {
+    const fixture = await createStateFixture(clinic());
+    fixture.componentInstance.onSlotSelected({ doctorId: 'doctor-1', doctorName: 'Dr. Asha',
+      date: new Date(Date.now() + 86400000).toISOString().slice(0, 10), time: '10:00' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('quick-booking-title');
+    const form = fixture.debugElement.query(By.directive(AppointmentComponent)).componentInstance as AppointmentComponent;
+    form.form.controls.name.setValue('Preview Patient');
+
+    fixture.componentInstance.setEditingTime(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('booking-time-title');
+
+    fixture.componentInstance.setEditingTime(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('quick-booking-title');
+    expect(form.form.controls.name.value).toBe('Preview Patient');
+  });
+
   it('preserves a video booking link and limits the form to the video service', async () => {
     const provider = clinic();
     provider.marketplaceProfile!.videoConsultationEnabled = true;

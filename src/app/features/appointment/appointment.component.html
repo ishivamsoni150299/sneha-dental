@@ -2,7 +2,7 @@
   <section class="mx-auto max-w-2xl px-4 pb-28 sm:px-6" aria-labelledby="quick-booking-title">
     <form id="appointment-booking-fields" [formGroup]="form" (ngSubmit)="onSubmit()" class="ui-card space-y-5 p-4 sm:p-6" novalidate>
       <div id="appointment-booking-form">
-        <h2 id="quick-booking-title" class="ui-heading-interface ui-heading">Your details</h2>
+        <h2 id="quick-booking-title" tabindex="-1" class="ui-heading-interface ui-heading scroll-mt-20">Your details</h2>
         <p class="ui-body mt-1">With {{ preselectedSlot!.doctorName }}. Your request needs {{ bookingContext?.isIndependent ? 'dentist' : 'clinic' }} confirmation.</p>
       </div>
       <div class="grid gap-4 sm:grid-cols-2">

@@ -141,11 +141,11 @@
         @if (selectedSlot(); as slot) {
           <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-line bg-white p-4" aria-label="Selected appointment">
             <p class="text-sm font-semibold text-ui-ink">{{ formattedDate(slot.date) }} · {{ formatSlotDisplay(slot.time) }} IST</p>
-            <button type="button" (click)="editingTime.set(!editingTime())" [attr.aria-expanded]="editingTime()" aria-controls="booking-time-picker" class="min-h-11 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">{{ editingTime() ? 'Keep this time' : 'Change time' }}</button>
+            <button type="button" (click)="setEditingTime(!editingTime())" [attr.aria-expanded]="editingTime()" aria-controls="booking-time-picker" class="min-h-11 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">{{ editingTime() ? 'Keep this time' : 'Change time' }}</button>
           </div>
         }
         <div id="booking-time-picker" [hidden]="selectedSlot() && !editingTime()" class="mt-5 rounded-2xl border border-ui-line bg-white p-5 shadow-sm sm:p-6">
-        <div class="mb-5"><h2 class="text-xl font-semibold text-ui-ink">Choose a time</h2></div>
+        <div class="mb-5"><h2 id="booking-time-title" tabindex="-1" class="scroll-mt-20 text-xl font-semibold text-ui-ink">Choose a time</h2></div>
         <app-slot-picker
           [compact]="true"
           [slug]="route.snapshot.paramMap.get('slug') ?? ''"
@@ -158,7 +158,7 @@
       @if (!videoUnavailable() && selectedSlot()) {
         @if (consultationMode() === 'video' && (!accountReady() || !patientAuth.isSignedIn())) {
           <section [hidden]="editingTime()" class="video-signin mx-auto mb-10 max-w-lg rounded-2xl border border-ui-line bg-white p-6" aria-labelledby="video-signin-heading">
-            <h2 id="video-signin-heading" class="text-xl font-semibold text-ui-ink">Sign in to continue</h2>
+            <h2 id="video-signin-heading" tabindex="-1" class="scroll-mt-20 text-xl font-semibold text-ui-ink">Sign in to continue</h2>
             <p class="mb-5 mt-2 text-sm text-ui-ink-muted">Use your patient account to book and join your call.</p>
             @if (patientAuth.role()) {
               <p class="ui-body mb-4">You are signed in with a work account. Switch to a patient account to book.</p>
@@ -173,7 +173,7 @@
           [bookingContext]="bookingContext"
           [preselectedSlot]="selectedSlot()"
           (bookingCompleted)="onBooked($event)"
-          (changeTime)="editingTime.set(true)"
+          (changeTime)="setEditingTime(true)"
         />
         }
       }
