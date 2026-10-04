@@ -295,10 +295,9 @@ try {
   await page.getByRole('button', { name: 'Keep this time', exact: true }).click();
   assert.equal(await page.locator('#appointment-name').inputValue(), 'E2E Video Patient');
   assert.equal(await page.locator('#appointment-phone').inputValue(), '9876543210');
-  await page.getByRole('button', { name: 'Review appointment', exact: true }).click();
   await page.locator('#appointment-privacyAccepted').check();
   await verifyBookingMobile(page);
-  await page.getByRole('button', { name: 'Send request', exact: true }).click();
+  await page.getByRole('button', { name: 'Send appointment request', exact: true }).click();
   await page.getByRole('heading', { name: 'Your request was sent', exact: true }).waitFor();
   await page.getByRole('link', { name: 'View my appointments', exact: true }).click();
   await page.getByRole('heading', { name: 'E2E Video Dentist', exact: true }).waitFor();
