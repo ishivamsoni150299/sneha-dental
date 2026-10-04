@@ -37,9 +37,9 @@
     </div>
   </nav>
 
-  <section class="border-b border-ui-line bg-white">
+  <section class="profile-overview border-b border-ui-line bg-white">
     <div class="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:px-8 lg:py-10">
-      <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-ui-canvas-subtle">
+      <div class="profile-media relative aspect-[4/3] overflow-hidden rounded-lg bg-ui-canvas-subtle" [class.profile-media-placeholder]="!hasListingPhoto(currentClinic)">
         <img [src]="listingImage(currentClinic)"
              [alt]="hasListingPhoto(currentClinic) ? currentClinic.name : ''"
              class="h-full w-full"

@@ -2,6 +2,7 @@ import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } 
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { ModalDirective } from '../../../shared/directives/modal.directive';
 import { AppointmentService, Appointment } from '../../../core/services/appointment.service';
 import { ClinicConfigService } from '../../../core/services/clinic-config.service';
 
@@ -31,7 +32,7 @@ const THEME_COLORS: Record<string, { hex: string; hexLight: string; textClass: s
 @Component({
   selector: 'app-admin-patients',
   standalone: true,
-  imports: [RouterLink, FormsModule, DecimalPipe],
+  imports: [RouterLink, FormsModule, DecimalPipe, ModalDirective],
   templateUrl: './admin-patients.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

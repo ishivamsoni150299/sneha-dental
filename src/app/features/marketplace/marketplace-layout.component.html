@@ -17,8 +17,21 @@
     } @else {
       <a class="account-link ui-btn ui-btn-primary" routerLink="/account">Sign in</a>
     }
+    <button type="button" class="mobile-menu-button ui-btn ui-btn-ghost ui-btn-icon" aria-label="Open navigation menu" aria-haspopup="dialog" aria-controls="platform-mobile-menu" (click)="openMenu()"><i class="ph ph-list" aria-hidden="true"></i></button>
   </header>
-  <nav class="professional-mobile-links" aria-label="Professional areas"><a routerLink="/professional">For Dentists</a><a routerLink="/business">For Clinics</a></nav>
+  @if (menuOpen()) {
+  <dialog appModal (dismissed)="closeMenu()" id="platform-mobile-menu" class="ui-mobile-sheet" aria-labelledby="mobile-menu-title">
+    <div class="ui-mobile-sheet-header"><h2 id="mobile-menu-title" class="ui-title">Explore My Dental Platform</h2><button type="button" class="ui-btn ui-btn-ghost ui-btn-icon" aria-label="Close navigation menu" (click)="closeMenu()"><i class="ph ph-x" aria-hidden="true"></i></button></div>
+    <nav aria-label="More destinations" class="ui-mobile-sheet-links">
+      <a routerLink="/dentists" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Find a dentist<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a [routerLink]="auth.role() && auth.role() !== 'patient' ? '/workspace' : '/appointments'" (click)="closeMenu()" class="ui-btn ui-btn-ghost">{{ auth.role() && auth.role() !== 'patient' ? 'My workspace' : 'My appointments' }}<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a [routerLink]="auth.role() ? '/account/recovery' : '/account'" (click)="closeMenu()" class="ui-btn ui-btn-ghost">{{ auth.role() ? 'Account security' : 'Sign in or create an account' }}<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a routerLink="/professional" (click)="closeMenu()" class="ui-btn ui-btn-ghost">For dentists<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a routerLink="/business" (click)="closeMenu()" class="ui-btn ui-btn-ghost">For clinics<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+    </nav>
+    <div class="ui-mobile-sheet-links"><a routerLink="/business/privacy" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Privacy</a><a routerLink="/business/terms" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Terms</a></div>
+  </dialog>
+  }
   <main id="marketplace-content"><router-outlet /></main>
   <nav class="patient-tab-bar" aria-label="Mobile platform navigation">
     <a routerLink="/dentists" routerLinkActive="active" ariaCurrentWhenActive="page">

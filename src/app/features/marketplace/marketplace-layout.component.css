@@ -100,7 +100,7 @@
 .marketplace-header .patient-navigation { margin-left: auto; }
 .marketplace-shell main { min-height: 65vh; }
 .patient-tab-bar { display: none; }
-.professional-mobile-links { display: none; }
+.mobile-menu-button { display: none; }
 /* Checkout owns the mobile action dock; discovery navigation must not cover it. */
 .marketplace-shell:has(.video-booking) .patient-tab-bar { display: none; }
 
@@ -158,9 +158,7 @@
   .booking-checkout .video-receipt { max-width: 48rem; }
 }
 @media (max-width: 47.9375rem) {
-  .professional-mobile-links { display: flex; justify-content: center; gap: 1.5rem; border-bottom: 1px solid var(--ui-line); font-size: .8125rem; }
-  .professional-mobile-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ui-primary-hover); }
-  .marketplace-shell:has(.booking-checkout) .professional-mobile-links { display: none; }
+
   .booking-checkout .booking-mobile-dock { padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
 }
 html:has(.filter-dialog[open]) { overflow: hidden; }
@@ -189,28 +187,35 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
 
 @media (max-width: 47.9375rem) {
   .marketplace-shell { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-  .marketplace-shell:has(.profile-booking-bar) { padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)); }
-  .marketplace-shell .profile-booking-bar { bottom: calc(73px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-shell:has(.profile-booking-bar) { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-shell:has(.profile-booking-bar) .patient-tab-bar { display: none; }
+  .marketplace-shell .profile-booking-bar { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   .marketplace-header {
     min-height: calc(60px + env(safe-area-inset-top, 0px));
     padding: env(safe-area-inset-top, 0px) 16px 0;
     flex-wrap: nowrap;
   }
-  .marketplace-header .patient-navigation { display: none; }
+  .marketplace-header .patient-navigation, .marketplace-header .account-link { display: none; }
+  .marketplace-header .mobile-menu-button { display: inline-flex; margin-left: auto; font-size: 24px; }
+  .marketplace-shell:has(.booking-checkout) .mobile-menu-button { display: none; }
   .patient-tab-bar {
-    @apply fixed inset-x-0 bottom-0 grid gap-2 border-t border-gray-200 bg-white px-4 pt-2;
+    @apply fixed inset-x-0 bottom-0 grid gap-2 px-4 pt-2;
+    border-top: 1px solid var(--ui-line);
+    background: var(--ui-surface);
     grid-template-columns: repeat(3, minmax(0, 1fr));
     z-index: 40;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     box-shadow: var(--ui-shadow-md);
   }
   .patient-tab-bar a {
-    @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-semibold text-gray-500;
+    @apply flex min-h-12 flex-col items-center justify-center gap-1 text-xs font-semibold;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-ink-muted);
     -webkit-tap-highlight-color: transparent;
   }
   .patient-tab-bar svg { width: 22px; height: 22px; }
-  .patient-tab-bar a.active { @apply bg-blue-100 text-blue-700; }
-  .patient-tab-bar a:active { @apply bg-gray-100; }
+  .patient-tab-bar a.active { background: var(--ui-primary-soft); color: var(--ui-primary-hover); }
+  .patient-tab-bar a:active { background: var(--ui-surface-muted); }
   .marketplace-shell :is(input, select, textarea) { font-size: 16px; }
   .marketplace-shell :is(button, summary) { touch-action: manipulation; }
   .marketplace-shell footer {

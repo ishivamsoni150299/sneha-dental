@@ -85,46 +85,6 @@
     <p class="ui-helper mt-3">Verified profiles · No platform booking fee · The practice confirms your request</p>
   </div>
 </section>
-@if (serviceId() !== 'emergency-dental-care') {
-<section class="discovery-promotions" aria-label="Dental care highlights"
-  aria-roledescription="carousel" (mouseenter)="promotionHovered.set(true)" (mouseleave)="promotionHovered.set(false)"
-  (focusin)="promotionFocused.set(true)" (focusout)="leavePromotionFocus($event)">
-  <div class="directory-wrap">
-    <div class="promotion-heading">
-      <div><p class="promotion-brand">From mydentalplatform</p><h2>Care, in focus.</h2></div>
-      <div class="promotion-controls">
-        <span class="promotion-count" aria-hidden="true">{{ promotionIndex() + 1 }} / {{ promotions.length }}</span>
-        <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon promotion-icon" aria-label="Previous highlight" title="Previous highlight" (click)="selectPromotion(promotionIndex() - 1)"><i class="ph ph-arrow-left" aria-hidden="true"></i></button>
-        <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon promotion-icon" [attr.aria-label]="promotionsPaused() ? 'Resume highlights' : 'Pause highlights'" [attr.title]="promotionsPaused() ? 'Resume highlights' : 'Pause highlights'" (click)="promotionsPaused.set(!promotionsPaused())"><i [class]="promotionsPaused() ? 'ph ph-play' : 'ph ph-pause'" aria-hidden="true"></i></button>
-        <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon promotion-icon" aria-label="Next highlight" title="Next highlight" (click)="selectPromotion(promotionIndex() + 1)"><i class="ph ph-arrow-right" aria-hidden="true"></i></button>
-      </div>
-    </div>
-    @for (promotion of promotions; track promotion.id; let index = $index) {
-      <article class="promotion-campaign" [hidden]="index !== promotionIndex()" [attr.data-campaign]="promotion.id"
-        aria-roledescription="slide" [attr.aria-label]="(index + 1) + ' of ' + promotions.length + ': ' + promotion.label">
-        <div class="promotion-copy">
-          <p class="promotion-eyebrow">{{ promotion.label }}</p>
-          <h3>{{ promotion.title }}</h3>
-          <p class="promotion-description">{{ promotion.description }}</p>
-          <button type="button" class="ui-btn ui-btn-secondary promotion-action" (click)="openPromotion()">{{ promotion.action }}<i class="ph ph-arrow-up-right" aria-hidden="true"></i></button>
-        </div>
-        <figure class="promotion-media">
-          <img [src]="promotion.image" [alt]="promotion.imageAlt" width="700" height="460" loading="lazy" decoding="async">
-          <figcaption>Illustrative photograph</figcaption>
-        </figure>
-      </article>
-    }
-    <div class="promotion-footer">
-      <p>Dental care in {{ locality() || 'Delhi NCR' }}</p>
-      <div class="promotion-selectors" role="group" aria-label="Choose a highlight">
-        @for (promotion of promotions; track promotion.id; let index = $index) {
-          <button type="button" class="ui-btn ui-btn-ghost ui-btn-icon" [attr.aria-label]="'Show ' + promotion.label" [attr.aria-pressed]="promotionIndex() === index" [attr.title]="promotion.label" (click)="selectPromotion(index)"><span aria-hidden="true"></span></button>
-        }
-      </div>
-    </div>
-  </div>
-</section>
-}
 @if (locationHighlights().length) {
   <section [class]="'location-identity location-' + locality().toLowerCase()" [attr.aria-label]="'Finding dental care in ' + locality()">
     <div class="directory-wrap">
@@ -272,6 +232,47 @@
         <p class="mt-2 text-sm leading-6 text-ui-ink-muted">{{ localCareNote() }}</p>
       </section>
     }
+
+@if (serviceId() !== 'emergency-dental-care') {
+<section class="discovery-promotions" aria-label="Dental care highlights"
+  aria-roledescription="carousel" (mouseenter)="promotionHovered.set(true)" (mouseleave)="promotionHovered.set(false)"
+  (focusin)="promotionFocused.set(true)" (focusout)="leavePromotionFocus($event)">
+  <div class="promotion-content">
+    <div class="promotion-heading">
+      <div><p class="promotion-brand">From mydentalplatform</p><h2>Care, in focus.</h2></div>
+      <div class="promotion-controls">
+        <span class="promotion-count" aria-hidden="true">{{ promotionIndex() + 1 }} / {{ promotions.length }}</span>
+        <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon promotion-icon" aria-label="Previous highlight" title="Previous highlight" (click)="selectPromotion(promotionIndex() - 1)"><i class="ph ph-arrow-left" aria-hidden="true"></i></button>
+        <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon promotion-icon" [attr.aria-label]="promotionsPaused() ? 'Resume highlights' : 'Pause highlights'" [attr.title]="promotionsPaused() ? 'Resume highlights' : 'Pause highlights'" (click)="promotionsPaused.set(!promotionsPaused())"><i [class]="promotionsPaused() ? 'ph ph-play' : 'ph ph-pause'" aria-hidden="true"></i></button>
+        <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon promotion-icon" aria-label="Next highlight" title="Next highlight" (click)="selectPromotion(promotionIndex() + 1)"><i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+      </div>
+    </div>
+    @for (promotion of promotions; track promotion.id; let index = $index) {
+      <article class="promotion-campaign" [hidden]="index !== promotionIndex()" [attr.data-campaign]="promotion.id"
+        aria-roledescription="slide" [attr.aria-label]="(index + 1) + ' of ' + promotions.length + ': ' + promotion.label">
+        <div class="promotion-copy">
+          <p class="promotion-eyebrow">{{ promotion.label }}</p>
+          <h3>{{ promotion.title }}</h3>
+          <p class="promotion-description">{{ promotion.description }}</p>
+          <button type="button" class="ui-btn ui-btn-secondary promotion-action" (click)="openPromotion()">{{ promotion.action }}<i class="ph ph-arrow-up-right" aria-hidden="true"></i></button>
+        </div>
+        <figure class="promotion-media">
+          <img [src]="promotion.image" [alt]="promotion.imageAlt" width="700" height="460" loading="lazy" decoding="async">
+          <figcaption>Illustrative photograph</figcaption>
+        </figure>
+      </article>
+    }
+    <div class="promotion-footer">
+      <p>Dental care in {{ locality() || 'Delhi NCR' }}</p>
+      <div class="promotion-selectors" role="group" aria-label="Choose a highlight">
+        @for (promotion of promotions; track promotion.id; let index = $index) {
+          <button type="button" class="ui-btn ui-btn-ghost ui-btn-icon" [attr.aria-label]="'Show ' + promotion.label" [attr.aria-pressed]="promotionIndex() === index" [attr.title]="promotion.label" (click)="selectPromotion(index)"><span aria-hidden="true"></span></button>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+}
 
     <app-treatment-guide [items]="treatmentCostGuide" (serviceSelected)="chooseService($event)" />
 

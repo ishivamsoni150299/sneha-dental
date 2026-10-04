@@ -1,8 +1,8 @@
 @if (step() === 'appointments' || (patientAuth.role() && patientAuth.role() !== 'patient')) {
 <section class="border-b border-ui-line bg-white">
-  <div class="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-12 lg:px-8">
+  <div class="patient-visits-heading mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-12 lg:px-8">
     <p class="text-xs font-bold uppercase tracking-widest text-blue-700">Patient appointments</p>
-    <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div class="mt-3 flex flex-row items-start justify-between gap-3 sm:items-end">
       <div>
         <h1 class="ui-heading ui-heading-interface max-w-2xl">My appointments</h1>
         <p class="mt-2 max-w-xl text-sm leading-6 text-ui-ink-muted">Manage your visits and join confirmed video consultations here.</p>
@@ -39,11 +39,11 @@
     } @else {
       <div class="grid gap-6">
         <div>
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
+          <div class="patient-visits-toolbar flex flex-wrap items-center justify-between gap-3">
+            <div class="patient-visits-identity">
               <p class="text-sm font-semibold text-ui-ink-muted">{{ accountLabel() }}</p>
               <a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a>
-              <h2 class="mt-1 text-2xl font-bold text-ui-ink">Appointments</h2>
+              <h2 class="sr-only">Appointments</h2>
             </div>
             <div class="flex flex-wrap gap-2">
               <a routerLink="/dentists" class="ui-btn ui-btn-primary">Book an appointment</a>
@@ -65,7 +65,7 @@
 
           <div class="mt-6 space-y-4">
             @for (appointment of appointments(); track appointment.id) {
-              <article class="ui-card overflow-hidden">
+              <article class="patient-visit-card ui-card overflow-hidden">
                 <div class="flex flex-col gap-3 border-b border-ui-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div class="min-w-0">
                     <h3 class="truncate text-lg font-bold text-ui-ink">{{ appointment.clinicName }}</h3>
@@ -84,7 +84,7 @@
                   </div>
                 }
 
-                <dl class="grid gap-px bg-ui-canvas-subtle sm:grid-cols-3">
+                <dl class="patient-visit-details grid gap-px bg-ui-canvas-subtle sm:grid-cols-3">
                   <div class="bg-white px-5 py-4 sm:col-span-2">
                     <dt class="text-xs font-bold uppercase text-ui-ink-muted">Date and time</dt>
                     <dd class="mt-1 text-sm font-bold text-ui-ink">{{ formatDate(appointment.date) }} at {{ formatSlotDisplay(appointment.time) }}</dd>

@@ -331,6 +331,11 @@ export class AdminSettingsComponent implements OnInit, OnDestroy {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { tab }, queryParamsHandling: 'merge' });
   }
 
+  selectSection(value: string): void {
+    const section = this.tabs.find(tab => tab.id === value);
+    if (section) this.selectTab(section.id);
+  }
+
   get canManageDoctors() { return clinicHasPlatformFeature(this.cfg, 'doctorManagement'); }
 
   ngOnInit() {

@@ -18,7 +18,7 @@ import { ClinicAccountMenuComponent } from '../clinic-account-menu/clinic-accoun
           </a>
           <app-clinic-account-menu />
         </div>
-        <nav class="admin-topbar-inner hidden flex-wrap justify-start pb-3 md:flex" aria-label="Clinic workspace">
+        <nav class="admin-topbar-inner clinic-desktop-navigation flex-wrap justify-start pb-3" aria-label="Clinic workspace">
           @for (item of sections; track item.path) {
             <a [routerLink]="item.path" routerLinkActive="ui-nav-link-active" ariaCurrentWhenActive="page"
                class="ui-nav-link">{{ item.label }}</a>

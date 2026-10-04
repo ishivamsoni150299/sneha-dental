@@ -104,6 +104,14 @@
       </details>
 
       <!-- Tab bar -->
+      <div class="settings-section-picker">
+        <label for="settings-section" class="ui-label">Settings section</label>
+        <select #sectionPicker id="settings-section" class="ui-field" [value]="activeTab()" (change)="selectSection(sectionPicker.value)">
+          @for (tab of tabs; track tab.id) {
+            <option [value]="tab.id">{{ tab.label }}{{ isTabDirty(tab.id) ? ' · Unsaved changes' : '' }}</option>
+          }
+        </select>
+      </div>
       <nav aria-label="Clinic settings sections" class="settings-tab-bar flex flex-wrap gap-1">
         @for (tab of tabs; track tab.id) {
           <button type="button" (click)="selectTab(tab.id)" [attr.aria-pressed]="activeTab() === tab.id"

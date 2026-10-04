@@ -4,14 +4,13 @@
   <!-- PATIENT HISTORY SLIDE-OVER                                             -->
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   @if (selectedPatient()) {
-    <div class="fixed inset-0 z-50 flex">
-      <div class="flex-1 bg-black/40 backdrop-blur-sm" (click)="closePanel()"></div>
-      <div class="admin-drawer w-full max-w-sm flex flex-col animate-in slide-in-from-right duration-300 overflow-y-auto">
+    <dialog appModal (dismissed)="closePanel()" aria-labelledby="patient-history-title"
+      class="admin-drawer ui-modal ui-modal-drawer max-w-sm">
 
         <!-- Header -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-ui-line sticky top-0 bg-white z-10">
-          <h2 class="font-bold text-ui-ink">Patient history</h2>
-          <button (click)="closePanel()" aria-label="Close patient history" class="w-10 h-10 rounded-lg bg-ui-canvas-subtle hover:bg-gray-200 flex items-center justify-center transition-colors">
+          <h2 id="patient-history-title" class="font-bold text-ui-ink">Patient history</h2>
+          <button (click)="closePanel()" aria-label="Close patient history" class="ui-btn ui-btn-ghost ui-btn-icon">
             <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -125,8 +124,7 @@
           }
         </div>
 
-      </div>
-    </div>
+    </dialog>
   }
 
   <!-- ══════════════════════════════════════════════════════════════════════ -->
@@ -148,7 +146,7 @@
     }
 
     <!-- ── Summary stats ─────────────────────────────────────────────────── -->
-    <div class="admin-stat-grid">
+    <div class="admin-stat-grid patient-summary-stats">
       <div class="admin-stat-card">
         <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Total Patients</p>
         <p class="text-2xl font-extrabold text-ui-ink">{{ summaryStats().total }}</p>
@@ -259,7 +257,8 @@
                       {{ initials(p.name) }}
                     </div>
                     <div>
-                      <p class="font-semibold text-ui-ink text-xs truncate max-w-[160px]" [title]="p.name">{{ p.name }}</p>
+                      <button type="button" class="font-semibold text-ui-ink text-xs truncate max-w-[160px] min-h-11" [title]="p.name"
+                        [attr.aria-label]="'View history for ' + p.name" (click)="$event.stopPropagation(); selectPatient(p)">{{ p.name }}</button>
                       <p class="text-[11px] text-gray-400">{{ p.phone }}</p>
                     </div>
                   </div>
@@ -310,7 +309,8 @@
       <!-- Mobile cards -->
       <div class="md:hidden bg-white rounded-2xl border border-ui-line shadow-sm divide-y divide-gray-50 overflow-hidden">
         @for (p of filteredPatients(); track p.phone) {
-          <div class="px-4 py-4 cursor-pointer hover:bg-ui-muted transition-colors active:bg-slate-100"
+          <button type="button" class="block w-full text-left px-4 py-4 cursor-pointer hover:bg-ui-muted transition-colors active:bg-slate-100"
+               [attr.aria-label]="'View history for ' + p.name"
                (click)="selectPatient(p)">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -342,7 +342,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </button>
         }
       </div>
     }

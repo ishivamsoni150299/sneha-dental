@@ -419,3 +419,21 @@ All 16 checks passed for document/dialog overflow, shared control heights and
 browser/Angular errors. Mocked add/edit submissions preserved breaks and days
 off. Mobile list and edit screenshots were reviewed. Live persistence,
 conflicts and modal focus trapping remain outside this presentation pass.
+
+### Mobile journey consolidation — October 2026
+
+Use one persistent bottom action area per screen. Patient profiles reserve it
+for booking; patient account screens keep the platform navigation. Dentist
+workspace tabs move to the bottom on phones. Clinic navigation appears once,
+with its desktop row hidden below 768px.
+
+Secondary marketplace destinations use the shared native modal sheet and
+existing ModalDirective. Discovery results precede promotional highlights.
+Mobile listing cards prioritize provider, verification, fee and appointment
+times; secondary treatment/language detail remains on the profile.
+
+Clinic settings use a labeled native section selector on phones, retaining
+desktop tabs and existing unsaved-change indicators. Clinic mobile fields use
+16px text and at least 46px height; primary controls target at least 44px.
+Keep appointment cards compact without stacking multiple padding wrappers.
+See `MOBILE_UX_2026-10-04.md` for scope and verification limits.

@@ -92,10 +92,10 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
 @media(max-width:767px){
   .directory-wrap{padding-inline:16px}
   .discovery-hero{padding-top:24px;background:var(--ui-surface-muted)}
-  h1{font-size:32px;line-height:1.12;letter-spacing:-.035em}
+  h1{font-family:var(--ui-font-sans);font-size:30px;line-height:1.12;letter-spacing:-.035em}
   .hero-description{font-size:14px;line-height:1.5;margin-top:10px}
   .consultation-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:16px;background:var(--ui-surface)}
-  .consultation-switch button{justify-content:center;padding:10px 6px;font-size:12px;border-color:transparent}
+  .consultation-switch button{justify-content:center;min-height:48px;padding:10px 6px;font-size:13px;border-color:transparent}
   .consultation-switch button[aria-pressed=true]{box-shadow:var(--ui-shadow-xs)}
   .search-bar{margin-top:14px;border-radius:20px;box-shadow:var(--ui-shadow-sm)}
   .search-field{padding:8px 12px}
@@ -105,6 +105,7 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
   .results-section{scroll-margin-top:76px}
   .results-heading h2{font-size:24px}
   .results-heading{padding-top:24px}
+  .discovery-hero summary,.result-summary select,.active-filters button{min-height:44px}
   .quick-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px}
   .quick-filters button,.quick-filters select{flex:0 0 auto;border-radius:999px}
   .filter-dialog::before{content:'';display:block;width:40px;height:4px;margin:10px auto 0;border-radius:999px;background:var(--ui-line-strong)}

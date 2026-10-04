@@ -19,11 +19,11 @@ interface Practice { id: string; name: string; city: string; status: string; sch
   selector: 'app-professional-workspace', standalone: true, imports: [FormsModule, RouterLink, VideoConsultationComponent, ProfessionalProfileComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="min-h-screen bg-ui-muted pb-10">
+    <div class="professional-workspace min-h-screen bg-ui-muted pb-10">
       <header class="ui-topbar">
         <div class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2">
           <span class="text-sm font-bold text-ui-ink">Dentist workspace</span>
-          <div class="flex items-center gap-3"><a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a><button (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button></div>
+          <details class="professional-account relative"><summary class="ui-btn ui-btn-ghost cursor-pointer">Account<i class="ph ph-caret-down" aria-hidden="true"></i></summary><div class="ui-card absolute right-0 z-50 mt-2 grid min-w-52 gap-1 p-2"><a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a><button (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button></div></details>
         </div>
       </header>
       <main class="mx-auto max-w-6xl px-4 py-6 sm:py-10">
@@ -44,10 +44,10 @@ interface Practice { id: string; name: string; city: string; status: string; sch
             }
           </section>
         }
-        <nav class="mt-6 flex flex-wrap gap-2" aria-label="Workspace">
-          <button (click)="selectTab('appointments')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'appointments'" [class.ui-tab-active]="tab() === 'appointments'" class="ui-btn ui-btn-secondary flex-1">Appointments</button>
-          <button (click)="selectTab('availability')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'availability'" [class.ui-tab-active]="tab() === 'availability'" class="ui-btn ui-btn-secondary flex-1">Hours</button>
-          <button (click)="selectTab('profile')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'profile'" [class.ui-tab-active]="tab() === 'profile'" class="ui-btn ui-btn-secondary flex-1">Profile</button>
+        <nav class="professional-workspace-tabs mt-6 flex flex-wrap gap-2" aria-label="Workspace">
+          <button (click)="selectTab('appointments')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'appointments'" [class.ui-tab-active]="tab() === 'appointments'" class="ui-btn ui-btn-secondary flex-1"><i class="ph ph-calendar-blank" aria-hidden="true"></i>Appointments</button>
+          <button (click)="selectTab('availability')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'availability'" [class.ui-tab-active]="tab() === 'availability'" class="ui-btn ui-btn-secondary flex-1"><i class="ph ph-clock" aria-hidden="true"></i>Hours</button>
+          <button (click)="selectTab('profile')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" [attr.aria-pressed]="tab() === 'profile'" [class.ui-tab-active]="tab() === 'profile'" class="ui-btn ui-btn-secondary flex-1"><i class="ph ph-user" aria-hidden="true"></i>Profile</button>
         </nav>
         @if (error()) { <p role="alert" class="mt-4 ui-alert ui-alert-danger">{{ error() }}</p> }
         @if (message()) { <p role="status" class="mt-4 ui-alert">{{ message() }}</p> }
