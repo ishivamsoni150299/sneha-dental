@@ -1,5 +1,15 @@
 # Product architecture
 
+## New requested capability: voice action agent
+
+On 11 October 2026 the user explicitly requested a character that performs
+platform tasks through speech, including clinic creation. The proposed API
+choices, action boundaries, account-model prerequisite and implementation
+sequence are in [VOICE_ACTION_AGENT.md](VOICE_ACTION_AGENT.md). This authorizes
+that feature work alongside consolidation; it does not mean voice execution
+is implemented or enabled. Preserve the existing domain and permission checks
+while introducing the new interaction layer.
+
 ## Active direction: simplify the existing product
 
 The 10 October 2026 usability target is to make frequent actions for patients,
