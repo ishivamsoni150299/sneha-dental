@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { DentistDirectoryComponent } from './dentist-directory.component';
 import { MarketplaceService, type MarketplaceClinic } from '../../core/services/marketplace.service';
+import { formatDateInTimeZone } from '../../core/utils/date-input';
 
 function createMockClinic(overrides: Partial<MarketplaceClinic> = {}): MarketplaceClinic {
   return {
@@ -183,6 +184,23 @@ describe('DentistDirectoryComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.promotion-campaign:not([hidden])').length).toBe(1);
     component.selectPromotion(component.promotionIndex() + 1);
     expect(component.activePromotion().id).toBe('preventive');
+  });
+
+  it('offers the next bookable day directly without calling it available today', async () => {
+    const tomorrow = formatDateInTimeZone(new Date(Date.now() + 86400000));
+    marketplaceSpy.getAvailability.and.resolveTo({ dentistSlug: 'smile-perfect-noida', timezone: 'Asia/Kolkata', days: [
+      { date: formatDateInTimeZone(), slots: [] },
+      { date: tomorrow, slots: [{ doctorId: 'doc-1', doctorName: 'Dr. Neha Gupta', time: '10:00', startsAt: `${tomorrow}T10:00:00+05:30` }] },
+    ] });
+    const { component, fixture } = await setupComponent();
+    expect(component.slotsFor('clinic-noida-1')).toEqual([]);
+    expect(component.upcomingSlotsFor('clinic-noida-1').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.availability-title').textContent).toContain('Tomorrow');
+    const link = fixture.nativeElement.querySelector('.slot-options a') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toContain('doctorId=doc-1');
+    expect(link.getAttribute('href')).toContain('startsAt=');
+    component.availableTodayOnly.set(true);
+    expect(component.filteredClinics().length).toBe(0);
   });
 
   it('does not rotate while paused, hovered or keyboard focused', async () => {
@@ -510,10 +528,11 @@ describe('DentistDirectoryComponent', () => {
   it('connects the listing card comparison action and preserves booking links', async () => {
     const { fixture, component } = await setupComponent();
     const card = fixture.nativeElement.querySelector('app-dentist-listing-card') as HTMLElement;
-    (card.querySelector('.compare-button') as HTMLButtonElement).click();
+    (card.querySelector('.listing-details') as HTMLDetailsElement).open = true;
+    (card.querySelector('.detail-actions button') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(component.comparedClinics().length).toBe(1);
-    expect(card.querySelector('.booking a')?.getAttribute('href')).toContain('/book');
+    expect(card.querySelector('.booking-panel a')?.getAttribute('href')).toContain('/book');
     expect(card.querySelector('.slot-options a')?.getAttribute('href')).toContain('doctorId=doc-1');
   });
 

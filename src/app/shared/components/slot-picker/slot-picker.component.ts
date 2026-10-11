@@ -10,6 +10,7 @@ import {
   computed,
 } from '@angular/core';
 import { phoneHref } from '../../../core/utils/phone';
+import { appointmentDayLabel } from '../../../core/utils/date-input';
 import {
   MarketplaceService,
   type MarketplaceAvailability,
@@ -99,14 +100,7 @@ export class SlotPickerComponent implements OnInit {
   }
 
   formatDayLabel(dateStr: string): string {
-    const date = new Date(`${dateStr}T00:00:00`);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (date.getTime() === today.getTime()) return 'Today';
-    if (date.getTime() === tomorrow.getTime()) return 'Tomorrow';
-    return date.toLocaleDateString('en-IN', { weekday: 'short' });
+    return appointmentDayLabel(dateStr, this.availability()?.timezone);
   }
 
   formatDate(dateStr: string): string {

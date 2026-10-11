@@ -2,6 +2,13 @@
 
 ## Active direction: simplify the existing product
 
+The 10 October 2026 usability target is to make frequent actions for patients,
+dentists and clinic staff understandable and finishable in about 20 seconds.
+Prioritize direct time selection, visible patient search and one next action per
+appointment. `UX_SIMPLICITY.md` records the implementation, verification and
+remaining timed-user acceptance; it does not certify every workflow as taking
+less than 20 seconds.
+
 As of 2026-09-27, consolidation takes priority over feature development. Keep the current stack and behavior while reducing duplication and making existing screens consistent. Future-looking domain and API proposals below are architectural context, not a mandate to add capabilities or migrate all routes at once.
 
 ### Initial repository findings

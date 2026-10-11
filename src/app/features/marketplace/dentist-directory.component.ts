@@ -15,6 +15,7 @@ import {
 } from '../../core/services/marketplace.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { RequestDentistComponent } from './request-dentist.component';
+import { appointmentDayLabel, formatDateInTimeZone } from '../../core/utils/date-input';
 
 export interface ActiveFilterChip {
   id: string;
@@ -99,6 +100,8 @@ export class DentistDirectoryComponent implements OnInit {
     const service = this.activePromotion().serviceId;
     if (service) this.chooseService(service);
     else {
+      const extras = this.document.querySelector<HTMLDetailsElement>('.directory-extras');
+      if (extras) extras.open = true;
       const guide = this.document.getElementById('cost-guide-heading');
       guide?.scrollIntoView({ behavior: this.reducedMotion ? 'auto' : 'smooth', block: 'start' });
       guide?.focus({ preventScroll: true });
@@ -244,14 +247,6 @@ export class DentistDirectoryComponent implements OnInit {
   ];
 
   readonly availabilityErrors = signal<Record<string, boolean>>({});
-  readonly cleanProblems = [
-    {label:'Toothache', icon:'ph-tooth', serviceId:'emergency-dental-care'},
-    {label:'Root canal', icon:'ph-first-aid', serviceId:'root-canal'},
-    {label:'Braces', icon:'ph-smiley', serviceId:'braces-orthodontics'},
-    {label:'Implants', icon:'ph-tooth', serviceId:'dental-implants'},
-    {label:'Cleaning', icon:'ph-sparkle', serviceId:'cleaning-scaling'},
-    {label:'Kids', icon:'ph-baby', serviceId:'pediatric-dentistry'},
-  ];
   profilePath(clinic: MarketplaceClinic): string[] {
     return [this.discoveryType() === 'dentists' ? '/dentist' : '/clinic', clinic.marketplaceSlug ?? ''];
   }
@@ -301,6 +296,7 @@ export class DentistDirectoryComponent implements OnInit {
   readonly locationError = signal<string | null>(null);
   readonly compareIds = signal<string[]>([]);
   readonly availability = signal<Record<string, MarketplaceAvailabilitySlot[]>>({});
+  readonly upcomingAvailability = signal<Record<string, MarketplaceAvailabilitySlot[]>>({});
   readonly hasTodaySlots = computed(() => this.filteredClinics().some(item => item.marketplaceProfile?.acceptingNewPatients && this.slotsFor(item.id).length > 0)
     || this.filteredProviders().some(item => item.acceptingNewPatients && this.slotsFor(item.id).length > 0));
   readonly nextAppointments = signal<Record<string, string>>({});
@@ -570,7 +566,7 @@ export class DentistDirectoryComponent implements OnInit {
   private async loadClinics(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
-    this.availability.set({}); this.availabilityErrors.set({}); this.nextAppointments.set({});
+    this.availability.set({}); this.upcomingAvailability.set({}); this.availabilityErrors.set({}); this.nextAppointments.set({});
     try {
       const [response, providers] = await Promise.all([
         this.marketplace.getVerifiedClinics('delhi-ncr'), this.marketplace.getVerifiedProviders(),
@@ -598,7 +594,8 @@ export class DentistDirectoryComponent implements OnInit {
         try {
           if (!provider.isIndependent) return;
           const availability = await this.marketplace.getAvailability(provider.slug, 7);
-          this.availability.update(current => ({ ...current, [provider.id]: availability.days[0]?.slots ?? [] }));
+          this.availability.update(current => ({ ...current, [provider.id]: availability.days.find(day => day.date === formatDateInTimeZone())?.slots ?? [] }));
+          this.upcomingAvailability.update(current => ({ ...current, [provider.id]: availability.days.find(day => day.slots.length)?.slots.slice(0, 3) ?? [] }));
           const next = availability.days.flatMap(day => day.slots)[0]?.startsAt;
           if (next) this.nextAppointments.update(current => ({ ...current, [provider.id]: this.appointmentLabel(next) }));
         } catch { this.availabilityErrors.update(current => ({ ...current, [provider.id]: true })); }
@@ -784,13 +781,6 @@ export class DentistDirectoryComponent implements OnInit {
     this.isMobileFilterOpen.set(false);
   }
 
-  editSearch(): void {
-    if (!this.isBrowser) return;
-    const search = document.getElementById('dentist-search');
-    search?.scrollIntoView({ block: 'center' });
-    search?.focus({ preventScroll: true });
-  }
-
   changeLocation(): void {
     if (!this.isBrowser) return;
     const location = document.getElementById('dentist-locality');
@@ -856,18 +846,37 @@ export class DentistDirectoryComponent implements OnInit {
     try {
       this.availabilityErrors.update(current => ({...current, [clinic.id]: false}));
       const response = await this.marketplace.getAvailability(clinic.marketplaceSlug, 7);
-      const slots = (response.days[0]?.slots ?? []).slice(0, 4);
+      const slots = (response.days.find(day => day.date === formatDateInTimeZone())?.slots ?? []).slice(0, 4);
       this.availability.update(current => ({ ...current, [clinic.id]: slots }));
+      this.upcomingAvailability.update(current => ({ ...current, [clinic.id]: response.days.find(day => day.slots.length)?.slots.slice(0, 3) ?? [] }));
       const next = response.days.flatMap(day => day.slots)[0]?.startsAt;
       this.nextAppointments.update(current => ({ ...current, [clinic.id]: next ? this.appointmentLabel(next) : '' }));
     } catch {
       this.availabilityErrors.update(current => ({...current, [clinic.id]: true}));
       this.availability.update(current => ({ ...current, [clinic.id]: [] }));
+      this.upcomingAvailability.update(current => ({ ...current, [clinic.id]: [] }));
     }
   }
 
   slotsFor(clinicId: string): MarketplaceAvailabilitySlot[] {
     return this.availability()[clinicId] ?? [];
+  }
+
+  upcomingSlotsFor(id: string): MarketplaceAvailabilitySlot[] {
+    return this.upcomingAvailability()[id] ?? [];
+  }
+
+  providerBookingQuery(provider: MarketplaceProvider, slot?: MarketplaceAvailabilitySlot): Record<string, string> {
+    return {
+      ...this.bookingQuery(provider.isIndependent || this.videoOnly() ? 'video' : 'in_person'),
+      ...(provider.bookingDoctorId ? { doctorId: provider.bookingDoctorId } : {}),
+      ...(slot ? { doctorId: slot.doctorId, startsAt: slot.startsAt } : {}),
+    };
+  }
+
+  availabilityDay(id: string): string {
+    const slot = this.upcomingSlotsFor(id)[0];
+    return slot ? appointmentDayLabel(formatDateInTimeZone(new Date(slot.startsAt))) : '';
   }
 
   private appointmentLabel(value: string): string {
@@ -919,7 +928,7 @@ export class DentistDirectoryComponent implements OnInit {
     }
     if (this.sortBy() === 'experience')
       return (second.marketplaceProfile?.experienceYears ?? 0) - (first.marketplaceProfile?.experienceYears ?? 0);
-    if (this.sortBy() === 'earliest') return (Date.parse(this.slotsFor(first.id)[0]?.startsAt) || Infinity) - (Date.parse(this.slotsFor(second.id)[0]?.startsAt) || Infinity);
+    if (this.sortBy() === 'earliest') return (Date.parse(this.upcomingSlotsFor(first.id)[0]?.startsAt) || Infinity) - (Date.parse(this.upcomingSlotsFor(second.id)[0]?.startsAt) || Infinity);
     return this.listingScore(second) - this.listingScore(first);
   }
 

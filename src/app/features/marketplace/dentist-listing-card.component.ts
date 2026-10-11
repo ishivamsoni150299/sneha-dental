@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MarketplaceService, type MarketplaceClinic, type MarketplaceAvailabilitySlot } from '../../core/services/marketplace.service';
+import { appointmentDayLabel, formatDateInTimeZone } from '../../core/utils/date-input';
 
 @Component({
   selector: 'app-dentist-listing-card',
@@ -22,6 +23,8 @@ export class DentistListingCardComponent {
   readonly compared = input(false);
   readonly videoOnly = input(false);
   readonly nextAppointment = input('');
+  readonly availabilityDay = computed(() => this.slots()[0]
+    ? appointmentDayLabel(formatDateInTimeZone(new Date(this.slots()[0].startsAt))) : '');
   readonly bookingContext = input<Record<string, string>>({});
   readonly consultationFee = computed(() => this.videoOnly()
     ? this.clinic().marketplaceProfile?.videoConsultationFee : this.clinic().marketplaceProfile?.consultationFee);

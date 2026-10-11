@@ -62,4 +62,13 @@ describe('ProfessionalWorkspaceComponent', () => {
     await component.ngOnInit();
     expect(component.tab()).toBe('appointments');
   });
+
+  it('prioritizes pending requests and finds patients without another screen', () => {
+    const component = TestBed.createComponent(ProfessionalWorkspaceComponent).componentInstance;
+    const visit = { id: 'one', booking_ref: 'REF-ONE', patient_name: 'Asha', phone_e164: '+919999999999', service: 'Consultation', date: '2026-10-11', time: '10:00', status: 'confirmed', source: 'marketplace', location_name: 'Practice' };
+    component.visits.set([visit, { ...visit, id: 'two', patient_name: 'Rahul', status: 'pending' }]);
+    expect(component.visibleVisits()[0].id).toBe('two');
+    component.search.set('asha');
+    expect(component.visibleVisits().map(item => item.id)).toEqual(['one']);
+  });
 });

@@ -1,4 +1,4 @@
-import { formatLocalDateInput } from './date-input';
+import { appointmentDayLabel, formatDateInTimeZone, formatLocalDateInput } from './date-input';
 
 describe('formatLocalDateInput', () => {
   it('uses local date parts instead of the UTC calendar day', () => {
@@ -14,5 +14,15 @@ describe('formatLocalDateInput', () => {
     const localDate = new Date(2026, 0, 2, 8, 0);
 
     expect(formatLocalDateInput(localDate)).toBe('2026-01-02');
+  });
+});
+
+describe('appointment dates in the practice timezone', () => {
+  it('uses the India calendar day across midnight and month boundaries', () => {
+    const now = new Date('2026-12-31T20:00:00Z');
+    expect(formatDateInTimeZone(now)).toBe('2027-01-01');
+    expect(appointmentDayLabel('2027-01-01', 'Asia/Kolkata', now)).toBe('Today');
+    expect(appointmentDayLabel('2027-01-02', 'Asia/Kolkata', now)).toBe('Tomorrow');
+    expect(appointmentDayLabel('2027-01-03', 'Asia/Kolkata', now)).toContain('3');
   });
 });

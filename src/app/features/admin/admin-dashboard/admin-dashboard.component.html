@@ -433,7 +433,7 @@
 
     <main class="admin-page flex-1 space-y-5 overflow-auto">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 class="admin-page-title">Appointments</h1><p class="admin-page-subtitle">{{ greeting }}, {{ greetingLine }} · {{ todayFormatted }}</p></div>
+        <div><h1 class="admin-page-title">Appointments</h1><p class="admin-page-subtitle">Confirm requests. Check in patients. Complete visits. · {{ todayFormatted }}</p></div>
         <button type="button" (click)="loadAppointments()" class="ui-btn ui-btn-secondary ui-btn-sm">Refresh appointments</button>
       </div>
       <nav class="flex flex-wrap gap-2" aria-label="Appointment sections">
@@ -542,7 +542,7 @@
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
               </svg>
-              Search & filters
+              Date filters
               @if (hasActiveFilters()) { <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> }
             </button>
 
@@ -558,20 +558,10 @@
             </button>
           </div>
 
-          <!-- Search + date filters (expandable) -->
+          <label class="block px-5 pb-3"><span class="sr-only">Search appointments</span><input type="search" placeholder="Find a patient by name, phone or reference" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" class="ui-field"></label>
+          <!-- Date filters (expandable) -->
           @if (showFilters()) {
             <div id="appointment-filters" class="px-5 pb-4 space-y-3 border-t border-gray-50 pt-3">
-              <!-- Search -->
-              <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input type="text" aria-label="Search appointments" placeholder="Search by name, phone, service, or ref…"
-                       [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
-                       class="w-full pl-9 pr-4 py-2.5 text-sm border border-ui-line rounded-xl outline-none
-                              focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-white">
-              </div>
-
               <!-- Date range -->
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -607,27 +597,18 @@
           }
 
           <!-- Filter tabs -->
-          <div class="appointment-status-filters flex gap-1 px-5 pb-3 flex-wrap">
-            @for (tab of ([
-              {id:'all',       label:'All',       badge: 0},
-              {id:'today',     label:'Today',     badge: 0},
-              {id:'pending',   label:'Pending',   badge: counts().pending},
-              {id:'confirmed', label:'Confirmed', badge: 0},
-              {id:'checked_in',label:'Arrived',   badge: counts().checked_in},
-              {id:'completed', label:'Completed', badge: 0}
-            ]); track tab.id) {
-              <button (click)="activeTab.set($any(tab.id))" [attr.aria-pressed]="activeTab() === tab.id"
-                      class="relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                      [class]="activeTab() === tab.id ? 'text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'"
-                      [style.background]="activeTab() === tab.id ? themeColor.hex : ''">
-                {{ tab.label }}
-                @if (tab.badge > 0) {
-                  <span class="ml-1 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-white/25 text-[10px] font-bold">
-                    {{ tab.badge }}
-                  </span>
-                }
-              </button>
+          <div class="appointment-status-filters flex flex-wrap gap-2 px-5 pb-3">
+            @for (tab of [{ id: 'today', label: 'Today' }, { id: 'pending', label: 'Needs confirmation' }, { id: 'all', label: 'All visits' }]; track tab.id) {
+              <button type="button" (click)="activeTab.set($any(tab.id))" [attr.aria-pressed]="activeTab() === tab.id" [class.ui-tab-active]="activeTab() === tab.id" class="ui-btn ui-btn-secondary">{{ tab.label }} @if (tab.id === 'pending' && counts().pending > 0) {<span class="ui-badge">{{ counts().pending }}</span>}</button>
             }
+            <details>
+              <summary class="ui-btn ui-btn-ghost cursor-pointer" [class.ui-tab-active]="activeTab() === 'confirmed' || activeTab() === 'checked_in' || activeTab() === 'completed'">More statuses</summary>
+              <div class="flex flex-wrap gap-2 py-2">
+                @for (status of [{ id: 'confirmed', label: 'Confirmed' }, { id: 'checked_in', label: 'Arrived' }, { id: 'completed', label: 'Completed' }]; track status.id) {
+                  <button type="button" (click)="activeTab.set($any(status.id))" [attr.aria-pressed]="activeTab() === status.id" [class.ui-tab-active]="activeTab() === status.id" class="ui-btn ui-btn-secondary">{{ status.label }}</button>
+                }
+              </div>
+            </details>
           </div>
         </div>
 
@@ -716,7 +697,7 @@
                           {{ patientInitials(appt.name) }}
                         </div>
                         <div>
-                          <p class="font-semibold text-ui-ink text-xs group-hover:text-blue-600 transition-colors truncate max-w-[160px]" [title]="appt.name">{{ appt.name }}</p>
+                          <button type="button" (click)="$event.stopPropagation(); openDetail(appt)" class="ui-btn ui-btn-ghost min-h-11 max-w-[160px] truncate text-left" [attr.aria-label]="'View appointment details for ' + appt.name">{{ appt.name }}</button>
                           <p class="text-[11px] text-gray-400">{{ appt.phone }}</p>
                           @if (isMarketplaceRequest(appt)) {
                             <p class="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-700">Marketplace</p>
@@ -766,25 +747,13 @@
                             Arrived
                           </button>
                         }
-                        @if (appt.status === 'checked_in' || appt.status === 'confirmed') {
+                        @if (appt.status === 'checked_in') {
                           <button (click)="markCompleted(appt)" [disabled]="updatingId() === appt.id"
                                   class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
                             @if (updatingId() === appt.id) {
                               <span class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                             }
                             Done
-                          </button>
-                        }
-                        @if (appt.status === 'confirmed') {
-                          <button (click)="markNoShow(appt)" [disabled]="updatingId() === appt.id"
-                                  class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-ui-line hover:bg-ui-muted text-gray-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                            No Show
-                          </button>
-                        }
-                        @if (!isTerminal(appt) && appt.status !== 'completed') {
-                          <button (click)="requestCancel(appt)" [disabled]="updatingId() === appt.id"
-                                  class="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                            {{ isDeclineTarget(appt) ? 'Decline' : 'Cancel' }}
                           </button>
                         }
                         <a [href]="whatsappUrl(appt)" target="_blank" rel="noopener noreferrer" title="WhatsApp"
@@ -858,18 +827,6 @@
                         <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
                       }
                       Done
-                    </button>
-                  }
-                  @if (appt.status === 'confirmed') {
-                    <button (click)="markNoShow(appt)" [disabled]="updatingId() === appt.id"
-                            class="flex-1 border border-ui-line text-gray-500 text-sm py-2.5 rounded-xl font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
-                      No Show
-                    </button>
-                  }
-                  @if (!isTerminal(appt) && appt.status !== 'completed') {
-                    <button (click)="requestCancel(appt)" [disabled]="updatingId() === appt.id"
-                            class="border border-red-200 hover:bg-red-50 text-red-500 text-sm py-2.5 px-4 rounded-xl font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
-                      {{ isDeclineTarget(appt) ? 'Decline' : 'Cancel' }}
                     </button>
                   }
                   <button (click)="openDetail(appt)"

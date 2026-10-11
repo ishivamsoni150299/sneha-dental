@@ -192,6 +192,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   selectedDoctorId = signal<string>('');
   doctorSchedulesRequired = signal(false);
   doctorLoadFailed = signal(false);
+  readonly slotLoadFailed = signal(false);
   private slotRequest = 0;
   private holdRequest = 0;
   availableSlots   = signal<string[]>([]);
@@ -350,7 +351,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
       this.currentStep.set(1);
       await this.nextStep();
     } else if (this.preselectedSlot === slot) {
-      this.error.set('This time is no longer available. Choose another time.');
+      this.error.set(this.slotLoadFailed() ? 'We could not check this time. Retry below.' : 'This time is no longer available. Choose another time.');
     }
   }
 
@@ -403,6 +404,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
 
   private async refreshSlots() {
     const request = ++this.slotRequest;
+    this.slotLoadFailed.set(false);
     const doctorId = this.selectedDoctorId();
     const date     = this.form.get('date')!.value;
     this.availableSlots.set([]);
@@ -429,13 +431,21 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
         )));
       if (request === this.slotRequest) this.availableSlots.set([...new Set(results.flat())].sort());
     } catch {
-      if (request === this.slotRequest) this.availableSlots.set([]);
+      if (request === this.slotRequest) {
+        this.availableSlots.set([]);
+        this.slotLoadFailed.set(true);
+      }
     } finally {
       if (request === this.slotRequest) {
         this.slotsLoading.set(false);
         this.validateScheduleFields();
       }
     }
+  }
+
+  async retrySelectedTime(): Promise<void> {
+    this.error.set(null);
+    await this.applyPreselectedSlot();
   }
 
   get selectedDoctor(): Doctor | undefined {

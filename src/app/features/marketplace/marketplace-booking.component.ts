@@ -67,8 +67,18 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly notFound = signal(false);
   readonly unavailable = signal(false);
   readonly error = signal<string | null>(null);
+  readonly slotNotice = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
+    await this.loadBooking();
+  }
+
+  async loadBooking(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    this.slotNotice.set(null);
+    this.notFound.set(false);
+    this.unavailable.set(false);
     const slug = this.route.snapshot.paramMap.get('slug') ?? '';
     try {
       const [clinic] = await Promise.all([this.marketplace.getVerifiedClinicBySlug(slug), this.patientAuth.ready]);
@@ -100,6 +110,7 @@ export class MarketplaceBookingComponent implements OnInit {
           );
         } catch (error) {
           console.error('[Marketplace] Booking doctors could not be loaded:', error);
+          throw new Error('Doctors could not be loaded.');
         }
       }
 
@@ -176,9 +187,14 @@ export class MarketplaceBookingComponent implements OnInit {
         }
       }
       if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && time && doctorId) {
-        const availability = await this.marketplace.getAvailability(slug, 1, date);
-        const slot = availability.days.find(day => day.date === date)?.slots.find(slot => slot.doctorId === doctorId && slot.time.slice(0, 5) === time?.slice(0, 5));
-        if (slot) this.selectedSlot.set({ doctorId: slot.doctorId, doctorName: slot.doctorName, date, time: slot.time });
+        try {
+          const availability = await this.marketplace.getAvailability(slug, 1, date);
+          const slot = availability.days.find(day => day.date === date)?.slots.find(slot => slot.doctorId === doctorId && slot.time.slice(0, 5) === time?.slice(0, 5));
+          if (slot) this.selectedSlot.set({ doctorId: slot.doctorId, doctorName: slot.doctorName, date, time: slot.time });
+          else this.slotNotice.set('That time is no longer available. Choose another below.');
+        } catch {
+          this.slotNotice.set('We could not check that time. Choose an available time below.');
+        }
       }
     } catch (error) {
       console.error('[Marketplace] Booking page load failed:', error);
@@ -190,7 +206,9 @@ export class MarketplaceBookingComponent implements OnInit {
 
   onBooked(submission: BookingSubmission): void {
     this.submission.set(submission);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    afterNextRender(() => {
+      this.element.nativeElement.querySelector<HTMLElement>('#booking-receipt-title')?.focus();
+    }, { injector: this.injector });
   }
 
   async switchAccount(): Promise<void> {
@@ -199,6 +217,7 @@ export class MarketplaceBookingComponent implements OnInit {
   }
 
   onSlotSelected(slot: SelectedSlot): void {
+    this.slotNotice.set(null);
     this.analytics.trackEvent('slot_selected', { consultation_mode: this.consultationMode() });
     this.selectedSlot.set(slot);
     this.editingTime.set(false);

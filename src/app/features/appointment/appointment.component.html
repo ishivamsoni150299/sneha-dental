@@ -49,6 +49,7 @@
       @if (error()) {
         <div role="alert" class="ui-alert ui-alert-danger">
           <p>{{ error() }}</p>
+          @if (slotLoadFailed()) {<button type="button" (click)="retrySelectedTime()" [disabled]="slotsLoading() || holdingSlot()" class="ui-btn ui-btn-primary mt-3">Retry this time</button>}
           <button type="button" (click)="changeTime.emit()" class="ui-btn ui-btn-secondary mt-3">Choose another time</button>
         </div>
       }

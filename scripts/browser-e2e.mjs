@@ -168,17 +168,18 @@ try {
   await page.getByRole('heading', { name: /Find your dentist/i }).waitFor();
   await page.locator('#dentist-search').fill('root canal');
   await page.locator('#dentist-locality').selectOption({ label: 'Noida' });
-  await page.getByRole('button', { name: 'Find Dentists', exact: true }).click();
+  await page.locator('#dentist-search').press('Enter');
   await page.getByText('Checking verified profiles and appointment times.').waitFor({ state: 'hidden' });
   assert.equal(await page.locator(`a[href="/clinic/e2e-clinic-${suffix}"]`).count(), 0,
     'The new unverified fixture must not appear, even when earlier verified test clinics exist');
   const unpublishedProfile = await fetch(`${apiUrl}/api/v1/dentists/e2e-clinic-${suffix}`);
   assert.equal(unpublishedProfile.status, 404, 'Unverified clinic profiles must stay inaccessible');
   await page.locator('#dentist-search').fill(`No matching dentist ${suffix}`);
-  await page.getByRole('button', { name: 'Find Dentists', exact: true }).click();
+  await page.locator('#dentist-search').press('Enter');
   const dentistRequest = page.locator('app-request-dentist');
   await dentistRequest.getByRole('heading', { name: 'Request a dentist' }).waitFor();
-  assert.equal(await page.getByRole('button', { name: /All filters/ }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: /All filters/ }).count(), 1,
+    'Filters remain reachable so an empty search can be widened');
   assert.equal(await page.getByRole('button', { name: 'Available today', exact: true }).count(), 0);
   await dentistRequest.getByLabel('Location', { exact: true }).fill('Noida');
   await dentistRequest.getByLabel('Treatment or problem', { exact: true }).fill('Root canal advice');
@@ -224,7 +225,7 @@ try {
 
   const patient = await post('/api/auth/login', { email: patientEmail, password });
   await page.goto(appUrl + '/dentists?treatment=root-canal&location=Noida');
-  const bookingLink = page.locator(`a[href^="/dentists/${listingSlug}/book"]`).filter({ hasText: 'Book Appointment' });
+  const bookingLink = page.locator(`a[href^="/dentists/${listingSlug}/book"]`).filter({ hasText: /More times|Check availability/ }).first();
   await bookingLink.click();
   await page.getByRole('heading', { name: 'Request an appointment', exact: true }).waitFor();
   await page.getByRole('group', { name: 'Appointment dates' }).getByRole('button').nth(availability.days.indexOf(day)).click();

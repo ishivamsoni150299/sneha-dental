@@ -2,15 +2,15 @@
   <div class="ui-card ui-auth-card">
     <div class="space-y-3">
       <h1 id="account-title" class="ui-heading ui-heading-interface">{{ signup() ? 'Create your account' : 'Sign in' }}</h1>
-      <p class="ui-body">{{ signup() ? 'Choose how you will use My Dental Platform.' : 'One sign-in for patients, dentists, and clinics. We’ll open the right workspace for your account.' }}</p>
+      <p class="ui-body">{{ signup() ? 'One account for your visits or practice.' : 'Welcome back. We’ll open your appointments or workspace.' }}</p>
     </div>
     @if (!ready()) {
       <p role="status" class="ui-body">Checking your session…</p>
     } @else {
       @if (!auth.isAuthenticated) {
       <div class="flex gap-2" aria-label="Account access">
-        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="!signup()" [attr.aria-pressed]="!signup()" (click)="setMode(false)">Existing account</button>
-        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="signup()" [attr.aria-pressed]="signup()" (click)="setMode(true)">New account</button>
+        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="!signup()" [attr.aria-pressed]="!signup()" (click)="setMode(false)">Sign in</button>
+        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="signup()" [attr.aria-pressed]="signup()" (click)="setMode(true)">Create account</button>
       </div>
       }
       @if (signup()) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthenticatedApiService } from '../../core/services/authenticated-api.service';
@@ -23,12 +23,12 @@ interface Practice { id: string; name: string; city: string; status: string; sch
       <header class="ui-topbar">
         <div class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2">
           <span class="text-sm font-bold text-ui-ink">Dentist workspace</span>
-          <details class="professional-account relative"><summary class="ui-btn ui-btn-ghost cursor-pointer">Account<i class="ph ph-caret-down" aria-hidden="true"></i></summary><div class="ui-card absolute right-0 z-50 mt-2 grid min-w-52 gap-1 p-2"><a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a><button (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button></div></details>
+          <details class="professional-account relative"><summary class="ui-btn ui-btn-ghost cursor-pointer">Account<i class="ph ph-caret-down" aria-hidden="true"></i></summary><div class="ui-card absolute right-0 z-50 mt-2 grid min-w-52 gap-1 p-2"><a routerLink="/professional/video-test" class="ui-btn ui-btn-ghost">Test video call</a><a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a><button (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button></div></details>
         </div>
       </header>
       <main class="mx-auto max-w-6xl px-4 py-6 sm:py-10">
-        <h1 class="ui-heading ui-heading-interface">Manage your practice</h1>
-        <p class="mt-2 text-sm text-ui-ink-muted">One place for your profile, hours and patient visits. Times are in India Standard Time.</p>
+        <h1 class="ui-heading ui-heading-interface">{{ tab() === 'appointments' ? 'Your appointments' : tab() === 'availability' ? 'Your hours' : 'Your profile' }}</h1>
+        <p class="ui-caption mt-2">{{ tab() === 'appointments' ? 'Confirm requests. See patients. Complete visits.' : tab() === 'availability' ? 'Choose when patients can book.' : 'Keep your practice and registration details up to date.' }} Times in IST.</p>
         @if (verificationStatus() && verificationStatus() !== 'verified') {
           <section class="mt-5 ui-card p-5" aria-labelledby="dentist-setup-title">
             <h2 id="dentist-setup-title" class="font-semibold">{{ verificationStatus() === 'pending' ? 'Your profile is under review' : 'Get ready for patient bookings' }}</h2>
@@ -54,18 +54,18 @@ interface Practice { id: string; name: string; city: string; status: string; sch
         @if (tab() === 'profile') {
           <app-professional-profile [embedded]="true" [hasHours]="hasBookableHours()" (locationAdded)="onLocationAdded()" (profileChanged)="loadPractices()" />
         } @else if (tab() === 'appointments') {
-          <a routerLink="/professional/video-test" class="ui-btn ui-btn-secondary mt-5">Test video call</a>
           <div class="my-5 flex flex-wrap items-center justify-between gap-3">
-            <label class="text-sm font-semibold">Show
-              <select [ngModel]="view()" (ngModelChange)="changeView($event)" [disabled]="busy() || loading()" class="ui-field mt-1 text-base">
-                <option value="upcoming">Upcoming visits</option><option value="pending">Needs confirmation</option><option value="history">Past visits</option>
-              </select>
-            </label>
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Appointment views">
+              @for (option of appointmentViews; track option.id) {
+                <button type="button" (click)="changeView(option.id)" [disabled]="busy() || loading()" [attr.aria-pressed]="view() === option.id" [class.ui-tab-active]="view() === option.id" class="ui-btn ui-btn-secondary">{{ option.label }}</button>
+              }
+            </div>
             <button (click)="loadVisits()" [disabled]="busy() || loading()" class="ui-btn ui-btn-ghost">Refresh</button>
           </div>
+          <label class="block mb-4"><span class="sr-only">Find a patient</span><input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" class="ui-field" placeholder="Find a patient by name, phone or reference"></label>
           @if (loading()) { <p role="status" class="py-8 text-ui-ink-muted">Loading appointments…</p> }
           @else {
-            @for (visit of visits(); track visit.id) {
+            @for (visit of visibleVisits(); track visit.id) {
               <article class="mb-4 ui-card p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex flex-wrap items-center gap-2">
@@ -79,8 +79,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                   <span class="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700">{{ visit.status.replace('_', ' ') }}</span>
                 </div>
                 <p class="mt-2 font-semibold text-ui-ink">{{ visit.date }} · {{ visit.time }}</p>
-                <p class="mt-1 text-sm text-ui-ink-muted">{{ visit.location_name }} · {{ visit.service }} · {{ visit.booking_ref }}</p>
-                <a [href]="'tel:' + visit.phone_e164" class="ui-btn ui-btn-ghost mt-2">Call {{ visit.phone_e164 }}</a>
+                <details class="mt-1"><summary class="ui-link flex min-h-11 cursor-pointer items-center text-sm">Visit details</summary><p class="ui-caption">{{ visit.location_name }} · {{ visit.service }} · {{ visit.booking_ref }}</p><a [href]="'tel:' + visit.phone_e164" class="ui-btn ui-btn-ghost">Call {{ visit.phone_e164 }}</a></details>
                 @if (visit.status === 'pending') {
                   <div class="mt-3 flex flex-wrap gap-2">
                     <button (click)="updateVisit(visit, 'confirmed')" [disabled]="busy()" class="ui-btn ui-btn-primary">Confirm</button>
@@ -110,7 +109,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                   <button (click)="declining.set(null)" [disabled]="busy()" class="ui-btn ui-btn-ghost">Keep appointment</button>
                 }
               </article>
-            } @empty { <div class="ui-card p-8 text-center"><h2 class="font-bold text-ui-ink">No appointments in this view</h2><p class="mt-2 text-sm text-ui-ink-muted">Clinic bookings assigned to your dentist profile appear here.</p></div> }
+            } @empty { <div class="ui-card p-8 text-center"><h2 class="font-bold text-ui-ink">{{ search() ? 'No matching patients' : 'No appointments in this view' }}</h2>@if (search()) {<button type="button" (click)="search.set('')" class="ui-btn ui-btn-secondary mt-3">Clear search</button>} @else {<p class="mt-2 text-sm text-ui-ink-muted">Clinic bookings assigned to your dentist profile appear here.</p>}</div> }
             @if (visits().length === 200) { <p class="text-sm text-ui-ink-muted">Showing the first 200 appointments in this view.</p> }
           }
         } @else {
@@ -169,6 +168,14 @@ export class ProfessionalWorkspaceComponent implements OnInit {
   readonly tab = signal<'profile' | 'appointments' | 'availability'>('profile');
   readonly verificationStatus = signal('');
   readonly view = signal('upcoming');
+  readonly search = signal('');
+  readonly appointmentViews = [{ id: 'upcoming', label: 'Upcoming' }, { id: 'pending', label: 'Needs confirmation' }, { id: 'history', label: 'Past visits' }];
+  readonly visibleVisits = computed(() => {
+    const query = this.search().trim().toLowerCase();
+    return this.visits().filter(visit => !query || [visit.patient_name, visit.phone_e164, visit.booking_ref].some(value => value.toLowerCase().includes(query)))
+      .slice().sort((first, second) => this.view() === 'upcoming' && first.status !== second.status
+        ? Number(second.status === 'pending') - Number(first.status === 'pending') : 0);
+  });
   readonly visits = signal<Visit[]>([]);
   readonly practices = signal<Practice[]>([]);
   readonly loading = signal(false);
@@ -225,7 +232,7 @@ export class ProfessionalWorkspaceComponent implements OnInit {
     } catch (e) { this.error.set((e as Error).message); }
     finally { this.profileLoading.set(false); }
   }
-  changeView(view: string): void { this.view.set(view); this.declining.set(null); void this.loadVisits(); }
+  changeView(view: string): void { if (view === this.view() || this.busy() || this.loading()) return; this.view.set(view); this.search.set(''); this.declining.set(null); void this.loadVisits(); }
   openDecline(visit: Visit): void { this.reason = ''; this.declining.set(visit); }
   async updateVisit(visit: Visit, status: string, reason?: string): Promise<void> {
     if (this.busy()) return;

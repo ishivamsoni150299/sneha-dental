@@ -84,26 +84,17 @@
                   </div>
                 }
 
-                <dl class="patient-visit-details grid gap-px bg-ui-canvas-subtle sm:grid-cols-3">
-                  <div class="bg-white px-5 py-4 sm:col-span-2">
-                    <dt class="text-xs font-bold uppercase text-ui-ink-muted">Date and time</dt>
-                    <dd class="mt-1 text-sm font-bold text-ui-ink">{{ formatDate(appointment.date) }} at {{ formatSlotDisplay(appointment.time) }}</dd>
-                  </div>
-                  <div class="bg-white px-5 py-4">
-                    <dt class="text-xs font-bold uppercase text-ui-ink-muted">Service</dt>
-                    <dd class="mt-1 text-sm font-bold text-ui-ink">{{ appointment.service }}</dd>
-                  </div>
-                  @if (appointment.doctorName) {
-                    <div class="bg-white px-5 py-4">
-                      <dt class="text-xs font-bold uppercase text-ui-ink-muted">Dentist</dt>
-                      <dd class="mt-1 text-sm font-bold text-ui-ink">{{ appointment.doctorName }}</dd>
-                    </div>
-                  }
-                  <div class="bg-white px-5 py-4" [class.sm:col-span-2]="!appointment.doctorName">
-                    <dt class="text-xs font-bold uppercase text-ui-ink-muted">{{ appointment.consultationMode === 'video' ? 'Video consultation' : 'Clinic' }}</dt>
-                    <dd class="mt-1 text-sm text-ui-ink-soft">{{ appointment.consultationMode === 'video' ? 'Join here 10 minutes before your confirmed appointment.' : (appointment.clinicAddress || 'Address available from the clinic') }}</dd>
-                  </div>
-                </dl>
+                <div class="px-5 py-4">
+                  <p class="font-semibold text-ui-ink">{{ formatDate(appointment.date) }} · {{ formatSlotDisplay(appointment.time) }} IST</p>
+                  @if (appointment.doctorName) {<p class="ui-body mt-1">{{ appointment.doctorName }}</p>}
+                  @if (appointment.consultationMode === 'video') {<p class="ui-caption mt-2">Join here 10 minutes before your confirmed appointment.</p>}
+                  <details class="mt-1">
+                    <summary class="ui-link flex min-h-11 cursor-pointer items-center text-sm">Visit details</summary>
+                    <p class="ui-body">{{ appointment.service }}</p>
+                    @if (appointment.consultationMode !== 'video') {<p class="ui-caption mt-2">{{ appointment.clinicAddress || 'Address available from the clinic' }}</p>}
+                    @if (appointment.marketplaceSlug) {<a [routerLink]="['/dentists', appointment.marketplaceSlug]" class="ui-btn ui-btn-ghost">Clinic profile</a>}
+                  </details>
+                </div>
 
                 @if (rescheduleId() === appointment.id) {
                   <form [formGroup]="rescheduleForm" (ngSubmit)="saveReschedule()" class="border-t border-blue-200 bg-blue-50 p-5">
@@ -202,9 +193,6 @@
                   }
                   @if (appointment.clinicPhone) {
                     <a [href]="'tel:' + appointment.clinicPhone" class="ui-btn ui-btn-ghost ml-auto">Call clinic</a>
-                  }
-                  @if (appointment.marketplaceSlug) {
-                    <a [routerLink]="['/dentists', appointment.marketplaceSlug]" class="ui-btn ui-btn-ghost">Clinic profile</a>
                   }
                 </div>
               </article>

@@ -289,6 +289,14 @@ Before merging UI work, confirm:
 
 ## 13. Consolidation progress
 
+### Simple daily actions — 10 October 2026
+
+Apply a 20-second usability target to frequent tasks for every role, subject to
+real user testing. Show the appointment's next action and keep supplementary
+details expandable. Search updates directly; time links open the short request
+form. Clinic and dentist appointment search stays visible. See
+`UX_SIMPLICITY.md` for implemented paths, validation and remaining scope.
+
 ### Shared authentication controls — 2026-09-27
 
 The shared password form and account recovery now use `ui-field`, `ui-label`,

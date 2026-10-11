@@ -81,6 +81,32 @@ describe('MarketplaceBookingComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Online requests are paused');
   });
 
+  it('makes doctor loading recoverable instead of showing unbookable times', async () => {
+    const fixture = await createStateFixture(clinic());
+    const doctors = TestBed.inject(DoctorService) as jasmine.SpyObj<DoctorService>;
+    doctors.getDoctors.and.rejectWith(new Error('Offline'));
+    await fixture.componentInstance.loadBooking(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Booking unavailable');
+    expect(fixture.nativeElement.querySelector('app-slot-picker')).toBeNull();
+    doctors.getDoctors.and.resolveTo([{ id: 'doctor-1', name: 'Dr. Asha', available: true, qualification: 'BDS', speciality: '', schedule: DEFAULT_SCHEDULE }]);
+    fixture.nativeElement.querySelector('button').click();
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.componentInstance.error()).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-slot-picker')).not.toBeNull();
+  });
+
+  it('keeps the time picker available when a directory time cannot be checked', async () => {
+    const date = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const fixture = await createStateFixture(clinic(), false, '', false, { doctorId: 'doctor-1', date, time: '10:00' });
+    const marketplace = TestBed.inject(MarketplaceService) as jasmine.SpyObj<MarketplaceService>;
+    marketplace.getAvailability.and.rejectWith(new Error('Offline'));
+    fixture.componentInstance.selectedSlot.set(null);
+    await fixture.componentInstance.loadBooking(); fixture.detectChanges();
+    expect(fixture.componentInstance.error()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('We could not check that time');
+    expect(fixture.nativeElement.querySelector('app-slot-picker')).not.toBeNull();
+  });
+
   it('shows a paused state for a clinic that is not accepting new patients', async () => {
     const pausedClinic = clinic();
     pausedClinic.marketplaceProfile = {
@@ -299,10 +325,11 @@ describe('MarketplaceBookingComponent', () => {
     const fixture = await createStateFixture(provider, true, 'video', true);
     fixture.componentInstance.onBooked({ consultationMode: 'video', ref: 'TEST-123', name: 'Patient', date: '2030-01-10', time: '10:00 AM', service: 'Video Consultation' });
     fixture.detectChanges();
-    const receipt = fixture.nativeElement.querySelector('.video-receipt');
+    const receipt = fixture.nativeElement.querySelector('[aria-labelledby="booking-receipt-title"]');
     expect(receipt.textContent).toContain('Pending dentist confirmation');
     expect(receipt.textContent).toContain('10 minutes before your call');
-    expect(receipt.querySelectorAll('a').length).toBe(1);
+    expect(receipt.querySelectorAll('a.ui-btn-primary').length).toBe(1);
+    expect(receipt.querySelector('a.ui-btn-primary').getAttribute('href')).toBe('/appointments');
     expect(receipt.textContent).not.toContain('two working hours');
   });
 
