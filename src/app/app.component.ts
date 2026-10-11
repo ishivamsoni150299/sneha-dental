@@ -4,11 +4,12 @@ import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationErr
 import { SeoService } from './core/services/seo.service';
 import { ClinicConfigService } from './core/services/clinic-config.service';
 import { AnalyticsService } from './core/services/analytics.service';
+import { PlatformAgentComponent } from './shared/components/platform-agent/platform-agent.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, PlatformAgentComponent],
   template: `
     <!-- Route progress bar -->
     @if (navigating()) {
@@ -18,6 +19,7 @@ import { AnalyticsService } from './core/services/analytics.service';
     }
 
     <router-outlet />
+    <app-platform-agent />
   `,
   styles: [`
     @keyframes route-progress {

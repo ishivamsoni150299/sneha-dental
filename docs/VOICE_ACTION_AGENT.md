@@ -1,8 +1,47 @@
 # MyDentalPlatform voice action agent
 
-Status: architecture proposal, 11 October 2026. No voice agent is enabled in
-production. OpenAI Platform rejected project discovery during setup; no project
-selection, key creation, model-access check or live API request has succeeded.
+Status: first implementation, 11 October 2026; disabled by default. The owner
+reports that `OPENAI_API_KEY` is configured in Render. No live provider request
+or microphone conversation has been verified from this workspace.
+
+## Delivered preview and rollout
+
+- The global Angular Mili character supports typing, live voice transport,
+  captions, mute/stop, guarded navigation and a clinic review card.
+- Spring uses Decisions for navigation and the Agents API with tool-only
+  `environment: none` for missing details and clinic drafts. GPT-Live uses
+  WebRTC with a server-authenticated SDP exchange; the secret never reaches
+  the browser. The server only dispatches registered application tools.
+- Clinic creation reuses the existing onboarding service. It is available only
+  to `incomplete_signup` accounts. Existing dentists cannot create an owned
+  clinic through this preview; the membership work described below is pending.
+- Drafts expire after 15 minutes and are bound to the user and session family.
+  Confirmation locks the draft and saves the clinic and result transactionally;
+  repeated confirmation returns the same clinic. Corrections invalidate drafts.
+- Limits are 60 task turns and six voice sessions per account per hour, plus
+  IP limits. Browser and server sideband timers request voice closure after
+  180 seconds. These in-process timers are not a durable provider billing cap;
+  sideband loss or a server restart still needs live failure testing.
+- Booking, rescheduling, payments and settings writes remain page workflows.
+  Mili can open supported pages but cannot perform those writes yet.
+
+Render configuration: keep `OPENAI_API_KEY` server-side, use
+`VOICE_AGENT_ENABLED=true` to enable a controlled preview, and optionally set
+`OPENAI_AGENT_MODEL` (default `gpt-6-astra`). The voice and routing models are
+`gpt-live-1` and `gpt-6-luna`. A key alone does not enable the launcher; with the
+flag absent `/api/agent/status` reports unavailable. Do not advertise voice as
+a paid feature until live acceptance passes.
+
+Validation: 265 Angular tests, 27 focused Java/security/database tests, lint,
+production build and artifact checks pass. The database test applies all 29
+migrations and confirms that concurrent confirmations create exactly one clinic.
+Browser checks use API fixtures; they do not prove provider access, microphone
+delivery or the 20-second task target. Before enabling a wider pilot, verify
+all three provider APIs, permission denial, interruption, disconnect recovery,
+spoken corrections and confirmed clinic creation against an isolated database.
+Provider transcripts are not persisted by the application; voice requests set
+`store: false`, and Agent sessions are deleted after turns. Failed cleanup is
+logged for follow-up. Confirm project retention settings before real users.
 
 ## Product contract
 
@@ -152,8 +191,8 @@ only the existing eligible clinic-signup path can create a clinic.
 
 ## Implementation sequence and acceptance
 
-1. Restore OpenAI Platform access, select the named project, confirm the secret's
-   local destination, and validate API access with a bounded synthetic request.
+1. Validate the Render project's API access with a bounded synthetic request;
+   the owner has already configured the server secret.
 2. Implement the original character, captions and persisted task panel behind
    a disabled-by-default feature flag. Verify keyboard and reduced-motion use.
 3. Connect live voice to allowed navigation and read-only actions. Test spoken

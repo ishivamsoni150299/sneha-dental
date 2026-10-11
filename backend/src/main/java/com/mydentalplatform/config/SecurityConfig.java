@@ -82,6 +82,7 @@ public class SecurityConfig {
                     "/api/auth/refresh", "/api/auth/logout", "/api/auth/password-reset/**").permitAll()
                 .requestMatchers("/webhooks/**").permitAll()
                 .requestMatchers(SpaRoutingConfig::isBrowserNavigation).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/agent/status").permitAll()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
             .addFilterAfter(new VerifiedSessionFilter(jdbc, testPhoneOtp), org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
