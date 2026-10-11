@@ -29,7 +29,21 @@ export class PlatformAgentComponent {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   @ViewChild('launcher') launcher?: ElementRef<HTMLButtonElement>;
   @ViewChild('command') command?: ElementRef<HTMLInputElement>;
+  @ViewChild('taskCanvas') taskCanvas?: ElementRef<HTMLElement>;
+  @ViewChild('editName') editName?: ElementRef<HTMLInputElement>;
   readonly open = signal(false);
+  readonly expanded = signal(true);
+  readonly taskTitle = signal('What would you like to do?');
+  readonly shortcuts = computed(() => {
+    const common = [{ title: 'Find a dentist', detail: 'Explore dentists and available times', path: '/dentists' },
+      { title: 'My appointments', detail: 'Open your appointments', path: '/appointments' }];
+    const role = this.auth.role();
+    if (role === 'incomplete-signup') return [{ title: 'Set up my clinic', detail: 'Prepare a clinic for your review', prompt: 'Help me set up my clinic' }, common[0]];
+    if (role === 'clinic-admin') return [{ title: 'Clinic workspace', detail: 'Appointments and daily work', path: '/workspace' },
+      { title: 'Clinic settings', detail: 'Manage your clinic details', path: '/business/clinic/settings' }];
+    if (role === 'dentist' || role === 'platform-admin') return [{ title: 'My workspace', detail: 'Open your professional workspace', path: '/workspace' }, common[0]];
+    return common;
+  });
   readonly available = signal(false);
   readonly checked = signal(false);
   readonly busy = signal(false);
@@ -40,6 +54,9 @@ export class PlatformAgentComponent {
   readonly error = signal('');
   readonly caption = signal('');
   readonly state = computed(() => this.busy() ? 'working' : this.result()?.draftId ? 'review' : this.voice() !== 'off' ? this.voice() : 'idle');
+  readonly taskStatus = computed(() => this.busy() ? 'Working' : this.error() ? 'Needs attention' : this.result()?.draftId ? 'Review before creating' : this.result()?.status === 'succeeded' ? 'Completed' : this.result()?.status === 'navigate' ? 'Page opened' : this.result()?.status === 'needs_input' ? 'Your input needed' : 'Ready when you are');
+  readonly editing = signal(false);
+  editDraft = { name: '', phone: '', city: '', slug: '' };
   input = '';
   private connection?: LiveConnection;
   private userSpeech = '';
@@ -59,6 +76,7 @@ export class PlatformAgentComponent {
       this.abort?.abort(); this.connection?.stop(); this.connection = undefined;
       this.voice.set('off'); this.busy.set(false); this.result.set(null); this.messages.set([]); this.caption.set(''); this.input = ''; this.userSpeech = '';
       this.voiceTask = Promise.resolve('');
+      this.editing.set(false); this.taskTitle.set('What would you like to do?');
     });
     inject(DestroyRef).onDestroy(() => { this.generation++; this.abort?.abort(); this.connection?.stop(); });
     if (this.browser) void this.checkAvailability();
@@ -84,10 +102,59 @@ export class PlatformAgentComponent {
   @HostListener('document:keydown.escape') onEscape(): void { if (this.open()) this.close(); }
   signIn(): void { this.close(); void this.router.navigateByUrl('/account'); }
 
+  newTask(): void {
+    if (this.busy() || this.result()?.draftId) return;
+    this.stopVoice(); this.messages.set([]); this.result.set(null); this.error.set('');
+    this.input = ''; this.taskTitle.set('What would you like to do?');
+    if (this.browser) setTimeout(() => this.command?.nativeElement.focus());
+  }
+
+  async choose(shortcut: { title: string; path?: string; prompt?: string }): Promise<void> {
+    if (this.busy() || this.result()?.draftId) return;
+    if (shortcut.prompt) { await this.send(shortcut.prompt); return; }
+    if (!shortcut.path || !DESTINATIONS.has(shortcut.path)) return;
+    this.taskTitle.set(shortcut.title); this.error.set(''); this.busy.set(true);
+    const version = this.generation;
+    try {
+      if (this.router.url !== shortcut.path && !await this.router.navigateByUrl(shortcut.path)) throw new Error('The page could not open. Please use the navigation.');
+      if (version !== this.generation) return;
+      this.result.set({ status: 'navigate', path: shortcut.path, message: `${shortcut.title} is open. Continue on the page whenever you’re ready.` });
+      this.revealTask();
+    } catch (error) {
+      if (version === this.generation) this.error.set(error instanceof Error ? error.message : 'The page could not open.');
+    } finally { if (version === this.generation) this.busy.set(false); }
+  }
+
+  beginEdit(): void {
+    const draft = this.result()?.draft;
+    if (!draft || this.busy()) return;
+    this.stopVoice(); this.editDraft = { ...draft }; this.editing.set(true);
+    if (this.browser) setTimeout(() => this.editName?.nativeElement.focus());
+  }
+
+  async saveEdit(): Promise<void> {
+    const id = this.result()?.draftId;
+    if (!id || this.busy()) return;
+    const version = this.generation;
+    this.busy.set(true); this.error.set('');
+    try {
+      const response = await this.api.fetch(`/api/agent/drafts/${encodeURIComponent(id)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.editDraft),
+      });
+      const result = await this.read(response);
+      if (version !== this.generation) return;
+      this.result.set(result); this.editing.set(false);
+      this.revealTask();
+    } catch (error) {
+      if (version === this.generation) this.error.set(error instanceof Error ? error.message : 'The details could not be updated.');
+    } finally { if (version === this.generation) this.busy.set(false); }
+  }
+
   async send(text = this.input): Promise<string> {
     const trimmed = text.trim().slice(0, 2000);
-    if (!trimmed || this.busy()) return 'Please wait for the current request to finish.';
+    if (!trimmed || this.busy() || this.editing()) return 'Please finish the current request first.';
     const version = this.generation;
+    this.taskTitle.set(trimmed); this.editing.set(false);
     this.busy.set(true); this.error.set(''); this.input = '';
     const history = this.messages().slice(-8).map(message => `${message.role}: ${message.text}`.slice(0, 1000));
     const draftId = this.result()?.draftId;
@@ -110,7 +177,7 @@ export class PlatformAgentComponent {
 
   async confirm(): Promise<string> {
     const draftId = this.result()?.draftId;
-    if (!draftId || this.busy()) return 'There is no clinic draft ready to confirm.';
+    if (!draftId || this.busy() || this.editing()) return 'Please finish reviewing the clinic details before confirming.';
     const version = this.generation;
     this.busy.set(true); this.error.set('');
     try {
@@ -139,12 +206,13 @@ export class PlatformAgentComponent {
       if (!response.ok) throw new Error('The draft could not be cancelled. Please try again.');
       if (version !== this.generation) return;
       this.result.set(null); this.error.set('');
+      this.editing.set(false); this.taskTitle.set('What would you like to do?');
     } catch (error) { if (version === this.generation) this.error.set(error instanceof Error ? error.message : 'Please try again.'); }
     finally { if (version === this.generation) this.busy.set(false); }
   }
 
   async startVoice(): Promise<void> {
-    if (this.voice() !== 'off' || this.busy()) return;
+    if (this.voice() !== 'off' || this.busy() || this.editing()) return;
     this.error.set(''); this.voice.set('connecting'); this.userSpeech = ''; this.muted.set(false);
     const version = this.generation;
     const connection = new LiveConnection({
@@ -186,6 +254,7 @@ export class PlatformAgentComponent {
       this.voice.set('off');
       this.error.set(error instanceof DOMException && error.name === 'NotAllowedError'
         ? 'Microphone permission was denied. You can type your request.' : error instanceof Error ? error.message : 'Voice could not start.');
+      this.revealTask();
     }
   }
   stopVoice(): void { this.connection?.stop(); this.connection = undefined; this.voice.set('off'); this.userSpeech = ''; }
@@ -197,11 +266,21 @@ export class PlatformAgentComponent {
     return data;
   }
   private async apply(result: AgentResult): Promise<void> {
-    this.result.set(result);
-    this.messages.update(messages => [...messages.slice(-7), { role: 'assistant', text: result.message }]);
+    const version = this.generation;
     if (result.path) {
       if (!DESTINATIONS.has(result.path)) throw new Error('That destination is not supported.');
-      if (!await this.router.navigateByUrl(result.path)) throw new Error('The page could not open. Please use the navigation.');
+      if (this.router.url !== result.path && !await this.router.navigateByUrl(result.path)) throw new Error('The page could not open. Please use the navigation.');
     }
+    if (version !== this.generation) return;
+    this.result.set(result);
+    this.messages.update(messages => [...messages.slice(-7), { role: 'assistant', text: result.message }]);
+    if (result.status !== 'needs_input') this.revealTask();
+  }
+
+  private revealTask(): void {
+    if (this.browser) setTimeout(() => {
+      this.taskCanvas?.nativeElement.focus({ preventScroll: true });
+      if (window.matchMedia('(max-width: 760px)').matches) this.taskCanvas?.nativeElement.scrollIntoView({ block: 'start' });
+    });
   }
 }

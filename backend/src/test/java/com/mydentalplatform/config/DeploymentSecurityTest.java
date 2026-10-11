@@ -43,7 +43,8 @@ class DeploymentSecurityTest {
             "platform.auth.secret=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             "platform.auth.issuer=http://localhost:8080");
         context.register(TestConfig.class, SecurityConfig.class, SpaRoutingConfig.class,
-            PlatformAdminController.class, LeadController.class, ReviewController.class, VideoConsultationController.class);
+            PlatformAdminController.class, LeadController.class, ReviewController.class, VideoConsultationController.class,
+            com.mydentalplatform.agent.AgentController.class);
         context.refresh();
         org.mockito.Mockito.when(context.getBean(JdbcTemplate.class).queryForObject(org.mockito.ArgumentMatchers.contains("select exists"), org.mockito.ArgumentMatchers.eq(Boolean.class), org.mockito.ArgumentMatchers.any(Object[].class))).thenReturn(true);
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
@@ -51,6 +52,23 @@ class DeploymentSecurityTest {
 
     @AfterEach
     void close() { context.close(); }
+
+    @org.junit.jupiter.api.Test
+    void agentDraftEditsRequireALiveVerifiedSession() throws Exception {
+        String path = "/api/agent/drafts/" + java.util.UUID.randomUUID();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(path)
+            .contentType("application/json").content("{}"))
+            .andExpect(status().isUnauthorized());
+        org.mockito.Mockito.when(context.getBean(JdbcTemplate.class).queryForObject(org.mockito.ArgumentMatchers.contains("select exists"),
+            org.mockito.ArgumentMatchers.eq(Boolean.class), org.mockito.ArgumentMatchers.any(Object[].class))).thenReturn(false);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(path)
+            .with(jwt().jwt(token -> token.subject("7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b0")
+                .claim("sid", "7cdfacdd-1d6f-4e1d-b7d9-6c59c75428b1").claim("role", "incomplete-signup")))
+            .contentType("application/json").content("{}"))
+            .andExpect(status().isUnauthorized());
+        org.mockito.Mockito.verifyNoInteractions(context.getBean(com.mydentalplatform.agent.AgentActions.class),
+            context.getBean(com.mydentalplatform.agent.OpenAiAgentClient.class));
+    }
 
     @org.junit.jupiter.api.Test
     void videoHostRequiresClinicRoleAndUsesJwtClinicScope() throws Exception {
@@ -117,6 +135,8 @@ class DeploymentSecurityTest {
             return new com.mydentalplatform.auth.TestPhoneOtp(false, "1970-01-01T00:00:00Z");
         }
         @Bean JdbcTemplate jdbcTemplate() { return mock(JdbcTemplate.class); }
+        @Bean com.mydentalplatform.agent.AgentActions agentActions() { return mock(com.mydentalplatform.agent.AgentActions.class); }
+        @Bean com.mydentalplatform.agent.OpenAiAgentClient openAiAgentClient() { return mock(com.mydentalplatform.agent.OpenAiAgentClient.class); }
         @Bean com.mydentalplatform.billing.BillingService billingService() { return mock(com.mydentalplatform.billing.BillingService.class); }
         @Bean ObjectMapper objectMapper() { return new ObjectMapper(); }
         @Bean VideoConsultationService videoConsultationService() { return mock(VideoConsultationService.class); }

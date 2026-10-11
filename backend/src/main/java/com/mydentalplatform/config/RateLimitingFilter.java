@@ -52,7 +52,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String ruleKey = method + ":" + path;
 
         LimitRule rule = null;
-        if (method.equals("POST") && path.startsWith("/api/agent/")) {
+        if ((method.equals("POST") || method.equals("PUT")) && path.startsWith("/api/agent/")) {
             rule = new LimitRule(path.equals("/api/agent/voice") ? 6 : 30, 60);
             ruleKey = path.equals("/api/agent/voice") ? "POST:agent-voice" : "POST:agent-actions";
         }

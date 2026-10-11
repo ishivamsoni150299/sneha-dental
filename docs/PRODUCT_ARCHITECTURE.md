@@ -2,6 +2,15 @@
 
 ## New requested capability: voice action agent
 
+Agent-driven UI direction (11 October 2026): users describe a goal and work with
+contextual task cards, direct choices, review and saved outcomes. The first
+workspace implementation expands Mili into a conversation/task canvas and adds
+transactional revision of clinic drafts. Keep domain execution behind verified
+application tools; the model does not generate executable UI or grant access.
+Next steps are resumable server-owned tasks and complete booking/clinic-owner
+journeys, each with acceptance evidence. Current workspace conversation is
+ephemeral and clinic creation still requires an eligible signup account.
+
 On 11 October 2026 the user explicitly requested a character that performs
 platform tasks through speech, including clinic creation. The proposed API
 choices, action boundaries, account-model prerequisite and implementation

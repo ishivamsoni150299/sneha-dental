@@ -5,52 +5,95 @@
   </button>
 }
 @if (open()) {
-  <section id="mili-panel" class="mili-panel" aria-labelledby="mili-title" (keydown.escape)="close()">
+  <section id="mili-panel" class="mili-panel" [class.expanded]="expanded()" aria-labelledby="mili-title">
     <header>
-      <div><h2 id="mili-title">Meet Mili <span>AI assistant · Preview</span></h2><p>Tell me what you need done.</p></div>
-      <button class="icon-button" type="button" aria-label="Close assistant" (click)="close()">×</button>
+      <div class="brand"><span class="brand-dot" aria-hidden="true"></span><h2 id="mili-title">Mili <span>Your dental assistant · Preview</span></h2></div>
+      <div class="header-actions">
+        <button type="button" (click)="expanded.set(!expanded())" [attr.aria-label]="expanded() ? 'Use compact assistant' : 'Expand assistant workspace'">{{ expanded() ? 'Compact' : 'Expand' }}</button>
+        <button class="icon-button" type="button" aria-label="Close assistant" (click)="close()">×</button>
+      </div>
     </header>
-    <div class="mili-stage" [attr.data-state]="state()">
-      <span class="mili-character large" aria-hidden="true"><span class="eyes"><i></i><i></i></span><span class="smile"></span></span>
-      <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : result()?.draftId ? 'Ready for your review' : 'A little help. A lot less clicking.' }}</p>
-    </div>
-    @if (!auth.currentUser()) {
-      <p class="notice">Sign in so I can help with your account and workspace.</p>
-      <button class="primary" type="button" (click)="signIn()">Sign in to continue</button>
-    } @else if (!available()) {
-      <p class="notice">Mili isn’t available yet. You can keep using the page controls.</p>
-    } @else {
-      <div class="conversation" role="log" aria-live="polite" aria-label="Conversation">
-        @if (!messages().length) {
-          <p>Try “open my appointments” or “help me set up a clinic.”</p>
-        }
-        @for (message of messages(); track $index) {
-          <p [class.user-message]="message.role === 'user'"><span class="speaker">{{ message.role === 'user' ? 'You' : 'Mili' }}</span>{{ message.text }}</p>
-        }
-      </div>
-      @if (result()?.draft; as draft) {
-        <article class="draft" aria-labelledby="mili-draft-title">
-          <h3 id="mili-draft-title">Your clinic, ready to create</h3>
-          <dl><dt>Name</dt><dd>{{ draft.name }}</dd><dt>Phone</dt><dd>{{ draft.phone }}</dd><dt>City</dt><dd>{{ draft.city }}</dd><dt>Web address</dt><dd>{{ draft.slug }}.mydentalplatform.com</dd><dt>Plan</dt><dd>Trial · no payment taken</dd></dl>
-          <p>Publication requires verification. Say “create this clinic” or confirm below.</p>
-          <div class="actions"><button class="primary" type="button" [disabled]="busy()" (click)="confirm()">Confirm & create clinic</button><button type="button" [disabled]="busy()" (click)="cancel()">Cancel</button></div>
-        </article>
-      }
-      @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
-      <div class="voice-controls">
-        @if (voice() === 'off') {
-          <button class="primary" type="button" [disabled]="busy()" (click)="startVoice()">Start talking</button>
+    <div class="workspace-body">
+      <div class="dialogue">
+        <div class="mili-stage" [attr.data-state]="state()" [class.has-conversation]="messages().length">
+          <span class="mili-character large" aria-hidden="true"><span class="eyes"><i></i><i></i></span><span class="smile"></span></span>
+          <h3>{{ messages().length ? 'Let’s take care of it.' : 'A little help. A lot less clicking.' }}</h3>
+          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : 'Speak naturally, type a request, or choose a task.' }}</p>
+        </div>
+        @if (!auth.currentUser()) {
+          <p class="notice">Sign in so I can help with your account and workspace.</p>
+          <button class="primary" type="button" (click)="signIn()">Sign in to continue</button>
+        } @else if (!available()) {
+          <p class="notice">Mili isn’t available yet. You can keep using the page controls.</p>
         } @else {
-          <button type="button" [attr.aria-pressed]="muted()" (click)="toggleMute()">{{ muted() ? 'Unmute' : 'Mute' }}</button>
-          <button type="button" (click)="stopVoice()">Stop voice</button>
+          @if (!messages().length && !result()) {
+            <div class="shortcuts" aria-label="Suggested tasks">
+              @for (shortcut of shortcuts(); track shortcut.title) {
+                <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span>{{ shortcut.title }}</span><small>{{ shortcut.detail }}</small><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
+              }
+            </div>
+          }
+          <div class="conversation" role="log" aria-live="polite" aria-label="Conversation">
+            @for (message of messages(); track $index) {
+              <p [class.user-message]="message.role === 'user'"><span class="speaker">{{ message.role === 'user' ? 'You' : 'Mili' }}</span>{{ message.text }}</p>
+            }
+          </div>
+          <div class="composer">
+            @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
+            <form (ngSubmit)="send()">
+              <label for="mili-command">What would you like to do?</label>
+              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" placeholder="Tell Mili…" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary" type="submit" [disabled]="busy() || editing() || !input.trim()">Send</button></div>
+            </form>
+            <div class="voice-controls">
+              @if (voice() === 'off') {
+                <button type="button" [disabled]="busy() || editing()" (click)="startVoice()"><span aria-hidden="true">◉</span> Start talking</button>
+              } @else {
+                <button type="button" [attr.aria-pressed]="muted()" (click)="toggleMute()"> {{ muted() ? 'Unmute' : 'Mute' }}</button>
+                <button type="button" (click)="stopVoice()">Stop voice</button>
+              }
+              <small>AI by OpenAI · Keep passwords private</small>
+            </div>
+          </div>
         }
-        <small>Requests are processed by OpenAI. Keep passwords private.</small>
       </div>
-      <form (ngSubmit)="send()">
-        <label for="mili-command">Or type your request</label>
-        <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" placeholder="What can I do for you?" [disabled]="busy()"><button type="submit" [disabled]="busy() || !input.trim()">Send</button></div>
-      </form>
-    }
-    @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+      @if (auth.currentUser() && available()) {
+        <aside #taskCanvas class="task-canvas" tabindex="-1" aria-labelledby="task-heading" [attr.aria-busy]="busy()">
+          <div class="task-label"><span>YOUR TASK</span><span class="status" role="status">{{ taskStatus() }}</span></div>
+          <h3 id="task-heading">{{ taskTitle() }}</h3>
+          @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+          @let outcome = result();
+          @if (result()?.draft; as draft) {
+            <article class="draft" aria-labelledby="mili-draft-title">
+              <div class="draft-heading"><span class="document-mark" aria-hidden="true">✦</span><div><h4 id="mili-draft-title">Your clinic, ready to create</h4><p>Check the details. You’re in control.</p></div></div>
+              @if (editing()) {
+                <form class="edit-form" (ngSubmit)="saveEdit()">
+                  <label for="mili-name">Clinic name</label><input #editName id="mili-name" name="name" [(ngModel)]="editDraft.name" required maxlength="160" [disabled]="busy()">
+                  <label for="mili-phone">Clinic phone</label><input id="mili-phone" name="phone" [(ngModel)]="editDraft.phone" type="tel" required maxlength="24" [disabled]="busy()">
+                  <label for="mili-city">City</label><input id="mili-city" name="city" [(ngModel)]="editDraft.city" required maxlength="120" [disabled]="busy()">
+                  <label for="mili-slug">Web address name</label><input id="mili-slug" name="slug" [(ngModel)]="editDraft.slug" required pattern="[a-zA-Z0-9]{3,30}" maxlength="30" [disabled]="busy()">
+                  <div class="actions"><button class="primary" type="submit" [disabled]="busy()">Review changes</button><button type="button" [disabled]="busy()" (click)="editing.set(false)">Keep original</button></div>
+                </form>
+              } @else {
+                <dl><dt>Name</dt><dd>{{ draft.name }}</dd><dt>Phone</dt><dd>{{ draft.phone }}</dd><dt>City</dt><dd>{{ draft.city }}</dd><dt>Web address</dt><dd>{{ draft.slug }}.mydentalplatform.com</dd><dt>Plan</dt><dd>Trial · no payment taken</dd></dl>
+                <p class="review-note">Publication requires verification. Say “create this clinic” or confirm below.</p>
+                <button class="primary confirm" type="button" [disabled]="busy()" (click)="confirm()">Confirm & create clinic</button>
+                <div class="actions"><button type="button" [disabled]="busy()" (click)="beginEdit()">Edit details</button><button type="button" [disabled]="busy()" (click)="cancel()">Cancel</button></div>
+              }
+            </article>
+          } @else if (outcome) {
+            <div class="outcome" [class.complete]="outcome.status === 'succeeded' || outcome.status === 'navigate'">
+              <span class="outcome-mark" aria-hidden="true">{{ outcome.status === 'needs_input' ? '…' : '✓' }}</span>
+              <h4>{{ outcome.status === 'succeeded' ? 'All set.' : outcome.status === 'navigate' ? 'Ready to continue.' : 'One more detail.' }}</h4>
+              <p>{{ outcome.message }}</p>
+              @if (outcome.path && !error()) { <button class="primary" type="button" (click)="close()">Continue on the page →</button> }
+              <div class="actions"><button type="button" [disabled]="busy()" (click)="newTask()">Start another task</button></div>
+            </div>
+          } @else {
+            <div class="task-empty"><span aria-hidden="true">✦</span><h4>{{ busy() ? 'Putting your request together' : 'From “I need” to done.' }}</h4><p>{{ busy() ? 'Your next step will appear here when it’s ready.' : 'Choices, details to review and completed actions appear here as we work together.' }}</p></div>
+          }
+          <p class="task-footnote">{{ result()?.draftId ? 'Nothing is created until you confirm.' : 'You can open pages and prepare a new clinic. Other tasks continue in the page controls.' }}</p>
+        </aside>
+      }
+    </div>
   </section>
 }

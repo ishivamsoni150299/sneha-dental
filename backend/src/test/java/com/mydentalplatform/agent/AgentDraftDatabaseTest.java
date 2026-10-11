@@ -32,11 +32,22 @@ class AgentDraftDatabaseTest {
             var actor = Jwt.withTokenValue("test").header("alg", "HS256").subject(user.toString())
                 .claim("sid", family.toString()).claim("role", "incomplete-signup").claim("email", "agent-owner@example.test").build();
             var draft = actions.prepare(json.readTree("{\"name\":\"Smile Agent\",\"phone\":\"9999999999\",\"city\":\"Delhi\",\"slug\":\"smileagent\"}"), actor);
-            UUID id = UUID.fromString((String) draft.get("draftId"));
+            UUID originalId = UUID.fromString((String) draft.get("draftId"));
             assertEquals(0, jdbc.queryForObject("select count(*) from clinics where name = 'Smile Agent'", Integer.class));
             var otherSession = Jwt.withTokenValue("test").header("alg", "HS256").subject(user.toString())
                 .claim("sid", UUID.randomUUID().toString()).claim("role", "incomplete-signup").build();
-            assertThrows(ResponseStatusException.class, () -> transaction.execute(status -> actions.confirm(id, otherSession)));
+            assertThrows(ResponseStatusException.class, () -> transaction.execute(status -> actions.confirm(originalId, otherSession)));
+            var details = json.readTree("{\"name\":\"Smile Agent\",\"phone\":\"9999999999\",\"city\":\"Noida\",\"slug\":\"smileagent\"}");
+            assertThrows(ResponseStatusException.class, () -> transaction.execute(status -> actions.revise(originalId, details, otherSession)));
+            var invalid = json.readTree("{\"name\":\"Smile Agent\",\"phone\":\"9999999999\",\"city\":\"Noida\",\"slug\":\"!\"}");
+            assertThrows(ResponseStatusException.class, () -> transaction.execute(status -> actions.revise(originalId, invalid, actor)));
+            assertEquals("pending", jdbc.queryForObject("select status from agent_action_drafts where id = ?", String.class, originalId));
+            var revised = transaction.execute(status -> actions.revise(originalId, details, actor));
+            UUID id = UUID.fromString((String) revised.get("draftId"));
+            assertNotEquals(originalId, id);
+            assertEquals("cancelled", jdbc.queryForObject("select status from agent_action_drafts where id = ?", String.class, originalId));
+            assertThrows(ResponseStatusException.class, () -> transaction.execute(status -> actions.confirm(originalId, actor)));
+            assertEquals("Noida", jdbc.queryForObject("select payload->>'city' from agent_action_drafts where id = ?", String.class, id));
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
                 var first = executor.submit(() -> transaction.execute(status -> actions.confirm(id, actor)));
                 var second = executor.submit(() -> transaction.execute(status -> actions.confirm(id, actor)));

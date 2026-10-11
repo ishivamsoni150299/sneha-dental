@@ -84,6 +84,20 @@ public class AgentActions {
     }
 
     @Transactional
+    public Map<String, Object> revise(UUID id, JsonNode details, Jwt actor) {
+        var rows = jdbc.queryForList("""
+            select id from agent_action_drafts
+            where id = ? and user_id = ? and session_family = ? and status = 'pending'
+              and expires_at > now() for update
+            """, id, UUID.fromString(actor.getSubject()), UUID.fromString(actor.getClaimAsString("sid")));
+        if (rows.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT, "This draft is no longer editable. Please prepare it again.");
+        var revised = prepare(details, actor);
+        if (!revised.containsKey("draftId")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, revised.get("message").toString());
+        cancel(id, actor);
+        return revised;
+    }
+
+    @Transactional
     public Map<String, Object> confirm(UUID id, Jwt actor) {
         var rows = jdbc.queryForList("""
             select payload::text, status, result::text from agent_action_drafts

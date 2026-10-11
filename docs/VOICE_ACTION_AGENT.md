@@ -6,6 +6,18 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
+- Mili now opens an expandable task workspace: conversation and input alongside
+  a task canvas on desktop, stacked on phones. The canvas shows actual request
+  state, missing information, review details and the saved result. It does not
+  simulate a multi-step plan or progress percentage.
+- Role-specific shortcuts navigate directly without model calls. A fresh task
+  clears conversational context; a pending draft must be cancelled or completed
+  first. Workspace state survives route navigation, but not a browser reload.
+- Clinic drafts can be edited directly in the review card. `PUT /api/agent/drafts/{id}`
+  checks the verified session, locks the owned pending draft, validates details
+  through the same preparation service, and atomically replaces it with a new
+  draft ID. The old confirmation cannot create a clinic. Invalid edits leave the
+  original draft unchanged. This endpoint does not call OpenAI.
 - The global Angular Mili character supports typing, live voice transport,
   captions, mute/stop, guarded navigation and a clinic review card.
 - Spring uses Decisions for navigation and the Agents API with tool-only
@@ -42,6 +54,17 @@ spoken corrections and confirmed clinic creation against an isolated database.
 Provider transcripts are not persisted by the application; voice requests set
 `store: false`, and Agent sessions are deleted after turns. Failed cleanup is
 logged for follow-up. Confirm project retention settings before real users.
+
+Task workspace follow-up: the expanded frontend suite passed 270 tests; all 14
+final focused tests pass, including fresh tasks and already-open navigation.
+The 28 Java/security/database checks
+cover invalid edit rollback, old-confirmation rejection, session ownership and
+revoked-session rejection alongside concurrent creation. Live voice and timed
+user acceptance remain open; editable cards do not expand account eligibility.
+Fixture browser journeys pass at 320, 390 and 1440 pixels: direct navigation
+without an AI request, microphone denial, draft edits, separate confirmation,
+compact mode, Escape dismissal and overflow checks. Lint, production build and
+artifact checks also pass. These fixtures do not prove live provider delivery.
 
 ## Product contract
 

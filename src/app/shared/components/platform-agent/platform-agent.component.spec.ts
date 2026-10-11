@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthFacade, PlatformUser } from '../../../core/services/auth-facade.service';
+import { AuthFacade, AuthRole, PlatformUser } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { PlatformAgentComponent } from './platform-agent.component';
 
@@ -12,6 +12,7 @@ describe('PlatformAgentComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let currentUser: ReturnType<typeof signal<PlatformUser | null>>;
   let refresh: jasmine.Spy;
+  let role: ReturnType<typeof signal<AuthRole | null>>;
   const owner: PlatformUser = { uid: 'owner', email: 'owner@example.test', emailVerified: true, phoneNumber: null, clinicId: null };
   const draft = { status: 'needs_confirmation' as const, message: 'Review before creating.', draftId: 'draft-1',
     draft: { name: 'My clinic', phone: '9999999999', city: 'Delhi', slug: 'myclinic', plan: 'trial' } };
@@ -19,13 +20,14 @@ describe('PlatformAgentComponent', () => {
   beforeEach(async () => {
     spyOn(window, 'fetch').and.resolveTo(new Response(JSON.stringify({ available: true })));
     currentUser = signal<PlatformUser | null>(owner);
+    role = signal<AuthRole | null>('incomplete-signup');
     api = jasmine.createSpyObj<AuthenticatedApiService>('api', ['fetch']);
     router = jasmine.createSpyObj<Router>('router', ['navigateByUrl']);
     router.navigateByUrl.and.resolveTo(true);
     refresh = jasmine.createSpy('resolveCurrentUser').and.resolveTo('clinic-admin');
     await TestBed.configureTestingModule({ imports: [PlatformAgentComponent], providers: [
       { provide: AuthenticatedApiService, useValue: api }, { provide: Router, useValue: router },
-      { provide: AuthFacade, useValue: { currentUser, resolveCurrentUser: refresh } },
+      { provide: AuthFacade, useValue: { currentUser, role, resolveCurrentUser: refresh } },
     ] }).compileComponents();
     fixture = TestBed.createComponent(PlatformAgentComponent); component = fixture.componentInstance;
     fixture.detectChanges(); await fixture.whenStable();
@@ -78,5 +80,57 @@ describe('PlatformAgentComponent', () => {
   it('clears a draft after successful cancellation', async () => {
     component.result.set(draft); api.fetch.and.resolveTo(new Response(null, { status: 204 }));
     await component.cancel(); expect(component.result()).toBeNull();
+  });
+
+  it('opens a shortcut directly without a model request', async () => {
+    role.set('patient');
+    await component.choose(component.shortcuts()[1]);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/appointments');
+    expect(api.fetch).not.toHaveBeenCalled();
+    expect(component.taskStatus()).toBe('Page opened');
+  });
+  it('offers clinic setup only to eligible accounts', () => {
+    expect(component.shortcuts().some(item => item.title === 'Set up my clinic')).toBeTrue();
+    role.set('dentist');
+    expect(component.shortcuts().some(item => item.title === 'Set up my clinic')).toBeFalse();
+  });
+  it('does not report a blocked navigation as complete', async () => {
+    router.navigateByUrl.and.resolveTo(false);
+    await component.choose({ title: 'Appointments', path: '/appointments' });
+    expect(component.result()).toBeNull();
+    expect(component.taskStatus()).toBe('Needs attention');
+  });
+  it('recognizes a page that is already open', async () => {
+    Object.defineProperty(router, 'url', { value: '/appointments', configurable: true });
+    router.navigateByUrl.and.resolveTo(false);
+    await component.choose({ title: 'Appointments', path: '/appointments' });
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(component.taskStatus()).toBe('Page opened');
+  });
+  it('requires a revised draft to be reviewed before confirmation', async () => {
+    component.result.set(draft); component.beginEdit();
+    component.editDraft.city = 'Noida';
+    await component.confirm(); expect(api.fetch).not.toHaveBeenCalled();
+    api.fetch.and.resolveTo(new Response(JSON.stringify({ ...draft, draftId: 'draft-2', draft: { ...draft.draft, city: 'Noida' } })));
+    await component.saveEdit();
+    expect(api.fetch.calls.mostRecent().args[1]?.method).toBe('PUT');
+    expect(component.result()?.draftId).toBe('draft-2');
+    expect(component.result()?.draft?.city).toBe('Noida');
+    expect(component.editing()).toBeFalse();
+    expect(component.taskStatus()).toBe('Review before creating');
+  });
+  it('preserves edits and the original draft when validation fails', async () => {
+    component.result.set(draft); component.beginEdit(); component.editDraft.slug = 'taken';
+    api.fetch.and.resolveTo(new Response(JSON.stringify({ detail: 'That clinic web address is taken.' }), { status: 400 }));
+    await component.saveEdit();
+    expect(component.editing()).toBeTrue(); expect(component.editDraft.slug).toBe('taken');
+    expect(component.result()?.draftId).toBe('draft-1');
+  });
+  it('starts a fresh conversation without silently discarding a pending draft', () => {
+    component.result.set(draft); component.newTask();
+    expect(component.result()?.draftId).toBe('draft-1');
+    component.result.set({ status: 'navigate', message: 'Opened.', path: '/appointments' });
+    component.messages.set([{ role: 'user', text: 'old task' }]); component.newTask();
+    expect(component.messages()).toEqual([]); expect(component.result()).toBeNull();
   });
 });

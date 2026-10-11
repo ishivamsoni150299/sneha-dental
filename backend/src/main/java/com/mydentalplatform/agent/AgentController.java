@@ -43,6 +43,12 @@ public class AgentController {
     @PostMapping("/drafts/{id}/confirm")
     Map<String, Object> confirm(@AuthenticationPrincipal Jwt actor, @PathVariable UUID id) { return actions.confirm(id, actor); }
 
+    @PutMapping("/drafts/{id}")
+    Map<String, Object> revise(@AuthenticationPrincipal Jwt actor, @PathVariable UUID id, @RequestBody JsonNode details) {
+        actions.use(actor, "turn", 60);
+        return actions.revise(id, details, actor);
+    }
+
     @DeleteMapping("/drafts/{id}")
     void cancel(@AuthenticationPrincipal Jwt actor, @PathVariable UUID id) { actions.cancel(id, actor); }
 
