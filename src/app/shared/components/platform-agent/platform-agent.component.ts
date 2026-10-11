@@ -280,7 +280,11 @@ export class PlatformAgentComponent {
   private revealTask(): void {
     if (this.browser) setTimeout(() => {
       this.taskCanvas?.nativeElement.focus({ preventScroll: true });
-      if (window.matchMedia('(max-width: 760px)').matches) this.taskCanvas?.nativeElement.scrollIntoView({ block: 'start' });
+      const canvas = this.taskCanvas?.nativeElement;
+      if (canvas && window.matchMedia('(max-width: 760px)').matches) {
+        const scroller = this.expanded() ? canvas.parentElement : canvas.closest<HTMLElement>('.mili-panel');
+        if (scroller) scroller.scrollTop += canvas.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+      }
     });
   }
 }
