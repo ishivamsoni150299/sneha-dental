@@ -6,7 +6,7 @@ import { ClinicConfigService } from '../services/clinic-config.service';
  * Blocks patient-facing routes when no clinic config was loaded.
  *
  * On the platform domain (mydentalplatform.com) with no clinic match:
- *   → redirect to /dentists (patient marketplace)
+ *   → redirect to /mili (platform workspace)
  *
  * On a clinic subdomain (e.g. smile.mydentalplatform.com) with no match:
  *   → hard cross-origin redirect to www.mydentalplatform.com
@@ -31,7 +31,7 @@ export const clinicRequiredGuard: CanActivateFn = (_route, state): boolean | Url
     if (path === '/privacy' || path === '/terms') return router.createUrlTree([`/business${path}`]);
     return state.url.split('?')[0] === '/appointment'
       ? router.createUrlTree(['/book'], { queryParams: _route.queryParams })
-      : router.createUrlTree(['/dentists']);
+      : router.createUrlTree(['/mili']);
   }
 
   if (!clinic.isLoaded) {
@@ -45,7 +45,7 @@ export const clinicRequiredGuard: CanActivateFn = (_route, state): boolean | Url
       return false;
     }
 
-    return router.createUrlTree(['/business']);
+    return router.createUrlTree(['/mili']);
   }
 
   if (clinic.config.comingSoon) {

@@ -2,6 +2,13 @@
 
 ## New requested capability: voice action agent
 
+Main UI decision (12 October 2026): Mili is the platform's primary home and
+default signed-in entry, at `/mili`. Keep a single question and role-relevant
+starting actions; reveal task details only when needed. Direct controls remain
+reachable from Mili and usable without AI. Preserve explicit booking return
+links, permission checks and clinic-branded home pages. Conversation and review
+state persist across client-side navigation during a visit, not browser reloads.
+
 Agent-driven UI direction (11 October 2026): users describe a goal and work with
 contextual task cards, direct choices, review and saved outcomes. The first
 workspace implementation expands Mili into a conversation/task canvas and adds

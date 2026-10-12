@@ -6,7 +6,24 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
-- Mili now opens an expandable task workspace: conversation and input alongside
+- Main UI update (12 October 2026): `/mili` is the full-page platform home.
+  The platform root and default sign-in/workspace entry lead there. Valid
+  booking and role-specific return links retain their destination; clinic-host
+  websites retain their home. One persistent component owns conversation and
+  review state across route navigation during the current visit.
+- The initial screen has one prompt and two role-relevant starting tasks. The
+  task canvas appears only after work begins. Popup/compact choices are removed;
+  other pages link back to Mili home. AI-unavailable and signed-out users can
+  still use direct task navigation. Browser refresh does not recover conversation
+  or draft selection yet. This UI change does not enable provider APIs.
+- Main UI verification: 276 frontend tests, 19 final focused checks and seven
+  backend action tests pass, as do lint, production build and artifact checks.
+  Browser fixtures at 320, 390 and 1440 pixels verify root entry, direct tasks,
+  returning to an unfinished draft, editing, confirmation and reopening a result.
+  Signed-out, patient, dentist and clinic-admin entry points also work with AI
+  disabled. These checks do not verify a live OpenAI conversation or Render's
+  deployment completion.
+- Mili uses a task workspace: conversation and input alongside
   a task canvas on desktop, stacked on phones. The canvas shows actual request
   state, missing information, review details and the saved result. It does not
   simulate a multi-step plan or progress percentage.
@@ -40,8 +57,9 @@ or microphone conversation has been verified from this workspace.
 Render configuration: keep `OPENAI_API_KEY` server-side, use
 `VOICE_AGENT_ENABLED=true` to enable a controlled preview, and optionally set
 `OPENAI_AGENT_MODEL` (default `gpt-6-astra`). The voice and routing models are
-`gpt-live-1` and `gpt-6-luna`. A key alone does not enable the launcher; with the
-flag absent `/api/agent/status` reports unavailable. Do not advertise voice as
+`gpt-live-1` and `gpt-6-luna`. A key alone does not enable AI requests; with the
+flag absent `/api/agent/status` reports unavailable and Mili offers direct tasks.
+Do not advertise voice as
 a paid feature until live acceptance passes.
 
 Validation: 265 Angular tests, 27 focused Java/security/database tests, lint,

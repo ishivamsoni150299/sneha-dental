@@ -2,14 +2,19 @@ import { inject } from '@angular/core';
 import { Router, type RedirectFunction } from '@angular/router';
 import type { AuthRole } from '../services/auth-facade.service';
 
-export function accountDestination(role: AuthRole, returnUrl: string | null = null): string {
-  const fallback = role === 'patient' ? '/appointments'
+export function roleWorkspace(role: AuthRole | null): string {
+  return role === 'patient' ? '/appointments'
     : role === 'dentist' ? '/professional/workspace'
       : role === 'clinic-admin' ? '/business/clinic/dashboard'
-        : role === 'platform-admin' ? '/business/clinics' : '/business/signup?resume=true';
+        : role === 'platform-admin' ? '/business/clinics' : role === 'incomplete-signup' || role === 'unverified' ? '/business/signup?resume=true' : '/account';
+}
+
+export function accountDestination(role: AuthRole, returnUrl: string | null = null): string {
+  const fallback = '/mili';
   if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) return fallback;
   const path = returnUrl.split(/[?#]/)[0];
   if (/[\\\s%]/.test(path) || Array.from(path).some(character => character.charCodeAt(0) < 32) || path.split('/').some(segment => segment === '.' || segment === '..')) return fallback;
+  if (path === '/mili' || path === '/workspace') return '/mili';
   const allowed = role === 'patient' ? /^(?:\/appointments|\/my-appointment|\/appointment|\/dentists\/[^/]+\/book)$/.test(path)
     : role === 'dentist' ? /^\/professional\/(?:workspace|profile|video-test)$/.test(path)
       : role === 'clinic-admin' ? /^\/business\/clinic\/(?:dashboard|settings|doctors|patients|reviews|expired)$/.test(path)

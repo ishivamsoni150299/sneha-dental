@@ -67,7 +67,7 @@ describe('LoginComponent', () => {
     await component.onAuthenticated('clinic-admin');
 
     expect(auth.logout).not.toHaveBeenCalled();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/mili', { replaceUrl: true });
   });
 
   it('returns an existing clinic owner away from the platform staff entry', async () => {
@@ -75,7 +75,7 @@ describe('LoginComponent', () => {
 
     await component.ngOnInit();
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/mili', { replaceUrl: true });
     expect(auth.logout).not.toHaveBeenCalled();
   });
 
@@ -83,13 +83,13 @@ describe('LoginComponent', () => {
     const component = create('clinic', '//malicious.example');
     await component.onAuthenticated('clinic-admin');
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard', { replaceUrl: true });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/mili', { replaceUrl: true });
   });
 
-  it('routes an unverified or incomplete account to signup setup', async () => {
+  it('routes an unverified or incomplete account to Mili', async () => {
     const component = create('clinic');
     await component.onAuthenticated('unverified');
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/business/signup?resume=true', { replaceUrl: true });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/mili', { replaceUrl: true });
   });
 });

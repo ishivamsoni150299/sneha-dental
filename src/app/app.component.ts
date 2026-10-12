@@ -19,7 +19,7 @@ import { PlatformAgentComponent } from './shared/components/platform-agent/platf
     }
 
     <router-outlet />
-    <app-platform-agent />
+    <app-platform-agent [mainPage]="miliPage()" />
   `,
   styles: [`
     @keyframes route-progress {
@@ -32,14 +32,17 @@ import { PlatformAgentComponent } from './shared/components/platform-agent/platf
 })
 export class AppComponent {
   readonly navigating = signal(false);
+  readonly miliPage = signal(false);
 
   constructor() {
     inject(SeoService);
     inject(AnalyticsService);
     const clinicConfig = inject(ClinicConfigService);
+    this.miliPage.set(inject(Router).url.split(/[?#]/)[0] === '/mili');
     inject(Router).events.subscribe(e => {
       if (e instanceof NavigationStart)                                                              this.navigating.set(true);
       if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.navigating.set(false);
+      if (e instanceof NavigationEnd) this.miliPage.set(e.urlAfterRedirects.split(/[?#]/)[0] === '/mili');
       if (e instanceof NavigationEnd && typeof window !== 'undefined') {
         window.scrollTo({ top: 0, behavior: 'instant' });
         const isClinicAdminRoute =

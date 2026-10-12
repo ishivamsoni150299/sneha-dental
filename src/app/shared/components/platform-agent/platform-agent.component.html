@@ -1,38 +1,40 @@
-@if (available()) {
-  <button #launcher class="mili-launcher" type="button" (click)="show()" aria-label="Talk to Mili, your AI assistant" [attr.aria-expanded]="open()" aria-controls="mili-panel">
+@if (!mainPage()) {
+  <a #launcher class="mili-launcher" routerLink="/mili" aria-label="Open Mili home">
     <span class="mili-character" aria-hidden="true"><span class="eyes"><i></i><i></i></span><span class="smile"></span></span>
-    <span>Ask Mili</span>
-  </button>
+    <span>Mili home</span>
+  </a>
 }
-@if (open()) {
-  <section id="mili-panel" class="mili-panel" [class.expanded]="expanded()" aria-labelledby="mili-title">
+@if (mainPage()) {
+  <section id="mili-panel" class="mili-panel expanded main-page" [class.has-task]="result() || busy() || error()" role="main" aria-labelledby="mili-title">
     <header>
-      <div class="brand"><span class="brand-dot" aria-hidden="true"></span><h2 id="mili-title">Mili <span>Your dental assistant · Preview</span></h2></div>
+      <div class="brand"><span class="brand-dot" aria-hidden="true"></span>
+        <h1 id="mili-title">Mili <span>MyDentalPlatform</span></h1>
+      </div>
       <div class="header-actions">
-        <button type="button" (click)="expanded.set(!expanded())" [attr.aria-label]="expanded() ? 'Use compact assistant' : 'Expand assistant workspace'">{{ expanded() ? 'Compact' : 'Expand' }}</button>
-        <button class="icon-button" type="button" aria-label="Close assistant" (click)="close()">×</button>
+          <a routerLink="/dentists" (click)="close()">Browse dentists</a>
+          <a [routerLink]="auth.currentUser() ? directWorkspace() : '/account'" (click)="close()">{{ auth.currentUser() ? 'My workspace' : 'Sign in' }}</a>
       </div>
     </header>
     <div class="workspace-body">
       <div class="dialogue">
         <div class="mili-stage" [attr.data-state]="state()" [class.has-conversation]="messages().length">
           <span class="mili-character large" aria-hidden="true"><span class="eyes"><i></i><i></i></span><span class="smile"></span></span>
-          <h3>{{ messages().length ? 'Let’s take care of it.' : 'A little help. A lot less clicking.' }}</h3>
-          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : 'Speak naturally, type a request, or choose a task.' }}</p>
+          <h3>{{ messages().length ? 'Let’s take care of it.' : 'What would you like to do?' }}</h3>
+          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : available() && auth.currentUser() ? 'Tell me what you need. We’ll take it from here.' : 'Find care. Manage your day. Start here.' }}</p>
         </div>
+        @if (!messages().length && !result()) {
+          <div class="shortcuts" aria-label="Suggested tasks">
+            @for (shortcut of shortcuts(); track shortcut.title) {
+              <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span>{{ shortcut.title }}</span><small>{{ shortcut.detail }}</small><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
+            }
+          </div>
+        }
         @if (!auth.currentUser()) {
-          <p class="notice">Sign in so I can help with your account and workspace.</p>
-          <button class="primary" type="button" (click)="signIn()">Sign in to continue</button>
+          <p class="notice">Explore dentists now, or sign in for help with your account.</p>
+          <button class="primary" type="button" (click)="signIn()">Sign in to talk to Mili</button>
         } @else if (!available()) {
-          <p class="notice">Mili isn’t available yet. You can keep using the page controls.</p>
+          <p class="notice" role="status">{{ checked() ? 'Voice and AI requests are currently unavailable. Choose a task above to continue.' : 'Checking voice and AI availability…' }}</p>
         } @else {
-          @if (!messages().length && !result()) {
-            <div class="shortcuts" aria-label="Suggested tasks">
-              @for (shortcut of shortcuts(); track shortcut.title) {
-                <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span>{{ shortcut.title }}</span><small>{{ shortcut.detail }}</small><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
-              }
-            </div>
-          }
           <div class="conversation" role="log" aria-live="polite" aria-label="Conversation">
             @for (message of messages(); track $index) {
               <p [class.user-message]="message.role === 'user'"><span class="speaker">{{ message.role === 'user' ? 'You' : 'Mili' }}</span>{{ message.text }}</p>
@@ -56,7 +58,7 @@
           </div>
         }
       </div>
-      @if (auth.currentUser() && available()) {
+      @if (result() || busy() || error()) {
         <aside #taskCanvas class="task-canvas" tabindex="-1" aria-labelledby="task-heading" [attr.aria-busy]="busy()">
           <div class="task-label"><span>YOUR TASK</span><span class="status" role="status">{{ taskStatus() }}</span></div>
           <h3 id="task-heading">{{ taskTitle() }}</h3>
@@ -85,7 +87,7 @@
               <span class="outcome-mark" aria-hidden="true">{{ outcome.status === 'needs_input' ? '…' : '✓' }}</span>
               <h4>{{ outcome.status === 'succeeded' ? 'All set.' : outcome.status === 'navigate' ? 'Ready to continue.' : 'One more detail.' }}</h4>
               <p>{{ outcome.message }}</p>
-              @if (outcome.path && !error()) { <button class="primary" type="button" (click)="close()">Continue on the page →</button> }
+              @if (outcome.path && !error()) { <button class="primary" type="button" (click)="choose({title: taskTitle(), path: outcome.path})">Open the page →</button> }
               <div class="actions"><button type="button" [disabled]="busy()" (click)="newTask()">Start another task</button></div>
             </div>
           } @else {

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { AuthFacade, AuthRole, PlatformUser } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { PlatformAgentComponent } from './platform-agent.component';
@@ -18,17 +18,17 @@ describe('PlatformAgentComponent', () => {
     draft: { name: 'My clinic', phone: '9999999999', city: 'Delhi', slug: 'myclinic', plan: 'trial' } };
 
   beforeEach(async () => {
-    spyOn(window, 'fetch').and.resolveTo(new Response(JSON.stringify({ available: true })));
+    spyOn(window, 'fetch').and.resolveTo({ ok: true, json: async () => ({ available: true }) } as Response);
     currentUser = signal<PlatformUser | null>(owner);
     role = signal<AuthRole | null>('incomplete-signup');
     api = jasmine.createSpyObj<AuthenticatedApiService>('api', ['fetch']);
-    router = jasmine.createSpyObj<Router>('router', ['navigateByUrl']);
-    router.navigateByUrl.and.resolveTo(true);
     refresh = jasmine.createSpy('resolveCurrentUser').and.resolveTo('clinic-admin');
     await TestBed.configureTestingModule({ imports: [PlatformAgentComponent], providers: [
-      { provide: AuthenticatedApiService, useValue: api }, { provide: Router, useValue: router },
+      { provide: AuthenticatedApiService, useValue: api }, provideRouter([]),
       { provide: AuthFacade, useValue: { currentUser, role, resolveCurrentUser: refresh } },
     ] }).compileComponents();
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    spyOn(router, 'navigateByUrl').and.resolveTo(true);
     fixture = TestBed.createComponent(PlatformAgentComponent); component = fixture.componentInstance;
     fixture.detectChanges(); await fixture.whenStable();
   });
@@ -132,5 +132,26 @@ describe('PlatformAgentComponent', () => {
     component.result.set({ status: 'navigate', message: 'Opened.', path: '/appointments' });
     component.messages.set([{ role: 'user', text: 'old task' }]); component.newTask();
     expect(component.messages()).toEqual([]); expect(component.result()).toBeNull();
+  });
+  it('renders Mili as the main page without an empty task panel or floating launcher', () => {
+    fixture.componentRef.setInput('mainPage', true); fixture.detectChanges();
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.querySelector('main, [role="main"]')).not.toBeNull();
+    expect(page.querySelector('h1')?.textContent).toContain('Mili');
+    expect(page.querySelector('.mili-launcher')).toBeNull();
+    expect(page.querySelector('.task-canvas')).toBeNull();
+  });
+  it('keeps direct tasks usable when AI is unavailable', async () => {
+    fixture.componentRef.setInput('mainPage', true); component.available.set(false); role.set('patient'); fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Voice and AI requests are currently unavailable');
+    await component.choose(component.shortcuts()[0]);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dentists'); expect(api.fetch).not.toHaveBeenCalled();
+  });
+  it('keeps a pending review when returning to the main page', () => {
+    component.result.set(draft);
+    fixture.componentRef.setInput('mainPage', false); fixture.detectChanges();
+    fixture.componentRef.setInput('mainPage', true); fixture.detectChanges();
+    expect(component.result()?.draftId).toBe('draft-1');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.draft')).not.toBeNull();
   });
 });

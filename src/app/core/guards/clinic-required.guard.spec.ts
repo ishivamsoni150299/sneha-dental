@@ -34,13 +34,13 @@ describe('clinicRequiredGuard', () => {
     expect(result).toBeTrue();
   });
 
-  it('returns a UrlTree to /business when clinic is not loaded', () => {
+  it('returns a UrlTree to /mili when clinic is not loaded', () => {
     setup(false);
     const result = TestBed.runInInjectionContext(() =>
       clinicRequiredGuard({} as never, {} as never),
     );
     expect(result).toBe(businessTree);
-    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/business']);
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/mili']);
   });
 
   it('returns a UrlTree to /coming-soon when comingSoon is true', () => {
@@ -74,6 +74,6 @@ describe('clinicRequiredGuard', () => {
     expect(() =>
       TestBed.runInInjectionContext(() => clinicRequiredGuard({} as never, {} as never)),
     ).not.toThrow();
-    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/business']);
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/mili']);
   });
 });

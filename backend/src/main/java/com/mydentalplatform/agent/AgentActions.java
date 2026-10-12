@@ -45,7 +45,13 @@ public class AgentActions {
         String path = switch (page) {
             case "dentists" -> "/dentists";
             case "account" -> "/account";
-            case "appointments" -> "patient".equals(role) ? "/appointments" : "/workspace";
+            case "appointments" -> switch (role) {
+                case "patient" -> "/appointments";
+                case "dentist" -> "/professional/workspace";
+                case "clinic-admin" -> "/business/clinic/dashboard";
+                case "platform-admin" -> "/business/clinics";
+                default -> "/account";
+            };
             case "settings" -> "clinic-admin".equals(role) ? "/business/clinic/settings" : "/account";
             case "clinic_setup" -> "incomplete-signup".equals(role) ? "/business/signup" : "/workspace";
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That page is not available to the assistant.");

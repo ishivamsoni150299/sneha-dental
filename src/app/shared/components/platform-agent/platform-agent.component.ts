@@ -1,7 +1,8 @@
-import { Component, DestroyRef, ElementRef, HostListener, NgZone, PLATFORM_ID, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, NgZone, PLATFORM_ID, ViewChild, computed, effect, inject, input, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { roleWorkspace } from '../../../core/utils/account-navigation';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { LiveConnection } from './live-connection';
@@ -15,33 +16,33 @@ interface AgentResult {
   refreshSession?: boolean;
 }
 interface Message { role: 'user' | 'assistant'; text: string }
-const DESTINATIONS = new Set(['/dentists', '/appointments', '/workspace', '/account', '/business/signup', '/business/clinic/settings', '/business/clinic/dashboard']);
+const DESTINATIONS = new Set(['/mili', '/dentists', '/appointments', '/workspace', '/account', '/business/signup', '/business/signup?resume=true', '/business/clinic/settings', '/business/clinic/dashboard', '/professional/workspace', '/business/clinics']);
 
 @Component({
-  selector: 'app-platform-agent', standalone: true, imports: [FormsModule],
+  selector: 'app-platform-agent', standalone: true, imports: [FormsModule, RouterLink],
   templateUrl: './platform-agent.component.html', styleUrl: './platform-agent.component.css',
 })
 export class PlatformAgentComponent {
+  readonly mainPage = input(false);
   readonly auth = inject(AuthFacade);
   private readonly api = inject(AuthenticatedApiService);
   private readonly router = inject(Router);
   private readonly zone = inject(NgZone);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
-  @ViewChild('launcher') launcher?: ElementRef<HTMLButtonElement>;
+  @ViewChild('launcher') launcher?: ElementRef<HTMLAnchorElement>;
   @ViewChild('command') command?: ElementRef<HTMLInputElement>;
   @ViewChild('taskCanvas') taskCanvas?: ElementRef<HTMLElement>;
   @ViewChild('editName') editName?: ElementRef<HTMLInputElement>;
-  readonly open = signal(false);
-  readonly expanded = signal(true);
+  readonly directWorkspace = computed(() => roleWorkspace(this.auth.role()));
   readonly taskTitle = signal('What would you like to do?');
   readonly shortcuts = computed(() => {
     const common = [{ title: 'Find a dentist', detail: 'Explore dentists and available times', path: '/dentists' },
       { title: 'My appointments', detail: 'Open your appointments', path: '/appointments' }];
     const role = this.auth.role();
-    if (role === 'incomplete-signup') return [{ title: 'Set up my clinic', detail: 'Prepare a clinic for your review', prompt: 'Help me set up my clinic' }, common[0]];
-    if (role === 'clinic-admin') return [{ title: 'Clinic workspace', detail: 'Appointments and daily work', path: '/workspace' },
+    if (role === 'incomplete-signup') return [{ title: 'Set up my clinic', detail: this.available() ? 'Prepare a clinic for your review' : 'Continue your clinic setup', ...(this.available() ? { prompt: 'Help me set up my clinic' } : { path: '/business/signup?resume=true' }) }, common[0]];
+    if (role === 'clinic-admin') return [{ title: 'Clinic workspace', detail: 'Appointments and daily work', path: '/business/clinic/dashboard' },
       { title: 'Clinic settings', detail: 'Manage your clinic details', path: '/business/clinic/settings' }];
-    if (role === 'dentist' || role === 'platform-admin') return [{ title: 'My workspace', detail: 'Open your professional workspace', path: '/workspace' }, common[0]];
+    if (role === 'dentist' || role === 'platform-admin') return [{ title: 'My workspace', detail: 'Open your professional workspace', path: roleWorkspace(role) }, common[0]];
     return common;
   });
   readonly available = signal(false);
@@ -68,6 +69,7 @@ export class PlatformAgentComponent {
   private captionText = '';
 
   constructor() {
+    effect(() => { if (!this.mainPage()) this.stopVoice(); });
     effect(() => {
       const id = this.auth.currentUser()?.uid ?? null;
       if (id === this.accountId) return;
@@ -82,12 +84,6 @@ export class PlatformAgentComponent {
     if (this.browser) void this.checkAvailability();
   }
 
-  async show(): Promise<void> {
-    this.open.set(true);
-    if (this.browser) setTimeout(() => this.command?.nativeElement.focus());
-    if (!this.checked()) await this.checkAvailability();
-  }
-
   private async checkAvailability(): Promise<void> {
     try {
       const response = await fetch('/api/agent/status');
@@ -98,8 +94,8 @@ export class PlatformAgentComponent {
     finally { this.checked.set(true); }
   }
 
-  close(): void { this.stopVoice(); this.open.set(false); this.launcher?.nativeElement.focus(); }
-  @HostListener('document:keydown.escape') onEscape(): void { if (this.open()) this.close(); }
+  close(): void { this.stopVoice(); }
+  @HostListener('document:keydown.escape') onEscape(): void { this.stopVoice(); }
   signIn(): void { this.close(); void this.router.navigateByUrl('/account'); }
 
   newTask(): void {
@@ -113,12 +109,13 @@ export class PlatformAgentComponent {
     if (this.busy() || this.result()?.draftId) return;
     if (shortcut.prompt) { await this.send(shortcut.prompt); return; }
     if (!shortcut.path || !DESTINATIONS.has(shortcut.path)) return;
+    const path = shortcut.path === '/workspace' ? this.directWorkspace() : shortcut.path;
     this.taskTitle.set(shortcut.title); this.error.set(''); this.busy.set(true);
     const version = this.generation;
     try {
-      if (this.router.url !== shortcut.path && !await this.router.navigateByUrl(shortcut.path)) throw new Error('The page could not open. Please use the navigation.');
+      if (this.router.url !== path && !await this.router.navigateByUrl(path)) throw new Error('The page could not open. Please use the navigation.');
       if (version !== this.generation) return;
-      this.result.set({ status: 'navigate', path: shortcut.path, message: `${shortcut.title} is open. Continue on the page whenever you’re ready.` });
+      this.result.set({ status: 'navigate', path, message: `${shortcut.title} is open. Continue on the page whenever you’re ready.` });
       this.revealTask();
     } catch (error) {
       if (version === this.generation) this.error.set(error instanceof Error ? error.message : 'The page could not open.');
@@ -152,6 +149,7 @@ export class PlatformAgentComponent {
 
   async send(text = this.input): Promise<string> {
     const trimmed = text.trim().slice(0, 2000);
+    if (!this.available() || !this.auth.currentUser()) return 'Sign in and check AI availability to send a request.';
     if (!trimmed || this.busy() || this.editing()) return 'Please finish the current request first.';
     const version = this.generation;
     this.taskTitle.set(trimmed); this.editing.set(false);
@@ -212,6 +210,7 @@ export class PlatformAgentComponent {
   }
 
   async startVoice(): Promise<void> {
+    if (!this.available() || !this.auth.currentUser()) return;
     if (this.voice() !== 'off' || this.busy() || this.editing()) return;
     this.error.set(''); this.voice.set('connecting'); this.userSpeech = ''; this.muted.set(false);
     const version = this.generation;
@@ -267,6 +266,7 @@ export class PlatformAgentComponent {
   }
   private async apply(result: AgentResult): Promise<void> {
     const version = this.generation;
+    if (result.path === '/workspace') result = { ...result, path: this.directWorkspace() };
     if (result.path) {
       if (!DESTINATIONS.has(result.path)) throw new Error('That destination is not supported.');
       if (this.router.url !== result.path && !await this.router.navigateByUrl(result.path)) throw new Error('The page could not open. Please use the navigation.');
@@ -281,10 +281,7 @@ export class PlatformAgentComponent {
     if (this.browser) setTimeout(() => {
       this.taskCanvas?.nativeElement.focus({ preventScroll: true });
       const canvas = this.taskCanvas?.nativeElement;
-      if (canvas && window.matchMedia('(max-width: 760px)').matches) {
-        const scroller = this.expanded() ? canvas.parentElement : canvas.closest<HTMLElement>('.mili-panel');
-        if (scroller) scroller.scrollTop += canvas.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-      }
+      if (canvas && this.mainPage() && window.matchMedia('(max-width: 760px)').matches) canvas.scrollIntoView({ block: 'start' });
     });
   }
 }

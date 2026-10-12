@@ -4,9 +4,12 @@ import { platformOnlyGuard } from './core/guards/platform-only.guard';
 import { ClinicLayoutComponent } from './shared/components/clinic-layout/clinic-layout.component';
 import { dentistGuard } from './core/guards/dentist.guard';
 import { workspaceGuard } from './core/guards/workspace.guard';
+import { platformHomeMatch } from './core/guards/platform-home.guard';
 import { accountRedirect, dentistSignupRedirect } from './core/utils/account-navigation';
 
 export const routes: Routes = [
+  { path: '', pathMatch: 'full', canMatch: [platformHomeMatch], redirectTo: 'mili' },
+  { path: 'mili', canActivate: [platformOnlyGuard], loadComponent: () => import('./shared/components/platform-agent/mili-page.component').then(m => m.MiliPageComponent), data: { title: 'Mili — Your Dental Workspace', noIndex: true } },
   { path: 'book', canActivate: [platformOnlyGuard], loadComponent: () => import('./features/marketplace/marketplace-layout.component').then(m => m.MarketplaceLayoutComponent), children: [
     { path: '', loadComponent: () => import('./features/marketplace/dentist-directory.component').then(m => m.DentistDirectoryComponent), data: { title: 'Choose a Dentist to Request an Appointment', noIndex: true } },
   ] },

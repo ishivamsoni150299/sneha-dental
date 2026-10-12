@@ -29,7 +29,8 @@ class AgentActionsTest {
     }
     @Test void navigationUsesActorRoleAndRejectsArbitraryUrls() {
         assertEquals("/appointments", actions.navigate("appointments", actor("patient")).get("path"));
-        assertEquals("/workspace", actions.navigate("appointments", actor("dentist")).get("path"));
+        assertEquals("/professional/workspace", actions.navigate("appointments", actor("dentist")).get("path"));
+        assertEquals("/business/clinic/dashboard", actions.navigate("appointments", actor("clinic-admin")).get("path"));
         assertEquals("/account", actions.navigate("settings", actor("patient")).get("path"));
         assertThrows(ResponseStatusException.class, () -> actions.navigate("https://evil.example", actor("patient")));
     }
