@@ -37,6 +37,8 @@ export class SlotPickerComponent implements OnInit {
   @Input({ required: true }) slug!: string;
   @Input() compact = false;
   @Input() contactPhone = '';
+  @Input() fromDate = '';
+  @Input() period: 'any' | 'morning' | 'afternoon' | 'evening' = 'any';
   readonly phoneHref = phoneHref;
   @Output() slotSelected = new EventEmitter<SelectedSlot>();
   @Output() slotCleared = new EventEmitter<void>();
@@ -61,7 +63,15 @@ export class SlotPickerComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const data = await this.marketplace.getAvailability(this.slug, 7);
+      const data = this.fromDate
+        ? await this.marketplace.getAvailability(this.slug, 1, this.fromDate)
+        : await this.marketplace.getAvailability(this.slug, 7);
+      if (this.period !== 'any') {
+        data.days = data.days.map(day => ({ ...day, slots: day.slots.filter(slot => {
+          const hour = Number(slot.time.slice(0, 2));
+          return this.period === 'morning' ? hour < 12 : this.period === 'afternoon' ? hour >= 12 && hour < 17 : hour >= 17;
+        }) }));
+      }
       this.availability.set(data);
       // Auto-select first day with slots
       const firstDayWithSlots = data.days.findIndex(day => day.slots.length > 0);

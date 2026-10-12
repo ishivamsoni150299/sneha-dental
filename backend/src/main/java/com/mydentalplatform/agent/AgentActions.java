@@ -64,8 +64,27 @@ public class AgentActions {
             case "open_page" -> navigate(args.path("page").asText(), actor);
             case "ask_user" -> Map.of("status", "needs_input", "message", text(args, "message", 600));
             case "prepare_clinic" -> prepare(args, actor);
+            case "find_dentists" -> bookingSearch(args);
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That action is not supported.");
         };
+    }
+
+    private Map<String, Object> bookingSearch(JsonNode args) {
+        String query = args.path("query").asText("").strip();
+        String locality = args.path("locality").asText("").strip();
+        String date = args.path("date").asText("");
+        String period = args.path("period").asText("any");
+        if (query.length() > 100 || locality.length() > 100 || !java.util.List.of("any", "morning", "afternoon", "evening").contains(period))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please use a shorter search and a valid time of day.");
+        if (!date.isBlank()) {
+            try {
+                var selected = java.time.LocalDate.parse(date);
+                var today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"));
+                if (selected.isBefore(today) || selected.isAfter(today.plusDays(90))) throw new IllegalArgumentException();
+            } catch (Exception invalid) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a date within the next 90 days."); }
+        }
+        return Map.of("status", "booking", "message", "Choose a dentist below, then select a live appointment time. Nothing is booked until you submit the request.",
+            "booking", Map.of("query", query, "locality", locality, "date", date, "period", period));
     }
 
     @Transactional

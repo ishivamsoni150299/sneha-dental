@@ -42,6 +42,17 @@ describe('SlotPickerComponent', () => {
     component.selectDate(0);
     expect(component.isSelected(availability.days[0], availability.days[0].slots[0])).toBeTrue();
   });
+  it('checks the requested date and only offers live evening slots', async () => {
+    const { component, service } = await setup();
+    component.fromDate = '2026-10-13'; component.period = 'evening';
+    service.getAvailability.and.resolveTo({ ...availability, days: [{ date: '2026-10-13', slots: [
+      { doctorId: 'one', doctorName: 'Dr. One', time: '10:00', startsAt: '2026-10-13T10:00:00+05:30' },
+      { doctorId: 'one', doctorName: 'Dr. One', time: '18:00', startsAt: '2026-10-13T18:00:00+05:30' },
+    ] }] });
+    await component.loadAvailability();
+    expect(service.getAvailability).toHaveBeenCalledWith('sample', 1, '2026-10-13');
+    expect(component.slots().map(slot => slot.time)).toEqual(['18:00']);
+  });
 
   it('recovers from an availability error using the retry control', async () => {
     const { fixture, component, service } = await setup(true);

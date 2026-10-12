@@ -14,7 +14,12 @@ contextual task cards, direct choices, review and saved outcomes. The first
 workspace implementation expands Mili into a conversation/task canvas and adds
 transactional revision of clinic drafts. Keep domain execution behind verified
 application tools; the model does not generate executable UI or grant access.
-Next steps are resumable server-owned tasks and complete booking/clinic-owner
+Booking now embeds verified search, live times and the existing consent/request
+form inside Mili. The `find_dentists` tool supplies preferences, while existing
+domain APIs enforce availability and submission rules. Requests remain pending
+clinic confirmation. Voice initiates search; visible controls complete booking.
+Same-visit navigation retains form details; refresh recovery is not implemented.
+Next steps are resumable server-owned tasks and complete clinic-owner
 journeys, each with acceptance evidence. Current workspace conversation is
 ephemeral and clinic creation still requires an eligible signup account.
 

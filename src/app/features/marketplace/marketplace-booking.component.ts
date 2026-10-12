@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   isClinicOpenAt,
@@ -26,6 +26,11 @@ import { AnalyticsService } from '../../core/services/analytics.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
+  @Input() embeddedSlug: string | null = null;
+  @Input() initialDate = '';
+  @Input() preferredPeriod: 'any' | 'morning' | 'afternoon' | 'evening' = 'any';
+  @Output() readonly requestSent = new EventEmitter<BookingSubmission>();
+  bookingSlug(): string { return this.embeddedSlug ?? this.route.snapshot.paramMap.get('slug') ?? ''; }
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
   readonly formatSlotDisplay = formatSlotDisplay;
@@ -38,7 +43,7 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly accountReady = signal(false);
   readonly accountQuery = computed(() => {
     const slot = this.selectedSlot();
-    const returnUrl = this.router.serializeUrl(this.router.createUrlTree(['/dentists', this.route.snapshot.paramMap.get('slug'), 'book'], {
+    const returnUrl = this.router.serializeUrl(this.router.createUrlTree(['/dentists', this.bookingSlug(), 'book'], {
       queryParams: { mode: this.consultationMode(), date: slot?.date, time: slot?.time, doctorId: slot?.doctorId },
     }));
     return { returnUrl };
@@ -50,6 +55,8 @@ export class MarketplaceBookingComponent implements OnInit {
   readonly selectedSlot = signal<SelectedSlot | null>(null);
   readonly editingTime = signal(false);
   private readonly slotPicker = viewChild(SlotPickerComponent);
+  private readonly appointmentForm = viewChild(AppointmentComponent);
+  readonly submitting = computed(() => this.appointmentForm()?.submitting() ?? false);
   readonly consultationMode = signal<'in_person' | 'video'>('in_person');
   readonly videoReady = signal(false);
   readonly videoUnavailable = signal(false);
@@ -79,7 +86,7 @@ export class MarketplaceBookingComponent implements OnInit {
     this.slotNotice.set(null);
     this.notFound.set(false);
     this.unavailable.set(false);
-    const slug = this.route.snapshot.paramMap.get('slug') ?? '';
+    const slug = this.bookingSlug();
     try {
       const [clinic] = await Promise.all([this.marketplace.getVerifiedClinicBySlug(slug), this.patientAuth.ready]);
       this.accountReady.set(this.patientAuth.isSignedIn());
@@ -206,6 +213,7 @@ export class MarketplaceBookingComponent implements OnInit {
 
   onBooked(submission: BookingSubmission): void {
     this.submission.set(submission);
+    this.requestSent.emit(submission);
     afterNextRender(() => {
       this.element.nativeElement.querySelector<HTMLElement>('#booking-receipt-title')?.focus();
     }, { injector: this.injector });

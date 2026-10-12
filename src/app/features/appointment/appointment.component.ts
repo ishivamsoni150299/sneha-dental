@@ -51,6 +51,7 @@ export interface BookingSubmission {
 })
 export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   readonly mobileVerification = viewChild(BookingOtpComponent);
+  @Input() idPrefix = 'appointment';
   @Input() bookingContext: BookingClinicContext | null = null;
   @Input() preselectedSlot: { doctorId: string; doctorName: string; date: string; time: string } | null = null;
   @Output() readonly bookingCompleted = new EventEmitter<BookingSubmission>();
@@ -513,7 +514,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     for (const fieldName of fields) {
       if (!this.form.get(fieldName)?.invalid) continue;
 
-      const field = document.getElementById(`appointment-${fieldName}`);
+      const field = document.getElementById(`${this.idPrefix}-${fieldName}`);
       if (!field) continue;
 
       field.closest('details')?.setAttribute('open', '');
@@ -524,7 +525,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private scrollToBookingForm(): void {
-    document.getElementById('appointment-booking-form')?.scrollIntoView({
+    document.getElementById(`${this.idPrefix}-booking-form`)?.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
     });

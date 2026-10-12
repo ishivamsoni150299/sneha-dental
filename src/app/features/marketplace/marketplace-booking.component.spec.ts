@@ -80,6 +80,17 @@ describe('MarketplaceBookingComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Dentist not found');
     expect(fixture.nativeElement.textContent).not.toContain('Online requests are paused');
   });
+  it('loads an embedded choice instead of the page route slug and emits only the submitted receipt', async () => {
+    const fixture = await createStateFixture(clinic());
+    fixture.componentRef.setInput('embeddedSlug', 'chosen-clinic');
+    await fixture.componentInstance.loadBooking();
+    expect(TestBed.inject(MarketplaceService).getVerifiedClinicBySlug).toHaveBeenCalledWith('chosen-clinic');
+    const sent = spyOn(fixture.componentInstance.requestSent, 'emit');
+    const receipt = { ref: 'SAVED-123', name: 'Patient', date: '2026-10-13', time: '18:00', service: 'Consultation', consultationMode: 'in_person' as const };
+    fixture.componentInstance.onBooked(receipt);
+    expect(sent).toHaveBeenCalledOnceWith(receipt);
+    expect(fixture.componentInstance.submission()?.ref).toBe('SAVED-123');
+  });
 
   it('makes doctor loading recoverable instead of showing unbookable times', async () => {
     const fixture = await createStateFixture(clinic());

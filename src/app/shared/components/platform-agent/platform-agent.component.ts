@@ -6,9 +6,11 @@ import { roleWorkspace } from '../../../core/utils/account-navigation';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { LiveConnection } from './live-connection';
+import { MiliBookingComponent, type BookingCriteria } from './mili-booking.component';
 
 interface AgentResult {
-  status: 'needs_input' | 'navigate' | 'needs_confirmation' | 'succeeded';
+  status: 'needs_input' | 'navigate' | 'needs_confirmation' | 'succeeded' | 'booking';
+  booking?: BookingCriteria;
   message: string;
   path?: string;
   draftId?: string;
@@ -19,7 +21,7 @@ interface Message { role: 'user' | 'assistant'; text: string }
 const DESTINATIONS = new Set(['/mili', '/dentists', '/appointments', '/workspace', '/account', '/business/signup', '/business/signup?resume=true', '/business/clinic/settings', '/business/clinic/dashboard', '/professional/workspace', '/business/clinics']);
 
 @Component({
-  selector: 'app-platform-agent', standalone: true, imports: [FormsModule, RouterLink],
+  selector: 'app-platform-agent', standalone: true, imports: [FormsModule, RouterLink, MiliBookingComponent],
   templateUrl: './platform-agent.component.html', styleUrl: './platform-agent.component.css',
 })
 export class PlatformAgentComponent {
@@ -36,7 +38,7 @@ export class PlatformAgentComponent {
   readonly directWorkspace = computed(() => roleWorkspace(this.auth.role()));
   readonly taskTitle = signal('What would you like to do?');
   readonly shortcuts = computed(() => {
-    const common = [{ title: 'Find a dentist', detail: 'Explore dentists and available times', path: '/dentists' },
+    const common = [{ title: 'Find a dentist', detail: 'Choose a dentist and request a time', action: 'booking' },
       { title: 'My appointments', detail: 'Open your appointments', path: '/appointments' }];
     const role = this.auth.role();
     if (role === 'incomplete-signup') return [{ title: 'Set up my clinic', detail: this.available() ? 'Prepare a clinic for your review' : 'Continue your clinic setup', ...(this.available() ? { prompt: 'Help me set up my clinic' } : { path: '/business/signup?resume=true' }) }, common[0]];
@@ -57,6 +59,7 @@ export class PlatformAgentComponent {
   readonly state = computed(() => this.busy() ? 'working' : this.result()?.draftId ? 'review' : this.voice() !== 'off' ? this.voice() : 'idle');
   readonly taskStatus = computed(() => this.busy() ? 'Working' : this.error() ? 'Needs attention' : this.result()?.draftId ? 'Review before creating' : this.result()?.status === 'succeeded' ? 'Completed' : this.result()?.status === 'navigate' ? 'Page opened' : this.result()?.status === 'needs_input' ? 'Your input needed' : 'Ready when you are');
   readonly editing = signal(false);
+  readonly bookingSent = signal(false);
   editDraft = { name: '', phone: '', city: '', slug: '' };
   input = '';
   private connection?: LiveConnection;
@@ -99,14 +102,19 @@ export class PlatformAgentComponent {
   signIn(): void { this.close(); void this.router.navigateByUrl('/account'); }
 
   newTask(): void {
-    if (this.busy() || this.result()?.draftId) return;
+    if (this.busy() || this.result()?.draftId || this.result()?.booking) return;
     this.stopVoice(); this.messages.set([]); this.result.set(null); this.error.set('');
     this.input = ''; this.taskTitle.set('What would you like to do?');
     if (this.browser) setTimeout(() => this.command?.nativeElement.focus());
   }
 
-  async choose(shortcut: { title: string; path?: string; prompt?: string }): Promise<void> {
+  async choose(shortcut: { title: string; path?: string; prompt?: string; action?: string }): Promise<void> {
     if (this.busy() || this.result()?.draftId) return;
+    if (shortcut.action === 'booking') {
+      this.taskTitle.set('Find your next appointment'); this.error.set(''); this.bookingSent.set(false);
+      this.result.set({ status: 'booking', message: 'Choose a dentist and a time.', booking: { query: '', locality: '', date: '', period: 'any' } });
+      this.revealTask(); return;
+    }
     if (shortcut.prompt) { await this.send(shortcut.prompt); return; }
     if (!shortcut.path || !DESTINATIONS.has(shortcut.path)) return;
     const path = shortcut.path === '/workspace' ? this.directWorkspace() : shortcut.path;
@@ -148,6 +156,7 @@ export class PlatformAgentComponent {
   }
 
   async send(text = this.input): Promise<string> {
+    if (this.result()?.booking) return 'Please use the booking choices on screen to continue. Nothing is submitted until you confirm the request.';
     const trimmed = text.trim().slice(0, 2000);
     if (!this.available() || !this.auth.currentUser()) return 'Sign in and check AI availability to send a request.';
     if (!trimmed || this.busy() || this.editing()) return 'Please finish the current request first.';
@@ -259,6 +268,8 @@ export class PlatformAgentComponent {
   stopVoice(): void { this.connection?.stop(); this.connection = undefined; this.voice.set('off'); this.userSpeech = ''; }
   toggleMute(): void { this.muted.update(muted => !muted); this.connection?.mute(this.muted()); }
 
+  finishBooking(): void { this.result.set(null); this.bookingSent.set(false); this.newTask(); }
+
   private async read(response: Response): Promise<AgentResult> {
     const data = await response.json() as AgentResult & { detail?: string };
     if (!response.ok) throw new Error(data.detail || data.message || 'The assistant could not complete the request. Please try again.');
@@ -273,6 +284,7 @@ export class PlatformAgentComponent {
     }
     if (version !== this.generation) return;
     this.result.set(result);
+    if (result.booking) this.bookingSent.set(false);
     this.messages.update(messages => [...messages.slice(-7), { role: 'assistant', text: result.message }]);
     if (result.status !== 'needs_input') this.revealTask();
   }

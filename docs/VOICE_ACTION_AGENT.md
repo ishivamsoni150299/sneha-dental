@@ -6,6 +6,22 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
+- Embedded booking update (12 October 2026): Mili's direct task and registered
+  `find_dentists` tool open the existing booking journey inside the task canvas.
+  The tool supplies search preferences only. Verified listings and actual times
+  come from marketplace APIs; the existing form retains consent, slot holds,
+  verification checks and explicit request submission. A sent request awaits
+  clinic confirmation. Date and time-of-day preferences can be revised on screen.
+  Voice can start the search; completing it still uses visible controls.
+- Booking details survive route navigation during the current visit, but not
+  a browser refresh. Validation: 284 frontend tests, 27 targeted backend tests,
+  lint, production build, artifact checks and browser fixture journeys at 320,
+  390 and 1440 pixels. Fixtures verify filtering, retained details, consent,
+  one submission with a slot hold and the pending-confirmation receipt.
+- Read-only production checks on 12 October: health is OK and agent status
+  reports available. Search returns zero dentists accepting requests. These
+  checks do not verify a provider conversation or an actual production booking.
+
 - Main UI update (12 October 2026): `/mili` is the full-page platform home.
   The platform root and default sign-in/workspace entry lead there. Valid
   booking and role-specific return links retain their destination; clinic-host
@@ -51,8 +67,8 @@ or microphone conversation has been verified from this workspace.
   IP limits. Browser and server sideband timers request voice closure after
   180 seconds. These in-process timers are not a durable provider billing cap;
   sideband loss or a server restart still needs live failure testing.
-- Booking, rescheduling, payments and settings writes remain page workflows.
-  Mili can open supported pages but cannot perform those writes yet.
+- Booking uses the existing submission form embedded in Mili. Rescheduling,
+  payments and settings writes remain page workflows.
 
 Render configuration: keep `OPENAI_API_KEY` server-side, use
 `VOICE_AGENT_ENABLED=true` to enable a controlled preview, and optionally set

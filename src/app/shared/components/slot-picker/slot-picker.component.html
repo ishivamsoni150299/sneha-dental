@@ -18,7 +18,7 @@
   </div>
 } @else if (!hasAnySlots()) {
   <div class="rounded-lg border border-ui-line bg-ui-muted px-5 py-8 text-center">
-    <p role="status" class="text-sm font-semibold text-ui-ink-soft">No slots available this week</p>
+    <p role="status" class="text-sm font-semibold text-ui-ink-soft">{{ fromDate || period !== 'any' ? 'No slots match your selected date or time of day' : 'No slots available this week' }}</p>
     <p class="mt-1 text-sm text-ui-ink-muted">Check again for updated availability@if (phoneHref(contactPhone)) { or call the practice to ask about another time}.</p>
     <div class="mt-4 flex flex-wrap justify-center gap-3">
       @if (phoneHref(contactPhone); as contactHref) {

@@ -145,7 +145,8 @@ describe('PlatformAgentComponent', () => {
     fixture.componentRef.setInput('mainPage', true); component.available.set(false); role.set('patient'); fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Voice and AI requests are currently unavailable');
     await component.choose(component.shortcuts()[0]);
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/dentists'); expect(api.fetch).not.toHaveBeenCalled();
+    expect(component.result()?.status).toBe('booking');
+    expect(router.navigateByUrl).not.toHaveBeenCalled(); expect(api.fetch).not.toHaveBeenCalled();
   });
   it('keeps a pending review when returning to the main page', () => {
     component.result.set(draft);

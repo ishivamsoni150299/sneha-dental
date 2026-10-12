@@ -27,6 +27,19 @@ class AgentActionsTest {
         assertEquals("needs_input", result.get("status"));
         verifyNoInteractions(jdbc, onboarding);
     }
+    @Test void bookingSearchReturnsPreferencesWithoutWritingAnAppointment() {
+        var date = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata")).plusDays(1);
+        var result = actions.tool("find_dentists", json.readTree("{\"query\":\"cleaning\",\"locality\":\"Noida\",\"date\":\"" + date + "\",\"period\":\"evening\"}"), actor("patient"));
+        assertEquals("booking", result.get("status"));
+        assertEquals("evening", ((Map<?, ?>) result.get("booking")).get("period"));
+        verifyNoInteractions(jdbc, onboarding);
+    }
+    @Test void bookingSearchRejectsInvalidDatesAndTimePeriods() {
+        for (var input : List.of("{\"date\":\"2000-01-01\",\"period\":\"any\"}", "{\"date\":\"not-a-date\",\"period\":\"any\"}", "{\"date\":\"\",\"period\":\"whenever\"}")) {
+            assertThrows(ResponseStatusException.class, () -> actions.tool("find_dentists", json.readTree(input), actor("patient")));
+        }
+        verifyNoInteractions(jdbc, onboarding);
+    }
     @Test void navigationUsesActorRoleAndRejectsArbitraryUrls() {
         assertEquals("/appointments", actions.navigate("appointments", actor("patient")).get("path"));
         assertEquals("/professional/workspace", actions.navigate("appointments", actor("dentist")).get("path"));

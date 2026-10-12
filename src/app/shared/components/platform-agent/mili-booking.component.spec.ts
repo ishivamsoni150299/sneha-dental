@@ -1,0 +1,47 @@
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { MiliBookingComponent } from './mili-booking.component';
+import { MarketplaceBookingComponent } from '../../../features/marketplace/marketplace-booking.component';
+import { signal } from '@angular/core';
+
+describe('MiliBookingComponent', () => {
+  const dentist = { id: 'clinic', slug: 'smile', clinicName: 'Smile', dentistName: 'Dr Test', city: 'Noida', locality: 'Sector 75', consultationFee: 500, acceptingNewPatients: true };
+  const response = (dentists = [dentist]) => ({ ok: true, json: async () => ({ dentists, totalCount: dentists.length }) }) as Response;
+  async function setup() {
+    const fetch = spyOn(window, 'fetch').and.resolveTo(response());
+    await TestBed.configureTestingModule({ imports: [MiliBookingComponent], providers: [provideRouter([])] }).compileComponents();
+    const fixture = TestBed.createComponent(MiliBookingComponent);
+    fixture.detectChanges(); await fixture.whenStable();
+    return { fixture, component: fixture.componentInstance, fetch };
+  }
+  it('uses verified public search with accepting-patient and pagination filters', async () => {
+    const { component, fetch } = await setup();
+    component.search.locality = 'Noida'; await component.find();
+    const url = fetch.calls.mostRecent().args[0] as string;
+    expect(url).toContain('locality=Noida'); expect(url).toContain('acceptingNewPatients=true'); expect(url).toContain('limit=6');
+    expect(component.choices().length).toBe(1);
+    expect(fetch.calls.allArgs().every(args => !args[1]?.method || args[1].method === 'GET')).toBeTrue();
+  });
+  it('ignores stale results after the search changes', async () => {
+    const { component, fetch } = await setup();
+    let finish!: (value: Response) => void;
+    fetch.and.returnValue(new Promise(resolve => finish = resolve));
+    const pending = component.find();
+    fetch.and.resolveTo(response([])); await component.find();
+    finish(response()); await pending;
+    expect(component.choices()).toEqual([]);
+  });
+  it('does not leave or replace a booking while its submission is in progress', async () => {
+    const { component, fetch } = await setup();
+    component.select(dentist);
+    component.checkout = { submitting: signal(true) } as unknown as MarketplaceBookingComponent;
+    const finished = spyOn(component.finished, 'emit'); const calls = fetch.calls.count();
+    component.close(); component.back(); await component.find();
+    expect(finished).not.toHaveBeenCalled(); expect(component.selected()).toEqual(dentist); expect(fetch.calls.count()).toBe(calls);
+  });
+  it('keeps unavailable entries and unsafe slugs out of the choices', async () => {
+    const { component, fetch } = await setup();
+    fetch.and.resolveTo(response([{ ...dentist, acceptingNewPatients: false }, { ...dentist, slug: '../admin' }]));
+    await component.find(); expect(component.choices()).toEqual([]);
+  });
+});

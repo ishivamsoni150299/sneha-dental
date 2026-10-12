@@ -4,8 +4,7 @@
     <span>Mili home</span>
   </a>
 }
-@if (mainPage()) {
-  <section id="mili-panel" class="mili-panel expanded main-page" [class.has-task]="result() || busy() || error()" role="main" aria-labelledby="mili-title">
+  <section id="mili-panel" class="mili-panel expanded main-page" [hidden]="!mainPage()" [class.booking-task]="result()?.booking" [class.has-task]="result() || busy() || error()" role="main" aria-labelledby="mili-title">
     <header>
       <div class="brand"><span class="brand-dot" aria-hidden="true"></span>
         <h1 id="mili-title">Mili <span>MyDentalPlatform</span></h1>
@@ -60,11 +59,16 @@
       </div>
       @if (result() || busy() || error()) {
         <aside #taskCanvas class="task-canvas" tabindex="-1" aria-labelledby="task-heading" [attr.aria-busy]="busy()">
-          <div class="task-label"><span>YOUR TASK</span><span class="status" role="status">{{ taskStatus() }}</span></div>
+          <div class="task-label"><span>YOUR TASK</span><span class="status" role="status">{{ result()?.booking ? bookingSent() ? 'Request sent · awaiting confirmation' : 'Choose, review, request' : taskStatus() }}</span></div>
           <h3 id="task-heading">{{ taskTitle() }}</h3>
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           @let outcome = result();
-          @if (result()?.draft; as draft) {
+          @let draft = result()?.draft;
+          @if (result()?.booking; as criteria) {
+            @defer (on immediate) {
+              <app-mili-booking [criteria]="criteria" (sent)="bookingSent.set(true)" (finished)="finishBooking()" />
+            } @placeholder { <p role="status">Opening appointment choices…</p> }
+          } @else if (draft) {
             <article class="draft" aria-labelledby="mili-draft-title">
               <div class="draft-heading"><span class="document-mark" aria-hidden="true">✦</span><div><h4 id="mili-draft-title">Your clinic, ready to create</h4><p>Check the details. You’re in control.</p></div></div>
               @if (editing()) {
@@ -93,9 +97,8 @@
           } @else {
             <div class="task-empty"><span aria-hidden="true">✦</span><h4>{{ busy() ? 'Putting your request together' : 'From “I need” to done.' }}</h4><p>{{ busy() ? 'Your next step will appear here when it’s ready.' : 'Choices, details to review and completed actions appear here as we work together.' }}</p></div>
           }
-          <p class="task-footnote">{{ result()?.draftId ? 'Nothing is created until you confirm.' : 'You can open pages and prepare a new clinic. Other tasks continue in the page controls.' }}</p>
+          @if (!result()?.booking) { <p class="task-footnote">{{ result()?.draftId ? 'Nothing is created until you confirm.' : 'You can find dentists, request an appointment and prepare a new clinic.' }}</p> }
         </aside>
       }
     </div>
   </section>
-}
