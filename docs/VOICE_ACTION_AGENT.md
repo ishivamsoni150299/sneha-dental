@@ -6,6 +6,25 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
+- Agentic redesign (12 October 2026): the single task canvas and persistent
+  composer replace the split chat/panel layout. Mili stays present during booking;
+  conversation history is expandable, search filters become compact editable
+  chips, and the booking card shows its actual current step. Embedded checkout
+  removes duplicated page headings and nested form padding.
+- Follow-up search requests carry current preferences through the validated
+  `/api/agent/turn` booking context. That branch permits only `find_dentists` and
+  `ask_user`; it cannot create clinics or navigate away. Failed or ambiguous
+  updates retain current choices. Selected bookings use explicit change controls
+  so conversational corrections cannot destroy details or an in-flight request.
+- Clinic corrections now carry current draft details as untrusted context.
+  Confirmation still uses the server-owned draft. Successful creation stays on
+  Mili's result card, with workspace navigation available as a separate action.
+- Redesign validation: 288 frontend tests and 16 targeted backend tests pass.
+  Browser fixtures cover 320, 390 and 1440 pixels, search correction and recovery,
+  retained form details and explicit submission. Live provider voice, durable
+  task recovery across refresh and remaining role workflows are not verified or
+  completed by this UI migration.
+
 - Embedded booking update (12 October 2026): Mili's direct task and registered
   `find_dentists` tool open the existing booking journey inside the task canvas.
   The tool supplies search preferences only. Verified listings and actual times

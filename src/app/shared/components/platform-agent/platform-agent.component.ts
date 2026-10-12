@@ -35,6 +35,7 @@ export class PlatformAgentComponent {
   @ViewChild('command') command?: ElementRef<HTMLInputElement>;
   @ViewChild('taskCanvas') taskCanvas?: ElementRef<HTMLElement>;
   @ViewChild('editName') editName?: ElementRef<HTMLInputElement>;
+  @ViewChild(MiliBookingComponent) bookingCard?: MiliBookingComponent;
   readonly directWorkspace = computed(() => roleWorkspace(this.auth.role()));
   readonly taskTitle = signal('What would you like to do?');
   readonly shortcuts = computed(() => {
@@ -60,6 +61,9 @@ export class PlatformAgentComponent {
   readonly taskStatus = computed(() => this.busy() ? 'Working' : this.error() ? 'Needs attention' : this.result()?.draftId ? 'Review before creating' : this.result()?.status === 'succeeded' ? 'Completed' : this.result()?.status === 'navigate' ? 'Page opened' : this.result()?.status === 'needs_input' ? 'Your input needed' : 'Ready when you are');
   readonly editing = signal(false);
   readonly bookingSent = signal(false);
+  readonly hasTask = computed(() => !!this.result() || this.busy() || !!this.error() || this.messages().length > 0);
+  readonly latestReply = computed(() => this.messages().filter(message => message.role === 'assistant').at(-1)?.text ?? '');
+  readonly commandPlaceholder = computed(() => this.result()?.booking ? 'Try “make it Friday evening”' : this.result()?.draft ? 'Tell me what to change…' : 'Ask Mili to find care or help with your clinic…');
   editDraft = { name: '', phone: '', city: '', slug: '' };
   input = '';
   private connection?: LiveConnection;
@@ -79,7 +83,7 @@ export class PlatformAgentComponent {
       this.accountId = id;
       this.generation++;
       this.abort?.abort(); this.connection?.stop(); this.connection = undefined;
-      this.voice.set('off'); this.busy.set(false); this.result.set(null); this.messages.set([]); this.caption.set(''); this.input = ''; this.userSpeech = '';
+      this.voice.set('off'); this.muted.set(false); this.busy.set(false); this.result.set(null); this.messages.set([]); this.caption.set(''); this.error.set(''); this.bookingSent.set(false); this.input = ''; this.userSpeech = '';
       this.voiceTask = Promise.resolve('');
       this.editing.set(false); this.taskTitle.set('What would you like to do?');
     });
@@ -156,24 +160,35 @@ export class PlatformAgentComponent {
   }
 
   async send(text = this.input): Promise<string> {
-    if (this.result()?.booking) return 'Please use the booking choices on screen to continue. Nothing is submitted until you confirm the request.';
     const trimmed = text.trim().slice(0, 2000);
     if (!this.available() || !this.auth.currentUser()) return 'Sign in and check AI availability to send a request.';
     if (!trimmed || this.busy() || this.editing()) return 'Please finish the current request first.';
+    const previous = this.result();
+    if (previous?.booking && (this.bookingCard?.selected() || this.bookingSent())) {
+      const message = this.bookingSent() ? 'Your request is already sent. Choose Done to start another task.'
+        : 'Use Change dentist to revise your search, or Change time to pick another slot. Your details are still here.';
+      this.messages.update(messages => [...messages.slice(-6), { role: 'user', text: trimmed }, { role: 'assistant', text: message }]);
+      this.input = ''; return message;
+    }
     const version = this.generation;
     this.taskTitle.set(trimmed); this.editing.set(false);
     this.busy.set(true); this.error.set(''); this.input = '';
-    const history = this.messages().slice(-8).map(message => `${message.role}: ${message.text}`.slice(0, 1000));
+    const history = this.messages().slice(previous?.draft ? -7 : -8).map(message => `${message.role}: ${message.text}`.slice(0, 1000));
+    if (previous?.draft) history.push(`Current clinic draft (apply only the requested changes): ${JSON.stringify(previous.draft)}`.slice(0, 1000));
     const draftId = this.result()?.draftId;
-    this.result.set(null);
+    if (!previous?.booking) this.result.set(null);
     this.messages.update(messages => [...messages.slice(-7), { role: 'user', text: trimmed }]);
     this.abort = new AbortController();
     try {
       const response = await this.api.fetch('/api/agent/turn', { method: 'POST', signal: this.abort.signal,
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: trimmed, history, draftId }) });
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: trimmed, history, draftId,
+          ...(previous?.booking ? { booking: this.bookingCard?.applied ?? previous.booking } : {}) }) });
       const result = await this.read(response);
       if (version !== this.generation) return 'The account changed. This request was stopped.';
-      await this.apply(result);
+      if (previous?.booking) {
+        if (result.status === 'booking' && result.booking) this.result.set(result);
+        this.messages.update(messages => [...messages.slice(-7), { role: 'assistant', text: result.message }]);
+      } else await this.apply(result);
       return result.message;
     } catch (error) {
       if (version !== this.generation) return 'Request stopped.';
@@ -212,7 +227,7 @@ export class PlatformAgentComponent {
       const response = await this.api.fetch(`/api/agent/drafts/${encodeURIComponent(id)}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('The draft could not be cancelled. Please try again.');
       if (version !== this.generation) return;
-      this.result.set(null); this.error.set('');
+      this.result.set(null); this.error.set(''); this.messages.set([]); this.input = '';
       this.editing.set(false); this.taskTitle.set('What would you like to do?');
     } catch (error) { if (version === this.generation) this.error.set(error instanceof Error ? error.message : 'Please try again.'); }
     finally { if (version === this.generation) this.busy.set(false); }
@@ -265,7 +280,7 @@ export class PlatformAgentComponent {
       this.revealTask();
     }
   }
-  stopVoice(): void { this.connection?.stop(); this.connection = undefined; this.voice.set('off'); this.userSpeech = ''; }
+  stopVoice(): void { this.connection?.stop(); this.connection = undefined; this.voice.set('off'); this.muted.set(false); this.userSpeech = ''; }
   toggleMute(): void { this.muted.update(muted => !muted); this.connection?.mute(this.muted()); }
 
   finishBooking(): void { this.result.set(null); this.bookingSent.set(false); this.newTask(); }
@@ -280,7 +295,7 @@ export class PlatformAgentComponent {
     if (result.path === '/workspace') result = { ...result, path: this.directWorkspace() };
     if (result.path) {
       if (!DESTINATIONS.has(result.path)) throw new Error('That destination is not supported.');
-      if (this.router.url !== result.path && !await this.router.navigateByUrl(result.path)) throw new Error('The page could not open. Please use the navigation.');
+      if (result.status === 'navigate' && this.router.url !== result.path && !await this.router.navigateByUrl(result.path)) throw new Error('The page could not open. Please use the navigation.');
     }
     if (version !== this.generation) return;
     this.result.set(result);

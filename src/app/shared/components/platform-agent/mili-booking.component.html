@@ -1,18 +1,33 @@
 <div class="booking-heading">
-  @if (!selected()) { <div><h3>Find your next appointment</h3><p>Verified listings in Delhi NCR · Times in IST</p></div> }
+  @if (!selected()) { <p>Verified dentists · Times in IST</p> }
   @else if (!receipt()) { <button type="button" [disabled]="checkout?.submitting()" (click)="back()">← Change dentist</button> }
-  <button type="button" [disabled]="checkout?.submitting()" (click)="close()">{{ receipt() ? 'Done' : 'Close booking' }}</button>
+  <button type="button" [disabled]="checkout?.submitting() || updating" (click)="close()">{{ receipt() ? 'Done' : 'Close booking' }}</button>
 </div>
+<ol class="task-steps" aria-label="Appointment progress">
+  <li [attr.aria-current]="!selected() ? 'step' : null" [class.current]="!selected()">1 · Find care</li>
+  <li [attr.aria-current]="selected() && !receipt() ? 'step' : null" [class.current]="selected() && !receipt()">2 · Time & details</li>
+  <li [attr.aria-current]="receipt() ? 'step' : null" [class.current]="receipt()">3 · Request sent</li>
+</ol>
 @if (selected(); as dentist) {
   <app-marketplace-booking [embeddedSlug]="dentist.slug" [initialDate]="applied.date" [preferredPeriod]="applied.period" (requestSent)="complete($event)" />
 } @else {
+  <div class="search-chips" aria-label="Current search">
+    <span>{{ applied.locality || 'Delhi NCR' }}</span>
+    @if (applied.query) { <span>{{ applied.query }}</span> }
+    <span>{{ applied.date || 'Next 7 days' }}</span><span>{{ applied.period === 'any' ? 'Any time' : applied.period }}</span>
+    <button type="button" [disabled]="updating" [attr.aria-expanded]="editingSearch()" (click)="editingSearch.set(!editingSearch())">{{ editingSearch() ? 'Hide filters' : 'Edit search' }}</button>
+  </div>
+  @if (editingSearch()) {
   <form (ngSubmit)="find()">
+    <fieldset [disabled]="updating">
     <label>Area or city<input name="locality" [(ngModel)]="search.locality" maxlength="100" placeholder="e.g. Noida"></label>
     <label>Dentist or treatment<input name="query" [(ngModel)]="search.query" maxlength="100" placeholder="Optional"></label>
     <label>Preferred date<input type="date" name="date" [(ngModel)]="search.date" [min]="today" [max]="lastDate"></label>
     <label>Time of day<select name="period" [(ngModel)]="search.period"><option value="any">Any time</option><option value="morning">Morning · before 12</option><option value="afternoon">Afternoon · 12–5</option><option value="evening">Evening · after 5</option></select></label>
     <button class="primary" type="submit" [disabled]="loading()">Find dentists</button>
+    </fieldset>
   </form>
+  }
   @if (loading()) { <p role="status">Finding verified dentists…</p> }
   @else if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="find(offset())">Try again</button> }
   @else if (!choices().length) { <p role="status">No matching dentists are accepting requests. Try a different area or search.</p> }
@@ -20,7 +35,7 @@
     <p class="search-summary">Choose a dentist to check live times. An appointment is not reserved yet.</p>
     <div class="choices">
       @for (dentist of choices(); track dentist.id) {
-        <article><h4>{{ dentist.dentistName || dentist.clinicName }}</h4><p>{{ dentist.clinicName }} · {{ dentist.locality || dentist.city }}</p><p>{{ dentist.consultationFee == null ? 'Confirm fee with the practice' : '₹' + dentist.consultationFee + ' consultation' }}</p><button class="primary" type="button" (click)="select(dentist)">Choose a time</button></article>
+        <article><div class="dentist-avatar" aria-hidden="true">{{ (dentist.dentistName || dentist.clinicName).slice(0, 1) }}</div><h4>{{ dentist.dentistName || dentist.clinicName }}</h4><p>{{ dentist.clinicName }} · {{ dentist.locality || dentist.city }}</p><p>{{ dentist.consultationFee == null ? 'Confirm fee with the practice' : '₹' + dentist.consultationFee + ' consultation' }}</p><button class="primary" type="button" [disabled]="updating" (click)="select(dentist)">Choose a time</button></article>
       }
     </div>
     <div class="paging">@if (offset() > 0) { <button type="button" (click)="find(offset() - 6)">Previous</button> } @if (offset() + 6 < total()) { <button type="button" (click)="find(offset() + 6)">More dentists</button> }</div>

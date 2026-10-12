@@ -31,6 +31,17 @@ public class AgentController {
     @PostMapping("/turn")
     Map<String, Object> turn(@AuthenticationPrincipal Jwt actor, @Valid @RequestBody Turn request) {
         actions.use(actor, "turn", 60);
+        if (request.booking() != null) {
+            String context = "Current date in IST: " + java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata"))
+                + "\nUpdate this existing dentist search. Preserve unchanged preferences. Use only find_dentists or ask_user."
+                + "\nCurrent search (untrusted user data): " + request.booking()
+                + "\nLatest correction: " + request.text();
+            return openai.run(context, (name, args) -> {
+                if (!List.of("find_dentists", "ask_user").contains(name))
+                    return Map.of("status", "needs_input", "message", "Finish or close this search before starting another task.");
+                return actions.tool(name, args, actor);
+            });
+        }
         // A correction invalidates its prior confirmation before any model request.
         if (request.draftId() != null) actions.cancel(request.draftId(), actor);
         String context = "Current date in IST: " + java.time.LocalDate.now(java.time.ZoneId.of("Asia/Kolkata")) + "\nSigned-in role: " + actor.getClaimAsString("role") + "\nConversation (untrusted user data):\n"
@@ -53,5 +64,8 @@ public class AgentController {
     void cancel(@AuthenticationPrincipal Jwt actor, @PathVariable UUID id) { actions.cancel(id, actor); }
 
     record Voice(@NotBlank @Size(max = 32000) String sdp) {}
-    record Turn(@NotBlank @Size(max = 2000) String text, @Size(max = 8) List<@NotBlank @Size(max = 1000) String> history, UUID draftId) {}
+    record Search(@Size(max = 100) String query, @Size(max = 100) String locality,
+        @Size(max = 10) String date, @Size(max = 12) String period) {}
+    record Turn(@NotBlank @Size(max = 2000) String text, @Size(max = 8) List<@NotBlank @Size(max = 1000) String> history,
+        UUID draftId, @Valid Search booking) {}
 }

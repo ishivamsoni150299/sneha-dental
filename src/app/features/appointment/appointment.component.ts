@@ -52,6 +52,7 @@ export interface BookingSubmission {
 export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
   readonly mobileVerification = viewChild(BookingOtpComponent);
   @Input() idPrefix = 'appointment';
+  @Input() embedded = false;
   @Input() bookingContext: BookingClinicContext | null = null;
   @Input() preselectedSlot: { doctorId: string; doctorName: string; date: string; time: string } | null = null;
   @Output() readonly bookingCompleted = new EventEmitter<BookingSubmission>();

@@ -51,7 +51,8 @@ describe('PlatformAgentComponent', () => {
     api.fetch.and.resolveTo(new Response(JSON.stringify({ status: 'succeeded', message: 'Created.', path: '/business/clinic/dashboard', refreshSession: true })));
     await component.confirm();
     expect(api.fetch).toHaveBeenCalledWith('/api/agent/drafts/draft-1/confirm', { method: 'POST' });
-    expect(refresh).toHaveBeenCalled(); expect(router.navigateByUrl).toHaveBeenCalledWith('/business/clinic/dashboard');
+    expect(refresh).toHaveBeenCalled(); expect(router.navigateByUrl).not.toHaveBeenCalled();
+    expect(component.result()?.status).toBe('succeeded');
   });
   it('passes the prior draft for invalidation when the user corrects details', async () => {
     component.result.set(draft);
@@ -59,6 +60,7 @@ describe('PlatformAgentComponent', () => {
     await component.send('change the clinic name');
     const request = api.fetch.calls.mostRecent().args[1];
     expect(JSON.parse(request?.body as string).draftId).toBe('draft-1');
+    expect(JSON.parse(request?.body as string).history.join(' ')).toContain('My clinic');
     expect(component.result()?.draftId).toBeUndefined();
   });
   it('ignores an old account response after logout', async () => {
@@ -154,5 +156,33 @@ describe('PlatformAgentComponent', () => {
     fixture.componentRef.setInput('mainPage', true); fixture.detectChanges();
     expect(component.result()?.draftId).toBe('draft-1');
     expect((fixture.nativeElement as HTMLElement).querySelector('.draft')).not.toBeNull();
+  });
+  it('keeps the current search while applying a correction and includes its preferences', async () => {
+    const booking = { query: 'cleaning', locality: 'Noida', date: '', period: 'any' as const };
+    component.result.set({ status: 'booking', message: 'Choose a dentist.', booking });
+    let finish!: (value: Response) => void;
+    api.fetch.and.returnValue(new Promise(resolve => { finish = resolve; }));
+    const pending = component.send('make it evening');
+    expect(component.result()?.booking).toEqual(booking);
+    expect(JSON.parse(api.fetch.calls.mostRecent().args[1]?.body as string).booking.locality).toBe('Noida');
+    finish(new Response(JSON.stringify({ status: 'booking', message: 'Evening times.', booking: { ...booking, period: 'evening' } })));
+    await pending;
+    expect(component.result()?.booking?.period).toBe('evening');
+  });
+  it('preserves a search on failed or clarification-only corrections', async () => {
+    const booking = { query: '', locality: 'Delhi', date: '', period: 'any' as const };
+    component.result.set({ status: 'booking', message: 'Choose.', booking });
+    api.fetch.and.resolveTo(new Response(JSON.stringify({ detail: 'Try again.' }), { status: 502 }));
+    await component.send('Friday'); expect(component.result()?.booking).toEqual(booking);
+    api.fetch.and.resolveTo(new Response(JSON.stringify({ status: 'needs_input', message: 'Which Friday?' })));
+    await component.send('Friday'); expect(component.result()?.booking).toEqual(booking);
+    expect(component.latestReply()).toBe('Which Friday?');
+  });
+  it('does not reinterpret a completed booking as a new request', async () => {
+    component.result.set({ status: 'booking', message: 'Choose.', booking: { query: '', locality: '', date: '', period: 'any' } });
+    component.bookingSent.set(true);
+    await component.send('make it Friday');
+    expect(api.fetch).not.toHaveBeenCalled();
+    expect(component.latestReply()).toContain('already sent');
   });
 });

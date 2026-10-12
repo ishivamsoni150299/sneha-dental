@@ -2,6 +2,24 @@
 
 ## New requested capability: voice action agent
 
+Agentic UI redesign (12 October 2026): Mili owns the primary interaction flow,
+not just the launch of a legacy page. Use one focused workspace with a persistent
+command/voice control, current task card, compact character state and expandable
+conversation history. Supported booking and clinic setup share this surface;
+other role workflows remain reachable through direct navigation until migrated.
+The model proposes typed application actions. Angular renders registered cards;
+domain services retain validation, permissions, transactions and authoritative
+outcomes. Never render executable UI supplied by the model.
+
+The task interaction contract is goal → missing details/choices → explicit
+review → saved outcome. Corrections carry current task context. Booking search
+corrections are limited server-side to search or clarification tools, preserve
+existing choices on failure and cannot replace a form during submission. Once a
+dentist is selected, explicit change controls preserve entered details. Clinic
+corrections include the current draft details and invalidate prior confirmation;
+successful creation stays in Mili with a link to the clinic workspace. Do not
+claim every platform operation or hands-free booking is supported yet.
+
 Main UI decision (12 October 2026): Mili is the platform's primary home and
 default signed-in entry, at `/mili`. Keep a single question and role-relevant
 starting actions; reveal task details only when needed. Direct controls remain

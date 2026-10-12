@@ -44,4 +44,15 @@ describe('MiliBookingComponent', () => {
     fetch.and.resolveTo(response([{ ...dentist, acceptingNewPatients: false }, { ...dentist, slug: '../admin' }]));
     await component.find(); expect(component.choices()).toEqual([]);
   });
+  it('applies corrected criteria after the agent finishes without accepting a stale selection', async () => {
+    const { component, fixture, fetch } = await setup();
+    fixture.componentRef.setInput('updating', true); fixture.detectChanges();
+    component.select(dentist); expect(component.selected()).toBeNull();
+    const calls = fetch.calls.count();
+    fixture.componentRef.setInput('criteria', { query: '', locality: 'Delhi', date: '', period: 'evening' });
+    fixture.detectChanges(); expect(fetch.calls.count()).toBe(calls);
+    fixture.componentRef.setInput('updating', false); fixture.detectChanges(); await fixture.whenStable();
+    expect(component.applied.locality).toBe('Delhi'); expect(component.applied.period).toBe('evening');
+    expect(fetch.calls.mostRecent().args[0] as string).toContain('locality=Delhi');
+  });
 });

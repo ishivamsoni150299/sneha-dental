@@ -46,10 +46,10 @@
     </section>
   } @else {
     @if (selectedContext(); as bookingContext) {
-      <section class="mx-auto px-4 py-4 sm:px-6 sm:py-6" [class.video-booking]="consultationMode() === 'video'" [class.max-w-2xl]="consultationMode() === 'video'" [class.max-w-2xl]="consultationMode() !== 'video'">
+      <section class="mx-auto max-w-2xl" [class]="embeddedSlug ? 'pb-5' : 'px-4 py-4 sm:px-6 sm:py-6'" [class.video-booking]="consultationMode() === 'video'">
         @if (!embeddedSlug) { <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700"><i class="ph ph-arrow-left" aria-hidden="true"></i> Back to profile</a> }
         <div class="mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-          <div><h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1><p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
+          <div>@if (!embeddedSlug) { <h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1> }<p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
         </div>
         @if (!isIndependent() && videoReady() && clinic()!.marketplaceProfile?.videoConsultationEnabled) {
         <fieldset class="mt-7">
@@ -131,6 +131,7 @@
           </section>
         } @else {
         <app-appointment
+          [embedded]="!!embeddedSlug"
           [idPrefix]="embeddedSlug ? 'mili-appointment' : 'appointment'"
           [hidden]="editingTime()"
           [bookingContext]="bookingContext"

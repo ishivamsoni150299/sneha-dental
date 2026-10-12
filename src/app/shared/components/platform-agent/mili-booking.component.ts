@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, Output, EventEmitter, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Input, OnChanges, OnInit, SimpleChanges, Output, EventEmitter, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MarketplaceBookingComponent } from '../../../features/marketplace/marketplace-booking.component';
 import { BookingSubmission } from '../../../features/appointment/appointment.component';
@@ -11,10 +11,11 @@ interface DentistChoice { id: string; slug: string; clinicName: string; dentistN
   selector: 'app-mili-booking', standalone: true, imports: [FormsModule, MarketplaceBookingComponent],
   templateUrl: './mili-booking.component.html', styleUrl: './mili-booking.component.css',
 })
-export class MiliBookingComponent implements OnInit {
+export class MiliBookingComponent implements OnChanges, OnInit {
   readonly today = formatDateInTimeZone();
   readonly lastDate = formatDateInTimeZone(new Date(Date.now() + 90 * 86400000));
   @Input() criteria: BookingCriteria = { query: '', locality: '', date: '', period: 'any' };
+  @Input() updating = false;
   @Output() readonly finished = new EventEmitter<void>();
   @Output() readonly sent = new EventEmitter<BookingSubmission>();
   @ViewChild(MarketplaceBookingComponent) checkout?: MarketplaceBookingComponent;
@@ -25,16 +26,27 @@ export class MiliBookingComponent implements OnInit {
   readonly total = signal(0);
   readonly offset = signal(0);
   readonly receipt = signal<BookingSubmission | null>(null);
+  readonly editingSearch = signal(false);
   search: BookingCriteria = { query: '', locality: '', date: '', period: 'any' };
   applied: BookingCriteria = { ...this.search };
   private request = 0;
+  private pendingCriteria = false;
   private readonly abort = new AbortController();
   constructor() { inject(DestroyRef).onDestroy(() => { this.request++; this.abort.abort(); }); }
 
-  async ngOnInit(): Promise<void> { this.search = { ...this.criteria }; await this.find(); }
+  async ngOnChanges(changes: SimpleChanges): Promise<void> {
+    if (changes['criteria']) this.pendingCriteria = true;
+    if (this.pendingCriteria && !this.updating && !this.selected()) {
+      this.pendingCriteria = false;
+      this.search = { ...this.criteria };
+      this.editingSearch.set(!this.search.locality && !this.search.query && !this.search.date && this.search.period === 'any');
+      await this.find();
+    }
+  }
+  async ngOnInit(): Promise<void> { if (!this.request && !this.updating) await this.find(); }
 
   async find(offset = 0): Promise<void> {
-    if (this.checkout?.submitting()) return;
+    if (this.checkout?.submitting() || this.updating) return;
     const request = ++this.request;
     this.selected.set(null); this.loading.set(true); this.error.set(''); this.receipt.set(null);
     this.applied = { ...this.search }; this.offset.set(offset);
@@ -50,8 +62,8 @@ export class MiliBookingComponent implements OnInit {
     finally { if (request === this.request) this.loading.set(false); }
   }
 
-  select(choice: DentistChoice): void { this.selected.set(choice); }
+  select(choice: DentistChoice): void { if (!this.updating) this.selected.set(choice); }
   back(): void { if (!this.checkout?.submitting()) { this.selected.set(null); this.receipt.set(null); } }
   complete(receipt: BookingSubmission): void { this.receipt.set(receipt); this.sent.emit(receipt); }
-  close(): void { if (!this.checkout?.submitting()) this.finished.emit(); }
+  close(): void { if (!this.checkout?.submitting() && !this.updating) this.finished.emit(); }
 }

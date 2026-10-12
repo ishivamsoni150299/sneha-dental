@@ -4,7 +4,7 @@
     <span>Mili home</span>
   </a>
 }
-  <section id="mili-panel" class="mili-panel expanded main-page" [hidden]="!mainPage()" [class.booking-task]="result()?.booking" [class.has-task]="result() || busy() || error()" role="main" aria-labelledby="mili-title">
+  <section id="mili-panel" class="mili-panel expanded main-page" [hidden]="!mainPage()" [class.booking-task]="result()?.booking" [class.has-task]="hasTask()" role="main" aria-labelledby="mili-title">
     <header>
       <div class="brand"><span class="brand-dot" aria-hidden="true"></span>
         <h1 id="mili-title">Mili <span>MyDentalPlatform</span></h1>
@@ -16,12 +16,12 @@
     </header>
     <div class="workspace-body">
       <div class="dialogue">
-        <div class="mili-stage" [attr.data-state]="state()" [class.has-conversation]="messages().length">
+        <div class="mili-stage" [attr.data-state]="state()" [class.has-conversation]="hasTask()">
           <span class="mili-character large" aria-hidden="true"><span class="eyes"><i></i><i></i></span><span class="smile"></span></span>
-          <h3>{{ messages().length ? 'Let’s take care of it.' : 'What would you like to do?' }}</h3>
-          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : available() && auth.currentUser() ? 'Tell me what you need. We’ll take it from here.' : 'Find care. Manage your day. Start here.' }}</p>
+          <h3>{{ hasTask() ? 'Let’s take care of it.' : 'A little help. A lot less to do.' }}</h3>
+          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : available() && auth.currentUser() ? 'Tell me your goal. I’ll help with the next step.' : 'Find care. Manage your day. Start here.' }}</p>
         </div>
-        @if (!messages().length && !result()) {
+        @if (!hasTask()) {
           <div class="shortcuts" aria-label="Suggested tasks">
             @for (shortcut of shortcuts(); track shortcut.title) {
               <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span>{{ shortcut.title }}</span><small>{{ shortcut.detail }}</small><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
@@ -34,39 +34,28 @@
         } @else if (!available()) {
           <p class="notice" role="status">{{ checked() ? 'Voice and AI requests are currently unavailable. Choose a task above to continue.' : 'Checking voice and AI availability…' }}</p>
         } @else {
-          <div class="conversation" role="log" aria-live="polite" aria-label="Conversation">
-            @for (message of messages(); track $index) {
-              <p [class.user-message]="message.role === 'user'"><span class="speaker">{{ message.role === 'user' ? 'You' : 'Mili' }}</span>{{ message.text }}</p>
-            }
-          </div>
-          <div class="composer">
-            @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
-            <form (ngSubmit)="send()">
-              <label for="mili-command">What would you like to do?</label>
-              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" placeholder="Tell Mili…" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary" type="submit" [disabled]="busy() || editing() || !input.trim()">Send</button></div>
-            </form>
-            <div class="voice-controls">
-              @if (voice() === 'off') {
-                <button type="button" [disabled]="busy() || editing()" (click)="startVoice()"><span aria-hidden="true">◉</span> Start talking</button>
-              } @else {
-                <button type="button" [attr.aria-pressed]="muted()" (click)="toggleMute()"> {{ muted() ? 'Unmute' : 'Mute' }}</button>
-                <button type="button" (click)="stopVoice()">Stop voice</button>
-              }
-              <small>AI by OpenAI · Keep passwords private</small>
-            </div>
-          </div>
+          @if (latestReply()) { <p class="mili-reply" role="status">{{ latestReply() }}</p> }
+          @if (messages().length > 2) {
+            <details class="conversation-history"><summary>Conversation · {{ messages().length }} messages</summary>
+              <div class="conversation" role="log" aria-label="Conversation">
+                @for (message of messages(); track $index) {
+                  <p [class.user-message]="message.role === 'user'"><span class="speaker">{{ message.role === 'user' ? 'You' : 'Mili' }}</span>{{ message.text }}</p>
+                }
+              </div>
+            </details>
+          }
         }
       </div>
       @if (result() || busy() || error()) {
         <aside #taskCanvas class="task-canvas" tabindex="-1" aria-labelledby="task-heading" [attr.aria-busy]="busy()">
-          <div class="task-label"><span>YOUR TASK</span><span class="status" role="status">{{ result()?.booking ? bookingSent() ? 'Request sent · awaiting confirmation' : 'Choose, review, request' : taskStatus() }}</span></div>
-          <h3 id="task-heading">{{ taskTitle() }}</h3>
+          <div class="task-label"><span>{{ result()?.booking ? 'FIND CARE' : result()?.draft ? 'YOUR CLINIC' : 'NEXT STEP' }}</span><span class="status" role="status">{{ result()?.booking ? bookingSent() ? 'Request sent · awaiting confirmation' : 'Choose, review, request' : taskStatus() }}</span></div>
+          <h3 id="task-heading">{{ result()?.booking ? 'Your next appointment' : result()?.draft ? 'Let’s get your clinic ready' : taskTitle() }}</h3>
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           @let outcome = result();
           @let draft = result()?.draft;
           @if (result()?.booking; as criteria) {
             @defer (on immediate) {
-              <app-mili-booking [criteria]="criteria" (sent)="bookingSent.set(true)" (finished)="finishBooking()" />
+              <app-mili-booking [criteria]="criteria" [updating]="busy()" (sent)="bookingSent.set(true)" (finished)="finishBooking()" />
             } @placeholder { <p role="status">Opening appointment choices…</p> }
           } @else if (draft) {
             <article class="draft" aria-labelledby="mili-draft-title">
@@ -89,7 +78,7 @@
           } @else if (outcome) {
             <div class="outcome" [class.complete]="outcome.status === 'succeeded' || outcome.status === 'navigate'">
               <span class="outcome-mark" aria-hidden="true">{{ outcome.status === 'needs_input' ? '…' : '✓' }}</span>
-              <h4>{{ outcome.status === 'succeeded' ? 'All set.' : outcome.status === 'navigate' ? 'Ready to continue.' : 'One more detail.' }}</h4>
+              <h4>{{ outcome.status === 'succeeded' ? 'All set.' : outcome.status === 'navigate' ? 'Ready to continue.' : 'Let’s keep going.' }}</h4>
               <p>{{ outcome.message }}</p>
               @if (outcome.path && !error()) { <button class="primary" type="button" (click)="choose({title: taskTitle(), path: outcome.path})">Open the page →</button> }
               <div class="actions"><button type="button" [disabled]="busy()" (click)="newTask()">Start another task</button></div>
@@ -99,6 +88,24 @@
           }
           @if (!result()?.booking) { <p class="task-footnote">{{ result()?.draftId ? 'Nothing is created until you confirm.' : 'You can find dentists, request an appointment and prepare a new clinic.' }}</p> }
         </aside>
+      }
+      @if (available() && auth.currentUser()) {
+          <div class="composer">
+            @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
+            <form (ngSubmit)="send()">
+              <label for="mili-command">{{ hasTask() ? 'Keep going with Mili' : 'What would you like to do?' }}</label>
+              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" [placeholder]="commandPlaceholder()" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary" type="submit" [disabled]="busy() || editing() || !input.trim()">Send</button></div>
+            </form>
+            <div class="voice-controls">
+              @if (voice() === 'off') {
+                <button type="button" aria-label="Start talking" title="Start talking" [disabled]="busy() || editing()" (click)="startVoice()"><span aria-hidden="true">◉</span>@if (!hasTask()) { Start talking }</button>
+              } @else {
+                <button type="button" [attr.aria-pressed]="muted()" (click)="toggleMute()"> {{ muted() ? 'Unmute' : 'Mute' }}</button>
+                <button type="button" (click)="stopVoice()">Stop voice</button>
+              }
+              <small>You review before anything is saved</small>
+            </div>
+          </div>
       }
     </div>
   </section>
