@@ -54,7 +54,7 @@
       <div class="search-field">
         <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         <div><label for="dentist-search">Treatment or dentist (optional)</label>
-          <input id="dentist-search" type="search" placeholder="e.g. cleaning or a dentist’s name" [value]="searchTerm()" (input)="updateSearch($event)">
+          <input id="dentist-search" type="search" enterkeyhint="search" placeholder="e.g. cleaning or a dentist’s name" [value]="searchTerm()" (input)="updateSearch($event)">
         </div>
       </div>
       <div class="search-field location-field">
@@ -69,6 +69,7 @@
         <button type="button" class="location-button" (click)="useMyLocation()" [disabled]="locating()" aria-label="Find dentists near my location"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
       </div>
 
+      <button type="submit" class="search-submit ui-btn ui-btn-primary">Find dentists <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
     </form>
     @if (locationError()) { <p role="status" class="text-sm text-gray-500 mt-3">{{ locationError() }}</p> }
     @if (userCoordinates()) { <p role="status" class="text-sm text-blue-700 mt-3">Showing dentists within 25 km of you.</p> }

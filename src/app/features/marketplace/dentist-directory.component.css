@@ -107,3 +107,16 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
   .filter-dialog::before{content:'';display:block;width:40px;height:4px;margin:10px auto 0;border-radius:999px;background:var(--ui-line-strong)}
   .patient-faq{padding:20px;border-radius:20px}
 }
+.search-submit{grid-column:1/-1;min-height:48px;margin:4px}
+@media(max-width:767px){
+  .filter-dialog[open]{display:flex;flex-direction:column;overflow:hidden;height:min(90dvh,760px)}
+  .filter-dialog::before{flex-shrink:0}
+  .filter-header{flex-shrink:0;padding:16px 20px}
+  .filter-header .icon-button{display:grid;place-items:center;min-width:44px;min-height:44px;border-radius:50%;background:var(--ui-canvas)}
+  .advanced-filters{min-height:0;overflow-y:auto;overscroll-behavior:contain;grid-template-columns:1fr;gap:16px;flex:1;padding:16px 20px}
+  .filter-footer{position:static;flex-shrink:0;gap:12px;padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+  .filter-footer button{min-height:48px}.filter-footer .primary{flex:1}
+  .results-heading{flex-wrap:wrap;align-items:center}.results-heading h2{font-size:22px}
+  .quick-filters{max-width:100%;min-width:0}
+  .consultation-switch button{line-height:1.4;min-width:0}
+}

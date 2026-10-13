@@ -5,7 +5,6 @@
     <div class="mt-3 flex flex-row items-start justify-between gap-3 sm:items-end">
       <div>
         <h1 class="ui-heading ui-heading-interface max-w-2xl">My appointments</h1>
-        <p class="mt-2 max-w-xl text-sm leading-6 text-ui-ink-muted">Manage your visits and join confirmed video consultations here.</p>
       </div>
       @if (step() === 'appointments') {
         <button type="button" (click)="logout()" class="ui-btn ui-btn-ghost self-start">
@@ -13,6 +12,7 @@
         </button>
       }
     </div>
+    <p class="mt-2 max-w-xl text-sm leading-6 text-ui-ink-muted patient-visits-description">Manage your visits and video consultations.</p>
   </div>
 </section>
 }
@@ -37,7 +37,7 @@
         }
       </section>
     } @else {
-      <div class="grid gap-6">
+      <div class="patient-visits-content grid gap-6">
         <div>
           <div class="patient-visits-toolbar flex flex-wrap items-center justify-between gap-3">
             <div class="patient-visits-identity">
@@ -85,7 +85,7 @@
                 }
 
                 <div class="px-5 py-4">
-                  <p class="font-semibold text-ui-ink">{{ formatDate(appointment.date) }} · {{ formatSlotDisplay(appointment.time) }} IST</p>
+                  <div class="patient-visit-time font-semibold text-ui-ink"><p>{{ formatDate(appointment.date) }}</p><p>{{ formatSlotDisplay(appointment.time) }} <span class="text-xs font-normal text-ui-ink-muted">IST</span></p></div>
                   @if (appointment.doctorName) {<p class="ui-body mt-1">{{ appointment.doctorName }}</p>}
                   @if (appointment.consultationMode === 'video') {<p class="ui-caption mt-2">Join here 10 minutes before your confirmed appointment.</p>}
                   <details class="mt-1">
@@ -178,7 +178,7 @@
                   </div>
                 }
 
-                <div class="flex flex-wrap items-center gap-2 px-5 py-4">
+                <div class="patient-visit-actions flex flex-wrap items-center gap-2 px-5 py-4">
                   @if (appointment.consultationMode === 'video' && (appointment.status === 'confirmed' || appointment.status === 'checked_in')) {
                     <app-video-consultation [appointmentId]="appointment.id" [bookingRef]="appointment.bookingRef" [phone]="patientAuth.user()?.phoneNumber ?? ''" />
                   }
