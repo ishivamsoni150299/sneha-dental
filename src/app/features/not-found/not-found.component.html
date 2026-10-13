@@ -1,3 +1,18 @@
+@if (platformPage) {
+  <main class="ui-container py-12 sm:py-20" aria-labelledby="platform-not-found-title">
+    <div class="mx-auto max-w-xl">
+      <a routerLink="/mili" class="ui-btn ui-btn-ghost mb-8">← Mili home</a>
+      <p class="ui-eyebrow">404 · Page unavailable</p>
+      <h1 id="platform-not-found-title" class="mt-3 text-3xl font-semibold tracking-tight text-ui-ink sm:text-4xl">Let’s get you back on track.</h1>
+      <p class="mt-4 text-base leading-relaxed text-ui-ink-muted">This link may have changed. Choose where you’d like to continue.</p>
+      <nav class="mt-8 grid gap-3" aria-label="Helpful destinations">
+        <a routerLink="/dentists" class="ui-btn ui-btn-primary">Find a dentist</a>
+        <a routerLink="/appointments" class="ui-btn ui-btn-secondary">My appointments</a>
+        <a routerLink="/workspace" class="ui-btn ui-btn-secondary">Open my workspace</a>
+      </nav>
+    </div>
+  </main>
+} @else {
 <section class="clinic-not-found" aria-labelledby="not-found-title">
   <div class="ui-container">
     <nav class="clinic-not-found-breadcrumb" aria-label="Breadcrumb">
@@ -78,3 +93,4 @@
     </div>
   </div>
 </section>
+}

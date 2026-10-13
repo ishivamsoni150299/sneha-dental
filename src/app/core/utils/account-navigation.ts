@@ -14,7 +14,8 @@ export function accountDestination(role: AuthRole, returnUrl: string | null = nu
   if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) return fallback;
   const path = returnUrl.split(/[?#]/)[0];
   if (/[\\\s%]/.test(path) || Array.from(path).some(character => character.charCodeAt(0) < 32) || path.split('/').some(segment => segment === '.' || segment === '..')) return fallback;
-  if (path === '/mili' || path === '/workspace') return '/mili';
+  if (path === '/mili') return '/mili';
+  if (path === '/workspace') return roleWorkspace(role);
   const allowed = role === 'patient' ? /^(?:\/appointments|\/my-appointment|\/appointment|\/dentists\/[^/]+\/book)$/.test(path)
     : role === 'dentist' ? /^\/professional\/(?:workspace|profile|video-test)$/.test(path)
       : role === 'clinic-admin' ? /^\/business\/clinic\/(?:dashboard|settings|doctors|patients|reviews|expired)$/.test(path)

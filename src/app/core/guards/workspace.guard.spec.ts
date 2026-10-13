@@ -18,9 +18,9 @@ describe('workspace entry', () => {
     expect(await destination(null)).toBe('/account?returnUrl=%2Fworkspace');
   });
   for (const [role, path] of [
-    ['patient', '/mili'], ['dentist', '/mili'],
-    ['clinic-admin', '/mili'], ['platform-admin', '/mili'],
-    ['incomplete-signup', '/mili'],
+    ['patient', '/appointments'], ['dentist', '/professional/workspace'],
+    ['clinic-admin', '/business/clinic/dashboard'], ['platform-admin', '/business/clinics'],
+    ['incomplete-signup', '/business/signup?resume=true'],
   ] as const) {
     it(`opens the ${role} workspace`, async () => {
       expect(await destination(role)).toBe(path);

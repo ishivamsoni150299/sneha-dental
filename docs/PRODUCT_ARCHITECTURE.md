@@ -1,5 +1,28 @@
 # Product architecture
 
+## Platform navigation improvements — 13 October 2026
+
+Mili remains the default home and default sign-in destination. Explicit
+`/workspace` links now resolve to the signed-in role's actual workspace; signing
+in with that return destination preserves this intent. Existing destination
+guards and role-specific return-path allowlists still enforce access.
+
+The router owns scroll restoration so browser Back restores the previous page
+position. Failed navigation presents a retry without reloading the current
+page. Marketplace navigation closes its mobile dialog on route changes, uses
+shared interface typography, supports a focusable skip target, and hides its
+bottom tabs while a form field has focus. The floating Mili shortcut is omitted
+on mobile marketplace pages where existing navigation already provides access.
+Platform 404 recovery uses platform destinations while loaded clinic websites
+retain their clinic recovery links.
+
+Validation includes frontend tests, production build/artifact checks, and local
+browser fixtures covering 320/390/768/1440px patient navigation, role workspace
+redirects, mobile menus, platform 404 recovery, and browser Back scroll position.
+These checks do not certify live payments, notifications, voice, video, or all
+production tenant workflows. Real-device keyboard behavior and production
+integration acceptance remain separate checks.
+
 ## New requested capability: voice action agent
 
 Agentic UI redesign (12 October 2026): Mili owns the primary interaction flow,

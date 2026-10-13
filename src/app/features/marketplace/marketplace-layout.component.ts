@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, inject, signal } from '@angular/core';
 import { AuthFacade } from '../../core/services/auth-facade.service';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PlatformBrandComponent } from '../../shared/components/platform-brand/platform-brand.component';
 import { ModalDirective } from '../../shared/directives/modal.directive';
 
@@ -16,6 +17,12 @@ import { ModalDirective } from '../../shared/directives/modal.directive';
 export class MarketplaceLayoutComponent {
   readonly auth = inject(AuthFacade);
   readonly menuOpen = signal(false);
+
+  constructor() {
+    inject(Router).events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event instanceof NavigationStart) this.closeMenu();
+    });
+  }
 
   openMenu(): void { this.menuOpen.set(true); }
   closeMenu(): void { this.menuOpen.set(false); }

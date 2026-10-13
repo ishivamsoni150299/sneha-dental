@@ -7,7 +7,10 @@ describe('accountDestination', () => {
     expect(roleWorkspace('clinic-admin')).toBe('/business/clinic/dashboard');
     expect(roleWorkspace('platform-admin')).toBe('/business/clinics');
     expect(roleWorkspace(null)).toBe('/account');
-    expect(accountDestination('patient', '/workspace')).toBe('/mili');
+    expect(accountDestination('patient', '/workspace')).toBe('/appointments');
+    expect(accountDestination('dentist', '/workspace')).toBe('/professional/workspace');
+    expect(accountDestination('clinic-admin', '/workspace')).toBe('/business/clinic/dashboard');
+    expect(accountDestination('platform-admin', '/workspace')).toBe('/business/clinics');
   });
   it('opens Mili for every role without a specific return destination', () => {
     expect(accountDestination('patient')).toBe('/mili');
