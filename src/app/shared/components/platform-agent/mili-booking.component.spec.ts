@@ -70,4 +70,22 @@ describe('MiliBookingComponent', () => {
     expect(component.applied.locality).toBe('Delhi'); expect(component.applied.period).toBe('evening');
     expect(fetch.calls.mostRecent().args[0] as string).toContain('locality=Delhi');
   });
+  it('allows returning between time and details only before submission', async () => {
+    const { component } = await setup();
+    component.select(dentist);
+    const submitting = signal(false), editingTime = signal(false);
+    const setEditingTime = jasmine.createSpy('setEditingTime').and.callFake((value: boolean) => editingTime.set(value));
+    component.checkout = { selectedSlot: signal({ date: '2026-10-14', time: '18:00' }), editingTime, submitting, setEditingTime } as unknown as MarketplaceBookingComponent;
+    expect(component.canVisitStep(3)).toBeFalse();
+    component.visitStep(1); expect(editingTime()).toBeTrue();
+    component.visitStep(2); expect(editingTime()).toBeFalse();
+    submitting.set(true);
+    component.visitStep(1); component.visitStep(0);
+    expect(setEditingTime).toHaveBeenCalledTimes(2); expect(component.selected()).toEqual(dentist);
+    submitting.set(false); component.updating = true;
+    expect(component.canVisitStep(0)).toBeFalse();
+    component.updating = false;
+    component.receipt.set({ ref: 'saved', name: 'Patient', date: '2026-10-14', time: '18:00', service: 'Consultation' });
+    expect(component.canVisitStep(1)).toBeFalse();
+  });
 });

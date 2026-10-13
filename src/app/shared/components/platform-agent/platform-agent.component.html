@@ -44,7 +44,7 @@
             @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
             <form (ngSubmit)="send()">
               <label for="mili-command">{{ hasTask() ? 'Keep going with Mili' : 'What would you like to do?' }}</label>
-              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" [placeholder]="hasTask() ? commandPlaceholder() : 'Tell me what you need…'" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary send-button" type="submit" aria-label="Send" title="Send request" [disabled]="busy() || editing() || !input.trim()"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 12 6-6 6 6M12 6v13"/></svg></button></div>
+              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" enterkeyhint="send" [placeholder]="hasTask() ? commandPlaceholder() : 'Tell me what you need…'" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary send-button" type="submit" aria-label="Send" title="Send request" [disabled]="busy() || editing() || !input.trim()"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 12 6-6 6 6M12 6v13"/></svg></button></div>
             </form>
             <div class="voice-controls">
               @if (voice() === 'off') {

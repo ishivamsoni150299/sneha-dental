@@ -5,9 +5,14 @@
 </div>
 <ol class="task-steps" aria-label="Appointment progress">
   @for (label of steps; track label; let index = $index) {
-    <li [attr.aria-current]="step() === index ? 'step' : null" [class.current]="step() === index" [class.complete]="step() > index"><span class="step-number" aria-hidden="true">{{ step() > index ? '✓' : index + 1 }}</span>{{ label }}</li>
+    <li [attr.aria-current]="step() === index ? 'step' : null" [class.current]="step() === index" [class.complete]="step() > index">
+      @if (canVisitStep(index)) {
+        <button type="button" [attr.aria-label]="'Return to ' + label.toLowerCase()" (click)="visitStep(index)"><span class="step-number" aria-hidden="true">{{ step() > index ? '✓' : index + 1 }}</span>{{ label }}</button>
+      } @else { <span class="step-number" aria-hidden="true">{{ step() > index ? '✓' : index + 1 }}</span>{{ label }} }
+    </li>
   }
 </ol>
+<p class="step-guidance" tabindex="-1" role="status">{{ checkout?.submitting() ? 'Sending your request. Please keep this page open…' : guidance[step()] }}</p>
 @if (selected(); as dentist) {
   <app-marketplace-booking [embeddedSlug]="dentist.slug" [initialDate]="applied.date" [preferredPeriod]="applied.period" (requestSent)="complete($event)" />
 } @else {
@@ -32,7 +37,6 @@
   @else if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="find(offset())">Try again</button> }
   @else if (!choices().length) { <p role="status">No matching dentists are accepting requests. Try a different area or search.</p> }
   @else {
-    <p class="search-summary">Choose a dentist to check live times. An appointment is not reserved yet.</p>
     <div class="choices">
       @for (dentist of choices(); track dentist.id) {
         <article><div class="dentist-avatar" aria-hidden="true">{{ (dentist.dentistName || dentist.clinicName).slice(0, 1) }}</div><h4>{{ dentist.dentistName || dentist.clinicName }}</h4><p>{{ dentist.clinicName }} · {{ dentist.locality || dentist.city }}</p><p>{{ dentist.consultationFee == null ? 'Confirm fee with the practice' : '₹' + dentist.consultationFee + ' consultation' }}</p><button class="primary" type="button" [disabled]="updating" (click)="select(dentist)">Choose a time</button></article>

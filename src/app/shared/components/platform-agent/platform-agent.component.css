@@ -18,3 +18,8 @@ input{width:100%;min-width:0;min-height:46px;border:1px solid var(--ui-line);bor
 @media(prefers-reduced-motion:reduce){.large,.petal,.smile{animation:none!important}.composer{transition:none}}
 .has-task .character-scene .mili-character{position:absolute;left:50%;top:50%;margin-left:-50px;margin-top:-50px}
 [data-state=complete] .eyes i{height:6px;border-radius:8px 8px 3px 3px}[data-state=complete] .smile{height:10px}[data-state=attention] .large{animation:none}[data-state=attention] .smile{height:2px;border-radius:0}.shortcuts button{min-height:44px}.send-button{width:44px;height:44px;min-width:44px;min-height:44px}button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline-color:var(--ui-primary)}
+:host{overflow-wrap:anywhere}.workspace-body{padding-bottom:max(48px,env(safe-area-inset-bottom))}.task-canvas{animation:task-arrive .22s ease-out}.conversation-history summary{min-height:44px;display:list-item;padding-block:12px}.composer:focus-within{scroll-margin-block:20px}
+@keyframes task-arrive{from{opacity:.5;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.workspace-body,.has-task .workspace-body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}.edit-form input{font-size:16px}.main-page{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}.actions>button{flex:1}.task-canvas{scroll-margin-top:12px}}
+@media(max-height:600px) and (max-width:900px){.workspace-body{padding-top:12px;gap:12px}.character-scene{height:82px}.large{transform:scale(.7)}.mili-stage h3{margin-top:10px;font-size:24px}.has-task .workspace-body{padding-top:8px}.composer{margin-top:0}}
+@media(prefers-reduced-motion:reduce){.task-canvas{animation:none}}

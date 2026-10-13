@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnChanges, OnInit, SimpleChanges, Output, EventEmitter, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, Injector, afterNextRender, Input, OnChanges, OnInit, SimpleChanges, Output, EventEmitter, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MarketplaceBookingComponent } from '../../../features/marketplace/marketplace-booking.component';
 import { BookingSubmission } from '../../../features/appointment/appointment.component';
@@ -28,6 +28,25 @@ export class MiliBookingComponent implements OnChanges, OnInit {
   readonly receipt = signal<BookingSubmission | null>(null);
   readonly editingSearch = signal(false);
   readonly steps = ['Dentist', 'Time', 'Details', 'Sent'];
+  private readonly element: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
+  readonly guidance = ['Choose a dentist to check live times. Nothing is reserved yet.', 'Choose a time that works for you.', 'Add your contact details, then send your request.', 'Request sent. Your practice will confirm the appointment.'];
+  canVisitStep(index: number): boolean {
+    if (this.updating || this.checkout?.submitting() || this.receipt() || index === this.step()) return false;
+    return index === 0 && !!this.selected() || (index === 1 || index === 2) && !!this.checkout?.selectedSlot();
+  }
+  visitStep(index: number): void {
+    if (!this.canVisitStep(index)) return;
+    if (index === 0) this.back();
+    else this.checkout?.setEditingTime(index === 1);
+  }
+  private focusSearch(): void {
+    afterNextRender(() => {
+      const heading = this.element.nativeElement.querySelector<HTMLElement>('.step-guidance');
+      heading?.focus({ preventScroll: true });
+      heading?.scrollIntoView({ block: 'nearest' });
+    }, { injector: this.injector });
+  }
   dateLabel(): string {
     if (!this.applied.date) return 'Next 7 days';
     const date = new Date(`${this.applied.date}T12:00:00+05:30`);
@@ -81,7 +100,7 @@ export class MiliBookingComponent implements OnChanges, OnInit {
   }
 
   select(choice: DentistChoice): void { if (!this.updating) this.selected.set(choice); }
-  back(): void { if (!this.checkout?.submitting()) { this.selected.set(null); this.receipt.set(null); } }
+  back(): void { if (!this.checkout?.submitting() && !this.updating) { this.selected.set(null); this.receipt.set(null); this.focusSearch(); } }
   complete(receipt: BookingSubmission): void { this.receipt.set(receipt); this.sent.emit(receipt); }
   close(): void { if (!this.checkout?.submitting() && !this.updating) this.finished.emit(); }
 }
