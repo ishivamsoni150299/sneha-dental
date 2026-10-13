@@ -245,3 +245,13 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-shell:has(#account-title) main { min-height: auto; }
   .patient-tab-bar a { min-width: 0; text-align: center; }
 }
+@media(max-width:1023px){
+  body:has(.profile-booking-bar) .mili-launcher{display:none}
+  .marketplace-shell:has(.profile-booking-bar){padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+  .marketplace-shell .profile-booking-bar{display:flex;align-items:center;gap:12px;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+  .profile-booking-price{min-width:0;flex:1;color:var(--ui-ink)}
+  .profile-booking-price span{display:block;font-size:11px;color:var(--ui-ink-muted)}
+  .profile-booking-price strong{display:block;margin-top:3px;font-size:14px;overflow-wrap:anywhere}
+  .marketplace-shell .profile-booking-bar>a{margin:0;max-width:60%;min-height:48px;padding:10px 14px;text-align:center;font-size:13px}
+}
+@media(max-width:360px){.booking-checkout app-slot-picker .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

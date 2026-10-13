@@ -8,6 +8,10 @@ import {
   inject,
   signal,
   computed,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  DestroyRef,
 } from '@angular/core';
 import { phoneHref } from '../../../core/utils/phone';
 import { appointmentDayLabel } from '../../../core/utils/date-input';
@@ -33,6 +37,11 @@ export interface SelectedSlot {
 })
 export class SlotPickerComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
+  private readonly element: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
+  private destroyed = false;
+
+  constructor() { inject(DestroyRef).onDestroy(() => { this.destroyed = true; }); }
 
   @Input({ required: true }) slug!: string;
   @Input() compact = false;
@@ -80,14 +89,28 @@ export class SlotPickerComponent implements OnInit {
       this.error.set('Could not load available times. Please try again.');
     } finally {
       this.loading.set(false);
+      this.revealSelectedDate();
     }
   }
 
   selectDate(index: number): void {
-    if (index === this.selectedDateIndex()) return;
+    if (!Number.isInteger(index) || index < 0 || index >= this.days().length || index === this.selectedDateIndex()) return;
     this.selectedDateIndex.set(index);
     this.selectedSlotKey.set(null);
     this.slotCleared.emit();
+    this.revealSelectedDate();
+  }
+
+  private revealSelectedDate(): void {
+    if (this.destroyed) return;
+    afterNextRender(() => {
+      const strip = this.element.nativeElement.querySelector<HTMLElement>('[aria-label="Appointment dates"]');
+      const selected = strip?.querySelector<HTMLElement>('[aria-pressed="true"]');
+      if (!strip || !selected) return;
+      const item = selected.getBoundingClientRect(), viewport = strip.getBoundingClientRect();
+      if (item.left < viewport.left) strip.scrollLeft -= viewport.left - item.left;
+      else if (item.right > viewport.right) strip.scrollLeft += item.right - viewport.right;
+    }, { injector: this.injector });
   }
 
   selectSlot(slot: MarketplaceAvailabilitySlot, day: MarketplaceAvailabilityDay): void {

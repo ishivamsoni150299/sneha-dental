@@ -42,6 +42,19 @@ describe('SlotPickerComponent', () => {
     component.selectDate(0);
     expect(component.isSelected(availability.days[0], availability.days[0].slots[0])).toBeTrue();
   });
+  it('moves between dates with accessible controls and guards the available range', async () => {
+    const { fixture, component } = await setup();
+    const previous = fixture.nativeElement.querySelector('[aria-label="Previous appointment date"]') as HTMLButtonElement;
+    const next = fixture.nativeElement.querySelector('[aria-label="Next appointment date"]') as HTMLButtonElement;
+    expect(previous.disabled).toBeTrue();
+    next.click(); fixture.detectChanges();
+    expect(component.selectedDateIndex()).toBe(1);
+    expect(next.disabled).toBeTrue();
+    component.selectDate(99); component.selectDate(-1);
+    expect(component.selectedDateIndex()).toBe(1);
+    previous.click(); fixture.detectChanges();
+    expect(component.selectedDateIndex()).toBe(0);
+  });
   it('checks the requested date and only offers live evening slots', async () => {
     const { component, service } = await setup();
     component.fromDate = '2026-10-13'; component.period = 'evening';

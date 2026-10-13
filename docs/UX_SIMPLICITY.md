@@ -7,6 +7,15 @@ clinical decisions, onboarding, verification or payment processing.
 
 ## Rules for every role
 
+Mobile booking update (13 October 2026): appointment dates support labelled
+previous/next controls as well as the swipeable strip. The selected date stays
+visible; changing dates clears the previous time selection. On narrow phones,
+checkout shows two time columns so practitioner labels have room. Mobile and
+tablet profile booking bars show the consultation fee beside the booking action
+and reserve space below the page. The floating Mili shortcut is hidden when it
+would overlap that bar; the header still links home. These changes reuse live
+availability and existing booking permissions, holds, and consent.
+
 - Show the frequent task first. Keep one clear next action per appointment.
 - Put time, person, location and fee before supplementary information.
 - Update search results as the user types; do not require a redundant submit.

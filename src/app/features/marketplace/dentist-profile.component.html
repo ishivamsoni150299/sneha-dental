@@ -329,6 +329,7 @@
 
   @if (currentClinic.marketplaceProfile!.acceptingNewPatients) {
     <div class="profile-booking-bar fixed inset-x-0 bottom-0 z-30 border-t border-ui-line bg-white p-3 shadow-lg lg:hidden">
+      <div class="profile-booking-price"><span>Consultation</span><strong>{{ formattedFee(currentClinic) }}</strong></div>
       @if (currentClinic.isIndependent) {
         <a [routerLink]="['/dentists', currentClinic.bookingSlug || currentClinic.marketplaceSlug, 'book']" [queryParams]="{mode:'video'}" class="mx-auto flex min-h-11 max-w-lg items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white">
           <i class="ph ph-video-camera" aria-hidden="true"></i> Book Video Consultation

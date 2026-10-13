@@ -30,7 +30,15 @@
 } @else {
   <div class="space-y-5">
     <div>
-      <div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold text-ui-ink">Select a date</p><span class="text-xs text-gray-500">Times shown in IST</span></div>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div><p class="text-sm font-semibold text-ui-ink">Select a date</p><span class="text-xs text-ui-ink-muted">Times shown in IST</span></div>
+        @if (days().length > 1) {
+          <div class="flex gap-2" role="group" aria-label="Change appointment date">
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon" aria-label="Previous appointment date" [disabled]="selectedDateIndex() === 0" (click)="selectDate(selectedDateIndex() - 1)"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-icon" aria-label="Next appointment date" [disabled]="selectedDateIndex() >= days().length - 1" (click)="selectDate(selectedDateIndex() + 1)"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+          </div>
+        }
+      </div>
       <div class="mt-3 flex snap-x gap-3 overflow-x-auto pb-3" role="group" aria-label="Appointment dates">
         @for (day of days(); track day.date; let i = $index) {
           <button
@@ -89,7 +97,7 @@
           </div>
         </div>
       } @else {
-        <p class="text-sm text-gray-500">No available times on this day.</p>
+        <p role="status" class="rounded-xl bg-ui-muted p-4 text-sm text-ui-ink-muted">No available times on this day. Choose another date above.</p>
       }
     }
   </div>
