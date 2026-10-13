@@ -18,6 +18,7 @@ interface AgentResult {
   refreshSession?: boolean;
 }
 interface Message { role: 'user' | 'assistant'; text: string }
+interface TaskShortcut { title: string; detail: string; action?: string; path?: string; prompt?: string }
 const DESTINATIONS = new Set(['/mili', '/dentists', '/appointments', '/workspace', '/account', '/business/signup', '/business/signup?resume=true', '/business/clinic/settings', '/business/clinic/dashboard', '/professional/workspace', '/business/clinics']);
 
 @Component({
@@ -38,7 +39,7 @@ export class PlatformAgentComponent {
   @ViewChild(MiliBookingComponent) bookingCard?: MiliBookingComponent;
   readonly directWorkspace = computed(() => roleWorkspace(this.auth.role()));
   readonly taskTitle = signal('What would you like to do?');
-  readonly shortcuts = computed(() => {
+  readonly shortcuts = computed<TaskShortcut[]>(() => {
     const common = [{ title: 'Find a dentist', detail: 'Choose a dentist and request a time', action: 'booking' },
       { title: 'My appointments', detail: 'Open your appointments', path: '/appointments' }];
     const role = this.auth.role();

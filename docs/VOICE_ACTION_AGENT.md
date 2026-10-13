@@ -6,6 +6,13 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
+- Visual refinement (13 October 2026): Mili's welcome screen now leads with an
+  original character illustration, a larger greeting and a prominent command
+  composer followed by role shortcuts. Shared palette tokens, quieter task
+  badges, segmented booking progress and consistent icons unify task screens.
+  Mobile layouts preserve labelled controls, keyboard focus, reduced motion
+  preferences and the existing explicit review/submission behavior.
+
 - Agentic redesign (12 October 2026): the single task canvas and persistent
   composer replace the split chat/panel layout. Mili stays present during booking;
   conversation history is expandable, search filters become compact editable
