@@ -6,6 +6,14 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
+- Character-first direction (13 October 2026, explicitly selected by the owner):
+  a centred original four-part Mili character, one compact voice/text bar and two
+  small role suggestions replace the hero, decorative rings and large composer.
+  Listening, working, review, attention and completion affect the character;
+  reduced-motion preferences stop its animation. Task surfaces use fewer borders,
+  and the composer sits before the current task instead of covering form fields.
+  This is a presentation change; permissions and explicit save controls remain.
+
 - Focused booking refinement (13 October 2026): progress now follows the actual
   dentist, time, details and saved-request states. The selected practice and
   dentist/time remain visible above the short contact form. Optional details

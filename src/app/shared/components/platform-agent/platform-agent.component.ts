@@ -58,7 +58,8 @@ export class PlatformAgentComponent {
   readonly result = signal<AgentResult | null>(null);
   readonly error = signal('');
   readonly caption = signal('');
-  readonly state = computed(() => this.busy() ? 'working' : this.result()?.draftId ? 'review' : this.voice() !== 'off' ? this.voice() : 'idle');
+  readonly state = computed(() => this.busy() ? 'working' : this.voice() !== 'off' ? this.voice() : this.error() ? 'attention'
+    : this.bookingSent() || this.result()?.status === 'succeeded' ? 'complete' : this.result()?.draftId ? 'review' : 'idle');
   readonly taskStatus = computed(() => this.busy() ? 'Working' : this.error() ? 'Needs attention' : this.result()?.draftId ? 'Review before creating' : this.result()?.status === 'succeeded' ? 'Completed' : this.result()?.status === 'navigate' ? 'Page opened' : this.result()?.status === 'needs_input' ? 'Your input needed' : 'Ready when you are');
   readonly editing = signal(false);
   readonly bookingSent = signal(false);

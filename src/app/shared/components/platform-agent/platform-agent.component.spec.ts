@@ -201,5 +201,7 @@ describe('PlatformAgentComponent', () => {
     expect(component.bookingSent()).toBeTrue();
     expect(component.latestReply()).toContain('Your request was sent');
     expect(component.latestReply()).toContain('will confirm');
+    expect(component.state()).toBe('complete');
+    component.voice.set('listening'); expect(component.state()).toBe('listening');
   });
 });

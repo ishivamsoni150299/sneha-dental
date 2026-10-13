@@ -6,7 +6,7 @@
 }
   <section id="mili-panel" class="mili-panel expanded main-page" [hidden]="!mainPage()" [class.booking-task]="result()?.booking" [class.has-task]="hasTask()" role="main" aria-labelledby="mili-title">
     <header>
-      <div class="brand"><span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4.5c2-2 4 .5 7 .5s5-2.5 7-.5c3 3-1 16-3 16-1.5 0-1-7-4-7s-2.5 7-4 7c-2 0-6-13-3-16Z"/></svg></span>
+      <div class="brand"><span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <h1 id="mili-title">Mili <span>MyDentalPlatform</span></h1>
       </div>
       <div class="header-actions">
@@ -17,10 +17,9 @@
     <div class="workspace-body">
       <div class="dialogue">
         <div class="mili-stage" [attr.data-state]="state()" [class.has-conversation]="hasTask()">
-          <div class="character-scene" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="mili-character large"><span class="eyes"><i></i><i></i></span><span class="smile"></span></span><span class="character-spark">✦</span></div>
-          @if (!hasTask()) { <span class="welcome-kicker">YOUR DENTAL DAY, SIMPLIFIED</span> }
-          <h3>@if (hasTask()) { Let’s take care of it. } @else { Hi, I’m Mili.<br><span>How can I help?</span> }</h3>
-          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : available() && auth.currentUser() ? 'Tell me your goal. I’ll help with the next step.' : 'Find care. Manage your day. Start here.' }}</p>
+          <div class="character-scene" aria-hidden="true"><span class="mili-character large"><i class="petal petal-one"></i><i class="petal petal-two"></i><i class="petal petal-three"></i><i class="petal petal-four"></i><span class="eyes"><i></i><i></i></span><span class="smile"></span></span></div>
+          <h3>{{ hasTask() ? 'I’m here with you.' : 'What can I do for you?' }}</h3>
+          <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : available() && auth.currentUser() ? 'Say it or type it. Let’s take care of it.' : 'Find care. Manage your day. Start here.' }}</p>
         </div>
         @if (!auth.currentUser()) {
           <p class="notice">Explore dentists now, or sign in for help with your account.</p>
@@ -40,9 +39,26 @@
           }
         }
       </div>
+      @if (available() && auth.currentUser()) {
+          <div class="composer" [class.voice-active]="voice() !== 'off'">
+            @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
+            <form (ngSubmit)="send()">
+              <label for="mili-command">{{ hasTask() ? 'Keep going with Mili' : 'What would you like to do?' }}</label>
+              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" [placeholder]="hasTask() ? commandPlaceholder() : 'Tell me what you need…'" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary send-button" type="submit" aria-label="Send" title="Send request" [disabled]="busy() || editing() || !input.trim()"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 12 6-6 6 6M12 6v13"/></svg></button></div>
+            </form>
+            <div class="voice-controls">
+              @if (voice() === 'off') {
+                <button class="talk-button" type="button" aria-label="Start talking" title="Start talking" [disabled]="busy() || editing()" (click)="startVoice()"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg></button>
+              } @else {
+                <button type="button" [attr.aria-pressed]="muted()" (click)="toggleMute()"> {{ muted() ? 'Unmute' : 'Mute' }}</button>
+                <button type="button" (click)="stopVoice()">Stop voice</button>
+              }
+            </div>
+          </div>
+      }
       @if (result() || busy() || error()) {
         <aside #taskCanvas class="task-canvas" tabindex="-1" aria-labelledby="task-heading" [attr.aria-busy]="busy()">
-          <div class="task-label"><span>{{ result()?.booking ? 'FIND CARE' : result()?.draft ? 'YOUR CLINIC' : 'NEXT STEP' }}</span><span class="status" role="status">{{ result()?.booking ? bookingSent() ? 'Request sent · awaiting confirmation' : 'Choose, review, request' : taskStatus() }}</span></div>
+          <div class="task-label"><span>{{ result()?.booking ? 'FIND CARE' : result()?.draft ? 'YOUR CLINIC' : 'NEXT STEP' }}</span><span class="status" role="status">{{ result()?.booking ? bookingSent() ? 'Awaiting confirmation' : 'In progress' : taskStatus() }}</span></div>
           <h3 id="task-heading">{{ result()?.booking ? 'Your next appointment' : result()?.draft ? 'Let’s get your clinic ready' : taskTitle() }}</h3>
           @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
           @let outcome = result();
@@ -83,28 +99,10 @@
           @if (!result()?.booking) { <p class="task-footnote">{{ result()?.draftId ? 'Nothing is created until you confirm.' : 'You can find dentists, request an appointment and prepare a new clinic.' }}</p> }
         </aside>
       }
-      @if (available() && auth.currentUser()) {
-          <div class="composer">
-            @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
-            <form (ngSubmit)="send()">
-              <label for="mili-command">{{ hasTask() ? 'Keep going with Mili' : 'What would you like to do?' }}</label>
-              <div class="command-row"><input #command id="mili-command" name="command" [(ngModel)]="input" maxlength="2000" autocomplete="off" [placeholder]="hasTask() ? commandPlaceholder() : 'Tell me what you need…'" aria-label="Or type your request" [disabled]="busy() || editing()"><button class="primary send-button" type="submit" aria-label="Send" title="Send request" [disabled]="busy() || editing() || !input.trim()"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 12 6-6 6 6M12 6v13"/></svg></button></div>
-            </form>
-            <div class="voice-controls">
-              @if (voice() === 'off') {
-                <button class="talk-button" type="button" aria-label="Start talking" title="Start talking" [disabled]="busy() || editing()" (click)="startVoice()"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3M9 21h6"/></svg>@if (!hasTask()) { Speak to Mili }</button>
-              } @else {
-                <button type="button" [attr.aria-pressed]="muted()" (click)="toggleMute()"> {{ muted() ? 'Unmute' : 'Mute' }}</button>
-                <button type="button" (click)="stopVoice()">Stop voice</button>
-              }
-              <small>You review before anything is saved</small>
-            </div>
-          </div>
-      }
         @if (!hasTask()) {
           <div class="shortcuts" aria-label="Suggested tasks">
             @for (shortcut of shortcuts(); track shortcut.title) {
-              <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span class="shortcut-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">@if (shortcut.action === 'booking') { <circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/> } @else { <rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4M16 3v4M4 11h16M8 15h3M8 18h6"/> }</svg></span><span class="shortcut-title">{{ shortcut.title }}</span><small>{{ shortcut.detail }}</small><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
+              <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span class="shortcut-title">{{ shortcut.title }}</span><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
             }
           </div>
         }
