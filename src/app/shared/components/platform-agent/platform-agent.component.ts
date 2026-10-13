@@ -64,7 +64,11 @@ export class PlatformAgentComponent {
   readonly bookingSent = signal(false);
   readonly hasTask = computed(() => !!this.result() || this.busy() || !!this.error() || this.messages().length > 0);
   readonly latestReply = computed(() => this.messages().filter(message => message.role === 'assistant').at(-1)?.text ?? '');
-  readonly commandPlaceholder = computed(() => this.result()?.booking ? 'Try “make it Friday evening”' : this.result()?.draft ? 'Tell me what to change…' : 'Ask Mili to find care or help with your clinic…');
+  commandPlaceholder(): string {
+    if (this.bookingSent()) return 'Ask about your next step…';
+    if (this.result()?.booking) return this.bookingCard?.selected() ? 'Try “change the time”' : 'Try “make it Friday evening”';
+    return this.result()?.draft ? 'Tell me what to change…' : 'Ask Mili to find care or help with your clinic…';
+  }
   editDraft = { name: '', phone: '', city: '', slug: '' };
   input = '';
   private connection?: LiveConnection;
@@ -166,7 +170,9 @@ export class PlatformAgentComponent {
     if (!trimmed || this.busy() || this.editing()) return 'Please finish the current request first.';
     const previous = this.result();
     if (previous?.booking && (this.bookingCard?.selected() || this.bookingSent())) {
-      const message = this.bookingSent() ? 'Your request is already sent. Choose Done to start another task.'
+      const changingTime = !this.bookingSent() && /^(?:please )?(?:change|edit|choose another|pick another)(?: my| the)? time(?: please)?[.!]?$/i.test(trimmed)
+        && this.bookingCard?.changeTime();
+      const message = changingTime ? 'Choose a new time below. Your details are kept.' : this.bookingSent() ? 'Your request is already sent. Choose Done to start another task.'
         : 'Use Change dentist to revise your search, or Change time to pick another slot. Your details are still here.';
       this.messages.update(messages => [...messages.slice(-6), { role: 'user', text: trimmed }, { role: 'assistant', text: message }]);
       this.input = ''; return message;
@@ -285,6 +291,12 @@ export class PlatformAgentComponent {
   toggleMute(): void { this.muted.update(muted => !muted); this.connection?.mute(this.muted()); }
 
   finishBooking(): void { this.result.set(null); this.bookingSent.set(false); this.newTask(); }
+  onBookingSent(): void {
+    this.bookingSent.set(true);
+    this.messages.update(messages => [...messages.slice(-7), {
+      role: 'assistant', text: 'Your request was sent. The practice will confirm your appointment. You can track it in My appointments.',
+    }]);
+  }
 
   private async read(response: Response): Promise<AgentResult> {
     const data = await response.json() as AgentResult & { detail?: string };

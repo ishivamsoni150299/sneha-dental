@@ -6,6 +6,18 @@ or microphone conversation has been verified from this workspace.
 
 ## Delivered preview and rollout
 
+- Focused booking refinement (13 October 2026): progress now follows the actual
+  dentist, time, details and saved-request states. The selected practice and
+  dentist/time remain visible above the short contact form. Optional details
+  remain collapsed and consent remains explicit. “Change the time” opens the
+  existing picker without a provider call, preserving patient details; this
+  local UI action and mode/slot changes are blocked during submission. Completed
+  requests cannot be silently changed through that command. Search dates use
+  readable India-time labels, and embedded receipts retain pending confirmation.
+  Mili's latest guidance changes to the saved outcome after submission. Validation
+  covers 291 frontend tests and isolated browser journeys at 320, 390 and 1440px,
+  including reopening times through Mili and retaining entered patient details.
+
 - Visual refinement (13 October 2026): Mili's welcome screen now leads with an
   original character illustration, a larger greeting and a prominent command
   composer followed by role shortcuts. Shared palette tokens, quieter task

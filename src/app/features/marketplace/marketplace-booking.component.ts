@@ -22,7 +22,8 @@ import { AnalyticsService } from '../../core/services/analytics.service';
   standalone: true,
   imports: [AppointmentComponent, RouterLink, SlotPickerComponent],
   templateUrl: './marketplace-booking.component.html',
-  host: { class: 'booking-checkout' },
+  styleUrl: './marketplace-booking.component.css',
+  host: { class: 'booking-checkout', '[class.embedded-checkout]': '!!embeddedSlug' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketplaceBookingComponent implements OnInit {
@@ -225,6 +226,7 @@ export class MarketplaceBookingComponent implements OnInit {
   }
 
   onSlotSelected(slot: SelectedSlot): void {
+    if (this.submitting()) return;
     this.slotNotice.set(null);
     this.analytics.trackEvent('slot_selected', { consultation_mode: this.consultationMode() });
     this.selectedSlot.set(slot);
@@ -233,6 +235,7 @@ export class MarketplaceBookingComponent implements OnInit {
   }
 
   setEditingTime(editing: boolean): void {
+    if (this.submitting()) return;
     this.editingTime.set(editing);
     this.focusBookingStep(editing);
   }
@@ -247,6 +250,7 @@ export class MarketplaceBookingComponent implements OnInit {
   }
 
   chooseMode(mode: 'in_person' | 'video'): void {
+    if (this.submitting()) return;
     if (mode === 'in_person' && this.isIndependent()) return;
     if (mode === 'video' && (!this.videoReady() || (!this.isIndependent() && !this.clinic()?.marketplaceProfile?.videoConsultationEnabled))) return;
     if (mode !== this.consultationMode()) {

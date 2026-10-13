@@ -44,6 +44,21 @@ describe('MiliBookingComponent', () => {
     fetch.and.resolveTo(response([{ ...dentist, acceptingNewPatients: false }, { ...dentist, slug: '../admin' }]));
     await component.find(); expect(component.choices()).toEqual([]);
   });
+  it('tracks time and details separately and reopens times without replacing the checkout', async () => {
+    const { component } = await setup();
+    expect(component.step()).toBe(0);
+    component.select(dentist);
+    const editingTime = signal(false), submitting = signal(false);
+    const setEditingTime = jasmine.createSpy('setEditingTime').and.callFake((value: boolean) => editingTime.set(value));
+    component.checkout = { selectedSlot: signal(null), editingTime, submitting, setEditingTime } as unknown as MarketplaceBookingComponent;
+    expect(component.step()).toBe(1); expect(component.changeTime()).toBeFalse();
+    component.checkout.selectedSlot.set({ doctorId: 'd', doctorName: 'Dentist', date: '2026-10-14', time: '18:00' });
+    expect(component.step()).toBe(2); expect(component.changeTime()).toBeTrue(); expect(component.step()).toBe(1);
+    expect(component.selected()).toEqual(dentist);
+    submitting.set(true); expect(component.changeTime()).toBeFalse(); expect(setEditingTime).toHaveBeenCalledTimes(1);
+    component.receipt.set({ ref: 'saved', name: 'Patient', date: '2026-10-14', time: '18:00', service: 'Consultation' });
+    expect(component.step()).toBe(3); expect(component.changeTime()).toBeFalse();
+  });
   it('applies corrected criteria after the agent finishes without accepting a stale selection', async () => {
     const { component, fixture, fetch } = await setup();
     fixture.componentRef.setInput('updating', true); fixture.detectChanges();

@@ -3,7 +3,7 @@
     <form id="{{ idPrefix }}-booking-fields" [formGroup]="form" (ngSubmit)="onSubmit()" [ngClass]="embedded ? 'space-y-4' : 'ui-card space-y-5 p-4 sm:p-6'" novalidate>
       <div id="{{ idPrefix }}-booking-form">
         <h2 id="quick-booking-title" tabindex="-1" class="ui-heading-interface ui-heading scroll-mt-20">Your details</h2>
-        <p class="ui-body mt-1">With {{ preselectedSlot!.doctorName }}. Your request needs {{ bookingContext?.isIndependent ? 'dentist' : 'clinic' }} confirmation.</p>
+        <p class="ui-body mt-1">{{ embedded ? 'How can the practice reach you?' : 'With ' + preselectedSlot!.doctorName + '. Your request needs ' + (bookingContext?.isIndependent ? 'dentist' : 'clinic') + ' confirmation.' }}</p>
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
@@ -21,7 +21,7 @@
         </div>
       </div>
       <details class="border-y border-ui-line py-3">
-        <summary class="min-h-11 cursor-pointer py-3 text-sm font-semibold text-ui-primary">Reason for visit, email or notes (optional)</summary>
+        <summary class="min-h-11 cursor-pointer py-3 text-sm font-semibold text-ui-primary">{{ embedded ? 'Add a note or more details (optional)' : 'Reason for visit, email or notes (optional)' }}</summary>
         <div class="space-y-4 py-3">
           @if (bookingContext?.consultationMode !== 'video') {
             <div><label for="{{ idPrefix }}-service" class="ui-label">Reason for visit</label>

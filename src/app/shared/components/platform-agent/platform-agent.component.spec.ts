@@ -4,6 +4,7 @@ import { Router, provideRouter } from '@angular/router';
 import { AuthFacade, AuthRole, PlatformUser } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { PlatformAgentComponent } from './platform-agent.component';
+import { MiliBookingComponent } from './mili-booking.component';
 
 describe('PlatformAgentComponent', () => {
   let fixture: ComponentFixture<PlatformAgentComponent>;
@@ -184,5 +185,21 @@ describe('PlatformAgentComponent', () => {
     await component.send('make it Friday');
     expect(api.fetch).not.toHaveBeenCalled();
     expect(component.latestReply()).toContain('already sent');
+  });
+  it('opens the current time picker for an explicit correction without a model or save request', async () => {
+    const changeTime = jasmine.createSpy('changeTime').and.returnValue(true);
+    component.bookingCard = { selected: signal({ slug: 'clinic' }), changeTime } as unknown as MiliBookingComponent;
+    component.result.set({ status: 'booking', message: 'Choose.', booking: { query: '', locality: '', date: '', period: 'any' } });
+    await component.send('please change the time');
+    expect(changeTime).toHaveBeenCalledTimes(1); expect(api.fetch).not.toHaveBeenCalled();
+    expect(component.latestReply()).toContain('Your details are kept');
+    expect(component.commandPlaceholder()).toContain('change the time');
+  });
+  it('replaces stale editing guidance with the actual submitted outcome', () => {
+    component.messages.set([{ role: 'assistant', text: 'Choose a new time.' }]);
+    component.onBookingSent();
+    expect(component.bookingSent()).toBeTrue();
+    expect(component.latestReply()).toContain('Your request was sent');
+    expect(component.latestReply()).toContain('will confirm');
   });
 });

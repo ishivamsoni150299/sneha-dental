@@ -49,7 +49,7 @@
           @let draft = result()?.draft;
           @if (result()?.booking; as criteria) {
             @defer (on immediate) {
-              <app-mili-booking [criteria]="criteria" [updating]="busy()" (sent)="bookingSent.set(true)" (finished)="finishBooking()" />
+              <app-mili-booking [criteria]="criteria" [updating]="busy()" (sent)="onBookingSent()" (finished)="finishBooking()" />
             } @placeholder { <p role="status">Opening appointment choices…</p> }
           } @else if (draft) {
             <article class="draft" aria-labelledby="mili-draft-title">

@@ -27,6 +27,24 @@ export class MiliBookingComponent implements OnChanges, OnInit {
   readonly offset = signal(0);
   readonly receipt = signal<BookingSubmission | null>(null);
   readonly editingSearch = signal(false);
+  readonly steps = ['Dentist', 'Time', 'Details', 'Sent'];
+  dateLabel(): string {
+    if (!this.applied.date) return 'Next 7 days';
+    const date = new Date(`${this.applied.date}T12:00:00+05:30`);
+    return Number.isNaN(date.getTime()) ? this.applied.date : new Intl.DateTimeFormat('en-IN', {
+      weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata',
+    }).format(date);
+  }
+  step(): number {
+    if (this.receipt()) return 3;
+    if (!this.selected()) return 0;
+    return this.checkout?.selectedSlot() && !this.checkout.editingTime() ? 2 : 1;
+  }
+  changeTime(): boolean {
+    if (!this.checkout || this.checkout.submitting() || this.receipt() || !this.checkout.selectedSlot()) return false;
+    this.checkout.setEditingTime(true);
+    return true;
+  }
   search: BookingCriteria = { query: '', locality: '', date: '', period: 'any' };
   applied: BookingCriteria = { ...this.search };
   private request = 0;

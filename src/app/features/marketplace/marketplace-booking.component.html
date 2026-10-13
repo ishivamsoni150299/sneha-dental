@@ -30,7 +30,8 @@
   </section>
 } @else {
   @if (submission(); as booking) {
-    <section class="mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="booking-receipt-title">
+    <section class="booking-receipt mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="booking-receipt-title">
+      @if (embeddedSlug) { <div class="receipt-mark" aria-hidden="true">✓</div> }
       <p class="ui-caption">Pending {{ isIndependent() ? 'dentist' : 'clinic' }} confirmation</p>
       <h1 id="booking-receipt-title" tabindex="-1" class="ui-heading ui-heading-interface mt-2">Your request was sent</h1>
       <p class="ui-body mt-3">{{ clinic()!.name }} will review your request. Wait for confirmation before your {{ booking.consultationMode === 'video' ? 'call' : 'visit' }}.</p>
@@ -42,13 +43,13 @@
       <a routerLink="/appointments" [queryParams]="patientAuth.isSignedIn() ? {} : { claim: booking.ref }" class="ui-btn ui-btn-primary ui-btn-block">View my appointments</a>
       @if (!patientAuth.isSignedIn()) {<p class="ui-caption mt-3">Keep your reference. Sign in and verify ownership to link this request.</p>}
       @if (booking.consultationMode === 'video') {<p class="ui-caption mt-3">Once confirmed, join from My appointments 10 minutes before your call.</p>}
-      <a routerLink="/dentists" class="ui-btn ui-btn-ghost ui-btn-block mt-3">Back to dentists</a>
+      @if (!embeddedSlug) { <a routerLink="/dentists" class="ui-btn ui-btn-ghost ui-btn-block mt-3">Back to dentists</a> }
     </section>
   } @else {
     @if (selectedContext(); as bookingContext) {
       <section class="mx-auto max-w-2xl" [class]="embeddedSlug ? 'pb-5' : 'px-4 py-4 sm:px-6 sm:py-6'" [class.video-booking]="consultationMode() === 'video'">
         @if (!embeddedSlug) { <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700"><i class="ph ph-arrow-left" aria-hidden="true"></i> Back to profile</a> }
-        <div class="mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+        <div class="practice-summary mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>@if (!embeddedSlug) { <h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1> }<p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
         </div>
         @if (!isIndependent() && videoReady() && clinic()!.marketplaceProfile?.videoConsultationEnabled) {
@@ -98,9 +99,9 @@
         } @else {
         @if (slotNotice()) {<p role="status" class="ui-alert mt-4">{{ slotNotice() }}</p>}
         @if (selectedSlot(); as slot) {
-          <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-line bg-white p-4" aria-label="Selected appointment">
-            <p class="text-sm font-semibold text-ui-ink">{{ formattedDate(slot.date) }} · {{ formatSlotDisplay(slot.time) }} IST</p>
-            <button type="button" (click)="setEditingTime(!editingTime())" [attr.aria-expanded]="editingTime()" aria-controls="booking-time-picker" class="min-h-11 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">{{ editingTime() ? 'Keep this time' : 'Change time' }}</button>
+          <div class="selected-time mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-line bg-white p-4" aria-label="Selected appointment">
+            <p class="text-sm font-semibold text-ui-ink">{{ formattedDate(slot.date) }} · {{ formatSlotDisplay(slot.time) }} IST@if (embeddedSlug) { <span class="mt-1 block text-xs font-normal text-ui-ink-muted">{{ slot.doctorName }}</span> }</p>
+            <button type="button" [disabled]="submitting()" (click)="setEditingTime(!editingTime())" [attr.aria-expanded]="editingTime()" aria-controls="booking-time-picker" class="min-h-11 rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">{{ editingTime() ? 'Keep this time' : 'Change time' }}</button>
           </div>
         }
         <div id="booking-time-picker" [hidden]="selectedSlot() && !editingTime()" class="mt-5 rounded-2xl border border-ui-line bg-white p-5 shadow-sm sm:p-6">

@@ -4,9 +4,9 @@
   <button type="button" [disabled]="checkout?.submitting() || updating" (click)="close()">{{ receipt() ? 'Done' : 'Close booking' }}</button>
 </div>
 <ol class="task-steps" aria-label="Appointment progress">
-  <li [attr.aria-current]="!selected() ? 'step' : null" [class.current]="!selected()">1 · Find care</li>
-  <li [attr.aria-current]="selected() && !receipt() ? 'step' : null" [class.current]="selected() && !receipt()">2 · Time & details</li>
-  <li [attr.aria-current]="receipt() ? 'step' : null" [class.current]="receipt()">3 · Request sent</li>
+  @for (label of steps; track label; let index = $index) {
+    <li [attr.aria-current]="step() === index ? 'step' : null" [class.current]="step() === index" [class.complete]="step() > index"><span class="step-number" aria-hidden="true">{{ step() > index ? '✓' : index + 1 }}</span>{{ label }}</li>
+  }
 </ol>
 @if (selected(); as dentist) {
   <app-marketplace-booking [embeddedSlug]="dentist.slug" [initialDate]="applied.date" [preferredPeriod]="applied.period" (requestSent)="complete($event)" />
@@ -14,7 +14,7 @@
   <div class="search-chips" aria-label="Current search">
     <span>{{ applied.locality || 'Delhi NCR' }}</span>
     @if (applied.query) { <span>{{ applied.query }}</span> }
-    <span>{{ applied.date || 'Next 7 days' }}</span><span>{{ applied.period === 'any' ? 'Any time' : applied.period }}</span>
+    <span>{{ dateLabel() }}</span><span>{{ applied.period === 'any' ? 'Any time' : applied.period }}</span>
     <button type="button" [disabled]="updating" [attr.aria-expanded]="editingSearch()" (click)="editingSearch.set(!editingSearch())">{{ editingSearch() ? 'Hide filters' : 'Edit search' }}</button>
   </div>
   @if (editingSearch()) {
