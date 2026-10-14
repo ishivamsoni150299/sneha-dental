@@ -6123,3 +6123,31 @@ html:has(.ui-mobile-sheet[open]) { overflow: hidden; }
 @media(max-width:360px){
   .professional-schedule-break,.professional-opening-hours{grid-template-columns:minmax(0,1fr)}
 }
+.account-type-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.account-type-choice{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid var(--ui-line);border-radius:var(--ui-radius-sm);cursor:pointer;font-size:13px;font-weight:600;color:var(--ui-ink)}
+.account-type-choice input{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
+.account-type-choice:has(input:checked){border-color:var(--ui-primary);background:var(--ui-primary-soft);color:var(--ui-primary)}
+.account-type-choice:has(input:focus-visible){outline:3px solid var(--ui-primary);outline-offset:3px}
+.account-type-options:disabled{opacity:.6}.account-type-help{margin-top:-8px}
+@media(max-width:767px){
+  .marketplace-shell .account-page{padding:20px 20px 28px}
+  .marketplace-shell .account-page .ui-auth-card{padding:0;border:0;box-shadow:none;border-radius:0;gap:16px}
+  .marketplace-shell .account-page .ui-heading{font-size:26px;line-height:1.25}
+  .account-page .ui-tab{min-height:44px;font-size:13px;padding-inline:8px}
+  .marketplace-shell:has(.account-page){padding-bottom:env(safe-area-inset-bottom)}
+  .marketplace-shell:has(.account-page) .patient-tab-bar{display:none}
+  .marketplace-shell:has(.account-page) footer .footer-brand,
+  .marketplace-shell:has(.account-page) footer a:not([href='/business/privacy']):not([href='/business/terms']){display:none}
+  .marketplace-shell:has(.account-page) footer{padding:12px 20px}
+  .marketplace-shell:has(.account-page) main{min-height:0}
+  dialog.clinic-reschedule-dialog{overflow:hidden}
+  .clinic-reschedule-dialog>div{display:flex;flex-direction:column;max-height:calc(100dvh - 34px);padding:16px}
+  .clinic-reschedule-fields{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px;flex:1}
+  .clinic-reschedule-dialog h2,.clinic-reschedule-dialog p,.clinic-reschedule-dialog>div>div:last-child{flex-shrink:0}
+  .clinic-reschedule-dialog input,.clinic-reschedule-dialog select{font-size:16px}
+}
+@media(max-width:767px){
+  .clinic-appointments-heading{flex-wrap:nowrap;align-items:center;gap:8px}
+  .clinic-appointments-heading>div{min-width:0}
+  .clinic-appointments-heading>button{flex-shrink:0}
+}

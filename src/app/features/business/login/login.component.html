@@ -1,8 +1,8 @@
-<section class="mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="account-title">
+<section class="account-page mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="account-title">
   <div class="ui-card ui-auth-card">
     <div class="space-y-3">
       <h1 id="account-title" class="ui-heading ui-heading-interface">{{ signup() ? 'Create your account' : 'Sign in' }}</h1>
-      <p class="ui-body">{{ signup() ? 'One account for your visits or practice.' : 'Welcome back. We’ll open your appointments or workspace.' }}</p>
+      <p class="ui-body">{{ signup() ? 'For your dental visits or practice.' : 'Sign in to continue.' }}</p>
     </div>
     @if (!ready()) {
       <p role="status" class="ui-body">Checking your session…</p>
@@ -14,15 +14,18 @@
       </div>
       }
       @if (signup()) {
-        <fieldset class="space-y-2" [disabled]="auth.isAuthenticated || loginForm()?.busy()">
+        <fieldset class="account-type-options" [disabled]="auth.isAuthenticated || loginForm()?.busy()">
           <legend class="ui-label mb-2">I’m joining as a</legend>
           @for (type of types; track type.id) {
-            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-ui-line p-3">
+            <label class="account-type-choice">
               <input type="radio" name="account-type" [value]="type.id" [checked]="accountType() === type.id" (change)="setType(type.id)">
-              <span><strong class="text-sm text-ui-ink">{{ type.label }}</strong><span class="block text-xs text-ui-ink-muted">{{ type.help }}</span></span>
+              <span>{{ type.label }}</span>
             </label>
           }
         </fieldset>
+        @for (type of types; track type.id) {
+          @if (accountType() === type.id) { <p class="ui-helper account-type-help">{{ type.help }}</p> }
+        }
       }
       @if (signup()) {
         @for (type of types; track type.id) {

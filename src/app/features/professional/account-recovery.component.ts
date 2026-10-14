@@ -7,7 +7,7 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
   selector: 'app-account-recovery', standalone: true, imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-lg px-4 py-8 sm:py-12">
+    <div class="account-page mx-auto max-w-lg px-4 py-8 sm:py-12">
       <section class="ui-card ui-auth-card">
         <a routerLink="/account" class="ui-btn ui-btn-ghost justify-self-start">Back to sign in</a>
         <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">{{ workspaceUnavailable ? 'Workspace unavailable' : 'Account recovery' }}</h1>
@@ -36,7 +36,7 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
             <label class="ui-label">Confirm new password<input type="password" autocomplete="new-password" formControlName="confirm" class="ui-field mt-2 text-base"></label>
             <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">Reset password</button>
           </form>
-          <p class="ui-body">Lost both your password and recovery code, or previously used an email link? Contact the platform owner to verify your identity and recover the account.</p>
+          <details><summary class="ui-btn ui-btn-ghost cursor-pointer">Lost your recovery code?</summary><p class="ui-body mt-2">If you lost your password and recovery code, or previously used an email link, contact the platform owner to verify your identity and recover your account.</p></details>
         }
         @if (error()) { <p role="alert" class="ui-alert ui-alert-danger text-sm">{{ error() }}</p> }
         @if (message()) { <p role="status" class="ui-alert ui-alert-success text-sm">{{ message() }}</p> }
