@@ -1,5 +1,6 @@
-<details class="group relative">
+<details #accountMenu class="group relative" (keydown.escape)="accountMenu.open = false; accountToggle.focus()">
   <summary
+    #accountToggle
     class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-1.5 transition-colors [&::-webkit-details-marker]:hidden"
     [class.bg-slate-800]="variant() === 'dark'"
     [class.text-slate-200]="variant() === 'dark'"
@@ -33,10 +34,11 @@
       <p class="ui-caption">Signed in as</p>
       <p class="mt-1 truncate text-sm font-semibold text-ui-ink">{{ email() }}</p>
     </div>
-    <a routerLink="/business/clinic/settings" class="ui-btn ui-btn-ghost ui-btn-block mt-1 justify-start" role="menuitem">
+    <a routerLink="/mili" (click)="accountMenu.open = false" class="ui-btn ui-btn-ghost ui-btn-block mt-1 justify-start" role="menuitem">Mili home</a>
+    <a routerLink="/business/clinic/settings" (click)="accountMenu.open = false" class="ui-btn ui-btn-ghost ui-btn-block mt-1 justify-start" role="menuitem">
       Clinic settings
     </a>
-    <a routerLink="/business/clinic/reviews" class="ui-btn ui-btn-ghost ui-btn-block justify-start" role="menuitem">
+    <a routerLink="/business/clinic/reviews" (click)="accountMenu.open = false" class="ui-btn ui-btn-ghost ui-btn-block justify-start" role="menuitem">
       Patient reviews
     </a>
     <button

@@ -6108,3 +6108,18 @@ html:has(.ui-mobile-sheet[open]) { overflow: hidden; }
     border: 1px solid CanvasText;
   }
 }
+@media(max-width:767px){
+  body:has(.professional-workspace,.clinic-admin-shell) .mili-launcher{display:none}
+  .professional-account>div{max-width:calc(100vw - 32px);max-height:70dvh;overflow-y:auto}
+  .professional-visit-card{padding:16px;overflow-wrap:anywhere}
+  .professional-visit-card>.mt-3{display:flex;flex-wrap:wrap;gap:8px}
+  .professional-visit-card>.mt-3>.ui-btn{flex:1;min-height:48px}
+  .professional-schedule-day label{min-width:0}
+  .professional-schedule-break{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;border-radius:var(--ui-radius-sm);background:var(--ui-canvas)}
+  .professional-schedule-break>button{grid-column:1/-1;min-height:44px;justify-self:end}
+  .professional-schedule-day input[type=time]{width:100%;min-width:0;padding-inline:8px}
+  .clinic-admin-shell :is(input,select,textarea){font-size:16px}
+}
+@media(max-width:360px){
+  .professional-schedule-break,.professional-opening-hours{grid-template-columns:minmax(0,1fr)}
+}

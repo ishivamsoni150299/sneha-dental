@@ -23,7 +23,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
       <header class="ui-topbar">
         <div class="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2">
           <span class="text-sm font-bold text-ui-ink">Dentist workspace</span>
-          <details class="professional-account relative"><summary class="ui-btn ui-btn-ghost cursor-pointer">Account<i class="ph ph-caret-down" aria-hidden="true"></i></summary><div class="ui-card absolute right-0 z-50 mt-2 grid min-w-52 gap-1 p-2"><a routerLink="/professional/video-test" class="ui-btn ui-btn-ghost">Test video call</a><a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a><button (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button></div></details>
+          <details #accountMenu class="professional-account relative" (keydown.escape)="accountMenu.open = false; accountToggle.focus()"><summary #accountToggle class="ui-btn ui-btn-ghost cursor-pointer">Account<i class="ph ph-caret-down" aria-hidden="true"></i></summary><div class="ui-card absolute right-0 z-50 mt-2 grid min-w-52 gap-1 p-2"><a routerLink="/mili" (click)="accountMenu.open = false" class="ui-btn ui-btn-ghost">Mili home</a><a routerLink="/professional/video-test" (click)="accountMenu.open = false" class="ui-btn ui-btn-ghost">Test video call</a><a routerLink="/account/recovery" (click)="accountMenu.open = false" class="ui-btn ui-btn-ghost">Account recovery</a><button (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button></div></details>
         </div>
       </header>
       <main class="mx-auto max-w-6xl px-4 py-6 sm:py-10">
@@ -66,7 +66,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
           @if (loading()) { <p role="status" class="py-8 text-ui-ink-muted">Loading appointments…</p> }
           @else {
             @for (visit of visibleVisits(); track visit.id) {
-              <article class="mb-4 ui-card p-5">
+              <article class="professional-visit-card mb-4 ui-card p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex flex-wrap items-center gap-2">
                     <h2 class="text-lg font-bold text-ui-ink">{{ visit.patient_name }}</h2>
@@ -127,18 +127,18 @@ interface Practice { id: string; name: string; city: string; status: string; sch
               <form (ngSubmit)="saveSchedule()">
                 <fieldset [disabled]="saving()" class="mt-4">
                   @for (day of days; track day.key; let i = $index) {
-                    <div class="border-b border-ui-line py-4">
+                    <div class="professional-schedule-day border-b border-ui-line py-4">
                       <label class="flex min-h-11 items-center gap-3 font-semibold"><input type="checkbox" [(ngModel)]="hours[i].enabled" [name]="day.key + '-enabled'" class="h-5 w-5 accent-blue-600">{{ day.label }}</label>
                       @if (hours[i].enabled) {
-                        <div class="mt-2 grid grid-cols-2 gap-3">
+                        <div class="professional-opening-hours mt-2 grid grid-cols-2 gap-3">
                           <label class="text-sm text-ui-ink-muted">Opens<input type="time" required [(ngModel)]="hours[i].start" [name]="day.key + '-start'" class="ui-field mt-1 min-w-0 text-base"></label>
                           <label class="text-sm text-ui-ink-muted">Closes<input type="time" required [(ngModel)]="hours[i].end" [name]="day.key + '-end'" class="ui-field mt-1 min-w-0 text-base"></label>
                         </div>
                         @for (pause of hours[i].breaks; track $index; let j = $index) {
-                          <div class="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2">
+                          <div class="professional-schedule-break mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2">
                             <label class="text-xs text-ui-ink-muted">Break starts<input type="time" required [(ngModel)]="pause.start" [name]="day.key + '-break-start-' + j" class="ui-field mt-1 min-w-0 text-base"></label>
                             <label class="text-xs text-ui-ink-muted">Break ends<input type="time" required [(ngModel)]="pause.end" [name]="day.key + '-break-end-' + j" class="ui-field mt-1 min-w-0 text-base"></label>
-                            <button type="button" (click)="hours[i].breaks.splice(j, 1)" class="ui-btn ui-btn-ghost" aria-label="Remove break">×</button>
+                            <button type="button" (click)="hours[i].breaks.splice(j, 1)" class="ui-btn ui-btn-ghost" [attr.aria-label]="'Remove ' + day.label + ' break ' + (j + 1)">Remove break</button>
                           </div>
                         }
                         <button type="button" (click)="hours[i].breaks.push({start:'13:00', end:'14:00'})" [disabled]="hours[i].breaks.length >= 10" class="ui-btn ui-btn-ghost mt-2">+ Add break</button>
