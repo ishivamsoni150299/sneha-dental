@@ -16,6 +16,7 @@ import {
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { RequestDentistComponent } from './request-dentist.component';
 import { appointmentDayLabel, formatDateInTimeZone } from '../../core/utils/date-input';
+import { DirectoryStateService } from './directory-state.service';
 
 export interface ActiveFilterChip {
   id: string;
@@ -33,6 +34,13 @@ export interface ActiveFilterChip {
 export class DentistDirectoryComponent implements OnInit {
   private readonly marketplace = inject(MarketplaceService);
   private readonly route = inject(ActivatedRoute);
+  private readonly directoryState = inject(DirectoryStateService);
+  private get preferenceKey(): string {
+    const snapshot = this.route.snapshot;
+    return JSON.stringify([snapshot.pathFromRoot?.flatMap(part => part.url.map(segment => segment.path)) ?? [],
+      snapshot.data['initialLocation'] ?? '', snapshot.data['initialServiceId'] ?? '',
+      snapshot.queryParamMap?.keys.slice().sort().map(key => [key, snapshot.queryParamMap.getAll(key)]) ?? []]);
+  }
   private readonly analytics = inject(AnalyticsService);
   private readonly meta = inject(Meta);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -74,6 +82,12 @@ export class DentistDirectoryComponent implements OnInit {
 
   constructor() {
     if (!this.isBrowser) return;
+    inject(DestroyRef).onDestroy(() => this.directoryState.save(this.preferenceKey, {
+      search: this.searchTerm(), locality: this.locality(), treatment: this.serviceId(), video: this.videoOnly(),
+      type: this.discoveryType(), today: this.availableTodayOnly(), fee: this.maxFee(), experience: this.minExperience(),
+      gender: this.gender(), rating: this.minRating(), language: this.language(),
+      sort: this.sortBy() === 'distance' ? 'recommended' : this.sortBy(),
+    }));
     const zone = inject(NgZone);
     const timer = zone.runOutsideAngular(() => window.setInterval(() => {
       if (!this.document.hidden) zone.run(() => this.rotatePromotion());
@@ -548,6 +562,13 @@ export class DentistDirectoryComponent implements OnInit {
       this.locality.set(initialLocation);
     }
     this.serviceId.set(String(this.route.snapshot.queryParamMap?.get('treatment') ?? this.route.snapshot.data['initialServiceId'] ?? ''));
+    const saved = this.isBrowser ? this.directoryState.read(this.preferenceKey) : undefined;
+    if (saved) {
+      this.searchTerm.set(saved.search); this.locality.set(saved.locality); this.serviceId.set(saved.treatment);
+      this.videoOnly.set(saved.video); this.discoveryType.set(saved.type); this.availableTodayOnly.set(saved.today);
+      this.maxFee.set(saved.fee); this.minExperience.set(saved.experience); this.gender.set(saved.gender);
+      this.minRating.set(saved.rating); this.language.set(saved.language); this.sortBy.set(saved.sort);
+    }
     if (!this.isBrowser) {
       if (!this.isDiscoveryHome) {
         this.meta.updateTag({ name: 'robots', content: 'noindex,follow' });

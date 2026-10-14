@@ -7,6 +7,12 @@ clinical decisions, onboarding, verification or payment processing.
 
 ## Rules for every role
 
+Search continuity (14 October 2026): returning to a directory page during the
+same visit restores its search text and filters. Preferences are kept separately
+for each route and query, with a small in-memory limit. Reset all remains cleared
+on return. A reload starts from the URL defaults. Precise GPS coordinates are
+not retained, and distance sorting resets to recommended when returning.
+
 Mobile booking update (13 October 2026): appointment dates support labelled
 previous/next controls as well as the swipeable strip. The selected date stays
 visible; changing dates clears the previous time selection. On narrow phones,

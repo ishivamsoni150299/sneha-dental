@@ -185,6 +185,35 @@ describe('DentistDirectoryComponent', () => {
     component.selectPromotion(component.promotionIndex() + 1);
     expect(component.activePromotion().id).toBe('preventive');
   });
+  it('restores filters after leaving the directory without retaining precise location', async () => {
+    const { fixture, component } = await setupComponent();
+    component.searchTerm.set('cleaning'); component.locality.set('Noida'); component.maxFee.set(500);
+    component.language.set('Hindi'); component.sortBy.set('distance');
+    component.userCoordinates.set({ latitude: 28.5, longitude: 77.3 });
+    fixture.destroy();
+    const returned = TestBed.createComponent(DentistDirectoryComponent);
+    returned.detectChanges(); await returned.whenStable();
+    expect(returned.componentInstance.searchTerm()).toBe('cleaning');
+    expect(returned.componentInstance.locality()).toBe('Noida');
+    expect(returned.componentInstance.maxFee()).toBe(500);
+    expect(returned.componentInstance.language()).toBe('Hindi');
+    expect(returned.componentInstance.userCoordinates()).toBeNull();
+    expect(returned.componentInstance.sortBy()).toBe('recommended');
+    returned.componentInstance.clearFilters(); returned.destroy();
+    const reset = TestBed.createComponent(DentistDirectoryComponent);
+    reset.detectChanges(); await reset.whenStable();
+    expect(reset.componentInstance.searchTerm()).toBe('');
+    expect(reset.componentInstance.maxFee()).toBeNull();
+  });
+  it('keeps a saved search separate from another city landing page', async () => {
+    const { fixture, component } = await setupComponent({ initialLocation: 'Noida' });
+    component.locality.set('Gurugram'); component.searchTerm.set('cleaning'); fixture.destroy();
+    TestBed.inject(ActivatedRoute).snapshot.data['initialLocation'] = 'Delhi';
+    const otherCity = TestBed.createComponent(DentistDirectoryComponent);
+    otherCity.detectChanges(); await otherCity.whenStable();
+    expect(otherCity.componentInstance.locality()).toBe('Delhi');
+    expect(otherCity.componentInstance.searchTerm()).toBe('');
+  });
 
   it('offers the next bookable day directly without calling it available today', async () => {
     const tomorrow = formatDateInTimeZone(new Date(Date.now() + 86400000));
