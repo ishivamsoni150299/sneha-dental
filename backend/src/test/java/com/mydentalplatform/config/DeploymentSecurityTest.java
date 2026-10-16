@@ -92,7 +92,7 @@ class DeploymentSecurityTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/appointments", "/platform/login", "/coming-soon", "/admin/login", "/business/clinic/dashboard"})
+    @ValueSource(strings = {"/mili", "/book", "/workspace", "/appointments", "/platform/login", "/coming-soon", "/admin/login", "/business/clinic/dashboard"})
     void browserDeepLinksLoadAngularWithoutAnAuthorizationHeader(String route) throws Exception {
         mvc.perform(get(route)).andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));
     }

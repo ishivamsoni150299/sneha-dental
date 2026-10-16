@@ -58,7 +58,7 @@ class MarketplaceLaunchTest {
                     .header("Accept", "text/html").GET().build(), HttpResponse.BodyHandlers.ofString());
                 assertEquals(200, business.statusCode());
                 assertTrue(business.headers().firstValue("Location").isEmpty());
-                for (String route : new String[] {"/account", "/account?mode=signup&type=clinic", "/account/recovery"}) {
+                for (String route : new String[] {"/mili", "/book", "/workspace", "/account", "/account?mode=signup&type=clinic", "/account/recovery"}) {
                     var response = http.send(HttpRequest.newBuilder(URI.create(base + route)).GET().build(),
                         HttpResponse.BodyHandlers.ofString());
                     assertEquals(200, response.statusCode(), "Anonymous account navigation: " + route);

@@ -27,10 +27,7 @@ interface ProviderProfile {
   template: `
     @if (embedded()) {
       <section class="mt-5" aria-label="Dentist profile setup">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div><h2 class="text-xl font-bold text-ui-ink">Your profile</h2><p class="mt-1 text-sm text-ui-ink-muted">Add your credentials and practice here. Set hours in the next tab.</p></div>
-          @if (profile()) { <span class="rounded-full px-3 py-1.5 text-sm font-bold" [class]="profile()!.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' : profile()!.verificationStatus === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-700'">{{ profile()!.verificationStatus }}</span> }
-        </div>
+        @if (profile()) { <p class="ui-caption">Verification: <strong>{{ profile()!.verificationStatus }}</strong></p> }
         @if (profile()?.verificationStatus === 'rejected' && profile()?.verificationReason) { <p class="mt-4 ui-alert ui-alert-danger" role="status">Verification rejected: {{ profile()?.verificationReason }}. Update your details and submit again.</p> }
         @if (message()) { <p class="mt-4 ui-alert" role="status">{{ message() }}</p> }
         @if (error()) { <p class="mt-4 ui-alert ui-alert-danger" role="alert">{{ error() }}</p> }
@@ -38,10 +35,11 @@ interface ProviderProfile {
         @else {
           <div class="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.9fr]">
             <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="ui-card p-5 sm:p-6">
-              <h3 class="text-lg font-bold text-ui-ink">1. Professional details</h3>
+              <h2 class="text-lg font-bold text-ui-ink">1. Professional details</h2>
               <p class="mt-1 text-sm text-ui-ink-muted">Save these before submitting for verification.</p>
-              <section class="mt-5 rounded-xl border border-ui-line p-4" aria-labelledby="dentist-photo-title">
-                <h4 id="dentist-photo-title" class="font-semibold">Profile photo</h4>
+              <details class="mt-4 rounded-xl border border-ui-line px-4">
+                <summary class="flex min-h-12 cursor-pointer items-center justify-between gap-2 text-sm font-semibold">Profile photo <span class="ui-caption flex items-center gap-2">{{ profile()?.photoUrl ? 'Edit' : 'Optional' }}<i class="ph ph-caret-down" aria-hidden="true"></i></span></summary>
+                <div class="pb-4">
                 <p id="dentist-photo-help" class="mt-1 text-sm text-ui-ink-muted">Add a clear photo of yourself. JPG or PNG, up to 5 MB and 20 megapixels. It appears on your public dentist profile after verification.</p>
                 @if (photoPreview()) { <img [src]="photoPreview()" alt="Your dentist profile photo" class="mt-3 h-28 w-28 rounded-xl object-cover" width="112" height="112"> }
                 @else { <p class="mt-3 text-sm text-ui-ink-muted">No photo added yet.</p> }
@@ -49,7 +47,8 @@ interface ProviderProfile {
                 <input id="dentist-photo" type="file" accept="image/jpeg,image/png" aria-describedby="dentist-photo-help" [disabled]="saving()" (change)="uploadPhoto($event)" class="mt-2 block w-full min-w-0 text-sm">
                 @if (profile()?.photoUrl) { <button type="button" (click)="removePhoto()" [disabled]="saving()" class="ui-btn ui-btn-ghost mt-3">Remove photo</button> }
                 <p class="mt-2 text-xs text-ui-ink-muted">Photo changes save immediately. Save other details below.</p>
-              </section>
+                </div>
+              </details>
               <div class="mt-5 grid gap-4 sm:grid-cols-2">
                 <label class="text-sm font-semibold">Full name<input formControlName="fullName" required class="ui-field mt-1.5 text-base"></label>
                 <label class="text-sm font-semibold">Qualification<input formControlName="qualification" required class="ui-field mt-1.5 text-base" placeholder="BDS"></label>
@@ -70,7 +69,7 @@ interface ProviderProfile {
             </form>
             <div class="space-y-5">
               <section class="ui-card p-5 sm:p-6">
-                <h3 class="text-lg font-bold text-ui-ink">2. Practice location</h3>
+                <h2 class="text-lg font-bold text-ui-ink">2. Practice location</h2>
                 @if (profile()?.locations?.length) { <ul class="mt-4 space-y-2">@for (location of profile()!.locations; track location.id) { <li class="rounded-xl border border-ui-line p-3"><p class="font-bold text-ui-ink">{{ location.name }}</p><p class="text-sm text-ui-ink-muted">{{ location.city }} · {{ location.status }}</p></li> }</ul> }
                 @else { <p class="mt-2 text-sm text-ui-ink-muted">Add where patients can book you.</p> }
                 <form [formGroup]="locationForm" (ngSubmit)="addLocation()" class="mt-4 space-y-3 border-t border-ui-line pt-4">
@@ -82,7 +81,7 @@ interface ProviderProfile {
                 </form>
               </section>
               <section class="ui-card p-5 sm:p-6">
-                <h3 class="text-lg font-bold">3. Verification</h3>
+                <h2 class="text-lg font-bold">3. Verification</h2>
                 <p class="mt-2 text-sm leading-6 text-ui-ink-muted">After saving your details, adding a practice and setting hours, submit for review. Your profile appears to patients once approved.</p>
                 @if (!hasHours() && profile()?.verificationStatus !== 'verified') { <p class="mt-2 text-sm font-semibold text-amber-800">Set at least one bookable day in Hours to enable submission.</p> }
                 <button (click)="submitVerification()" class="ui-btn ui-btn-primary mt-4 w-full" [disabled]="!canSubmitVerification()">Submit for verification</button>

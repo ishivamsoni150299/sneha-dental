@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, OnInit, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, OnInit, PLATFORM_ID, computed, inject, signal, viewChild, DOCUMENT } from '@angular/core';
 import { TreatmentGuideComponent, type TreatmentCostGuideItem } from './treatment-guide.component';
 import { DentistListingCardComponent } from './dentist-listing-card.component';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Meta } from '@angular/platform-browser';

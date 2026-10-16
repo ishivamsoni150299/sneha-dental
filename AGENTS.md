@@ -1,6 +1,6 @@
 # Repository guide
 
-My Dental Platform is a multi-tenant dental marketplace and clinic workspace. The frontend is Angular 19 with standalone components, signals, and Tailwind CSS 3. The backend is a Spring Boot 4.1 modular monolith on Java 25, PostgreSQL, JDBC, and Flyway. Do not use the old Sneha Dental brochure-site assumptions.
+My Dental Platform is a multi-tenant dental marketplace and clinic workspace. The frontend is Angular 20 with standalone components, signals, and Tailwind CSS 3. The backend is a Spring Boot 4.1 modular monolith on Java 25, PostgreSQL, JDBC, and Flyway. Do not use the old Sneha Dental brochure-site assumptions.
 
 ## Current priority: consolidation
 

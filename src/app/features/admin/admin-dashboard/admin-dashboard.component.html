@@ -30,7 +30,7 @@
               <option value="">{{ rescheduleLoading() ? 'Loading times…' : 'Select time' }}</option>
               @for (time of rescheduleSlots(); track time) { <option [value]="time">{{ formatSlotDisplay(time) }}</option> }
             </select>
-            @if (!rescheduleLoading() && !rescheduleSlots().length) {
+            @if (!rescheduleLoading() && !rescheduleError() && !rescheduleSlots().length) {
               <p class="text-sm text-gray-500 mt-2">No available slots. Choose another date or doctor.</p>
             }
           </div>

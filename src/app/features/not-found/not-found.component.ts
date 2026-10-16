@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, DOCUMENT } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
-import { DOCUMENT } from '@angular/common';
+
 import { isPlatformHomeHost } from '../../core/guards/platform-home.guard';
 
 @Component({

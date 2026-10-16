@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, DOCUMENT } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
-import { DOCUMENT } from '@angular/common';
+
 import { ClinicConfigService } from './clinic-config.service';
 import { PLATFORM_PLANS } from '../config/clinic.config';
 import { PLATFORM_FAQS } from '../content/platform-marketing.content';

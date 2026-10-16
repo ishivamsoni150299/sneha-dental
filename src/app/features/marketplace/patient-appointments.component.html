@@ -7,12 +7,16 @@
         <h1 class="ui-heading ui-heading-interface max-w-2xl">My appointments</h1>
       </div>
       @if (step() === 'appointments') {
-        <button type="button" (click)="logout()" class="ui-btn ui-btn-ghost self-start">
-          Sign out
-        </button>
+        <details #accountMenu class="relative self-start" (keydown.escape)="accountMenu.open = false; accountToggle.focus()">
+          <summary #accountToggle class="ui-btn ui-btn-ghost cursor-pointer">Account<i class="ph ph-caret-down" aria-hidden="true"></i></summary>
+          <div class="ui-card absolute right-0 z-50 mt-2 grid min-w-52 gap-1 p-2">
+            <a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a>
+            <button type="button" (click)="logout()" class="ui-btn ui-btn-ghost">Sign out</button>
+          </div>
+        </details>
       }
     </div>
-    <p class="mt-2 max-w-xl text-sm leading-6 text-ui-ink-muted patient-visits-description">Manage your visits and video consultations.</p>
+    <p class="mt-2 max-w-xl break-words text-sm leading-6 text-ui-ink-muted patient-visits-description">{{ step() === 'appointments' ? accountLabel() : 'Manage your visits and video consultations.' }}</p>
   </div>
 </section>
 }
@@ -40,11 +44,7 @@
       <div class="patient-visits-content grid gap-6">
         <div>
           <div class="patient-visits-toolbar flex flex-wrap items-center justify-between gap-3">
-            <div class="patient-visits-identity">
-              <p class="text-sm font-semibold text-ui-ink-muted">{{ accountLabel() }}</p>
-              <a routerLink="/account/recovery" class="ui-btn ui-btn-ghost">Account recovery</a>
-              <h2 class="sr-only">Appointments</h2>
-            </div>
+            <h2 class="sr-only">Appointments</h2>
             <div class="flex flex-wrap gap-2">
               <a routerLink="/dentists" class="ui-btn ui-btn-primary">Book an appointment</a>
               <button type="button" (click)="loadSession()" [disabled]="loading()" class="ui-btn ui-btn-secondary">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>

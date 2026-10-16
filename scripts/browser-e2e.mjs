@@ -44,10 +44,12 @@ async function claimCodeFor(email) {
 }
 
 async function passwordLogin(page, url, email, password) {
-  await page.goto(url);
+  const workspaceLogin = new URL(url);
+  workspaceLogin.searchParams.set('returnUrl', '/workspace');
+  await page.goto(workspaceLogin.href);
   await page.getByRole('textbox', { name: 'Email address' }).fill(email);
   await page.locator('input[type="password"]').fill(password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
 }
 
 async function verifyBookingMobile(page) {
@@ -127,6 +129,7 @@ const doctor = await post('/api/clinics/current/doctors', {
 const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {}) });
 try {
   const page = await browser.newPage();
+  page.setDefaultTimeout(30_000);
   const admin = await post('/api/auth/login', { email: adminEmail, password: adminPassword });
   for (const [path, location] of [
     ['/dentists/noida', 'Noida'],
@@ -198,7 +201,7 @@ try {
   await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor();
   await page.getByRole('textbox', { name: 'Email address' }).fill(patientEmail);
   await page.locator('#auth-password').fill(password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('heading', { name: 'Appointments', exact: true }).waitFor();
   await page.getByText(patientEmail, { exact: true }).waitFor();
   await page.getByRole('heading', { name: 'No linked appointments yet' }).waitFor();
@@ -261,6 +264,7 @@ try {
   const provider = await get('/api/providers/me', dentist.accessToken);
   const adminContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const adminPage = await adminContext.newPage();
+  adminPage.setDefaultTimeout(30_000);
   await passwordLogin(adminPage, appUrl + '/platform/login', adminEmail, adminPassword);
   await adminPage.getByRole('heading', { name: 'Clinics', exact: true }).waitFor();
   await adminPage.goto(appUrl + '/business/dentists/verification');
@@ -270,6 +274,7 @@ try {
   assert.equal((await get(`/api/v1/dentists/${provider.slug}`)).dentist.slug, provider.slug,
     'Platform-admin browser approval must publish the submitted dentist');
 
+  await page.locator('summary').filter({ hasText: /^Account$/ }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -285,7 +290,7 @@ try {
   assert.ok(bookingReturnUrl?.includes('doctorId=') && bookingReturnUrl.includes('date=') && bookingReturnUrl.includes('time='), 'Sign-in must preserve the selected booking slot');
   await page.getByRole('textbox', { name: 'Email address' }).fill(patientEmail);
   await page.locator('#auth-password').fill(password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.locator('#appointment-name').fill('E2E Video Patient');
   await page.locator('#appointment-phone').fill('9876543210');
   await page.getByRole('button', { name: 'Change time', exact: true }).click();
@@ -346,13 +351,17 @@ try {
     updated_at = now() where id = '${onboarded.clinicId}'`);
   await sql(`update dental.clinic_private_accounts set razorpay_subscription_id = '${subscriptionId}',
     billing_config = '{}'::jsonb, updated_at = now() where clinic_id = '${onboarded.clinicId}'`);
+  await sql(`insert into dental.subscriptions (clinic_id, provider_subscription_id, plan, billing_cycle, status)
+    values ('${onboarded.clinicId}', '${subscriptionId}', 'starter', 'monthly', 'active')`);
   const clinicContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const clinicPage = await clinicContext.newPage();
+  clinicPage.setDefaultTimeout(30_000);
   await passwordLogin(clinicPage, appUrl + '/business/login', clinicEmail, password);
   await clinicPage.getByText('E2E Clinic', { exact: true }).first().waitFor();
   const appointmentRow = clinicPage.locator('tr').filter({ hasText: 'E2E Patient' });
   await appointmentRow.getByRole('button', { name: 'Confirm', exact: true }).click();
   await appointmentRow.getByText('Confirmed', { exact: true }).waitFor();
+  await appointmentRow.getByRole('button', { name: 'Arrived', exact: true }).click();
   await appointmentRow.getByRole('button', { name: 'Done', exact: true }).click();
   await appointmentRow.getByText('Completed', { exact: true }).waitFor();
 
@@ -391,11 +400,12 @@ try {
   await clinicPage.getByRole('button', { name: 'Cancel subscription', exact: true }).waitFor();
   await clinicPage.getByRole('button', { name: 'Cancel subscription', exact: true }).click();
   await clinicPage.getByRole('button', { name: 'Confirm cancellation', exact: true }).click();
-  await clinicPage.getByRole('alert').filter({ hasText: 'Self-service cancellation is unavailable' }).waitFor();
+  await clinicPage.getByRole('alert').filter({ hasText: 'Razorpay is unavailable. Contact billing support.' }).waitFor();
 
   // All public account types share the same signup form and recovery-code handoff.
   for (const [type, destination] of [['patient', '/appointments'], ['dentist', '/professional/workspace'], ['clinic', '/business/signup']]) {
     const signupPage = await browser.newPage();
+    signupPage.setDefaultTimeout(30_000);
     await signupPage.setViewportSize({ width: 390, height: 844 });
     await signupPage.goto(`${appUrl}/account?mode=signup&type=${type}`);
     await signupPage.getByRole('heading', { name: 'Create your account', exact: true }).waitFor();
@@ -403,12 +413,14 @@ try {
     await signupPage.getByRole('textbox', { name: 'Email address', exact: true }).fill(`unified-${type}-${suffix}@example.test`);
     await signupPage.getByLabel('Password', { exact: true }).fill(password);
     await signupPage.getByLabel('Confirm password', { exact: true }).fill(password);
-    await signupPage.getByRole('button', { name: 'Create account', exact: true }).click();
+    await signupPage.locator('form').getByRole('button', { name: 'Create account', exact: true }).click();
     await signupPage.getByRole('heading', { name: 'Save your recovery code', exact: true }).waitFor();
     await signupPage.getByRole('button', { name: 'I saved my code — continue', exact: true }).waitFor();
     assert.ok((await signupPage.getByRole('textbox', { name: 'Recovery code', exact: true }).inputValue()).length > 0);
     assert.equal(await signupPage.getByRole('button', { name: 'New account', exact: true }).count(), 0);
     await signupPage.getByRole('button', { name: 'I saved my code — continue', exact: true }).click();
+    await signupPage.waitForURL(url => url.pathname === '/mili');
+    await signupPage.goto(appUrl + '/workspace');
     await signupPage.waitForURL(url => url.pathname === destination);
     await signupPage.getByRole('heading').first().waitFor();
     if (type === 'dentist') {
@@ -418,9 +430,11 @@ try {
         const context = canvas.getContext('2d'); context.fillStyle = '#2563eb'; context.fillRect(0, 0, 32, 32);
         return canvas.toDataURL('image/png').split(',')[1];
       }), 'base64');
+      await signupPage.locator('summary').filter({ hasText: 'Profile photo' }).click();
       await signupPage.locator('#dentist-photo').setInputFiles({ name: 'test-profile.png', mimeType: 'image/png', buffer: photoFixture });
       await signupPage.getByText('Profile photo saved.', { exact: true }).waitFor();
       await signupPage.reload();
+      await signupPage.locator('summary').filter({ hasText: 'Profile photo' }).click();
       await signupPage.getByRole('img', { name: 'Your dentist profile photo', exact: true }).waitFor();
       await signupPage.waitForFunction(() => document.querySelector('img[alt="Your dentist profile photo"]')?.naturalWidth === 32);
       await signupPage.getByLabel('Replace photo', { exact: true }).setInputFiles({ name: 'replacement.png', mimeType: 'image/png', buffer: photoFixture });
@@ -428,6 +442,7 @@ try {
       await signupPage.getByRole('button', { name: 'Remove photo', exact: true }).click();
       await signupPage.getByText('Profile photo removed.', { exact: true }).waitFor();
       await signupPage.reload();
+      await signupPage.locator('summary').filter({ hasText: 'Profile photo' }).click();
       await signupPage.getByText('No photo added yet.', { exact: true }).waitFor();
       await signupPage.getByRole('button', { name: 'Hours', exact: true }).click();
       await signupPage.waitForURL('**tab=availability');
@@ -479,6 +494,7 @@ try {
       '/business/leads', '/business/leads/new', '/business/leads/discover',
     ]));
     const dentistPage = await browser.newPage();
+    dentistPage.setDefaultTimeout(30_000);
     await passwordLogin(dentistPage, appUrl + '/professional/login', `dentist-${suffix}@example.test`, password);
     await dentistPage.waitForURL('**/professional/workspace**');
     failures.push(...await checkUxRoutes(dentistPage, appUrl, 'dentist', [

@@ -1,6 +1,6 @@
 # mydentalplatform
 
-Multi-tenant dental marketplace and clinic operations platform. Angular 19 and Spring Boot are packaged into one Docker image; PostgreSQL is the only database.
+Multi-tenant dental marketplace and clinic operations platform. Angular 20 and Spring Boot are packaged into one Docker image; PostgreSQL is the only database.
 
 ## Architecture
 

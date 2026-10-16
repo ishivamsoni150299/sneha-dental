@@ -4,6 +4,9 @@ if (!value) throw new Error('Set PUBLIC_BASE_URL explicitly to the deployment to
 const base = new URL(value);
 if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password) throw new Error('Invalid PUBLIC_BASE_URL');
 const checks = [
+  ['/mili', 200, 'html'],
+  ['/book', 200, 'html'],
+  ['/workspace', 200, 'html'],
   ['/dentists', 200, 'html'],
   ['/dentists/noida', 200, 'html'],
   ['/appointments', 200, 'html'],

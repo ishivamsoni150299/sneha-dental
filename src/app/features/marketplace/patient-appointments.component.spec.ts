@@ -100,7 +100,7 @@ describe('PatientAppointmentsComponent', () => {
     fixture.componentInstance.claimForm.reset();
     fixture.componentInstance.claimMessage.set('Appointment linked to your account.');
     fixture.detectChanges();
-    expect((fixture.nativeElement.querySelector('details') as HTMLDetailsElement).open).toBeTrue();
+    expect((fixture.nativeElement.querySelector('#claim-booking-ref').closest('details') as HTMLDetailsElement).open).toBeTrue();
   });
 
   it('offers only server-approved times when rescheduling', async () => {

@@ -52,6 +52,7 @@ public class SpaRoutingConfig implements WebMvcConfigurer {
     }
 
     static final String[] ROUTES = {
+        "/mili", "/book", "/workspace",
         "/business", "/business/**", "/professional", "/professional/**",
         "/dentists", "/dentists/**", "/dentist/**", "/clinic/**",
         "/services", "/about", "/appointment", "/appointment/**",

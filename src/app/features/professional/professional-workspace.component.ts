@@ -35,11 +35,14 @@ interface Practice { id: string; name: string; city: string; status: string; sch
             @if (verificationStatus() === 'pending') {
               <p class="ui-body mt-2">Your details have been submitted. You can review your profile and hours while the team checks your registration.</p>
             } @else {
-              <ol class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+              <details class="mt-2">
+              <summary class="ui-link flex min-h-11 cursor-pointer items-center text-sm">View setup steps<i class="ph ph-caret-down ml-2" aria-hidden="true"></i></summary>
+              <ol class="mt-2 grid gap-3 text-sm sm:grid-cols-3">
                 <li>1. Profile and practice <span class="block text-ui-ink-muted">{{ practices().length ? 'Practice added · review your details' : 'Add your details and practice' }}</span></li>
                 <li>2. Appointment hours <span class="block text-ui-ink-muted">{{ hasBookableHours() ? 'Hours saved' : 'Choose when patients can book' }}</span></li>
                 <li>3. Verification <span class="block text-ui-ink-muted">{{ verificationStatus() === 'rejected' ? 'Update the details flagged in your profile' : 'Submit your council registration for review' }}</span></li>
               </ol>
+              </details>
               <button (click)="selectTab(practices().length && !hasBookableHours() ? 'availability' : 'profile')" [disabled]="saving() || profileEditor()?.saving() || profileEditor()?.savingLocation()" class="ui-btn ui-btn-primary mt-4">{{ practices().length && !hasBookableHours() ? 'Set appointment hours' : hasBookableHours() ? 'Review and submit profile' : 'Complete your profile' }}</button>
             }
           </section>

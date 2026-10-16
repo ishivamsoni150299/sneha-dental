@@ -4,6 +4,53 @@ Scope: public dentist discovery, independent dentist accounts, clinic onboarding
 
 The application is a modular monolith: one Angular frontend, one Spring Boot API, one PostgreSQL database. Angular talks only to Spring. Flyway owns schema history. JDBC is the persistence layer; JPA and the unused Node SMTP implementation have been removed. Shared authentication components own login and signup UI.
 
+## Launch hardening — 14 October 2026
+
+The frontend now uses Angular 20.3 with matching compiler/build tools and
+TypeScript 5.9. Angular 19's published releases were affected by runtime security
+advisories with no patched 19.x release. The upgrade includes the server-rendering
+provider migration and preserves conditional platform/clinic home routing.
+`npm run audit:runtime` checks production dependencies and now runs in CI.
+
+The Spring page routes explicitly include `/mili`, `/book`, and `/workspace`.
+Previously these paths returned 401 for unauthenticated requests without an HTML
+Accept header. Browser HTML fallback did not cover link-checking clients. The
+deployment HTTP gate and backend regression tests now cover all three paths;
+protected APIs retain their existing authentication and role checks.
+
+Clinic rescheduling invalidates old doctor/availability requests when another
+dialog opens. Late responses cannot populate the new appointment or replace its
+error state. Failed availability no longer also claims that no slots exist.
+
+Validation: 306 frontend tests, lint, the Node 22 production build, artifact checks,
+and nine deployment-gate tests passed. Backend verification ran 188 tests with no
+failures and one production-only test skipped; the fresh-database production-profile
+route test also passed separately. The runtime dependency audit reported zero
+known vulnerabilities. The full audit still reported 14 development-tool findings
+(10 high, four moderate).
+
+Isolated browser journeys completed booking, guest claiming, rescheduling,
+cancellation, clinic confirmation/check-in/completion, review moderation/response,
+unconfigured billing error handling, and all three signup/workspace paths. The
+extended route audit passed 186 viewport/route checks before Chromium crashed;
+the remaining platform mobile and dentist audit checks are not certified by that
+run. SMS, email transport, payments and video media were not exercised against live
+providers.
+
+Mobile usability follow-up (16 October): patient recovery and sign-out share an
+Account menu, and the account identity appears once in the heading. Dentist setup
+keeps the next action visible while the detailed checklist expands on demand.
+The embedded profile no longer repeats the page title, and its optional photo
+upload expands on demand so required details appear earlier on small screens.
+Focused browser checks passed at 320, 390, 768 and 1440 pixels, including Account
+menu Escape/focus behavior, recovery navigation, checklist/photo expansion and
+horizontal overflow. These presentation checks use local fixtures.
+
+This is not launch certification. The production integration acceptance items
+below remain required. The full dependency audit also reports development-tool
+advisories, separately from the production dependency audit; keep development
+servers private and review those upgrades before accepting untrusted build input.
+
 ## Repeatable local gate
 
 Use Node 22, Java 25+ and Chrome, then `npm ci` and `npm run verify`. CI runs the same command. Tests create and destroy their own PostgreSQL database; they do not read production credentials, send email, charge cards, or create real video rooms.

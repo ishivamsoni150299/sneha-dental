@@ -1,4 +1,5 @@
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT } from '@angular/core';
+
 import { TestBed } from '@angular/core/testing';
 import { ClinicConfigService } from '../../core/services/clinic-config.service';
 import { NotFoundComponent } from './not-found.component';

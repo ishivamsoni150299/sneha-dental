@@ -3,13 +3,15 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
 
-for (const scenario of ['healthy', 'preview', 'missing-script', 'html-script', 'empty-style', 'missing-entry']) {
+for (const scenario of ['healthy', 'preview', 'missing-script', 'html-script', 'empty-style', 'missing-entry', 'blocked-mili', 'blocked-book', 'blocked-workspace']) {
   test(`deployment gate: ${scenario}`, async () => {
     const mock = scenario === 'preview';
     const shell = `<html><head><base href="/"><link rel="stylesheet" href="styles.css"></head><body><app-root></app-root>${scenario === 'missing-entry' ? '' : '<script src="main.js" type="module"></script>'}</body></html>`;
     const server = http.createServer((request, response) => {
       const route = request.url;
-      if (route === '/main.js') {
+      if (scenario === `blocked-${route.slice(1)}`) {
+        response.writeHead(401).end();
+      } else if (route === '/main.js') {
         response.writeHead(scenario === 'missing-script' ? 404 : 200, { 'Content-Type': scenario === 'html-script' ? 'text/html' : 'text/javascript' })
           .end(scenario === 'html-script' ? shell : 'console.log("test application");');
       } else if (route === '/styles.css') {

@@ -1,4 +1,4 @@
-import { DecimalPipe, DOCUMENT, NgClass } from '@angular/common';
+import { DecimalPipe, NgClass } from '@angular/common';
 import type { OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import {
   ChangeDetectionStrategy,
@@ -9,6 +9,7 @@ import {
   inject,
   signal,
   viewChild,
+  DOCUMENT
 } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';

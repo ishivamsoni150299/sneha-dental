@@ -118,4 +118,36 @@ describe('Clinic appointment scheduling', () => {
     await old;
     expect(component.rescheduleSlots()).toEqual(['14:00']);
   });
+
+  it('ignores availability from a closed dialog while another appointment loads', async () => {
+    await component.openReschedule(appointment);
+    let finishSlots!: (slots: string[]) => void;
+    doctors.getAvailableSlots.and.returnValue(new Promise(resolve => { finishSlots = resolve; }));
+    const old = component.loadRescheduleSlots();
+    component.closeReschedule();
+    let finishDoctors!: (value: Doctor[]) => void;
+    doctors.getDoctors.and.returnValue(new Promise(resolve => { finishDoctors = resolve; }));
+    const next = component.openReschedule({ ...appointment, id: 'next' });
+    finishSlots(['11:00']);
+    await old;
+    expect(component.rescheduleSlots()).toEqual([]);
+    expect(component.rescheduleLoading()).toBeTrue();
+    doctors.getAvailableSlots.and.resolveTo(['14:00']);
+    finishDoctors([doctor]);
+    await next;
+    expect(component.rescheduleSlots()).toEqual(['14:00']);
+  });
+
+  it('ignores a late doctor failure after reopening the same appointment', async () => {
+    let failOld!: (error: Error) => void;
+    doctors.getDoctors.and.returnValue(new Promise((_resolve, reject) => { failOld = reject; }));
+    const old = component.openReschedule(appointment);
+    component.closeReschedule();
+    doctors.getDoctors.and.resolveTo([doctor]);
+    await component.openReschedule(appointment);
+    failOld(new Error('Old request failed'));
+    await old;
+    expect(component.rescheduleError()).toBe('');
+    expect(component.rescheduleSlots()).toEqual(['10:00']);
+  });
 });

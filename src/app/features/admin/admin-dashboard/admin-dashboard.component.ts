@@ -75,20 +75,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private slotRequest = 0;
 
   async openReschedule(appt: Appointment) {
+    const request = ++this.slotRequest;
     this.rescheduleTarget.set(appt);
     this.rescheduleError.set('');
     this.rescheduleDate = appt.date;
+    this.rescheduleTime = '';
     this.rescheduleDoctorId = appt.doctorId ?? '';
     this.rescheduleDoctors.set([]);
     this.rescheduleSlots.set([]);
     this.rescheduleLoading.set(true);
     try {
       const doctors = await this.doctorService.getDoctors(appt.clinicId);
-      if (this.rescheduleTarget() !== appt) return;
+      if (request !== this.slotRequest) return;
       this.rescheduleDoctors.set(doctors.filter(d => d.available));
       if (!this.rescheduleDoctorId) this.rescheduleDoctorId = doctors.find(d => d.available)?.id ?? '';
       await this.loadRescheduleSlots();
     } catch {
+      if (request !== this.slotRequest) return;
       this.rescheduleError.set('Could not load doctors. Close and try again.');
       this.rescheduleLoading.set(false);
     }

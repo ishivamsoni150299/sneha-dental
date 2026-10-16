@@ -4850,9 +4850,6 @@ html:has(.ui-mobile-sheet[open]) { overflow: hidden; }
   .patient-visit-actions > app-video-consultation { grid-column: 1/-1; }
   .patient-visit-actions > a:last-child:nth-child(odd) { grid-column: 1/-1; }
   .patient-visits-heading button { flex-shrink: 0; white-space: nowrap; }
-  .patient-visits-identity { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: .5rem; }
-  .patient-visits-identity > p { min-width: 0; overflow-wrap: anywhere; }
-  .patient-visits-identity .ui-btn { flex-shrink: 0; }
   .patient-visits-toolbar > div:last-child { width: 100%; }
   .patient-visits-toolbar > div:last-child > a { flex: 1; }
   .patient-visit-card > div:first-child { flex-direction: row; flex-wrap: wrap; align-items: start; justify-content: space-between; padding: 1rem; }
