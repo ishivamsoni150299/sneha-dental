@@ -47,13 +47,13 @@
     </section>
   } @else {
     @if (selectedContext(); as bookingContext) {
-      <section class="mx-auto max-w-2xl" [class]="embeddedSlug ? 'pb-5' : 'px-4 py-4 sm:px-6 sm:py-6'" [class.video-booking]="consultationMode() === 'video'">
+      <section class="booking-intro mx-auto max-w-2xl" [class]="embeddedSlug ? 'pb-5' : 'px-4 py-4 sm:px-6 sm:py-6'" [class.video-booking]="consultationMode() === 'video'">
         @if (!embeddedSlug) { <a [routerLink]="['/dentists', clinic()!.marketplaceSlug]" class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700"><i class="ph ph-arrow-left" aria-hidden="true"></i> Back to profile</a> }
         <div class="practice-summary mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>@if (!embeddedSlug) { <h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1> }<p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
         </div>
         @if (!isIndependent() && videoReady() && clinic()!.marketplaceProfile?.videoConsultationEnabled) {
-        <fieldset class="mt-7">
+        <fieldset class="booking-mode-options mt-7">
           <legend class="mb-3 text-sm font-semibold text-ui-ink">How would you like to meet?</legend>
           <div class="grid gap-3 sm:grid-cols-2">
             <button type="button" (click)="chooseMode('in_person')"
@@ -67,9 +67,10 @@
               <i class="ph ph-hospital text-2xl" [class.text-blue-600]="!isIndependent()" [class.text-gray-400]="isIndependent()" aria-hidden="true"></i>
               <span>
                 <strong class="block text-sm text-ui-ink">In-clinic visit</strong>
-                <span class="mt-1 block text-sm text-gray-500">
+                <span class="booking-mode-description mt-1 block text-sm text-gray-500">
                   {{ isIndependent() ? 'Unavailable for independent profiles. Remote video consultations only.' : 'Meet your dentist at the clinic.' }}
                 </span>
+                <span class="mt-2 block text-sm font-semibold text-blue-700">{{ clinic()!.marketplaceProfile?.consultationFee == null ? 'Confirm fee with clinic' : '₹' + clinic()!.marketplaceProfile!.consultationFee }}</span>
               </span>
             </button>
             <button type="button" (click)="chooseMode('video')"
@@ -81,7 +82,7 @@
               <i class="ph ph-video-camera text-2xl text-blue-600" aria-hidden="true"></i>
               <span>
                 <strong class="block text-sm text-ui-ink">Video consultation</strong>
-                <span class="mt-1 block text-sm text-gray-500">
+                <span class="booking-mode-description mt-1 block text-sm text-gray-500">
                   {{ !videoReady() ? 'Video consultations are temporarily unavailable.' : (isIndependent() ? 'Direct video consultation with independent practitioner.' : 'A private video call from your device.') }}
                 </span>
                 <span class="mt-2 block text-sm font-semibold text-blue-700">

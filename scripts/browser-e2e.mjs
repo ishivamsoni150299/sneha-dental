@@ -235,7 +235,7 @@ try {
   await page.locator('app-slot-picker').getByRole('button', { name: /E2E Dentist/ }).first().click();
   await page.locator('#appointment-name').fill('E2E Patient');
   await page.locator('#appointment-phone').fill('9876543210');
-  await page.getByText('Reason for visit, email or notes (optional)', { exact: true }).click();
+  await page.getByText('More details (optional)', { exact: true }).click();
   await page.locator('#appointment-email').fill(patientEmail);
   await page.locator('#appointment-privacyAccepted').check();
   await verifyBookingMobile(page);

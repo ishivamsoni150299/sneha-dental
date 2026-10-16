@@ -20,8 +20,17 @@
           <p id="{{ idPrefix }}-phone-help" class="ui-caption mt-2">The clinic will contact you to confirm.</p>
         </div>
       </div>
+      @if (!patientAuth.isSignedIn()) {
+        <div>
+          <label for="{{ idPrefix }}-email" class="ui-label">Email <span class="font-normal text-ui-ink-muted">(optional)</span></label>
+          <input id="{{ idPrefix }}-email" formControlName="email" type="email" autocomplete="email" inputmode="email" class="ui-field mt-2"
+            [attr.aria-invalid]="isInvalid('email')" [attr.aria-describedby]="isInvalid('email') ? (idPrefix + '-email-error') : (idPrefix + '-email-help')">
+          @if (isInvalid('email')) { <p id="{{ idPrefix }}-email-error" role="alert" class="ui-caption mt-2">Enter a valid email.</p> }
+          <p id="{{ idPrefix }}-email-help" class="ui-caption mt-2">Use this email to link and manage your request online later.</p>
+        </div>
+      }
       <details class="border-y border-ui-line py-3">
-        <summary class="min-h-11 cursor-pointer py-3 text-sm font-semibold text-ui-primary">{{ embedded ? 'Add a note or more details (optional)' : 'Reason for visit, email or notes (optional)' }}</summary>
+        <summary class="min-h-11 cursor-pointer py-3 text-sm font-semibold text-ui-primary">{{ embedded ? 'Add a note or more details (optional)' : 'More details (optional)' }}</summary>
         <div class="space-y-4 py-3">
           @if (bookingContext?.consultationMode !== 'video') {
             <div><label for="{{ idPrefix }}-service" class="ui-label">Reason for visit</label>
@@ -30,11 +39,13 @@
               </select>
             </div>
           }
+          @if (patientAuth.isSignedIn()) {
           <div><label for="{{ idPrefix }}-email" class="ui-label">Email</label>
             <input id="{{ idPrefix }}-email" formControlName="email" type="email" autocomplete="email" class="ui-field mt-2"
               [attr.aria-invalid]="isInvalid('email')" [attr.aria-describedby]="isInvalid('email') ? (idPrefix + '-email-error') : null">
             @if (isInvalid('email')) { <p id="{{ idPrefix }}-email-error" role="alert" class="ui-caption mt-2">Enter a valid email.</p> }
           </div>
+          }
           <div><label for="{{ idPrefix }}-message" class="ui-label">Note for the dentist</label><textarea id="{{ idPrefix }}-message" formControlName="message" rows="2" class="ui-field mt-2"></textarea></div>
         </div>
       </details>
