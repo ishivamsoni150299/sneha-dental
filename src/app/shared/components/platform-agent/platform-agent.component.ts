@@ -6,6 +6,7 @@ import { roleWorkspace } from '../../../core/utils/account-navigation';
 import { AuthFacade } from '../../../core/services/auth-facade.service';
 import { AuthenticatedApiService } from '../../../core/services/authenticated-api.service';
 import { LiveConnection } from './live-connection';
+import { PlatformHeaderComponent } from '../platform-header/platform-header.component';
 import { MiliBookingComponent, type BookingCriteria } from './mili-booking.component';
 
 interface AgentResult {
@@ -22,7 +23,7 @@ interface TaskShortcut { title: string; detail: string; action?: string; path?: 
 const DESTINATIONS = new Set(['/mili', '/dentists', '/appointments', '/workspace', '/account', '/business/signup', '/business/signup?resume=true', '/business/clinic/settings', '/business/clinic/dashboard', '/professional/workspace', '/business/clinics']);
 
 @Component({
-  selector: 'app-platform-agent', standalone: true, imports: [FormsModule, RouterLink, MiliBookingComponent],
+  selector: 'app-platform-agent', standalone: true, imports: [FormsModule, RouterLink, MiliBookingComponent, PlatformHeaderComponent],
   templateUrl: './platform-agent.component.html', styleUrl: './platform-agent.component.css',
 })
 export class PlatformAgentComponent {

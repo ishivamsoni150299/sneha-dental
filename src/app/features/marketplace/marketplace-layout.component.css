@@ -4,57 +4,7 @@
   background: var(--ui-surface);
   font-family: var(--ui-font-sans);
 }
-
-.marketplace-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  display: flex;
-  height: 4.75rem;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-space-lg);
-  padding-inline: max(2rem, calc((100vw - 1240px) / 2 + 2rem));
-  border-bottom: 1px solid color-mix(in srgb, var(--ui-line) 88%, transparent);
-  background: color-mix(in srgb, var(--ui-surface) 94%, transparent);
-  box-shadow: 0 12px 36px -34px var(--ui-shadow-color);
-  backdrop-filter: blur(18px) saturate(1.1);
-}
-
-.wordmark {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-}
-
-.marketplace-header .account-link { flex-shrink: 0; margin-left: auto; padding-inline: .75rem; }
 .marketplace-shell .ui-heading-interface { font-family: var(--ui-font-sans); }
-
-.marketplace-header nav {
-  display: flex;
-  height: 100%;
-  align-items: stretch;
-  gap: 1.5rem;
-  color: var(--ui-ink-muted);
-  font-size: 0.9375rem;
-}
-
-.marketplace-header nav a {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  border-bottom: 2px solid transparent;
-  transition: color var(--ui-duration-fast), border-color var(--ui-duration-fast);
-}
-
-.marketplace-header nav a:hover {
-  color: var(--ui-ink);
-}
-
-.marketplace-header nav .active {
-  border-color: var(--ui-primary);
-  color: var(--ui-primary-hover);
-}
 
 .marketplace-shell :is(h1, h2) {
   font-family: var(--ui-font-sans);
@@ -93,7 +43,6 @@
 
 .marketplace-shell .footer-brand p { margin: 1rem 0 .5rem; color: var(--ui-ink-soft); font-size: .875rem; }
 .marketplace-shell .footer-brand span { line-height: 1.6; }
-.marketplace-header nav i { font-size: 1.1rem; }
 .marketplace-shell footer nav a { padding-block: .5rem; }
 
 .marketplace-shell footer a:hover {
@@ -104,11 +53,8 @@
   outline: 3px solid var(--ui-focus);
   outline-offset: 4px;
 }
-
-.marketplace-header .patient-navigation { margin-left: auto; }
 .marketplace-shell main { min-height: 65vh; }
 .patient-tab-bar { display: none; }
-.mobile-menu-button { display: none; }
 /* Checkout owns the mobile action dock; discovery navigation must not cover it. */
 .marketplace-shell:has(.video-booking) .patient-tab-bar { display: none; }
 
@@ -172,25 +118,6 @@
 html:has(.filter-dialog[open]) { overflow: hidden; }
 
 @media (max-width: 63.9375rem) {
-  .marketplace-header {
-    min-height: 6.5rem;
-    height: auto;
-    flex-wrap: wrap;
-    gap: var(--ui-space-2xs);
-    padding: .75rem 1.125rem 0;
-  }
-
-  .marketplace-header .wordmark app-platform-brand { max-width: none; }
-  .marketplace-header .platform-brand-lg img { width: 2rem; height: 2rem; }
-  .marketplace-header .platform-brand-lg .platform-brand-wordmark { font-size: .875rem; }
-  .marketplace-header .patient-navigation {
-    order: 1;
-    width: 100%;
-    height: 3rem;
-    gap: 1rem;
-    font-size: .8125rem;
-  }
-  .marketplace-header .patient-navigation>a { justify-content: center; flex: 1; }
 }
 
 @media (max-width: 47.9375rem) {
@@ -199,13 +126,6 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-shell:has(.profile-booking-bar) { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .marketplace-shell:has(.profile-booking-bar) .patient-tab-bar { display: none; }
   .marketplace-shell .profile-booking-bar { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
-  .marketplace-header {
-    min-height: calc(60px + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) 16px 0;
-    flex-wrap: nowrap;
-  }
-  .marketplace-header .patient-navigation, .marketplace-header .account-link { display: none; }
-  .marketplace-header .mobile-menu-button { display: inline-flex; margin-left: auto; font-size: 24px; }
   .marketplace-shell:has(.booking-checkout) .mobile-menu-button { display: none; }
   .patient-tab-bar {
     @apply fixed inset-x-0 bottom-0 grid gap-2 px-4 pt-2;
@@ -234,8 +154,6 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
 }
 
 @media (max-width: 359px) {
-  .marketplace-header { padding-inline: 14px; }
-  .marketplace-header .platform-brand { gap: .375rem; }
 }
 
 /* Keep account forms in a calm, full-width mobile canvas. */

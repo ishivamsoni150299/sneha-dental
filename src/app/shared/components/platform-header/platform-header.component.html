@@ -1,0 +1,33 @@
+  <header class="marketplace-header">
+    <a class="wordmark" routerLink="/mili" aria-label="My Dental Platform home">
+      <app-platform-brand size="lg" />
+    </a>
+    <nav class="patient-navigation" aria-label="Platform navigation">
+      <a routerLink="/dentists" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-magnifying-glass" aria-hidden="true"></i>Find a dentist</a>
+      @if (!auth.role() || auth.role() === 'patient') {
+        <a routerLink="/appointments" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="ph ph-calendar-blank" aria-hidden="true"></i>My appointments</a>
+      }
+      <a routerLink="/professional" routerLinkActive="active" ariaCurrentWhenActive="page">For Dentists</a>
+      <a routerLink="/business" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active" ariaCurrentWhenActive="page">For Clinics</a>
+    </nav>
+    @if (auth.role(); as role) {
+      <a class="account-link ui-btn ui-btn-secondary" routerLink="/workspace">{{ role === 'patient' ? 'My account' : 'Workspace' }}</a>
+    } @else {
+      <a class="account-link ui-btn ui-btn-primary" routerLink="/account">Sign in</a>
+    }
+    <button type="button" class="mobile-menu-button ui-btn ui-btn-ghost ui-btn-icon" aria-label="Open navigation menu" aria-haspopup="dialog" [attr.aria-expanded]="menuOpen()" aria-controls="platform-mobile-menu" (click)="openMenu()"><i class="ph ph-list" aria-hidden="true"></i></button>
+  </header>
+  @if (menuOpen()) {
+  <dialog appModal (dismissed)="closeMenu()" id="platform-mobile-menu" class="ui-mobile-sheet platform-header-menu" aria-labelledby="mobile-menu-title">
+    <div class="ui-mobile-sheet-header"><h2 id="mobile-menu-title" class="ui-title">Explore My Dental Platform</h2><button type="button" class="ui-btn ui-btn-ghost ui-btn-icon" aria-label="Close navigation menu" (click)="closeMenu()"><i class="ph ph-x" aria-hidden="true"></i></button></div>
+    <nav aria-label="More destinations" class="ui-mobile-sheet-links">
+      <a routerLink="/mili" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Mili home<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a routerLink="/dentists" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Find a dentist<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a [routerLink]="auth.role() && auth.role() !== 'patient' ? '/workspace' : '/appointments'" (click)="closeMenu()" class="ui-btn ui-btn-ghost">{{ auth.role() && auth.role() !== 'patient' ? 'My workspace' : 'My appointments' }}<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a [routerLink]="auth.role() ? '/account/recovery' : '/account'" (click)="closeMenu()" class="ui-btn ui-btn-ghost">{{ auth.role() ? 'Account security' : 'Sign in or create an account' }}<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a routerLink="/professional" (click)="closeMenu()" class="ui-btn ui-btn-ghost">For dentists<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+      <a routerLink="/business" (click)="closeMenu()" class="ui-btn ui-btn-ghost">For clinics<i class="ph ph-caret-right" aria-hidden="true"></i></a>
+    </nav>
+    <div class="ui-mobile-sheet-links"><a routerLink="/business/privacy" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Privacy</a><a routerLink="/business/terms" (click)="closeMenu()" class="ui-btn ui-btn-ghost">Terms</a></div>
+  </dialog>
+  }

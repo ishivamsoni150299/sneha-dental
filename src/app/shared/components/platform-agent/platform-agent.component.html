@@ -5,15 +5,8 @@
   </a>
 }
   <section id="mili-panel" class="mili-panel expanded main-page" [hidden]="!mainPage()" [class.booking-task]="result()?.booking" [class.has-task]="hasTask()" role="main" aria-labelledby="mili-title">
-    <header>
-      <div class="brand"><span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <h1 id="mili-title">Mili <span>MyDentalPlatform</span></h1>
-      </div>
-      <div class="header-actions">
-          <a routerLink="/dentists" aria-label="Browse dentists" (click)="close()">Dentists</a>
-          <a [routerLink]="auth.currentUser() ? directWorkspace() : '/account'" (click)="close()">{{ auth.currentUser() ? 'Workspace' : 'Sign in' }}</a>
-      </div>
-    </header>
+    @if (mainPage()) { <app-platform-header /> }
+    <h1 id="mili-title" class="sr-only">Mili — My Dental Platform assistant</h1>
     <div class="workspace-body">
       <div class="dialogue">
         <div class="mili-stage" [attr.data-state]="state()" [class.has-conversation]="hasTask()">

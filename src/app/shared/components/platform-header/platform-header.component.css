@@ -1,0 +1,98 @@
+
+
+.marketplace-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  height: 4.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-lg);
+  padding-inline: max(2rem, calc((100vw - 1240px) / 2 + 2rem));
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-line) 88%, transparent);
+  background: color-mix(in srgb, var(--ui-surface) 94%, transparent);
+  box-shadow: 0 12px 36px -34px var(--ui-shadow-color);
+  backdrop-filter: blur(18px) saturate(1.1);
+}
+
+.wordmark {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.marketplace-header .account-link { flex-shrink: 0; margin-left: auto; padding-inline: .75rem; }
+
+.marketplace-header nav {
+  display: flex;
+  height: 100%;
+  align-items: stretch;
+  gap: 1.5rem;
+  color: var(--ui-ink-muted);
+  font-size: 0.9375rem;
+}
+
+.marketplace-header nav a {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border-bottom: 2px solid transparent;
+  transition: color var(--ui-duration-fast), border-color var(--ui-duration-fast);
+}
+
+.marketplace-header nav a:hover {
+  color: var(--ui-ink);
+}
+
+.marketplace-header nav .active {
+  border-color: var(--ui-primary);
+  color: var(--ui-primary-hover);
+}
+.marketplace-header nav i { font-size: 1.1rem; }
+
+.marketplace-header .patient-navigation { margin-left: auto; }
+.mobile-menu-button { display: none; }
+
+@media (max-width: 63.9375rem) {
+  .marketplace-header {
+    min-height: 6.5rem;
+    height: auto;
+    flex-wrap: wrap;
+    gap: var(--ui-space-2xs);
+    padding: .75rem 1.125rem 0;
+  }
+
+  .marketplace-header .wordmark app-platform-brand { max-width: none; }
+  .marketplace-header .platform-brand-lg img { width: 2rem; height: 2rem; }
+  .marketplace-header .platform-brand-lg .platform-brand-wordmark { font-size: .875rem; }
+  .marketplace-header .patient-navigation {
+    order: 1;
+    width: 100%;
+    height: 3rem;
+    gap: 1rem;
+    font-size: .8125rem;
+  }
+  .marketplace-header .patient-navigation>a { justify-content: center; flex: 1; }
+}
+
+@media (max-width: 47.9375rem) {
+  .marketplace-header {
+    min-height: calc(60px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 16px 0;
+    flex-wrap: nowrap;
+  }
+  .marketplace-header .patient-navigation, .marketplace-header .account-link { display: none; }
+  .marketplace-header .mobile-menu-button { display: inline-flex; margin-left: auto; font-size: 24px; }
+}
+
+@media (max-width: 359px) {
+  .marketplace-header { padding-inline: 14px; }
+  .marketplace-header .platform-brand { gap: .375rem; }
+}
+
+app-platform-header{display:contents}
+
+.platform-header-menu{max-height:85dvh;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+
+.marketplace-header a:focus-visible{outline:3px solid var(--ui-focus);outline-offset:4px}
