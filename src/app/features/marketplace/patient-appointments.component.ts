@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
@@ -7,7 +7,7 @@ import {
 } from '../../core/services/patient-appointment-api.service';
 import { PatientAuthService } from '../../core/services/patient-auth.service';
 import { formatSlotDisplay } from '../../core/services/doctor.service';
-import { formatLocalDateInput } from '../../core/utils/date-input';
+import { formatDateInTimeZone } from '../../core/utils/date-input';
 import { VideoConsultationComponent } from '../../shared/components/video-consultation/video-consultation.component';
 
 type AccountStep = 'sign-in' | 'appointments';
@@ -29,6 +29,18 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly accountLabel = signal('');
   readonly claimChallengeId = signal<string | null>(null);
   readonly appointments = signal<PatientAppointmentSummary[]>([]);
+  readonly orderedAppointments = computed(() => {
+    const today = formatDateInTimeZone();
+    const upcoming = (visit: PatientAppointmentSummary) =>
+      ['pending', 'confirmed', 'checked_in'].includes(visit.status) && visit.date >= today;
+    return this.appointments().slice().sort((a, b) => {
+      const aUpcoming = upcoming(a);
+      const bUpcoming = upcoming(b);
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+      const order = `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`);
+      return aUpcoming ? order : -order;
+    });
+  });
   readonly loading = signal(false);
   readonly claiming = signal(false);
   readonly mutatingId = signal<string | null>(null);
@@ -40,7 +52,7 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly claimMessage = signal<string | null>(null);
   readonly formatSlotDisplay = formatSlotDisplay;
-  readonly minDate = formatLocalDateInput();
+  readonly minDate = formatDateInTimeZone();
   private availabilityRequest = 0;
 
   readonly claimForm = this.fb.nonNullable.group({
@@ -250,7 +262,8 @@ export class PatientAppointmentsComponent implements OnInit {
   }
 
   canCancel(appointment: PatientAppointmentSummary): boolean {
-    const scheduledAt = new Date(`${appointment.date}T${appointment.time}:00+05:30`);
+    const time = appointment.time.length === 5 ? `${appointment.time}:00` : appointment.time;
+    const scheduledAt = new Date(`${appointment.date}T${time}+05:30`);
     return this.canManage(appointment) && scheduledAt.getTime() - Date.now() > 24 * 60 * 60_000;
   }
 

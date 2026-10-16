@@ -66,6 +66,30 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
 }
 
 describe('PatientAppointmentsComponent', () => {
+  it('puts upcoming visits first by time and history newest first without changing source data', async () => {
+    const { fixture } = await createFixture({ signedIn: true });
+    const base = appointmentSummary();
+    const visits = [
+      { ...base, id: 'cancelled', status: 'cancelled', date: '2099-12-01' },
+      { ...base, id: 'later', date: '2099-11-01' },
+      { ...base, id: 'old', status: 'completed', date: '2000-01-01' },
+      { ...base, id: 'next', status: 'pending', date: '2099-10-01' },
+    ];
+    fixture.componentInstance.appointments.set(visits);
+    expect(fixture.componentInstance.orderedAppointments().map(visit => visit.id)).toEqual(['next', 'later', 'cancelled', 'old']);
+    expect(fixture.componentInstance.appointments()).toEqual(visits);
+  });
+
+  it('applies the same 24-hour cancellation cutoff to minute and second precision times', async () => {
+    const { fixture } = await createFixture({ signedIn: true });
+    spyOn(Date, 'now').and.returnValue(new Date('2026-10-16T10:00:00+05:30').getTime());
+    for (const time of ['10:00', '10:00:00']) {
+      expect(fixture.componentInstance.canCancel({ ...appointmentSummary(), date: '2026-10-18', time })).toBeTrue();
+      expect(fixture.componentInstance.canCancel({ ...appointmentSummary(), date: '2026-10-17', time })).toBeFalse();
+      expect(fixture.componentInstance.canCancel({ ...appointmentSummary(), status: 'cancelled', date: '2026-10-18', time })).toBeFalse();
+    }
+  });
+
   it('requires a password account before loading patient appointment history', async () => {
     const { fixture, api } = await createFixture();
     const text = fixture.nativeElement.textContent as string;
