@@ -66,6 +66,43 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
 }
 
 describe('PatientAppointmentsComponent', () => {
+  it('requires cancellation confirmation and prevents repeated actions while saving', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    const visit = { ...appointmentSummary(), date: '2099-11-01' };
+    await component.cancelAppointment(visit.id);
+    expect(api.cancel).not.toHaveBeenCalled();
+    component.openCancel(visit);
+    let finish!: (appointment: PatientAppointmentSummary) => void;
+    api.cancel.and.returnValue(new Promise(resolve => { finish = resolve; }));
+    const pending = component.cancelAppointment(visit.id);
+    component.closeCancel();
+    await component.cancelAppointment(visit.id);
+    expect(component.confirmCancelId()).toBe(visit.id);
+    expect(api.cancel).toHaveBeenCalledTimes(1);
+    finish({ ...visit, status: 'cancelled' });
+    await pending;
+    fixture.detectChanges();
+    expect(component.confirmCancelId()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Appointment cancelled. Your reserved time has been released.');
+  });
+
+  it('keeps a failed cancellation beside its confirmation and lets the patient keep the appointment', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    const visit = { ...appointmentSummary(), date: '2099-11-01' };
+    component.appointments.set([visit]);
+    component.openCancel(visit);
+    api.cancel.and.rejectWith(new Error('Unable to cancel. Try again.'));
+    await component.cancelAppointment(visit.id);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('article [role="alert"]').textContent).toContain('Unable to cancel');
+    expect(component.appointments()[0].status).toBe('confirmed');
+    component.closeCancel();
+    expect(component.confirmCancelId()).toBeNull();
+    expect(component.cancelError()).toBeNull();
+  });
+
   it('puts upcoming visits first by time and history newest first without changing source data', async () => {
     const { fixture } = await createFixture({ signedIn: true });
     const base = appointmentSummary();

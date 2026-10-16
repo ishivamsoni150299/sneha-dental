@@ -76,6 +76,9 @@
                 @if (appointment.status === 'pending') {
                   <p class="border-b border-ui-line bg-amber-50 px-5 py-3 text-sm text-amber-900">Request sent. Wait for confirmation here before visiting the clinic or joining a video call.</p>
                 }
+                @if (cancelledAppointmentId() === appointment.id && appointment.status === 'cancelled') {
+                  <p role="status" class="border-b border-ui-line bg-ui-muted px-5 py-3 text-sm text-ui-ink">Appointment cancelled. Your reserved time has been released.</p>
+                }
                 @if (appointment.status === 'declined' || appointment.status === 'expired') {
                   <div class="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
                     {{ appointment.status === 'declined' ? 'The clinic could not confirm this request.' : 'The confirmation window passed and the reserved time was released.' }}
@@ -140,10 +143,12 @@
                 @if (confirmCancelId() === appointment.id) {
                   <div class="border-t border-rose-200 bg-rose-50 p-5">
                     <p class="text-sm font-bold text-rose-950">Cancel this appointment?</p>
+                    <p class="mt-2 text-sm font-semibold text-rose-950">{{ formatDate(appointment.date) }} · {{ formatSlotDisplay(appointment.time) }} IST</p>
                     <p class="mt-1 text-sm text-rose-800">The clinic will see it as cancelled and the reserved slot will be released.</p>
-                    <div class="mt-4 flex flex-wrap gap-2">
+                    @if (cancelError()) { <p role="alert" class="ui-alert ui-alert-danger mt-3">{{ cancelError() }}</p> }
+                    <div class="mt-4 grid gap-2 sm:flex sm:flex-wrap">
                       <button type="button" (click)="cancelAppointment(appointment.id)" [disabled]="mutatingId() === appointment.id" class="ui-btn ui-btn-danger">{{ mutatingId() === appointment.id ? 'Cancelling...' : 'Yes, cancel' }}</button>
-                      <button type="button" (click)="confirmCancelId.set(null)" class="ui-btn ui-btn-secondary">Keep appointment</button>
+                      <button type="button" (click)="closeCancel()" [disabled]="mutatingId() !== null" class="ui-btn ui-btn-secondary">Keep appointment</button>
                     </div>
                   </div>
                 }
@@ -193,11 +198,11 @@
                   @if (appointment.consultationMode === 'video' && (appointment.status === 'confirmed' || appointment.status === 'checked_in')) {
                     <app-video-consultation [appointmentId]="appointment.id" [bookingRef]="appointment.bookingRef" [phone]="patientAuth.user()?.phoneNumber ?? ''" />
                   }
-                  @if (canManage(appointment) && rescheduleId() !== appointment.id) {
+                  @if (canManage(appointment) && rescheduleId() !== appointment.id && confirmCancelId() !== appointment.id) {
                     <button type="button" (click)="openReschedule(appointment)" class="ui-btn ui-btn-secondary">Change time</button>
                   }
                   @if (canCancel(appointment) && confirmCancelId() !== appointment.id && rescheduleId() !== appointment.id) {
-                    <button type="button" (click)="confirmCancelId.set(appointment.id); rescheduleId.set(null)" class="ui-btn ui-btn-danger">Cancel</button>
+                    <button type="button" (click)="openCancel(appointment)" [disabled]="mutatingId() !== null" class="ui-btn ui-btn-danger">Cancel</button>
                   }
                   @if (appointment.status === 'completed' && !appointment.review && reviewId() !== appointment.id) {
                     <button type="button" (click)="openReview(appointment.id)" class="ui-btn ui-btn-secondary">Review visit</button>

@@ -45,6 +45,8 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly claiming = signal(false);
   readonly mutatingId = signal<string | null>(null);
   readonly confirmCancelId = signal<string | null>(null);
+  readonly cancelError = signal<string | null>(null);
+  readonly cancelledAppointmentId = signal<string | null>(null);
   readonly rescheduleId = signal<string | null>(null);
   readonly reviewId = signal<string | null>(null);
   readonly rescheduleSlots = signal<string[]>([]);
@@ -214,15 +216,29 @@ export class PatientAppointmentsComponent implements OnInit {
     }
   }
 
-  async cancelAppointment(appointmentId: string): Promise<void> {
+  openCancel(appointment: PatientAppointmentSummary): void {
+    if (this.mutatingId() || !this.canCancel(appointment)) return;
+    this.closeReschedule();
+    this.cancelError.set(null);
+    this.confirmCancelId.set(appointment.id);
+  }
+
+  closeCancel(): void {
     if (this.mutatingId()) return;
+    this.confirmCancelId.set(null);
+    this.cancelError.set(null);
+  }
+
+  async cancelAppointment(appointmentId: string): Promise<void> {
+    if (this.mutatingId() || this.confirmCancelId() !== appointmentId) return;
     this.mutatingId.set(appointmentId);
-    this.error.set(null);
+    this.cancelError.set(null);
     try {
       this.replaceAppointment(await this.patientApi.cancel(appointmentId));
       this.confirmCancelId.set(null);
+      this.cancelledAppointmentId.set(appointmentId);
     } catch (error) {
-      this.error.set(this.errorMessage(error));
+      this.cancelError.set(this.errorMessage(error));
     } finally {
       this.mutatingId.set(null);
     }
