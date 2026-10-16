@@ -49,6 +49,8 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly reviewId = signal<string | null>(null);
   readonly rescheduleSlots = signal<string[]>([]);
   readonly loadingRescheduleSlots = signal(false);
+  readonly rescheduleAvailabilityError = signal<string | null>(null);
+  readonly rescheduleSaveError = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly claimMessage = signal<string | null>(null);
   readonly formatSlotDisplay = formatSlotDisplay;
@@ -142,9 +144,10 @@ export class PatientAppointmentsComponent implements OnInit {
   }
 
   async openReschedule(appointment: PatientAppointmentSummary): Promise<void> {
+    if (this.mutatingId()) return;
     this.confirmCancelId.set(null);
     this.rescheduleId.set(appointment.id);
-    this.rescheduleForm.setValue({ date: appointment.date, time: appointment.time });
+    this.rescheduleForm.reset({ date: appointment.date, time: '' });
     this.error.set(null);
     await this.loadRescheduleAvailability();
   }
@@ -155,9 +158,12 @@ export class PatientAppointmentsComponent implements OnInit {
   }
 
   closeReschedule(): void {
+    if (this.mutatingId()) return;
     this.availabilityRequest += 1;
     this.loadingRescheduleSlots.set(false);
     this.rescheduleSlots.set([]);
+    this.rescheduleAvailabilityError.set(null);
+    this.rescheduleSaveError.set(null);
     this.rescheduleId.set(null);
   }
 
@@ -166,6 +172,9 @@ export class PatientAppointmentsComponent implements OnInit {
     const date = this.rescheduleForm.controls.date.value;
     const request = ++this.availabilityRequest;
     this.rescheduleSlots.set([]);
+    this.rescheduleForm.controls.time.setValue('');
+    this.rescheduleAvailabilityError.set(null);
+    this.rescheduleSaveError.set(null);
     if (!appointmentId || !date) {
       this.loadingRescheduleSlots.set(false);
       return;
@@ -180,7 +189,7 @@ export class PatientAppointmentsComponent implements OnInit {
         this.rescheduleForm.controls.time.setValue('');
       }
     } catch (error) {
-      if (request === this.availabilityRequest) this.error.set(this.errorMessage(error));
+      if (request === this.availabilityRequest) this.rescheduleAvailabilityError.set(this.errorMessage(error));
     } finally {
       if (request === this.availabilityRequest) this.loadingRescheduleSlots.set(false);
     }
@@ -189,15 +198,17 @@ export class PatientAppointmentsComponent implements OnInit {
   async saveReschedule(): Promise<void> {
     this.rescheduleForm.markAllAsTouched();
     const appointmentId = this.rescheduleId();
-    if (!appointmentId || this.rescheduleForm.invalid || this.mutatingId()) return;
+    if (!appointmentId || this.rescheduleForm.invalid || this.mutatingId() || this.loadingRescheduleSlots()
+      || this.rescheduleAvailabilityError() || !this.rescheduleSlots().includes(this.rescheduleForm.controls.time.value)) return;
     this.mutatingId.set(appointmentId);
-    this.error.set(null);
+    this.rescheduleSaveError.set(null);
     try {
       const { date, time } = this.rescheduleForm.getRawValue();
       this.replaceAppointment(await this.patientApi.reschedule(appointmentId, date, time));
+      this.mutatingId.set(null);
       this.closeReschedule();
     } catch (error) {
-      this.error.set(this.errorMessage(error));
+      this.rescheduleSaveError.set(this.errorMessage(error));
     } finally {
       this.mutatingId.set(null);
     }

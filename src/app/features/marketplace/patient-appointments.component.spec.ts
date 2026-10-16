@@ -138,10 +138,68 @@ describe('PatientAppointmentsComponent', () => {
 
     expect(api.availability).toHaveBeenCalledWith(appointment.id, appointment.date);
     expect(fixture.componentInstance.rescheduleSlots()).toEqual(['11:30', '12:00']);
-    const values = Array.from(
-      fixture.nativeElement.querySelectorAll('select[id^="reschedule-time-"] option') as NodeListOf<HTMLOptionElement>,
-    ).map(option => option.value);
-    expect(values).toEqual(['', '11:30', '12:00']);
+    const radios = Array.from(
+      fixture.nativeElement.querySelectorAll('input[type="radio"][formControlName="time"]') as NodeListOf<HTMLInputElement>,
+    );
+    expect(radios.length).toBe(2);
+    radios[0].click();
+    expect(fixture.componentInstance.rescheduleForm.controls.time.value).toBe('11:30');
+    radios[1].click();
+    expect(fixture.componentInstance.rescheduleForm.controls.time.value).toBe('12:00');
+  });
+
+  it('shows an availability failure beside the picker and allows a retry without claiming the day is full', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    component.appointments.set([appointmentSummary()]);
+    api.availability.and.rejectWith(new Error('Could not load times.'));
+    await component.openReschedule(appointmentSummary());
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Could not load times.');
+    expect(fixture.nativeElement.textContent).not.toContain('No open times');
+    await component.saveReschedule();
+    expect(api.reschedule).not.toHaveBeenCalled();
+    api.availability.and.resolveTo(['11:30']);
+    await component.loadRescheduleAvailability();
+    expect(component.rescheduleAvailabilityError()).toBeNull();
+    expect(component.rescheduleSlots()).toEqual(['11:30']);
+  });
+
+  it('ignores old availability responses and prevents submitting a stale selected time', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    let resolveOld!: (slots: string[]) => void;
+    api.availability.and.returnValue(new Promise(resolve => { resolveOld = resolve; }));
+    const oldRequest = component.openReschedule(appointmentSummary());
+    component.rescheduleForm.controls.time.setValue('11:30');
+    await component.saveReschedule();
+    expect(api.reschedule).not.toHaveBeenCalled();
+    api.availability.and.resolveTo(['12:00']);
+    component.rescheduleForm.controls.date.setValue('2099-10-02');
+    await component.loadRescheduleAvailability();
+    resolveOld(['11:30']);
+    await oldRequest;
+    expect(component.rescheduleSlots()).toEqual(['12:00']);
+    component.rescheduleForm.controls.time.setValue('11:30');
+    await component.saveReschedule();
+    expect(api.reschedule).not.toHaveBeenCalled();
+  });
+
+  it('preserves the selected time after a save failure and closes only after a successful retry', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    api.availability.and.resolveTo(['11:30']);
+    await component.openReschedule(appointmentSummary());
+    component.rescheduleForm.controls.time.setValue('11:30');
+    api.reschedule.and.rejectWith(new Error('Please try again.'));
+    await component.saveReschedule();
+    expect(component.rescheduleSaveError()).toBe('Please try again.');
+    expect(component.rescheduleForm.controls.time.value).toBe('11:30');
+    expect(component.rescheduleId()).toBe('appointment-1');
+    api.reschedule.and.resolveTo({ ...appointmentSummary(), time: '11:30', status: 'pending' });
+    await component.saveReschedule();
+    expect(component.rescheduleId()).toBeNull();
+    expect(component.appointments()[0].status).toBe('pending');
   });
 
   it('submits a review only for a completed appointment and shows moderation state', async () => {

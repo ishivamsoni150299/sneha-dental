@@ -66,7 +66,7 @@
 @media (max-width: 47.9375rem) {
   .marketplace-shell #marketplace-content { scroll-margin-top: 4rem; }
   .marketplace-shell .ui-mobile-sheet { max-height: 85dvh; overflow-y: auto; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-  .marketplace-shell:has(input:focus, textarea:focus, select:focus) .patient-tab-bar { display: none; }
+  .marketplace-shell:has(input:not([type="radio"]):not([type="checkbox"]):focus, textarea:focus, select:focus) .patient-tab-bar { display: none; }
 }
 
 .marketplace-shell footer {

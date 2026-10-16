@@ -99,29 +99,40 @@
                 @if (rescheduleId() === appointment.id) {
                   <form [formGroup]="rescheduleForm" (ngSubmit)="saveReschedule()" class="border-t border-blue-200 bg-blue-50 p-5">
                     <h4 class="text-sm font-bold text-blue-950">Request a different time</h4>
-                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <fieldset [disabled]="mutatingId() === appointment.id" class="mt-4 grid min-w-0 gap-4">
+                      <legend class="sr-only">Choose a new appointment time</legend>
                       <div>
                         <label [for]="'reschedule-date-' + appointment.id" class="text-xs font-bold uppercase text-blue-900">Date</label>
                         <input [id]="'reschedule-date-' + appointment.id" formControlName="date" type="date" [min]="minDate" (change)="onRescheduleDateChange()" class="ui-field mt-1 text-base">
                       </div>
-                      <div>
-                        <label [for]="'reschedule-time-' + appointment.id" class="text-xs font-bold uppercase text-blue-900">Time</label>
+                      <fieldset class="min-w-0">
+                        <legend class="text-xs font-bold uppercase text-blue-900">Available times · IST</legend>
                         @if (loadingRescheduleSlots()) {
                           <div class="mt-1 flex min-h-11 items-center rounded-lg border border-blue-200 bg-white px-3 text-sm text-blue-700" role="status">Checking open times...</div>
+                        } @else if (rescheduleAvailabilityError()) {
+                          <p role="alert" class="ui-alert ui-alert-danger mt-2">{{ rescheduleAvailabilityError() }}</p>
+                          <button type="button" (click)="loadRescheduleAvailability()" class="ui-btn ui-btn-secondary mt-2">Retry open times</button>
+                        } @else if (!rescheduleForm.controls.date.value) {
+                          <p role="status" class="ui-caption mt-2">Choose a date to see open times.</p>
                         } @else if (rescheduleSlots().length > 0) {
-                          <select [id]="'reschedule-time-' + appointment.id" formControlName="time" class="ui-field mt-1 text-base">
-                            <option value="">Select an open time</option>
-                            @for (slot of rescheduleSlots(); track slot) { <option [value]="slot">{{ formatSlotDisplay(slot) }}</option> }
-                          </select>
+                          <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            @for (slot of rescheduleSlots(); track slot) {
+                              <label class="cursor-pointer">
+                                <input type="radio" formControlName="time" [value]="slot" class="peer sr-only">
+                                <span class="flex min-h-11 items-center justify-center rounded-lg border border-ui-line-strong bg-white px-2 text-sm font-semibold text-ui-ink peer-checked:border-blue-700 peer-checked:bg-blue-600 peer-checked:text-white peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-700">{{ formatSlotDisplay(slot) }}</span>
+                              </label>
+                            }
+                          </div>
                         } @else {
-                          <div class="mt-1 flex min-h-11 items-center rounded-lg border border-amber-200 bg-amber-50 px-3 text-sm text-amber-800" role="status">No open times on this date</div>
+                          <p class="ui-caption mt-2" role="status">No open times on this date. Choose another date.</p>
                         }
-                      </div>
-                    </div>
+                      </fieldset>
+                    </fieldset>
                     <p class="mt-3 text-xs leading-5 text-blue-900">Changing the time creates a new pending request for clinic confirmation.</p>
-                    <div class="mt-4 flex flex-wrap gap-2">
-                      <button type="submit" [disabled]="mutatingId() === appointment.id" class="ui-btn ui-btn-primary">{{ mutatingId() === appointment.id ? 'Saving...' : 'Save request' }}</button>
-                      <button type="button" (click)="closeReschedule()" class="ui-btn ui-btn-secondary">Keep current time</button>
+                    @if (rescheduleSaveError()) { <p role="alert" class="ui-alert ui-alert-danger mt-3">{{ rescheduleSaveError() }}</p> }
+                    <div class="mt-4 grid gap-2 sm:flex sm:flex-wrap">
+                      <button type="submit" [disabled]="mutatingId() !== null || loadingRescheduleSlots() || rescheduleForm.invalid || !!rescheduleAvailabilityError() || !rescheduleSlots().includes(rescheduleForm.controls.time.value)" class="ui-btn ui-btn-primary">{{ mutatingId() === appointment.id ? 'Saving...' : 'Save request' }}</button>
+                      <button type="button" (click)="closeReschedule()" [disabled]="mutatingId() === appointment.id" class="ui-btn ui-btn-secondary">Keep current time</button>
                     </div>
                   </form>
                 }
@@ -185,7 +196,7 @@
                   @if (canManage(appointment) && rescheduleId() !== appointment.id) {
                     <button type="button" (click)="openReschedule(appointment)" class="ui-btn ui-btn-secondary">Change time</button>
                   }
-                  @if (canCancel(appointment) && confirmCancelId() !== appointment.id) {
+                  @if (canCancel(appointment) && confirmCancelId() !== appointment.id && rescheduleId() !== appointment.id) {
                     <button type="button" (click)="confirmCancelId.set(appointment.id); rescheduleId.set(null)" class="ui-btn ui-btn-danger">Cancel</button>
                   }
                   @if (appointment.status === 'completed' && !appointment.review && reviewId() !== appointment.id) {

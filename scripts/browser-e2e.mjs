@@ -336,9 +336,9 @@ try {
   const guestCard = page.getByRole('article').filter({ hasText: guest.bookingRef });
   await guestCard.getByText('E2E Clinic', { exact: true }).waitFor();
   await guestCard.getByRole('button', { name: 'Change time', exact: true }).click();
-  const timeSelect = guestCard.getByRole('combobox', { name: 'Time' });
-  await timeSelect.waitFor();
-  await timeSelect.selectOption({ index: 1 });
+  const firstTime = guestCard.getByRole('radio').first();
+  await firstTime.waitFor({ state: 'attached' });
+  await firstTime.locator('..').click();
   await guestCard.getByRole('button', { name: 'Save request', exact: true }).click();
   await guestCard.getByText('Awaiting clinic', { exact: true }).waitFor();
   await guestCard.getByRole('button', { name: 'Cancel', exact: true }).click();
