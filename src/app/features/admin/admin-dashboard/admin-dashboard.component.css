@@ -1,0 +1,44 @@
+:host { display: block; min-width: 0; }
+.clinic-dashboard { max-width: 1200px; }
+.clinic-dashboard .admin-page-title { font-size: clamp(1.4rem, 3vw, 1.85rem); letter-spacing: -.025em; }
+.clinic-dashboard .admin-page-subtitle { font-size: .875rem; margin-top: .5rem; }
+.dashboard-sections { display: flex; gap: .5rem; border-bottom: 1px solid var(--ui-line); padding-bottom: .75rem; }
+.dashboard-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.dashboard-views button { display: flex; flex-direction: column; justify-content: space-between; gap: .75rem; min-width: 0; text-align: left; padding: 1rem 1.25rem; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-md); background: var(--ui-surface); color: var(--ui-ink-muted); }
+.dashboard-views button span { font-size: .8125rem; font-weight: 600; }
+.dashboard-views button strong { color: var(--ui-ink); font-size: 1.75rem; line-height: 1; }
+.dashboard-views button.selected { background: var(--ui-primary-soft); border-color: var(--ui-primary); color: var(--ui-primary-hover); }
+.dashboard-views button.selected strong { color: var(--ui-primary-hover); }
+.queue-heading { font-size: 1rem; font-weight: 700; }
+.dashboard-queue table td { vertical-align: middle; }
+.dashboard-queue table td p { font-size: .8125rem; line-height: 1.5; }
+.dashboard-queue .text-gray-400 { color: var(--ui-ink-muted); }
+.dashboard-queue table button, .dashboard-queue table a { min-height: 44px; }
+.mobile-visit { padding: 1rem; border-top: 1px solid var(--ui-line); }
+.mobile-visit-summary { display: grid; gap: .6rem; width: 100%; text-align: left; border-radius: .5rem; }
+.visit-time { color: var(--ui-primary-hover); font-size: 1rem; font-weight: 700; }
+.visit-time > span { display: block; margin-top: .15rem; font-size: .75rem; font-weight: 500; color: var(--ui-ink-muted); }
+.visit-identity { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.visit-name { font-size: 1rem; font-weight: 700; color: var(--ui-ink); overflow-wrap: anywhere; }
+.visit-service { font-size: .875rem; color: var(--ui-ink-soft); overflow-wrap: anywhere; }
+.visit-source { font-size: .75rem; color: var(--ui-ink-muted); }
+.visit-actions { display: flex; gap: .5rem; margin-top: 1rem; }
+.visit-actions button { min-height: 44px; }
+.visit-actions button:first-child:not(:last-child) { background: var(--ui-primary); color: var(--ui-surface); }
+.visit-closed { background: var(--ui-surface-muted); }
+.dashboard-report { padding: 1.25rem; }
+.dashboard-report summary { min-height: 44px; font-weight: 600; cursor: pointer; }
+.dashboard-report dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding-block: 1rem; }
+.dashboard-report dt { font-size: .8125rem; color: var(--ui-ink-muted); }
+.dashboard-report dd { margin-top: .5rem; font-size: 1.5rem; font-weight: 700; color: var(--ui-ink); overflow-wrap: anywhere; }
+.dashboard-tools { display: flex; flex-wrap: wrap; gap: .5rem; }
+.clinic-dashboard :is(button, a, summary, input, select):focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
+@media (max-width: 767px) {
+  .dashboard-sections .ui-tab { flex: 1; justify-content: center; flex-wrap: wrap; font-size: .8125rem; }
+  .dashboard-views { gap: .5rem; }
+  .dashboard-views button { padding: .875rem .625rem; min-height: 104px; }
+  .dashboard-views button span { font-size: .75rem; line-height: 1.4; }
+  .dashboard-views button strong { font-size: 1.5rem; }
+  .dashboard-report dl { grid-template-columns: 1fr; }
+  .dashboard-queue input { font-size: 16px; }
+}

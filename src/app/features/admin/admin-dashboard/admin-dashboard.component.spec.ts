@@ -31,6 +31,32 @@ describe('Clinic appointment scheduling', () => {
   });
   afterEach(() => component.ngOnDestroy());
 
+  it('opens today in time order and switches views without retaining hidden filters', () => {
+    const early = { ...appointment, id: 'early', date: component.today, time: '09:00' };
+    const late = { ...early, id: 'late', time: '14:30' };
+    const request = { ...appointment, id: 'request', date: '2099-11-01', status: 'pending' as const };
+    component.appointments.set([late, request, early]);
+    expect(component.activeTab()).toBe('today');
+    expect(component.filteredAppointments().map(a => a.id)).toEqual(['early', 'late']);
+    component.searchQuery.set('not a patient');
+    component.dateFrom.set('2099-12-01');
+    component.selectView('pending');
+    expect(component.searchQuery()).toBe('');
+    expect(component.dateFrom()).toBe('');
+    expect(component.filteredAppointments().map(a => a.id)).toEqual(['request']);
+    expect(component.viewLabel()).toBe('Needs confirmation');
+    component.selectView('all');
+    expect(component.filteredAppointments().map(a => a.id)).toEqual(['request', 'late', 'early']);
+    expect(component.appointments()).toEqual([late, request, early]);
+  });
+
+  it('lets a date preset expand beyond the default today view', () => {
+    component.setDateQuick('month');
+    expect(component.activeTab()).toBe('all');
+    expect(component.dateFrom()).not.toBe('');
+    expect(component.dateTo()).not.toBe('');
+  });
+
   it('uses the amount received for partial collection and outstanding totals', () => {
     component.appointments.set([{ ...appointment, amountCharged: 1000, amountPaid: 400, paymentStatus: 'partial' }]);
     expect(component.paidRevenue()).toBe(400);

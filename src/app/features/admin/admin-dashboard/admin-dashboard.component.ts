@@ -43,20 +43,12 @@ export const DECLINE_REASONS = [
   'Other',
 ] as const;
 
-type UpgradeTeaser = {
-  icon: 'palette' | 'badge' | 'globe' | 'mic' | 'whatsapp' | 'moon';
-  color: 'blue' | 'emerald' | 'teal' | 'purple';
-  plan: 'Basic' | 'Pro';
-  title: string;
-  desc: string;
-  cta: string;
-};
-
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [RouterLink, FormsModule, DecimalPipe, VideoConsultationComponent, ModalDirective],
   templateUrl: './admin-dashboard.component.html',
+  styleUrl: './admin-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
@@ -160,11 +152,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // ── Core state ───────────────────────────────────────────────────────────
   appointments    = signal<Appointment[]>([]);
   loading         = signal(true);
-  activeTab       = signal<FilterTab>('all');
+  activeTab       = signal<FilterTab>('today');
+  readonly viewLabel = computed(() => ({ today: "Today's visits", pending: 'Needs confirmation', all: 'All visits', confirmed: 'Confirmed visits', checked_in: 'Arrived patients', completed: 'Completed visits' }[this.activeTab()]));
+
+  selectView(view: FilterTab): void {
+    this.clearFilters();
+    this.activeTab.set(view);
+  }
   actionError     = signal<string | null>(null);
   actionSuccess   = signal<string | null>(null);
   updatingId      = signal<string | null>(null);
-  planCardDismissed = signal(false);
 
   // ── Search & filter ──────────────────────────────────────────────────────
   searchQuery     = signal('');
@@ -203,31 +200,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return THEME_COLORS[this.clinicConfig.theme ?? 'blue'] ?? THEME_COLORS['blue'];
   }
 
-  get greeting(): string {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
   get todayFormatted(): string {
     return new Date().toLocaleDateString('en-IN', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
-  }
-
-  get doctorFirstName(): string {
-    const name = this.clinicConfig.doctorName?.trim();
-    if (!name) return '';
-    const parts = name.split(' ');
-    return parts[parts.length - 1] || name;
-  }
-
-  /** Returns "Dr. Smith" when doctor name is set, or just the clinic name otherwise */
-  get greetingLine(): string {
-    return this.doctorFirstName
-      ? `Dr. ${this.doctorFirstName}`
-      : (this.clinicConfig.name || 'there');
   }
 
   get websiteUrl(): string {
@@ -267,7 +243,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
     if (df) list = list.filter(a => a.date >= df);
     if (dt) list = list.filter(a => a.date <= dt);
-    return list;
+    const newestFirst = this.activeTab() === 'all' || this.activeTab() === 'completed';
+    return [...list].sort((a, b) => {
+      const order = `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`);
+      return newestFirst ? -order : order;
+    });
   });
 
   counts = computed(() => ({
@@ -288,23 +268,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .filter(a => a.date === this.today)
       .sort((a, b) => this.timeToMinutes(a.time) - this.timeToMinutes(b.time)),
   );
-
-  todayQueue = computed(() => ({
-    scheduled: this.todayAppointmentsList().length,
-    pending: this.todayAppointmentsList().filter(a => a.status === 'pending').length,
-    inClinic: this.todayAppointmentsList().filter(a => a.status === 'checked_in').length,
-    completed: this.todayAppointmentsList().filter(a => a.status === 'completed').length,
-  }));
-
-  agendaPreview = computed(() => this.todayAppointmentsList().slice(0, 5));
-
-  nextAppointment = computed(() => {
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    return this.todayAppointmentsList().find(
-      a => this.timeToMinutes(a.time) >= currentMinutes && a.status !== 'completed',
-    ) ?? this.todayAppointmentsList().find(a => a.status !== 'completed') ?? null;
-  });
 
   paidRevenue = computed(() =>
     this.appointments().reduce((sum, appt) =>
@@ -436,67 +399,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // ── Subscription helpers ─────────────────────────────────────────────────
-  get plan()   { return this.clinicConfig.subscriptionPlan   ?? 'trial'; }
-  get status() { return this.clinicConfig.subscriptionStatus ?? 'trial'; }
-
-  get isFree()          { return !this.isStarter && !this.isPro; }
-  get isStarter()       { return this.plan === 'starter' && this.status === 'active'; }
-  get isPro()           { return this.plan === 'pro' && this.status === 'active'; }
   get canManageOperations() { return clinicHasPlatformFeature(this.clinicConfig, 'patientRecords'); }
   get canViewRevenue()       { return clinicHasPlatformFeature(this.clinicConfig, 'revenueInsights'); }
-  get showUpgradeBanner() { return !this.isPro; }
-  get upgradeHeading() { return this.isStarter ? 'Unlock with Pro' : 'Run your clinic with Basic'; }
-  get upgradeLinkLabel() { return this.isStarter ? 'See Pro plan →' : 'See Basic plan →'; }
-  get upgradeTeasers(): UpgradeTeaser[] {
-    if (this.isStarter) {
-      return [
-        {
-          icon: 'badge',
-          color: 'emerald',
-          plan: 'Pro',
-          title: 'Revenue Insights',
-          desc: 'See collected, outstanding, and daily payment totals without calculating them manually.',
-          cta: 'Upgrade to Pro',
-        },
-        {
-          icon: 'globe',
-          color: 'teal',
-          plan: 'Pro',
-          title: 'Priority Support',
-          desc: 'Get priority help for your clinic website and booking flow.',
-          cta: 'Get Pro Support',
-        },
-      ];
-    }
-
-    return [
-      {
-        icon: 'badge',
-        color: 'emerald',
-        plan: 'Basic',
-        title: 'Patient Records',
-        desc: 'Keep visit history, clinical notes, treatments, and payment status together for each patient.',
-        cta: 'Upgrade to Basic',
-      },
-      {
-        icon: 'palette',
-        color: 'blue',
-        plan: 'Basic',
-        title: 'Clinic Branding',
-        desc: 'Add your logo, choose a theme, remove platform branding, and connect your own domain.',
-        cta: 'Unlock Branding',
-      },
-      {
-        icon: 'globe',
-        color: 'teal',
-        plan: 'Basic',
-        title: 'Doctor Management',
-        desc: 'Add doctor profiles, availability, and schedules used by the appointment booking flow.',
-        cta: 'Manage Your Team',
-      },
-    ];
-  }
-
   // ── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit() {
     this.startRealtimeSync();
@@ -735,6 +639,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   setDateQuick(preset: 'today' | 'week' | 'month') {
+    if (this.activeTab() === 'today') this.activeTab.set('all');
     const d   = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     const fmt = (date: Date) =>
