@@ -54,7 +54,6 @@
   outline-offset: 4px;
 }
 .marketplace-shell main { min-height: 65vh; }
-.patient-tab-bar { display: none; }
 /* Checkout owns the mobile action dock; discovery navigation must not cover it. */
 .marketplace-shell:has(.video-booking) .patient-tab-bar { display: none; }
 
@@ -127,24 +126,6 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-shell:has(.profile-booking-bar) .patient-tab-bar { display: none; }
   .marketplace-shell .profile-booking-bar { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
   .marketplace-shell:has(.booking-checkout) .mobile-menu-button { display: none; }
-  .patient-tab-bar {
-    @apply fixed inset-x-0 bottom-0 grid gap-2 px-4 pt-2;
-    border-top: 1px solid var(--ui-line);
-    background: var(--ui-surface);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    z-index: 40;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-    box-shadow: var(--ui-shadow-md);
-  }
-  .patient-tab-bar a {
-    @apply flex min-h-12 flex-col items-center justify-center gap-1 text-xs font-semibold;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-ink-muted);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .patient-tab-bar svg { width: 22px; height: 22px; }
-  .patient-tab-bar a.active { background: var(--ui-primary-soft); color: var(--ui-primary-hover); }
-  .patient-tab-bar a:active { background: var(--ui-surface-muted); }
   .marketplace-shell :is(input, select, textarea) { font-size: 16px; }
   .marketplace-shell :is(button, summary) { touch-action: manipulation; }
   .marketplace-shell footer {
@@ -161,7 +142,6 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
   .marketplace-shell:has(#account-title) .account-link { display: none; }
   .marketplace-shell .ui-auth-card { padding: 1.25rem; gap: 1.25rem; }
   .marketplace-shell:has(#account-title) main { min-height: auto; }
-  .patient-tab-bar a { min-width: 0; text-align: center; }
 }
 @media(max-width:1023px){
   body:has(.profile-booking-bar) .mili-launcher{display:none}
