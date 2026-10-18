@@ -1,4 +1,5 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { formatDateInTimeZone } from '../../../core/utils/date-input';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
@@ -62,7 +63,7 @@ export class AdminPatientsComponent implements OnInit {
       map.get(key)!.push(a);
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatDateInTimeZone();
     const records: PatientSummary[] = [];
 
     for (const [phone, group] of map.entries()) {
@@ -85,7 +86,7 @@ export class AdminPatientsComponent implements OnInit {
       // Next upcoming appointment (pending/confirmed, date >= today)
       const upcoming = group
         .filter(a => (a.status === 'pending' || a.status === 'confirmed') && a.date >= today)
-        .sort((a, b) => a.date.localeCompare(b.date));
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
       const nextAppointment = upcoming[0] ?? undefined;
 
       // Financials
@@ -130,7 +131,7 @@ export class AdminPatientsComponent implements OnInit {
 
   summaryStats = computed(() => {
     const all = this.patients();
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatDateInTimeZone();
     const thisMonth = today.slice(0, 7);
     return {
       total:       all.length,
@@ -142,6 +143,8 @@ export class AdminPatientsComponent implements OnInit {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
   async ngOnInit() {
+    this.loading.set(true);
+    this.error.set(null);
     try {
       this.allAppts.set(await this.apptService.getAllAppointments());
     } catch {

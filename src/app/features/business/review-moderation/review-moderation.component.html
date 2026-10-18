@@ -28,7 +28,7 @@
         </div>
       </article>
     } @empty {
-      @if (!loading()) { <p class="ui-card p-6 text-sm text-ui-ink-muted">No reviews are waiting for moderation.</p> }
+      @if (!loading() && !error()) { <p class="ui-card p-6 text-sm text-ui-ink-muted">No reviews are waiting for moderation.</p> }
     }
   </div>
 </section>
@@ -58,7 +58,7 @@
         </div>
       </article>
     } @empty {
-      @if (!loading()) { <p class="ui-card p-6 text-sm text-ui-ink-muted">No patient reports are open.</p> }
+      @if (!loading() && !error()) { <p class="ui-card p-6 text-sm text-ui-ink-muted">No patient reports are open.</p> }
     }
   </div>
 </section>

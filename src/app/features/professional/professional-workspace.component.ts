@@ -112,7 +112,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                   <button (click)="declining.set(null)" [disabled]="busy()" class="ui-btn ui-btn-ghost">Keep appointment</button>
                 }
               </article>
-            } @empty { <div class="ui-card p-8 text-center"><h2 class="font-bold text-ui-ink">{{ search() ? 'No matching patients' : 'No appointments in this view' }}</h2>@if (search()) {<button type="button" (click)="search.set('')" class="ui-btn ui-btn-secondary mt-3">Clear search</button>} @else {<p class="mt-2 text-sm text-ui-ink-muted">Clinic bookings assigned to your dentist profile appear here.</p>}</div> }
+            } @empty { @if (!error()) { <div class="ui-card p-8 text-center"><h2 class="font-bold text-ui-ink">{{ search() ? 'No matching patients' : 'No appointments in this view' }}</h2>@if (search()) {<button type="button" (click)="search.set('')" class="ui-btn ui-btn-secondary mt-3">Clear search</button>} @else {<p class="mt-2 text-sm text-ui-ink-muted">Clinic bookings assigned to your dentist profile appear here.</p>}</div> } }
             @if (visits().length === 200) { <p class="text-sm text-ui-ink-muted">Showing the first 200 appointments in this view.</p> }
           }
         } @else {

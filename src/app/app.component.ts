@@ -1,4 +1,5 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, HostListener, signal, inject } from '@angular/core';
+import { focusFirstInvalidControl } from './shared/utils/form-focus';
 import { RouterOutlet } from '@angular/router';
 import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { SeoService } from './core/services/seo.service';
@@ -46,6 +47,15 @@ export class AppComponent {
   readonly miliPage = signal(false);
   readonly failedNavigation = signal<string | null>(null);
   private readonly router = inject(Router);
+
+  @HostListener('submit', ['$event'])
+  onFormSubmit(event: Event): void {
+    const form = event.target;
+    if (form instanceof HTMLFormElement && form.querySelector('input.ng-invalid, select.ng-invalid, textarea.ng-invalid, input:invalid, select:invalid, textarea:invalid')) {
+      // Let the form handler expose errors first; removed forms are ignored.
+      setTimeout(() => focusFirstInvalidControl(form), 0);
+    }
+  }
 
   retryNavigation(): void {
     const url = this.failedNavigation();

@@ -435,6 +435,8 @@ body {
 .ui-btn,
 .ds-button {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
   min-height: var(--ui-control-height);
   align-items: center;
   justify-content: center;
@@ -445,7 +447,8 @@ body {
   font-size: var(--ui-text-sm);
   font-weight: 720;
   letter-spacing: -0.01em;
-  line-height: 1;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
   text-align: center;
   text-decoration: none;
   transition:
@@ -546,6 +549,8 @@ body {
 .ds-field,
 .form-input {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: var(--ui-control-height);
   border: 1px solid var(--ui-line-strong);
   border-radius: var(--ui-radius-sm);
@@ -554,6 +559,25 @@ body {
   background: var(--ui-surface);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: border-color var(--ui-duration-fast), box-shadow var(--ui-duration-fast), background var(--ui-duration-fast);
+}
+
+/* Readable mobile fields and comfortable shared touch targets. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+
+  .ui-btn,
+  .ds-button,
+  .ui-btn-sm {
+    min-height: 2.75rem;
+  }
+
+  .ui-btn-icon {
+    min-width: 2.75rem;
+  }
 }
 
 /* Reserve space for an adjacent action such as password visibility. */

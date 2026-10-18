@@ -29,6 +29,7 @@ export class AdminReviewsComponent implements OnInit {
   }
 
   async load(): Promise<void> {
+    if (this.updatingId()) return;
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -43,6 +44,7 @@ export class AdminReviewsComponent implements OnInit {
   }
 
   edit(review: ManagedAppointmentReview): void {
+    if (this.updatingId()) return;
     this.editingId.set(review.id);
     this.response.set(review.clinicResponse);
     this.message.set(null);
@@ -50,14 +52,19 @@ export class AdminReviewsComponent implements OnInit {
 
   async save(reviewId: string): Promise<void> {
     if (this.updatingId()) return;
+    const response = this.response().trim();
+    if (response.length < 2 || response.length > 600) {
+      this.error.set('Write a response of 2–600 characters before publishing.');
+      return;
+    }
     this.updatingId.set(reviewId);
     this.error.set(null);
     try {
       const clinicId = this.clinic.config.clinicId;
       if (!clinicId) throw new Error('Clinic workspace is unavailable.');
-      await this.reviewsApi.respond(clinicId, reviewId, this.response());
+      await this.reviewsApi.respond(clinicId, reviewId, response);
       this.reviews.update(reviews => reviews.map(review => review.id === reviewId
-        ? { ...review, clinicResponse: this.response().trim() }
+        ? { ...review, clinicResponse: response }
         : review));
       this.editingId.set(null);
       this.message.set('Response published.');

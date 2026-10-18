@@ -20,7 +20,7 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
             <form [formGroup]="generateForm" (ngSubmit)="generate()" class="space-y-4">
               <p class="ui-body">Generate a replacement recovery code. Your previous code will stop working.</p>
               <label class="ui-label">Current password<input type="password" autocomplete="current-password" formControlName="password" class="ui-field mt-2 text-base"></label>
-              <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">Generate recovery code</button>
+              <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">{{ busy() ? 'Generating…' : 'Generate recovery code' }}</button>
             </form>
             @if (code()) { <p class="ui-body">Save this privately. It is shown only once.</p><textarea readonly aria-label="Recovery code" [value]="code()" class="ui-field font-mono text-sm" (focus)="$any($event.target).select()"></textarea> }
           }
@@ -28,18 +28,20 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
             <a routerLink="/workspace" class="ui-btn ui-btn-secondary">{{ workspaceUnavailable ? 'Try workspace again' : 'Return to workspace' }}</a>
             <button type="button" (click)="logout()" [disabled]="busy()" class="ui-btn ui-btn-ghost">Sign out</button>
           </div>
+        } @else if (message()) {
+          <div role="status" class="space-y-4"><h2 class="ui-heading">Password updated</h2><p class="ui-body">{{ message() }}</p><a routerLink="/account" class="ui-btn ui-btn-primary ui-btn-block">Sign in with your new password</a></div>
         } @else {
           <form [formGroup]="form" (ngSubmit)="reset()" class="space-y-4">
             <label class="ui-label">Email address<input type="email" autocomplete="username" formControlName="email" class="ui-field mt-2 text-base"></label>
             <label class="ui-label">Saved recovery code<input autocomplete="off" formControlName="code" class="ui-field mt-2 text-base"></label>
-            <label class="ui-label">New password<input type="password" autocomplete="new-password" formControlName="password" class="ui-field mt-2 text-base"></label>
+            <label class="ui-label">New password<input type="password" autocomplete="new-password" aria-describedby="recovery-password-hint" formControlName="password" class="ui-field mt-2 text-base"></label>
+            <p id="recovery-password-hint" class="text-sm text-ui-ink-muted">Use 8–72 characters. Confirm the same password below.</p>
             <label class="ui-label">Confirm new password<input type="password" autocomplete="new-password" formControlName="confirm" class="ui-field mt-2 text-base"></label>
-            <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">Reset password</button>
+            <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">{{ busy() ? 'Resetting…' : 'Reset password' }}</button>
           </form>
           <details><summary class="ui-btn ui-btn-ghost cursor-pointer">Lost your recovery code?</summary><p class="ui-body mt-2">If you lost your password and recovery code, or previously used an email link, contact the platform owner to verify your identity and recover your account.</p></details>
         }
         @if (error()) { <p role="alert" class="ui-alert ui-alert-danger text-sm">{{ error() }}</p> }
-        @if (message()) { <p role="status" class="ui-alert ui-alert-success text-sm">{{ message() }}</p> }
       </section>
     </div>
   `,
@@ -63,7 +65,9 @@ export class AccountRecoveryComponent {
     finally { this.busy.set(false); }
   }
   async generate(): Promise<void> {
-    if (this.generateForm.invalid || this.busy()) return;
+    if (this.busy()) return;
+    this.generateForm.markAllAsTouched();
+    if (this.generateForm.invalid) { this.error.set('Enter your current password to generate a recovery code.'); return; }
     this.busy.set(true); this.error.set('');
     try { this.code.set(await this.auth.generateRecoveryCode(this.generateForm.controls.password.value)); this.generateForm.reset(); }
     catch (e) { this.error.set((e as Error).message); }
@@ -72,6 +76,7 @@ export class AccountRecoveryComponent {
   async reset(): Promise<void> {
     if (this.busy()) return;
     this.message.set('');
+    this.form.markAllAsTouched();
     const v = this.form.getRawValue();
     if (this.form.invalid || v.password !== v.confirm) { this.error.set('Enter your email, saved code and matching passwords of 8–72 characters.'); return; }
     this.busy.set(true); this.error.set('');

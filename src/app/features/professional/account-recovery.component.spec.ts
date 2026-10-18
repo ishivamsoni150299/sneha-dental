@@ -4,6 +4,22 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
 import { AccountRecoveryComponent } from './account-recovery.component';
 
 describe('Account recovery feedback', () => {
+  it('explains an incomplete recovery request without calling the API', async () => {
+    const auth = jasmine.createSpyObj('AuthFacade', ['generateRecoveryCode', 'confirmPasswordReset']);
+    TestBed.configureTestingModule({ providers: [
+      { provide: AuthFacade, useValue: auth }, { provide: Router, useValue: {} },
+      { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: () => null } } } },
+    ] });
+    const component = TestBed.runInInjectionContext(() => new AccountRecoveryComponent());
+    await component.generate();
+    expect(component.error()).toContain('current password');
+    expect(component.generateForm.controls.password.touched).toBeTrue();
+    expect(auth.generateRecoveryCode).not.toHaveBeenCalled();
+    await component.reset();
+    expect(component.form.controls.email.touched).toBeTrue();
+    expect(auth.confirmPasswordReset).not.toHaveBeenCalled();
+  });
+
   it('clears previous success before rejecting another reset', async () => {
     const auth = jasmine.createSpyObj('AuthFacade', ['confirmPasswordReset']);
     auth.confirmPasswordReset.and.rejectWith(new Error('Invalid or already used code.'));

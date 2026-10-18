@@ -55,7 +55,7 @@
             <div role="alert" class="mt-5 ui-alert ui-alert-danger">{{ error() }}</div>
           }
 
-          @if (!loading() && appointments().length === 0) {
+          @if (!loading() && !error() && appointments().length === 0) {
             <div class="mt-6 ui-card px-5 py-12 text-center">
               <h3 class="text-xl font-bold text-ui-ink">No linked appointments yet</h3>
               <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ui-ink-muted">Your next visit starts here. Find a dentist and book while signed in to see your appointment in this account.</p>
