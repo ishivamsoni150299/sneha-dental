@@ -67,6 +67,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private slotRequest = 0;
 
   async openReschedule(appt: Appointment) {
+    if (this.updatingId()) return;
     const request = ++this.slotRequest;
     this.rescheduleTarget.set(appt);
     this.rescheduleError.set('');
@@ -172,6 +173,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // ── Cancel reason modal ──────────────────────────────────────────────────
   cancelTarget    = signal<Appointment | null>(null);  // appointment to cancel
   cancelReason    = signal('');
+  readonly cancelError = signal<string | null>(null);
   readonly cancelReasons = CANCEL_REASONS;
   readonly declineReasons = DECLINE_REASONS;
 
@@ -499,6 +501,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private async transition(appt: Appointment, status: 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled', successMsg: string) {
+    if (this.updatingId() || !appt.id) return;
     this.updatingId.set(appt.id!);
     this.actionError.set(null);
     try {
@@ -519,11 +522,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // ── Cancel with reason ───────────────────────────────────────────────────
   requestCancel(appt: Appointment) {
+    if (this.updatingId()) return;
+    this.actionError.set(null);
+    this.cancelError.set(null);
     this.cancelTarget.set(appt);
     this.cancelReason.set('');
   }
 
   dismissCancel() {
+    if (this.updatingId()) return;
+    this.cancelError.set(null);
     this.cancelTarget.set(null);
     this.cancelReason.set('');
   }
@@ -531,8 +539,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   async confirmCancel() {
     const appt = this.cancelTarget();
     const reason = this.cancelReason();
-    if (!appt || !reason) return;
-    this.cancelTarget.set(null);
+    if (!appt?.id || !reason || this.updatingId()) return;
+    this.cancelError.set(null);
     this.updatingId.set(appt.id!);
     this.actionError.set(null);
     try {
@@ -551,16 +559,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.setSuccess(status === 'declined'
         ? `${appt.name}'s marketplace request declined.`
         : `${appt.name}'s appointment cancelled.`);
-    } catch {
-      this.setError('Could not cancel appointment.');
+      this.cancelTarget.set(null);
+      this.cancelReason.set('');
+    } catch (error) {
+      this.cancelError.set(error instanceof Error ? error.message : 'Could not cancel appointment. Please try again.');
     } finally {
       this.updatingId.set(null);
-      this.cancelReason.set('');
     }
   }
 
   // ── Detail panel ─────────────────────────────────────────────────────────
   openDetail(appt: Appointment) {
+    if (this.updatingId()) return;
+    this.actionError.set(null);
+    this.actionSuccess.set(null);
     this.detailAppt.set(appt);
     this.editingNotes.set(false);
     this.notesForm.set({

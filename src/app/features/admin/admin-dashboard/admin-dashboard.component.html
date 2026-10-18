@@ -73,7 +73,7 @@
                    [class]="cancelReason() === r
                      ? 'border-red-400 bg-red-50'
                      : 'border-gray-200 hover:border-gray-300'">
-              <input type="radio" name="cancelReason" [value]="r"
+              <input type="radio" name="cancelReason" [value]="r" [disabled]="updatingId() !== null"
                      [checked]="cancelReason() === r"
                      (change)="cancelReason.set($any(r))"
                      class="accent-red-500 flex-shrink-0">
@@ -82,17 +82,18 @@
           }
         </div>
 
-        <div class="flex gap-3">
-          <button (click)="dismissCancel()"
+        @if (cancelError()) { <p role="alert" class="ui-alert ui-alert-danger mb-4">{{ cancelError() }}</p> }
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <button (click)="dismissCancel()" [disabled]="updatingId() !== null"
                   class="flex-1 border border-ui-line text-ui-ink-muted hover:bg-ui-muted font-semibold
                          py-2.5 rounded-xl text-sm transition-colors">
             {{ isDeclineTarget(cancelTarget()!) ? 'Go back' : 'Keep appointment' }}
           </button>
           <button (click)="confirmCancel()"
-                  [disabled]="!cancelReason()"
+                  [disabled]="!cancelReason() || updatingId() !== null"
                   class="flex-1 bg-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed
                          text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
-            {{ isDeclineTarget(cancelTarget()!) ? 'Decline request' : 'Cancel appointment' }}
+            {{ updatingId() ? 'Saving…' : isDeclineTarget(cancelTarget()!) ? 'Decline request' : 'Cancel appointment' }}
           </button>
         </div>
         </div>
@@ -103,7 +104,7 @@
   <!-- APPOINTMENT DETAIL SLIDE-OVER                                          -->
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   @if (detailAppt()) {
-      <dialog appModal (dismissed)="closeDetail()" aria-labelledby="appointment-detail-title" class="admin-drawer ui-modal ui-modal-drawer max-w-sm">
+      <dialog appModal (dismissed)="closeDetail()" aria-labelledby="appointment-detail-title" class="admin-drawer visit-detail-drawer ui-modal ui-modal-drawer max-w-sm">
 
         <!-- Header -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-ui-line sticky top-0 bg-white z-10">
@@ -123,7 +124,7 @@
               {{ patientInitials(detailAppt()!.name) }}
             </div>
             <div>
-              <p class="font-bold text-ui-ink">{{ detailAppt()!.name }}</p>
+              <p class="font-bold text-ui-ink break-words">{{ detailAppt()!.name }}</p>
               <a [href]="patientPhoneHref(detailAppt()!.phone)" class="text-sm hover:underline" [class]="themeColor.textClass">
                 {{ patientPhoneLabel(detailAppt()!.phone) }}
               </a>
@@ -144,6 +145,41 @@
             </div>
           }
         </div>
+
+        <section class="visit-detail-actions" aria-label="Appointment actions">
+          <p class="text-sm font-semibold text-ui-ink">{{ formatDate(detailAppt()!.date) }} · {{ formatSlotDisplay(detailAppt()!.time) }} IST</p>
+          @if (actionError()) { <p role="alert" class="ui-alert ui-alert-danger">{{ actionError() }}</p> }
+          @if (actionSuccess()) { <p role="status" class="ui-alert ui-alert-success">{{ actionSuccess() }}</p> }
+          <fieldset [disabled]="updatingId() !== null" class="visit-action-group">
+            <legend class="sr-only">Update this appointment</legend>
+            @if (detailAppt()!.status === 'pending') {
+              <button type="button" (click)="confirm(detailAppt()!)" class="ui-btn ui-btn-primary">{{ updatingId() ? 'Saving…' : 'Confirm appointment' }}</button>
+            } @else if (detailAppt()!.status === 'confirmed') {
+              <button type="button" (click)="markArrived(detailAppt()!)" class="ui-btn ui-btn-primary">{{ updatingId() ? 'Saving…' : 'Mark as arrived' }}</button>
+            } @else if (detailAppt()!.status === 'checked_in') {
+              <button type="button" (click)="markCompleted(detailAppt()!)" class="ui-btn ui-btn-primary">{{ updatingId() ? 'Saving…' : 'Complete visit' }}</button>
+            }
+            @if (!isTerminal(detailAppt()!) && detailAppt()!.status !== 'completed') {
+              <details class="visit-more-actions">
+                <summary>More actions</summary>
+                <div>
+                  @if (detailAppt()!.status === 'pending' || detailAppt()!.status === 'confirmed') {
+                    <button type="button" (click)="openReschedule(detailAppt()!)" class="ui-btn ui-btn-secondary">Change date or time</button>
+                  }
+                  @if (detailAppt()!.status === 'confirmed') {
+                    <button type="button" (click)="markCompleted(detailAppt()!)" class="ui-btn ui-btn-secondary">Mark as completed</button>
+                    <button type="button" (click)="markNoShow(detailAppt()!)" class="ui-btn ui-btn-secondary">Mark as no-show</button>
+                  }
+                  <button type="button" (click)="requestCancel(detailAppt()!)" class="ui-btn ui-btn-danger">{{ isDeclineTarget(detailAppt()!) ? 'Decline request' : 'Cancel appointment' }}</button>
+                </div>
+              </details>
+            }
+          </fieldset>
+          <div class="visit-contact-actions">
+            <a [href]="patientPhoneHref(detailAppt()!.phone)" class="ui-btn ui-btn-secondary">Call patient</a>
+            <a [href]="whatsappUrl(detailAppt()!)" target="_blank" rel="noopener noreferrer" class="ui-btn ui-btn-secondary">WhatsApp <span class="sr-only">(opens in a new tab)</span></a>
+          </div>
+        </section>
 
         <!-- Details grid -->
         <div class="px-5 py-4 border-b border-gray-50 space-y-3">
@@ -173,7 +209,7 @@
             </div>
             <div>
               <p class="text-xs text-gray-400 font-medium mb-0.5">Time</p>
-              <p class="font-semibold text-ui-ink">{{ detailAppt()!.time }}</p>
+              <p class="font-semibold text-ui-ink">{{ formatSlotDisplay(detailAppt()!.time) }} IST</p>
             </div>
           </div>
           @if (detailAppt()!.email) {
@@ -350,74 +386,6 @@
           </div>
         }
 
-        <!-- Actions -->
-        <div class="px-5 py-4 space-y-2">
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Actions</p>
-
-          @if (detailAppt()!.status === 'pending' || detailAppt()!.status === 'confirmed') {
-            <button (click)="openReschedule(detailAppt()!)" [disabled]="updatingId() === detailAppt()!.id"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl text-sm disabled:opacity-50">Reschedule</button>
-          }
-
-          @if (detailAppt()!.status === 'pending') {
-            <button (click)="confirm(detailAppt()!)"
-                    [disabled]="updatingId() === detailAppt()!.id"
-                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl
-                           text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-              </svg>
-              Confirm appointment
-            </button>
-          }
-          @if (detailAppt()!.status === 'confirmed') {
-            <button (click)="markArrived(detailAppt()!)"
-                    [disabled]="updatingId() === detailAppt()!.id"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl
-                           text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
-              Mark as arrived
-            </button>
-          }
-          @if (detailAppt()!.status === 'checked_in' || detailAppt()!.status === 'confirmed') {
-            <button (click)="markCompleted(detailAppt()!)"
-                    [disabled]="updatingId() === detailAppt()!.id"
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl
-                           text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Mark as completed
-            </button>
-          }
-          @if (detailAppt()!.status === 'confirmed') {
-            <button (click)="markNoShow(detailAppt()!)"
-                    [disabled]="updatingId() === detailAppt()!.id"
-                    class="w-full border border-ui-line text-ui-ink-muted hover:bg-ui-muted font-semibold py-3
-                           rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              No show
-            </button>
-          }
-          @if (!isTerminal(detailAppt()!) && detailAppt()!.status !== 'completed') {
-            <button (click)="requestCancel(detailAppt()!)"
-                    class="w-full border border-red-200 text-red-600 hover:bg-red-50 font-semibold py-3
-                           rounded-xl text-sm transition-colors">
-              {{ isDeclineTarget(detailAppt()!) ? 'Decline request' : 'Cancel appointment' }}
-            </button>
-          }
-
-          <!-- WhatsApp -->
-          <a [href]="whatsappUrl(detailAppt()!)" target="_blank" rel="noopener noreferrer"
-             class="w-full flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#22c55e] text-white
-                    font-semibold py-3 rounded-xl text-sm transition-colors mt-1">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 0C5.373 0 0 5.373 0 12c0 2.117.549 4.104 1.508 5.835L0 24l6.335-1.484A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/>
-            </svg>
-            Send WhatsApp confirmation
-          </a>
-        </div>
       </dialog>
   }
 

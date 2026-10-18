@@ -31,6 +31,53 @@ describe('Clinic appointment scheduling', () => {
   });
   afterEach(() => component.ngOnDestroy());
 
+  it('prevents competing appointment updates until the current action finishes', async () => {
+    let finish!: () => void;
+    appointments.setStatus.and.returnValue(new Promise<void>(resolve => { finish = resolve; }));
+    const updating = component.markArrived(appointment);
+    await component.markCompleted(appointment);
+    component.requestCancel(appointment);
+    expect(appointments.setStatus).toHaveBeenCalledTimes(1);
+    component.openDetail({ ...appointment, id: 'other-appointment' });
+    expect(component.detailAppt()?.id).toBe(appointment.id);
+    expect(component.cancelTarget()).toBeNull();
+    finish();
+    await updating;
+    expect(component.detailAppt()?.status).toBe('checked_in');
+    expect(component.updatingId()).toBeNull();
+  });
+
+  it('preserves the cancellation reason after a failure and closes after a successful retry', async () => {
+    component.requestCancel(appointment);
+    component.cancelReason.set('Patient request');
+    appointments.setStatus.and.rejectWith(new Error('Connection lost. Please retry.'));
+    await component.confirmCancel();
+    expect(component.cancelTarget()?.id).toBe(appointment.id);
+    expect(component.cancelReason()).toBe('Patient request');
+    expect(component.cancelError()).toBe('Connection lost. Please retry.');
+    expect(component.detailAppt()?.status).toBe('confirmed');
+    appointments.setStatus.and.resolveTo();
+    await component.confirmCancel();
+    expect(component.cancelTarget()).toBeNull();
+    expect(component.cancelError()).toBeNull();
+    expect(component.detailAppt()?.status).toBe('cancelled');
+  });
+
+  it('keeps cancellation open and sends only one request during repeated taps', async () => {
+    let finish!: () => void;
+    appointments.setStatus.and.returnValue(new Promise<void>(resolve => { finish = resolve; }));
+    component.requestCancel(appointment);
+    component.cancelReason.set('Patient request');
+    const saving = component.confirmCancel();
+    component.dismissCancel();
+    await component.confirmCancel();
+    expect(component.cancelTarget()?.id).toBe(appointment.id);
+    expect(appointments.setStatus).toHaveBeenCalledTimes(1);
+    finish();
+    await saving;
+    expect(component.cancelTarget()).toBeNull();
+  });
+
   it('opens today in time order and switches views without retaining hidden filters', () => {
     const early = { ...appointment, id: 'early', date: component.today, time: '09:00' };
     const late = { ...early, id: 'late', time: '14:30' };

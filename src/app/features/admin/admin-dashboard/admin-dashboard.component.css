@@ -1,4 +1,16 @@
 :host { display: block; min-width: 0; }
+.visit-detail-drawer { overflow-wrap: anywhere; }
+.visit-detail-drawer .text-gray-400 { color: var(--ui-ink-muted); }
+.visit-detail-actions { display: grid; gap: .75rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--ui-line); }
+.visit-action-group { display: grid; gap: .5rem; min-width: 0; }
+.visit-action-group > .ui-btn { width: 100%; min-height: 48px; }
+.visit-more-actions summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; cursor: pointer; font-size: .875rem; font-weight: 600; color: var(--ui-ink-soft); }
+.visit-more-actions summary::after { content: '+'; font-size: 1.25rem; }
+.visit-more-actions[open] summary::after { content: '−'; }
+.visit-more-actions > div { display: grid; gap: .5rem; padding-bottom: .75rem; }
+.visit-contact-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.visit-contact-actions .ui-btn { min-width: 0; padding-inline: .5rem; }
+.visit-detail-drawer :is(button, a, summary):focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
 .clinic-dashboard { max-width: 1200px; }
 .clinic-dashboard .admin-page-title { font-size: clamp(1.4rem, 3vw, 1.85rem); letter-spacing: -.025em; }
 .clinic-dashboard .admin-page-subtitle { font-size: .875rem; margin-top: .5rem; }
