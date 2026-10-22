@@ -307,7 +307,7 @@
       </div>
 
       <!-- Mobile cards -->
-      <div class="md:hidden bg-white rounded-2xl border border-ui-line shadow-sm divide-y divide-gray-50 overflow-hidden">
+      <div class="patient-mobile-list md:hidden bg-white rounded-2xl border border-ui-line shadow-sm divide-y divide-gray-50 overflow-hidden">
         @for (p of filteredPatients(); track p.phone) {
           <button type="button" class="block w-full text-left px-4 py-4 cursor-pointer hover:bg-ui-muted transition-colors active:bg-slate-100"
                [attr.aria-label]="'View history for ' + p.name"
@@ -318,9 +318,9 @@
                 {{ initials(p.name) }}
               </div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2">
+                <div class="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p class="font-bold text-ui-ink text-sm">{{ p.name }}</p>
+                    <p class="break-words font-semibold text-ui-ink text-base">{{ p.name }}</p>
                     <p class="text-xs text-gray-400">{{ p.phone }}</p>
                   </div>
                   <div class="text-right flex-shrink-0">
@@ -332,7 +332,7 @@
                     }
                   </div>
                 </div>
-                <div class="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-ui-ink-muted">
                   @if (p.lastVisitDate) {
                     <span>Last: {{ formatDateShort(p.lastVisitDate) }}</span>
                   }

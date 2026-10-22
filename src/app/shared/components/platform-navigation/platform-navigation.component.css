@@ -24,5 +24,4 @@
 @media (max-width: 47.9375rem) {
   .patient-tab-bar a { min-width: 0; text-align: center; font-size: .6875rem; overflow-wrap: normal; }
 }
-@media(max-width:47.9375rem){.mili-panel:has(input:not([type="radio"]):not([type="checkbox"]):focus,textarea:focus,select:focus) .patient-tab-bar{display:none}}
 .patient-tab-bar a:focus-visible{outline:3px solid var(--ui-focus);outline-offset:2px}

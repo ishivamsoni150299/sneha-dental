@@ -10,7 +10,7 @@ export function roleWorkspace(role: AuthRole | null): string {
 }
 
 export function accountDestination(role: AuthRole, returnUrl: string | null = null): string {
-  const fallback = '/mili';
+  const fallback = roleWorkspace(role);
   if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) return fallback;
   const path = returnUrl.split(/[?#]/)[0];
   if (/[\\\s%]/.test(path) || Array.from(path).some(character => character.charCodeAt(0) < 32) || path.split('/').some(segment => segment === '.' || segment === '..')) return fallback;

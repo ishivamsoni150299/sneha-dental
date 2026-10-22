@@ -2,6 +2,12 @@
 
 ## Mobile follow-up — 22 October 2026
 
+### Sign-in and persistent navigation correction
+
+Sign-in now defaults to the authenticated role's workspace instead of Mili. Safe, role-appropriate return URLs still preserve booking and claim context; incomplete clinic accounts return to setup. An explicitly requested Mili destination remains supported.
+
+The mobile platform navigation no longer hides on account, booking, profile or input-focus states. Booking/profile action bars sit above it, and page padding reserves space for the navigation. Clinic mobile review controls use shared buttons and stacked response actions; patient rows wrap names and appointment dates; settings panels use simpler surfaces and spacing. Real-device keyboard and fixed-bar overlap verification remains pending.
+
 Shared cards now allow long content to wrap and use 16px mobile padding. Public page headings and section spacing are smaller on mobile; account layouts and onboarding steps use tighter spacing without hiding content. Dialog scrolling stays contained. Marketplace and tenant footer links have larger touch targets, with marketplace footer links arranged in two columns.
 
 Page-specific changes: dentist practice locality/city fields stack on phones; clinic settings header controls wrap and notifications stay within the viewport with live announcements; platform clinic credential rows wrap; moderation identifiers break safely; patient request cards separate identity, location, preferred visit and contact information.

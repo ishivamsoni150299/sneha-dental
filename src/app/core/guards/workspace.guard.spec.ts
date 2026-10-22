@@ -27,7 +27,7 @@ describe('workspace entry', () => {
     });
   }
   it('does not forward patients into administration', async () => {
-    expect(await destination('patient', '/business/clinics')).toBe('/mili');
+    expect(await destination('patient', '/business/clinics')).toBe('/appointments');
   });
   it('retains a valid booking return path', async () => {
     expect(await destination('patient', '/dentists/example/book?mode=video')).toBe('/dentists/example/book?mode=video');
