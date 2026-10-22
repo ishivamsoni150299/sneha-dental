@@ -36,7 +36,16 @@ interface ProviderProfile {
           <div class="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.9fr]">
             <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="ui-card p-5 sm:p-6">
               <h2 class="text-lg font-bold text-ui-ink">1. Professional details</h2>
-              <p class="mt-1 text-sm text-ui-ink-muted">Save these before submitting for verification.</p>
+              <p class="mt-1 text-sm text-ui-ink-muted">Confirm your name and professional credentials. Optional details can wait.</p>
+              <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                <label class="text-sm font-semibold">Full name<input formControlName="fullName" autocomplete="name" required class="ui-field mt-1.5 text-base"></label>
+                <label class="text-sm font-semibold">Qualification<input formControlName="qualification" list="dentist-qualifications" required class="ui-field mt-1.5 text-base" placeholder="BDS"></label>
+                <label class="text-sm font-semibold">Speciality<input formControlName="speciality" list="dentist-specialities" required class="ui-field mt-1.5 text-base" placeholder="General dentistry"></label>
+                <label class="text-sm font-semibold">Registration number<input formControlName="registrationNumber" required class="ui-field mt-1.5 text-base"></label>
+                <label class="text-sm font-semibold sm:col-span-2">Registration council<input formControlName="registrationCouncil" required class="ui-field mt-1.5 text-base" placeholder="Your state dental council"></label>
+              </div>
+              <datalist id="dentist-qualifications"><option value="BDS"></option><option value="MDS"></option></datalist>
+              <datalist id="dentist-specialities"><option value="General dentistry"></option><option value="Orthodontics"></option><option value="Endodontics"></option><option value="Periodontics"></option><option value="Prosthodontics"></option><option value="Pediatric dentistry"></option><option value="Oral and maxillofacial surgery"></option></datalist>
               <details class="mt-4 rounded-xl border border-ui-line px-4">
                 <summary class="flex min-h-12 cursor-pointer items-center justify-between gap-2 text-sm font-semibold">Profile photo <span class="ui-caption flex items-center gap-2">{{ profile()?.photoUrl ? 'Edit' : 'Optional' }}<i class="ph ph-caret-down" aria-hidden="true"></i></span></summary>
                 <div class="pb-4">
@@ -49,13 +58,6 @@ interface ProviderProfile {
                 <p class="mt-2 text-xs text-ui-ink-muted">Photo changes save immediately. Save other details below.</p>
                 </div>
               </details>
-              <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                <label class="text-sm font-semibold">Full name<input formControlName="fullName" required class="ui-field mt-1.5 text-base"></label>
-                <label class="text-sm font-semibold">Qualification<input formControlName="qualification" required class="ui-field mt-1.5 text-base" placeholder="BDS"></label>
-                <label class="text-sm font-semibold">Speciality<input formControlName="speciality" required class="ui-field mt-1.5 text-base" placeholder="General dentistry"></label>
-                <label class="text-sm font-semibold">Registration number<input formControlName="registrationNumber" required class="ui-field mt-1.5 text-base"></label>
-                <label class="text-sm font-semibold sm:col-span-2">Registration council<input formControlName="registrationCouncil" required class="ui-field mt-1.5 text-base" placeholder="Your state dental council"></label>
-              </div>
               <details class="mt-5 rounded-xl border border-ui-line p-4">
                 <summary class="cursor-pointer text-sm font-semibold text-blue-700">Optional profile details</summary>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -72,13 +74,15 @@ interface ProviderProfile {
                 <h2 class="text-lg font-bold text-ui-ink">2. Practice location</h2>
                 @if (profile()?.locations?.length) { <ul class="mt-4 space-y-2">@for (location of profile()!.locations; track location.id) { <li class="rounded-xl border border-ui-line p-3"><p class="font-bold text-ui-ink">{{ location.name }}</p><p class="text-sm text-ui-ink-muted">{{ location.city }} · {{ location.status }}</p></li> }</ul> }
                 @else { <p class="mt-2 text-sm text-ui-ink-muted">Add where patients can book you.</p> }
+                <details [open]="!profile()?.locations?.length" class="mt-4"><summary class="min-h-11 cursor-pointer py-3 text-sm font-semibold">{{ profile()?.locations?.length ? 'Add another practice (optional)' : 'Add your practice' }}</summary>
                 <form [formGroup]="locationForm" (ngSubmit)="addLocation()" class="mt-4 space-y-3 border-t border-ui-line pt-4">
                   <label class="block text-sm font-semibold">Practice or clinic name<input formControlName="name" required class="ui-field mt-1 text-base"></label>
-                  <label class="block text-sm font-semibold">Street address<input formControlName="addressLine1" required class="ui-field mt-1 text-base"></label>
-                  <div class="grid gap-3 sm:grid-cols-2"><label class="text-sm font-semibold">Locality<input formControlName="locality" class="ui-field mt-1 text-base"></label><label class="text-sm font-semibold">City<input formControlName="city" required class="ui-field mt-1 text-base"></label></div>
+                  <label class="block text-sm font-semibold">Street address<input formControlName="addressLine1" autocomplete="address-line1" required class="ui-field mt-1 text-base"></label>
+                  <div class="grid gap-3 sm:grid-cols-2"><label class="text-sm font-semibold">Locality (optional)<input formControlName="locality" class="ui-field mt-1 text-base"></label><label class="text-sm font-semibold">City<input formControlName="city" autocomplete="address-level2" required class="ui-field mt-1 text-base"></label></div>
                   <label class="block text-sm font-semibold">Consultation fee (₹)<input formControlName="consultationFee" type="number" min="0" required class="ui-field mt-1 text-base"></label>
                   <button class="ui-btn ui-btn-secondary w-full" [disabled]="savingLocation()">{{ savingLocation() ? 'Saving practice…' : 'Add practice and set hours' }}</button>
                 </form>
+                </details>
               </section>
               <section class="ui-card p-5 sm:p-6">
                 <h2 class="text-lg font-bold">3. Verification</h2>

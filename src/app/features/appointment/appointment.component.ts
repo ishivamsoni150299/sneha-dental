@@ -283,7 +283,7 @@ export class AppointmentComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (this.bookingContext?.consultationMode === 'video') this.form.patchValue({ service: 'Video Consultation' });
     const patient = this.patientAuth.user();
-    if (this.isMarketplaceBooking && patient) {
+    if (patient) {
       const phone = (patient.phoneNumber ?? '').replace(/^\+91/, '');
       this.form.patchValue({ email: patient.email ?? '', phone: /^[6-9]\d{9}$/.test(phone) ? phone : '' });
     }

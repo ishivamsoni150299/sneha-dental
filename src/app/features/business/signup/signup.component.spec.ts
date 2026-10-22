@@ -53,6 +53,19 @@ describe('SignupComponent', () => {
     return TestBed.createComponent(SignupComponent).componentInstance;
   }
 
+  it('suggests a web address without overwriting the owner’s choice', () => {
+    const component = create('incomplete-signup');
+    const setup = component as unknown as { loadPlacesApi(): void; resumeAuthenticatedSignup(): Promise<void> };
+    spyOn(setup, 'loadPlacesApi').and.stub();
+    spyOn(setup, 'resumeAuthenticatedSignup').and.resolveTo();
+    component.ngOnInit();
+    component.step1.controls.name.setValue('Smile Dental');
+    expect(component.step1.controls.slug.value).toBe('smiledental');
+    component.onSlugInput({ target: { value: 'mysmile' } } as unknown as Event);
+    component.step1.controls.name.setValue('Smile Dental Centre');
+    expect(component.step1.controls.slug.value).toBe('mysmile');
+  });
+
   it('routes an existing clinic owner to the dashboard', async () => {
     const component = create('clinic-admin');
 

@@ -2,6 +2,10 @@
 
 ## Mobile follow-up — 22 October 2026
 
+### Minimal setup follow-up
+
+Dentist credentials appear before optional photos and biography. Qualification and speciality offer editable suggestions, without preselecting medical credentials. Existing practices show their saved location and collapse the additional-practice form. Address/name fields expose browser autofill hints. Patient email and phone reuse now also applies to tenant booking forms and remains editable. Clinic web addresses are suggested from the clinic name until the owner customizes them; later name changes preserve that choice. Clinic search suggestions support keyboard activation. Verification, booking ownership and consent requirements remain unchanged.
+
 ### Sign-in and persistent navigation correction
 
 Sign-in now defaults to the authenticated role's workspace instead of Mili. Safe, role-appropriate return URLs still preserve booking and claim context; incomplete clinic accounts return to setup. An explicitly requested Mili destination remains supported.

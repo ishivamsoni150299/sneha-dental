@@ -356,7 +356,7 @@ export class SignupComponent implements OnInit {
     this.step1.controls.name.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(name => {
-        this.step1.controls.slug.setValue(toSlug(name), { emitEvent: true });
+        if (!this.step1.controls.slug.dirty) this.step1.controls.slug.setValue(toSlug(name), { emitEvent: true });
       });
 
     // Real-time slug availability check
@@ -469,6 +469,7 @@ export class SignupComponent implements OnInit {
 
   onSlugInput(event: Event): void {
     const v = toSlug((event.target as HTMLInputElement).value);
+    this.step1.controls.slug.markAsDirty();
     this.step1.controls.slug.setValue(v, { emitEvent: true });
   }
 
