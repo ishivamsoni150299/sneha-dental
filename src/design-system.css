@@ -362,6 +362,8 @@ body {
 .ui-card,
 .ds-card,
 .ui-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
   border: 1px solid var(--ui-line);
   border-radius: var(--ui-radius-lg);
   background: var(--ui-surface);
@@ -4724,6 +4726,8 @@ dialog.ui-modal {
   width: calc(100% - 2rem);
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 1rem;
   color: var(--ui-ink);
   border: 1px solid var(--ui-line);
   background: var(--ui-surface);
@@ -5264,15 +5268,60 @@ html:has(.ui-mobile-sheet[open]) { overflow: hidden; }
 
   .ui-card {
     border-radius: var(--ui-radius-md);
+    padding: 1rem;
   }
 
   .ui-display {
-    font-size: clamp(2.5rem, 13vw, 3.75rem);
+    font-size: clamp(2rem, 8vw, 2.75rem);
+    line-height: 1.12;
+  }
+
+  .ui-section {
+    padding-block: 2.5rem;
+  }
+
+  .ui-section-compact {
+    padding-block: 1.75rem;
+  }
+
+  .ui-auth-layout {
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+  }
+
+  .ui-step {
+    font-size: .8125rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .ui-tab {
+    min-height: 2.75rem;
+  }
+
+  .clinic-settings-shell .settings-form-card > .flex {
+    flex-wrap: wrap;
+    gap: .75rem;
+  }
+
+  .settings-toast {
+    left: 1rem;
+    right: 1rem;
+    top: calc(1rem + env(safe-area-inset-top, 0px));
+    max-width: 28rem;
+    margin-inline: auto;
+    overflow-wrap: anywhere;
   }
 
   .clinic-footer-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
+  }
+
+  .clinic-footer-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
   }
 
   .clinic-welcome-inner {
@@ -5290,7 +5339,7 @@ html:has(.ui-mobile-sheet[open]) { overflow: hidden; }
   }
 
   .clinic-workflow-title {
-    font-size: 2.35rem;
+    font-size: clamp(1.75rem, 7vw, 2.25rem);
   }
 
   .clinic-result-title {

@@ -19,7 +19,7 @@
         <!-- Login URL -->
         <div class="rounded-xl bg-ui-muted border border-ui-line px-4 py-3">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Login URL</p>
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="font-mono text-sm text-ui-ink-soft break-all">{{ 'mydentalplatform.com/business/login' }}</p>
             <button type="button" (click)="copyToClipboard('https://www.mydentalplatform.com/business/login')"
                     class="shrink-0 text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors">
@@ -31,7 +31,7 @@
         <!-- Email -->
         <div class="rounded-xl bg-ui-muted border border-ui-line px-4 py-3">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Email / Username</p>
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <p class="font-mono text-sm text-ui-ink-soft break-all">{{ ownerLoginSynced()!.email }}</p>
             <button type="button" (click)="copyToClipboard(ownerLoginSynced()!.email)"
                     class="shrink-0 text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors">
@@ -44,7 +44,7 @@
         @if (ownerLoginSynced()!.password) {
           <div class="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
             <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-500 mb-1">Temporary Password</p>
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <p class="font-mono text-sm font-bold text-ui-ink tracking-wider break-all">{{ ownerLoginSynced()!.password }}</p>
               <button type="button" (click)="copyToClipboard(ownerLoginSynced()!.password)"
                       class="shrink-0 text-xs text-amber-700 hover:text-amber-900 font-semibold px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors">
@@ -79,7 +79,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
       </svg>
     </a>
-    <div class="flex-1">
+    <div class="min-w-0 flex-1">
       <h1 class="text-2xl font-black tracking-tight text-ui-ink">{{ isEdit ? 'Edit clinic' : 'Add clinic' }}</h1>
       <p class="hidden">
         {{ isEdit ? (form.controls.name.value || 'Loading…') : 'Super admin tool — set up a new clinic deployment' }}

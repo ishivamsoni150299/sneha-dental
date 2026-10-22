@@ -9,8 +9,8 @@ interface PatientRequest { id: string; location: string; problem: string; prefer
     @if (error()) { <p role="alert" class="ui-alert ui-alert-danger mt-4">{{ error() }}</p><button class="ui-btn ui-btn-secondary" (click)="load()">Try again</button> }
     @if (loading()) { <p role="status" class="ui-body mt-4">Loading requests…</p> }
     @for (request of requests(); track request.id) {
-      <article class="ui-card mt-4 space-y-3 p-5"><h2 class="text-lg font-semibold">{{ request.patient_name }} · {{ request.location }}</h2><p>{{ request.problem }}</p>
-      <p>Preferred: {{ formatDate(request.preferred_date) }} {{ request.preferred_time }} (India)</p><p class="break-words">{{ request.mobile }} · {{ request.email || 'No email supplied' }}</p>
+      <article class="ui-card mt-4 space-y-3 p-5"><div><h2 class="text-lg font-semibold">{{ request.patient_name }}</h2><p class="mt-1 text-sm text-ui-ink-muted">{{ request.location }}</p></div><p class="text-sm leading-6">{{ request.problem }}</p>
+      <div class="rounded-xl bg-ui-muted p-3 text-sm leading-6"><p class="font-semibold">Preferred appointment</p><p>{{ formatDate(request.preferred_date) }} · {{ request.preferred_time }} (India)</p></div><div class="space-y-1 text-sm"><p>{{ request.mobile }}</p>@if (request.email) { <p class="break-all">{{ request.email }}</p> }</div>
       <label class="ui-label">Status<select class="ui-field mt-2" [value]="request.status" [disabled]="saving() === request.id" (change)="update(request, $event)"><option value="new">New</option><option value="contacted">Contacted</option><option value="closed">Closed</option></select></label></article>
     } @empty { @if (!loading() && !error()) { <p class="ui-body mt-6">No dentist requests yet.</p> } }
   </section>`,

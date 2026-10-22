@@ -75,7 +75,7 @@ interface ProviderProfile {
                 <form [formGroup]="locationForm" (ngSubmit)="addLocation()" class="mt-4 space-y-3 border-t border-ui-line pt-4">
                   <label class="block text-sm font-semibold">Practice or clinic name<input formControlName="name" required class="ui-field mt-1 text-base"></label>
                   <label class="block text-sm font-semibold">Street address<input formControlName="addressLine1" required class="ui-field mt-1 text-base"></label>
-                  <div class="grid grid-cols-2 gap-3"><label class="text-sm font-semibold">Locality<input formControlName="locality" class="ui-field mt-1 text-base"></label><label class="text-sm font-semibold">City<input formControlName="city" required class="ui-field mt-1 text-base"></label></div>
+                  <div class="grid gap-3 sm:grid-cols-2"><label class="text-sm font-semibold">Locality<input formControlName="locality" class="ui-field mt-1 text-base"></label><label class="text-sm font-semibold">City<input formControlName="city" required class="ui-field mt-1 text-base"></label></div>
                   <label class="block text-sm font-semibold">Consultation fee (₹)<input formControlName="consultationFee" type="number" min="0" required class="ui-field mt-1 text-base"></label>
                   <button class="ui-btn ui-btn-secondary w-full" [disabled]="savingLocation()">{{ savingLocation() ? 'Saving practice…' : 'Add practice and set hours' }}</button>
                 </form>

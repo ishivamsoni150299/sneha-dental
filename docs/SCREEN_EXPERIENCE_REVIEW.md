@@ -1,5 +1,13 @@
 # Screen and flow coverage — 18 October 2026
 
+## Mobile follow-up — 22 October 2026
+
+Shared cards now allow long content to wrap and use 16px mobile padding. Public page headings and section spacing are smaller on mobile; account layouts and onboarding steps use tighter spacing without hiding content. Dialog scrolling stays contained. Marketplace and tenant footer links have larger touch targets, with marketplace footer links arranged in two columns.
+
+Page-specific changes: dentist practice locality/city fields stack on phones; clinic settings header controls wrap and notifications stay within the viewport with live announcements; platform clinic credential rows wrap; moderation identifiers break safely; patient request cards separate identity, location, preferred visit and contact information.
+
+These changes cover shared patterns used across the route inventory below. They do not establish that every screen has been visually verified. Connected-browser access remains unavailable; real-device keyboard, overflow, and signed-in visual checks remain pending.
+
 Scope: all 39 routed screen components across 85 route entries, including aliases and redirects. Inventory command: `node scripts/screen-inventory.mjs`. This is source-review coverage, not proof that every screen or state has passed a live visual check.
 
 ## Shared improvements

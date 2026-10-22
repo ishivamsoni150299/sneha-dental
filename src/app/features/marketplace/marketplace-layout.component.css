@@ -132,6 +132,17 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
     flex-direction: column;
     padding: 1.5rem 1.25rem;
   }
+  .marketplace-shell footer nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .25rem 1rem;
+  }
+  .marketplace-shell footer nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: .875rem;
+  }
 }
 
 @media (max-width: 359px) {
