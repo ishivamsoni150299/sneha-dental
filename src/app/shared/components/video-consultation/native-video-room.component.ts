@@ -65,7 +65,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   async prepare(): Promise<void> {
     if (this.busy() || this.destroyed) return;
     this.devicesAttempted = true;
-    this.busy.set(true); this.error.set('');
+    this.busy.set(true); this.error.set(''); this.status.set('Checking devices…');
     const attempt = this.generation;
     try {
       const sdk = await this.loadSdk();
@@ -87,8 +87,8 @@ export class NativeVideoRoomComponent implements OnDestroy {
       this.cameras.set(devices.filter(device => device.kind === 'videoinput'));
       this.microphones.set(devices.filter(device => device.kind === 'audioinput'));
       this.startMeter();
-    } catch (error) { if (!this.destroyed) this.error.set(this.deviceError(error)); }
-    finally { if (!this.destroyed) this.busy.set(false); }
+    } catch (error) { if (!this.destroyed && attempt === this.generation) this.error.set(this.deviceError(error)); }
+    finally { if (!this.destroyed && attempt === this.generation) { this.busy.set(false); this.status.set('Ready to join'); } }
   }
 
   async join(listenOnly = false): Promise<void> {
@@ -154,18 +154,18 @@ export class NativeVideoRoomComponent implements OnDestroy {
         this.elapsed.set(`${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`);
         if (Date.now() >= Date.parse(session.expiresAt)) this.leave();
       }, 1000);
-    } catch { if (!this.destroyed) { this.release(); this.status.set('Could not connect'); this.error.set('Check your internet connection, then tap Join call to try again.'); } }
-    finally { if (!this.destroyed) this.busy.set(false); }
+    } catch { if (!this.destroyed && attempt === this.generation) { this.release(); this.status.set('Could not connect'); this.error.set('Check your internet connection, then tap Join call to try again.'); } }
+    finally { if (!this.destroyed && attempt === this.generation) this.busy.set(false); }
   }
 
   async toggle(kind: 'camera' | 'microphone'): Promise<void> {
-    if (this.busy()) return;
+    if (this.busy() || this.destroyed) return;
+    const attempt = this.generation;
     this.busy.set(true);
     try {
       const enabled = !(kind === 'camera' ? this.cameraOn() : this.micOn());
       let track = this.tracks.find(track => track.kind === (kind === 'camera' ? 'video' : 'audio'));
       if (!track) {
-        const attempt = this.generation;
         const sdk = await this.loadSdk();
         if (this.destroyed || attempt !== this.generation) return;
         const tracks = await sdk.createLocalTracks({ audio: kind === 'microphone', video: kind === 'camera' ? { facingMode: 'user' } : false });
@@ -176,17 +176,26 @@ export class NativeVideoRoomComponent implements OnDestroy {
         track = tracks[0]; this.devicesReady.set(this.tracks.length > 0); this.showPreview();
       }
       if (track) { if (enabled) await track.unmute(); else await track.mute(); }
+      if (this.destroyed || attempt !== this.generation) { track?.stop(); return; }
+      if (!track) throw new Error('Device unavailable');
       if (!this.destroyed) { (kind === 'camera' ? this.cameraOn : this.micOn).set(enabled); this.error.set(''); }
-    } catch (error) { this.error.set(this.deviceError(error)); }
-    finally { if (!this.destroyed) this.busy.set(false); }
+    } catch (error) { if (!this.destroyed && attempt === this.generation) this.error.set(this.deviceError(error)); }
+    finally { if (!this.destroyed && attempt === this.generation) this.busy.set(false); }
   }
 
   async switchDevice(kind: 'videoinput' | 'audioinput', id: string): Promise<void> {
+    if (this.busy() || this.destroyed || !id) return;
+    const track = this.tracks.find(track => track.kind === (kind === 'videoinput' ? 'video' : 'audio'));
+    if (!track || !('restartTrack' in track)) return;
+    const attempt = this.generation;
+    this.busy.set(true);
     try {
-      const track = this.tracks.find(track => track.kind === (kind === 'videoinput' ? 'video' : 'audio'));
-      if (track && 'restartTrack' in track) await (track as import('livekit-client').LocalVideoTrack | import('livekit-client').LocalAudioTrack).restartTrack({ deviceId: { exact: id } });
-      if (!this.destroyed && kind === 'audioinput') this.startMeter();
-    } catch (error) { this.error.set(this.deviceError(error)); }
+      await (track as import('livekit-client').LocalVideoTrack | import('livekit-client').LocalAudioTrack).restartTrack({ deviceId: { exact: id } });
+      if (this.destroyed || attempt !== this.generation) { track.stop(); return; }
+      this.error.set('');
+      if (kind === 'audioinput' && !this.connected()) this.startMeter();
+    } catch (error) { if (!this.destroyed && attempt === this.generation) this.error.set(this.deviceError(error)); }
+    finally { if (!this.destroyed && attempt === this.generation) this.busy.set(false); }
   }
 
   async enableAudio(): Promise<void> { try { await this.room?.startAudio(); this.audioBlocked.set(false); } catch { this.error.set('Tap again to enable sound in your browser.'); } }
@@ -218,7 +227,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   private stopMeter(): void { cancelAnimationFrame(this.meterFrame); void this.audioContext?.close().catch(() => undefined); this.audioContext = undefined; }
   private stopPreview(): void { this.stopMeter(); this.tracks.forEach(track => { track.detach().forEach(element => element.remove()); track.stop(); }); this.tracks = []; }
   private release(): void {
-    this.generation++; clearInterval(this.timer); this.stopPreview();
+    this.generation++; this.busy.set(false); clearInterval(this.timer); this.stopPreview();
     this.devicesAttempted = false; this.reconnecting.set(false); this.chatOpen.set(false); this.unread.set(0); this.audioBlocked.set(false); this.elapsed.set('00:00');
     const room = this.room; this.room = null;
     if (room) { room.removeAllListeners(); void room.disconnect().catch(() => undefined); }

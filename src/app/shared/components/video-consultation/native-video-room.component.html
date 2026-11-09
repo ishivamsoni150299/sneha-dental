@@ -1,6 +1,6 @@
 <div class="call-shell relative flex min-h-0 flex-1 flex-col overflow-hidden bg-gray-50" [class.chat-active]="chatOpen()">
   <header class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
-    <div class="min-w-0"><h2 class="text-sm font-semibold text-gray-900">Video consultation</h2><p role="status" class="mt-1 flex items-center gap-2 text-xs text-gray-500"><span class="h-2 w-2 shrink-0 rounded-full" [class.bg-green-500]="connected()" [class.bg-blue-500]="!connected()"></span>{{ status() }}</p></div>
+    <div class="min-w-0"><h2 class="text-sm font-semibold text-gray-900">Video consultation</h2><p role="status" class="mt-1 flex items-center gap-2 text-xs text-gray-500"><span class="h-2 w-2 shrink-0 rounded-full" [class.bg-green-500]="connected() && !reconnecting()" [class.bg-amber-500]="reconnecting()" [class.bg-blue-500]="!connected()"></span>{{ status() }}</p></div>
     <span class="shrink-0 text-xs tabular-nums text-gray-500">{{ connected() ? elapsed() : 'Private call' }}</span>
   </header>
   @if (error()) { <div role="alert" class="max-h-28 shrink-0 overflow-y-auto border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{{ error() }}</div> }
@@ -24,7 +24,7 @@
       @if (!connected()) {
         <div class="prejoin mx-auto w-full max-w-lg shrink-0 overflow-y-auto px-4 pb-3">
           <button type="button" (click)="prepare()" [disabled]="busy()" class="ui-btn ui-btn-secondary mb-2 w-full">{{ devicesReady() ? 'Check devices again' : 'Check camera & microphone' }}</button>
-          <button type="button" (click)="join()" [disabled]="busy()" class="ui-btn ui-btn-primary w-full">{{ busy() ? 'Getting you connected…' : 'Join call' }}</button>
+          <button type="button" (click)="join()" [disabled]="busy()" class="ui-btn ui-btn-primary w-full">{{ busy() ? status() : 'Join call' }}</button>
           <button type="button" (click)="join(true)" [disabled]="busy()" aria-describedby="listen-only-hint" class="ui-btn ui-btn-ghost w-full">Listen only</button>
           <p id="listen-only-hint" class="text-center text-xs text-ui-ink-muted">Camera and microphone off. You can turn them on during the call.</p>
           @if (devicesReady()) {
@@ -33,8 +33,8 @@
             <div class="space-y-3 py-2">
               @if (devicesReady()) {
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label class="text-xs font-semibold">Camera<select aria-label="Camera" (change)="switchDevice('videoinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of cameras(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Camera' }}</option> }</select></label>
-                  <label class="text-xs font-semibold">Microphone<select aria-label="Microphone" (change)="switchDevice('audioinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of microphones(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Microphone' }}</option> }</select></label>
+                  <label class="text-xs font-semibold">Camera<select aria-label="Camera" [disabled]="busy()" (change)="switchDevice('videoinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of cameras(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Camera' }}</option> }</select></label>
+                  <label class="text-xs font-semibold">Microphone<select aria-label="Microphone" [disabled]="busy()" (change)="switchDevice('audioinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of microphones(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Microphone' }}</option> }</select></label>
                 </div>
                 <div class="flex items-center gap-3 text-xs"><span>Microphone level</span><meter min="0" max="100" [value]="micLevel()" aria-label="Microphone input level" class="h-3 flex-1"></meter></div>
               }

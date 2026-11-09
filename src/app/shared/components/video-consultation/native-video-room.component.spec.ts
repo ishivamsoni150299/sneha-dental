@@ -6,13 +6,14 @@ describe('NativeVideoRoomComponent', () => {
   const session = { provider: 'livekit' as const, url: 'wss://video.example.com', token: 'short-lived-token', expiresAt: new Date(Date.now() + 3600000).toISOString() };
   let room: jasmine.SpyObj<Room>;
   let createTracks: jasmine.Spy;
+  let audioTrack: jasmine.SpyObj<LocalTrack> & { restartTrack: jasmine.Spy };
   let sdk: typeof import('livekit-client');
   beforeEach(() => {
     room = jasmine.createSpyObj<Room>('Room', ['on', 'connect', 'disconnect', 'removeAllListeners'], {
       remoteParticipants: new Map(), localParticipant: { publishTrack: jasmine.createSpy('publishTrack').and.resolveTo(), publishData: jasmine.createSpy('publishData').and.resolveTo() } as unknown as Room['localParticipant'],
     });
     room.connect.and.resolveTo(); room.disconnect.and.resolveTo();
-    const audioTrack = jasmine.createSpyObj<LocalTrack>('audioTrack', ['stop', 'detach', 'mute', 'unmute'], { kind: 'audio' as LocalTrack['kind'] });
+    audioTrack = Object.assign(jasmine.createSpyObj<LocalTrack>('audioTrack', ['stop', 'detach', 'mute', 'unmute'], { kind: 'audio' as LocalTrack['kind'] }), { restartTrack: jasmine.createSpy('restartTrack').and.resolveTo() });
     (audioTrack.detach as jasmine.Spy).and.returnValue([]);
     createTracks = jasmine.createSpy('createLocalTracks').and.callFake(async (options: { audio: boolean }) => options.audio ? [audioTrack] : []);
     class FakeRoom { constructor() { return room; } }
@@ -113,5 +114,57 @@ describe('NativeVideoRoomComponent', () => {
     await view.componentInstance.sendMessage(message);
     expect(room.localParticipant.publishData).toHaveBeenCalledWith(jasmine.any(Uint8Array), { reliable: true, topic: 'consultation-chat' });
     view.destroy();
+  });
+  it('serializes device switching and stops a late restart after leaving', async () => {
+    const view = fixture(); await view.componentInstance.prepare();
+    let finish!: () => void;
+    audioTrack.restartTrack.and.returnValue(new Promise<void>(resolve => { finish = resolve; }));
+    const pending = view.componentInstance.switchDevice('audioinput', 'headset');
+    expect(view.componentInstance.busy()).toBeTrue();
+    await view.componentInstance.switchDevice('audioinput', 'other');
+    expect(audioTrack.restartTrack).toHaveBeenCalledTimes(1);
+    view.componentInstance.leave();
+    audioTrack.stop.calls.reset();
+    finish(); await pending;
+    expect(audioTrack.stop).toHaveBeenCalled();
+    expect(view.componentInstance.busy()).toBeFalse();
+    expect(view.componentInstance.micOn()).toBeFalse(); view.destroy();
+  });
+  it('does not restore microphone state when unmuting finishes after leaving', async () => {
+    const view = fixture(); await view.componentInstance.prepare();
+    await view.componentInstance.toggle('microphone');
+    let finish!: () => void;
+    (audioTrack.unmute as jasmine.Spy).and.returnValue(new Promise<void>(resolve => { finish = resolve; }));
+    const pending = view.componentInstance.toggle('microphone');
+    view.componentInstance.leave(); audioTrack.stop.calls.reset();
+    finish(); await pending;
+    expect(view.componentInstance.micOn()).toBeFalse();
+    expect(audioTrack.stop).toHaveBeenCalled(); view.destroy();
+  });
+  it('allows retry after a failed device switch and clears its error', async () => {
+    const view = fixture(); await view.componentInstance.prepare();
+    audioTrack.restartTrack.and.rejectWith(new DOMException('Busy', 'NotReadableError'));
+    await view.componentInstance.switchDevice('audioinput', 'headset');
+    expect(view.componentInstance.error()).toContain('Another app');
+    expect(view.componentInstance.busy()).toBeFalse();
+    audioTrack.restartTrack.and.resolveTo();
+    await view.componentInstance.switchDevice('audioinput', 'headset');
+    expect(view.componentInstance.error()).toBe(''); view.destroy();
+  });
+  it('ignores a late connection failure after leaving and rejoining', async () => {
+    const view = fixture();
+    let fail!: (error: Error) => void;
+    room.connect.and.returnValue(new Promise<void>((_resolve, reject) => { fail = reject; }));
+    const pending = view.componentInstance.join(true);
+    // Let SDK loading and access refresh reach the initial connection attempt.
+    await Promise.resolve(); await Promise.resolve();
+    expect(room.connect).toHaveBeenCalledTimes(1);
+    view.componentInstance.leave();
+    room.connect.and.resolveTo(); await view.componentInstance.join(true);
+    room.disconnect.calls.reset();
+    fail(new Error('Old connection timed out')); await pending;
+    expect(view.componentInstance.connected()).toBeTrue();
+    expect(view.componentInstance.error()).toBe('');
+    expect(room.disconnect).not.toHaveBeenCalled(); view.destroy();
   });
 });
