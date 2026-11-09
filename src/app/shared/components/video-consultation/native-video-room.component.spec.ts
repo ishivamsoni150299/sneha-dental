@@ -12,11 +12,13 @@ describe('NativeVideoRoomComponent', () => {
       remoteParticipants: new Map(), localParticipant: { publishTrack: jasmine.createSpy('publishTrack').and.resolveTo(), publishData: jasmine.createSpy('publishData').and.resolveTo() } as unknown as Room['localParticipant'],
     });
     room.connect.and.resolveTo(); room.disconnect.and.resolveTo();
-    createTracks = jasmine.createSpy('createLocalTracks').and.resolveTo([]);
+    const audioTrack = jasmine.createSpyObj<LocalTrack>('audioTrack', ['stop', 'detach', 'mute', 'unmute'], { kind: 'audio' as LocalTrack['kind'] });
+    (audioTrack.detach as jasmine.Spy).and.returnValue([]);
+    createTracks = jasmine.createSpy('createLocalTracks').and.callFake(async (options: { audio: boolean }) => options.audio ? [audioTrack] : []);
     class FakeRoom { constructor() { return room; } }
     sdk = {
       Room: FakeRoom, createLocalTracks: createTracks,
-      VideoPresets: { h720: { resolution: {} } }, RoomEvent: { DataReceived: 'dataReceived' }, ConnectionQuality: { Poor: 'poor' },
+      VideoPresets: { h720: { resolution: {} } }, RoomEvent: { DataReceived: 'dataReceived', Reconnecting: 'reconnecting', Reconnected: 'reconnected', Disconnected: 'disconnected', ConnectionQualityChanged: 'connectionQualityChanged' }, ConnectionQuality: { Poor: 'poor' },
     } as unknown as typeof import('livekit-client');
     TestBed.configureTestingModule({ imports: [NativeVideoRoomComponent], providers: [{ provide: LIVEKIT_SDK, useValue: async () => sdk }] });
   });
@@ -72,6 +74,36 @@ describe('NativeVideoRoomComponent', () => {
   it('allows listening without requesting device permissions', async () => {
     const view = fixture(); await view.componentInstance.join(true);
     expect(createTracks).not.toHaveBeenCalled(); expect(room.connect).toHaveBeenCalled(); view.destroy();
+  });
+  it('requires an explicit listen-only choice when both devices are blocked', async () => {
+    createTracks.and.rejectWith(new DOMException('Denied', 'NotAllowedError'));
+    const view = fixture(); await view.componentInstance.join();
+    expect(room.connect).not.toHaveBeenCalled();
+    expect(view.componentInstance.error()).toContain('Listen only');
+    await view.componentInstance.join(true);
+    expect(room.connect).toHaveBeenCalled();
+    expect(view.componentInstance.error()).toBe('');
+    view.destroy();
+  });
+  it('clears the connection error when retrying successfully', async () => {
+    const view = fixture(); room.connect.and.rejectWith(new Error('Offline'));
+    await view.componentInstance.join(true);
+    expect(view.componentInstance.error()).toContain('internet');
+    room.connect.and.resolveTo(); await view.componentInstance.join(true);
+    expect(view.componentInstance.connected()).toBeTrue();
+    expect(view.componentInstance.error()).toBe(''); view.destroy();
+  });
+  it('keeps reconnection status and blocks chat until the connection returns', async () => {
+    const view = fixture(); await view.componentInstance.join(true);
+    view.componentInstance.remotePresent.set(true);
+    const handler = (event: string) => room.on.calls.allArgs().find(args => args[0] === event)![1] as (...args: unknown[]) => void;
+    handler('reconnecting')();
+    handler('connectionQualityChanged')('excellent', room.localParticipant);
+    expect(view.componentInstance.status()).toContain('Reconnecting');
+    await expectAsync(view.componentInstance.sendMessage({ type: 'consultation-chat', id: '1', kind: 'message', text: 'Hello' })).toBeRejected();
+    handler('reconnected')();
+    expect(view.componentInstance.reconnecting()).toBeFalse();
+    expect(view.componentInstance.status()).toBe('Connected'); view.destroy();
   });
   it('publishes chat only while another participant is present', async () => {
     const view = fixture(); await view.componentInstance.join(true);

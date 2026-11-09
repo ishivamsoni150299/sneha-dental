@@ -12,7 +12,7 @@
           <div class="max-w-sm px-5 py-5 text-center text-white">
             <span class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-800"><i class="ph ph-video-camera text-2xl" aria-hidden="true"></i></span>
             <h3 class="text-lg font-semibold sm:text-2xl">{{ connected() ? (remotePresent() ? 'Camera is off' : staff() ? 'Waiting for your patient' : 'Waiting for your dentist') : 'Ready when you are' }}</h3>
-            <p class="mt-2 text-sm leading-6 text-gray-300">{{ connected() ? (remotePresent() ? 'Your call can continue with audio and chat.' : 'Stay here. Your call starts when they join.') : 'Tap Join call and allow camera and microphone access.' }}</p>
+            <p class="mt-2 text-sm leading-6 text-gray-300">{{ connected() ? (remotePresent() ? 'Your call can continue with audio and chat.' : 'Stay here. Your call starts when they join.') : 'Check your camera and microphone, or join when you’re ready.' }}</p>
           </div>
         }
         <div class="absolute overflow-hidden rounded-xl bg-gray-800 shadow-lg" [class.local-preview]="!connected()" [class.local-thumbnail]="connected()" [class.hidden]="!connected() && !cameraOn()">
@@ -23,11 +23,14 @@
       </div>
       @if (!connected()) {
         <div class="prejoin mx-auto w-full max-w-lg shrink-0 overflow-y-auto px-4 pb-3">
-          <button type="button" (click)="join()" [disabled]="busy()" class="min-h-12 w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{{ busy() ? 'Getting you connected…' : 'Join call' }}</button>
+          <button type="button" (click)="prepare()" [disabled]="busy()" class="ui-btn ui-btn-secondary mb-2 w-full">{{ devicesReady() ? 'Check devices again' : 'Check camera & microphone' }}</button>
+          <button type="button" (click)="join()" [disabled]="busy()" class="ui-btn ui-btn-primary w-full">{{ busy() ? 'Getting you connected…' : 'Join call' }}</button>
+          <button type="button" (click)="join(true)" [disabled]="busy()" aria-describedby="listen-only-hint" class="ui-btn ui-btn-ghost w-full">Listen only</button>
+          <p id="listen-only-hint" class="text-center text-xs text-ui-ink-muted">Camera and microphone off. You can turn them on during the call.</p>
+          @if (devicesReady()) {
           <details class="mt-2 text-sm text-gray-600">
-            <summary class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg focus-visible:outline-blue-600"><i class="ph ph-gear" aria-hidden="true"></i>Camera & microphone options</summary>
+            <summary class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg focus-visible:outline-blue-600"><i class="ph ph-gear" aria-hidden="true"></i>Change camera or microphone</summary>
             <div class="space-y-3 py-2">
-              <button type="button" (click)="prepare()" [disabled]="busy()" class="min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 font-semibold">{{ devicesReady() ? 'Check devices again' : 'Preview camera & microphone' }}</button>
               @if (devicesReady()) {
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label class="text-xs font-semibold">Camera<select aria-label="Camera" (change)="switchDevice('videoinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of cameras(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Camera' }}</option> }</select></label>
@@ -35,15 +38,15 @@
                 </div>
                 <div class="flex items-center gap-3 text-xs"><span>Microphone level</span><meter min="0" max="100" [value]="micLevel()" aria-label="Microphone input level" class="h-3 flex-1"></meter></div>
               }
-              <button type="button" (click)="join(true)" [disabled]="busy()" class="min-h-11 w-full text-blue-700 underline">Join with camera and microphone off</button>
             </div>
           </details>
+          }
         </div>
       }
       @if (audioBlocked()) { <button type="button" (click)="enableAudio()" class="mx-auto mb-3 min-h-11 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white">Tap to hear the call</button> }
     </div>
     <aside class="chat-panel min-h-0 border-l border-gray-200" [class.chat-visible]="chatOpen()" [attr.aria-hidden]="!chatOpen()" [attr.inert]="chatOpen() ? null : ''" aria-label="Consultation chat">
-      <app-consultation-chat [canPrescribe]="staff()" [available]="connected() && remotePresent()" [transport]="sendMessage" (received)="onMessage()" (dismissed)="toggleChat(false)" />
+      <app-consultation-chat [canPrescribe]="staff()" [available]="connected() && !reconnecting() && remotePresent()" [transport]="sendMessage" (received)="onMessage()" (dismissed)="toggleChat(false)" />
     </aside>
   </div>
   <footer class="flex shrink-0 items-center justify-center gap-2 border-t border-gray-200 bg-white px-2 pt-3 sm:gap-4">

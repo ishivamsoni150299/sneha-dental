@@ -4840,6 +4840,8 @@ dialog.ui-modal-drawer {
 .ui-mobile-sheet-links + .ui-mobile-sheet-links { border-top: 1px solid var(--ui-line); }
 .ui-mobile-sheet-links .ui-btn { justify-content: space-between; min-height: 3rem; white-space: normal; text-align: left; }
 html:has(.ui-mobile-sheet[open]) { overflow: hidden; }
+/* Keep floating navigation clear of the active consultation and device preview. */
+body:has(app-native-video-room .call-shell) .mili-launcher { display: none; }
 
 .patient-visit-card { padding: 0; }
 .professional-account summary::-webkit-details-marker { display: none; }

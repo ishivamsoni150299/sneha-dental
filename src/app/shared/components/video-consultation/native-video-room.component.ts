@@ -20,6 +20,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   readonly closed = output<void>();
   readonly joined = output<void>();
   readonly connected = signal(false);
+  readonly reconnecting = signal(false);
   readonly busy = signal(false);
   readonly devicesReady = signal(false);
   readonly cameraOn = signal(false);
@@ -39,7 +40,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   private readonly chatToggle = viewChild<ElementRef<HTMLButtonElement>>('chatToggle');
   private devicesAttempted = false;
   readonly sendMessage = async (message: ConsultationMessage): Promise<void> => {
-    if (!this.room || !this.connected() || !this.remotePresent()) throw new Error('Not connected');
+    if (!this.room || !this.connected() || this.reconnecting() || !this.remotePresent()) throw new Error('Not connected');
     await this.room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(message)), { reliable: true, topic: CHAT_TOPIC });
   };
 
@@ -94,8 +95,13 @@ export class NativeVideoRoomComponent implements OnDestroy {
     if (this.busy() || this.connected() || this.destroyed) return;
     if (Date.parse(this.session().expiresAt) <= Date.now()) { this.error.set('This room has ended. Close it and return to your appointments.'); return; }
     const attempt = this.generation;
+    this.error.set('');
     if (!listenOnly && !this.devicesAttempted) await this.prepare();
     if (this.destroyed || attempt !== this.generation) return;
+    if (!listenOnly && !this.tracks.length) {
+      this.error.set('Camera and microphone are unavailable. Check your devices, or choose Listen only to join without them.');
+      return;
+    }
     if (listenOnly) { this.stopPreview(); this.cameraOn.set(false); this.micOn.set(false); this.devicesReady.set(false); }
     this.busy.set(true); this.status.set('Connecting…');
     try {
@@ -120,14 +126,17 @@ export class NativeVideoRoomComponent implements OnDestroy {
       room.on(sdk.RoomEvent.ParticipantDisconnected, () => this.updateRemote());
       room.on(sdk.RoomEvent.TrackMuted, () => this.updateRemote());
       room.on(sdk.RoomEvent.TrackUnmuted, () => this.updateRemote());
-      room.on(sdk.RoomEvent.Reconnecting, () => this.status.set('Reconnecting… keep this room open'));
-      room.on(sdk.RoomEvent.Reconnected, () => this.status.set('Connected'));
-      room.on(sdk.RoomEvent.ConnectionQualityChanged, quality => { if (quality === sdk.ConnectionQuality.Poor) this.status.set('Weak connection · try turning your camera off'); else this.status.set('Connected'); });
+      room.on(sdk.RoomEvent.Reconnecting, () => { this.reconnecting.set(true); this.status.set('Reconnecting… keep this room open'); });
+      room.on(sdk.RoomEvent.Reconnected, () => { this.reconnecting.set(false); this.status.set('Connected'); });
+      room.on(sdk.RoomEvent.ConnectionQualityChanged, (quality, participant) => {
+        if (participant !== room.localParticipant || this.reconnecting()) return;
+        this.status.set(quality === sdk.ConnectionQuality.Poor ? 'Weak connection · try turning your camera off' : 'Connected');
+      });
       room.on(sdk.RoomEvent.AudioPlaybackStatusChanged, () => this.audioBlocked.set(!room.canPlaybackAudio));
       room.on(sdk.RoomEvent.MediaDevicesError, error => this.error.set(this.deviceError(error)));
       room.on(sdk.RoomEvent.Disconnected, () => {
         if (this.destroyed || this.room !== room) return;
-        this.release(); this.status.set('Call ended'); this.error.set('You have left the room or the connection ended. Close this room and join again if your appointment is still active.');
+        this.release(); this.status.set('Call disconnected'); this.error.set('Your connection ended. Join again to return to your appointment.');
       });
       await room.connect(session.url, session.token);
       if (this.destroyed || attempt !== this.generation) { await room.disconnect(); return; }
@@ -167,7 +176,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
         track = tracks[0]; this.devicesReady.set(this.tracks.length > 0); this.showPreview();
       }
       if (track) { if (enabled) await track.unmute(); else await track.mute(); }
-      if (!this.destroyed) (kind === 'camera' ? this.cameraOn : this.micOn).set(enabled);
+      if (!this.destroyed) { (kind === 'camera' ? this.cameraOn : this.micOn).set(enabled); this.error.set(''); }
     } catch (error) { this.error.set(this.deviceError(error)); }
     finally { if (!this.destroyed) this.busy.set(false); }
   }
@@ -210,7 +219,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
   private stopPreview(): void { this.stopMeter(); this.tracks.forEach(track => { track.detach().forEach(element => element.remove()); track.stop(); }); this.tracks = []; }
   private release(): void {
     this.generation++; clearInterval(this.timer); this.stopPreview();
-    this.devicesAttempted = false; this.chatOpen.set(false); this.audioBlocked.set(false); this.elapsed.set('00:00');
+    this.devicesAttempted = false; this.reconnecting.set(false); this.chatOpen.set(false); this.unread.set(0); this.audioBlocked.set(false); this.elapsed.set('00:00');
     const room = this.room; this.room = null;
     if (room) { room.removeAllListeners(); void room.disconnect().catch(() => undefined); }
     this.remote()?.nativeElement.replaceChildren(); this.audio()?.nativeElement.replaceChildren();
