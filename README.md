@@ -156,6 +156,6 @@ For built-frontend checks, run `npm run build` (which creates `index.html` autom
 - Keep Supabase, JWT, Resend, and Razorpay values in Render secrets only.
 - Rotate the bootstrap password immediately and then remove its variables.
 - Supabase is database-only; Spring owns login, authorization, refresh tokens, and password resets.
-- Public appointment changes require the booking reference or appointment identifier plus the matching phone number.
+- Patient appointment changes require authenticated ownership. Guest bookings must be linked using a code sent to the booking email; a reference and phone number alone do not establish ownership.
 - Back up production data before any cutover. Legacy production data must be imported and verified before the old datastore is deleted.
 - The Docker image runs as a non-root user and exposes only port 8080.

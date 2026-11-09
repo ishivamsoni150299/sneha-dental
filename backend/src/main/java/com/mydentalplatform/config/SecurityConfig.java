@@ -25,6 +25,13 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+    private static final String[] PUBLIC_RESOURCES = {
+        "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**", "/media/**", "/fonts/**",
+        "/**/*.woff2", "/**/*.woff", "/**/*.ttf", "/**/*.svg", "/robots.txt", "/sitemap.xml",
+        "/sitemap-pages.xml", "/sitemap-profiles/*.xml", "/favicon.ico", "/favicon*.png",
+        "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**"
+    };
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new com.mydentalplatform.auth.CompatiblePasswordEncoder();
@@ -69,11 +76,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/appointments").permitAll()
                 // NOTE: review and report POST endpoints enforce patient JWT via patientAccount().
                 .requestMatchers(HttpMethod.POST, "/api/public/reviews/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/**/*.js", "/**/*.css", "/assets/**",
-                    "/media/**", "/fonts/**", "/**/*.woff2", "/**/*.woff", "/**/*.ttf", "/**/*.svg").permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_RESOURCES).permitAll()
+                .requestMatchers(HttpMethod.HEAD, PUBLIC_RESOURCES).permitAll()
                 .requestMatchers(HttpMethod.GET, SpaRoutingConfig.ROUTES).permitAll()
-                .requestMatchers(HttpMethod.GET, "/robots.txt", "/sitemap.xml", "/sitemap-pages.xml", "/sitemap-profiles/*.xml", "/favicon.ico",
-                    "/favicon*.png", "/favicon.svg", "/og-default.svg", "/manifest.webmanifest", "/icons/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, SpaRoutingConfig.ROUTES).permitAll()
                 .requestMatchers(
                     "/api/auth/otp/request", "/api/auth/otp/verify", "/api/auth/otp/exchange-link",
                     "/api/auth/login", "/api/auth/patient/signup",

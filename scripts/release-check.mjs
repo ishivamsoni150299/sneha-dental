@@ -61,6 +61,8 @@ for (const [route, expected, kind] of checks) {
       const html = await response.text();
       if (!html.includes('<app-root')) throw new Error('missing application shell');
       await checkAssets(html, new URL(route, base));
+      const head = await fetch(new URL(route, base), { method: 'HEAD', redirect: 'manual', signal: AbortSignal.timeout(20_000) });
+      if (head.status !== 200) throw new Error('HEAD expected 200, received ' + head.status);
     }
     console.log('PASS ' + route);
   } catch (error) {

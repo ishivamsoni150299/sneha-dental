@@ -245,7 +245,9 @@ try {
   assert.ok(booked.bookingReference, 'Booking must receive a reference');
   await page.getByRole('heading', { name: 'Your request was sent' }).waitFor();
   await page.getByRole('link', { name: 'View my appointments', exact: true }).click();
-  await page.getByText(booked.bookingReference, { exact: true }).waitFor();
+  const bookedCard = page.getByRole('article').filter({ hasText: booked.bookingReference });
+  await bookedCard.getByText('Visit details', { exact: true }).click();
+  await bookedCard.getByText(booked.bookingReference, { exact: true }).waitFor();
   await page.getByRole('heading', { name: 'E2E Clinic' }).waitFor();
 
   const dentist = await post('/api/auth/professional/signup', {
@@ -317,7 +319,11 @@ try {
 
   // Guest booking -> email challenge -> linked patient account -> reschedule -> cancel.
   await page.setViewportSize({ width: 1440, height: 900 });
-  const guestSlot = day.slots.find(item => item.doctorId === doctor.id && item.time !== slot.time);
+  // The browser chooses the first displayed time, which need not match API ordering.
+  // Refresh availability after booking instead of reusing the stale pre-booking list.
+  const remainingAvailability = await get(`/api/v1/dentists/${listingSlug}/availability?days=14`);
+  const guestSlot = remainingAvailability.days.find(item => item.date === day.date)?.slots
+    .find(item => item.doctorId === doctor.id);
   assert.ok(guestSlot, 'A second isolated slot is required for the guest-claim journey');
   const guest = await post('/api/public/appointments', {
     clinicId: onboarded.clinicId, bookingRefPrefix: 'E2E', name: 'E2E Guest Claim',
@@ -358,6 +364,7 @@ try {
   clinicPage.setDefaultTimeout(30_000);
   await passwordLogin(clinicPage, appUrl + '/business/login', clinicEmail, password);
   await clinicPage.getByText('E2E Clinic', { exact: true }).first().waitFor();
+  await clinicPage.getByRole('button', { name: /^All visits/ }).click();
   const appointmentRow = clinicPage.locator('tr').filter({ hasText: 'E2E Patient' });
   await appointmentRow.getByRole('button', { name: 'Confirm', exact: true }).click();
   await appointmentRow.getByText('Confirmed', { exact: true }).waitFor();
@@ -419,7 +426,7 @@ try {
     assert.ok((await signupPage.getByRole('textbox', { name: 'Recovery code', exact: true }).inputValue()).length > 0);
     assert.equal(await signupPage.getByRole('button', { name: 'New account', exact: true }).count(), 0);
     await signupPage.getByRole('button', { name: 'I saved my code — continue', exact: true }).click();
-    await signupPage.waitForURL(url => url.pathname === '/mili');
+    await signupPage.waitForURL(url => url.pathname === destination);
     await signupPage.goto(appUrl + '/workspace');
     await signupPage.waitForURL(url => url.pathname === destination);
     await signupPage.getByRole('heading').first().waitFor();
@@ -474,7 +481,8 @@ try {
   }
 
   if (process.env.E2E_UX_AUDIT === '1') {
-    const guestPage = await browser.newPage();
+    const guestContext = await browser.newContext();
+    const guestPage = await guestContext.newPage();
     const failures = await checkUxRoutes(guestPage, appUrl, 'public', [
       '/', '/book', '/services', '/about', '/gallery', '/testimonials', '/contact', '/appointment',
       '/appointment/confirmed', '/my-appointment', '/privacy', '/terms', '/coming-soon', '/not-a-real-page',
@@ -493,7 +501,8 @@ try {
       '/business/dentists/verification', '/business/reviews', '/business/analytics', '/business/revenue',
       '/business/leads', '/business/leads/new', '/business/leads/discover',
     ]));
-    const dentistPage = await browser.newPage();
+    const dentistContext = await browser.newContext();
+    const dentistPage = await dentistContext.newPage();
     dentistPage.setDefaultTimeout(30_000);
     await passwordLogin(dentistPage, appUrl + '/professional/login', `dentist-${suffix}@example.test`, password);
     await dentistPage.waitForURL('**/professional/workspace**');

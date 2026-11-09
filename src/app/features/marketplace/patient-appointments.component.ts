@@ -55,6 +55,7 @@ export class PatientAppointmentsComponent implements OnInit {
   readonly rescheduleSaveError = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly claimMessage = signal<string | null>(null);
+  readonly claimError = signal<string | null>(null);
   readonly formatSlotDisplay = formatSlotDisplay;
   readonly minDate = formatDateInTimeZone();
   private availabilityRequest = 0;
@@ -88,6 +89,7 @@ export class PatientAppointmentsComponent implements OnInit {
   }
 
   async loadSession(): Promise<void> {
+    if (this.loading()) return;
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -107,19 +109,25 @@ export class PatientAppointmentsComponent implements OnInit {
     const value = input.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9-]/g, '');
     input.value = value;
     this.claimForm.controls.bookingRef.setValue(value, { emitEvent: false });
+    this.claimChallengeId.set(null);
+    this.claimCodeForm.reset();
+    this.claimMessage.set(null);
+    this.claimError.set(null);
   }
 
   async claimBooking(): Promise<void> {
     this.claimForm.markAllAsTouched();
     if (this.claimForm.invalid || this.claiming()) return;
     this.claiming.set(true);
-    this.error.set(null);
+    this.claimError.set(null);
     this.claimMessage.set(null);
+    this.claimChallengeId.set(null);
+    this.claimCodeForm.reset();
     try {
       this.claimChallengeId.set(await this.patientApi.requestClaim(this.claimForm.controls.bookingRef.value));
       this.claimMessage.set('If this guest booking has an email address, we sent a linking code there. Enter it below. Otherwise, contact the clinic.');
     } catch (error) {
-      this.error.set(this.errorMessage(error));
+      this.claimError.set(this.errorMessage(error));
     } finally {
       this.claiming.set(false);
     }
@@ -130,7 +138,7 @@ export class PatientAppointmentsComponent implements OnInit {
     const challengeId = this.claimChallengeId();
     if (!challengeId || this.claimCodeForm.invalid || this.claiming()) return;
     this.claiming.set(true);
-    this.error.set(null);
+    this.claimError.set(null);
     try {
       const appointment = await this.patientApi.completeClaim(challengeId, this.claimCodeForm.controls.code.value);
       this.replaceAppointment(appointment);
@@ -139,7 +147,7 @@ export class PatientAppointmentsComponent implements OnInit {
       this.claimChallengeId.set(null);
       this.claimMessage.set('Appointment linked to your account.');
     } catch (error) {
-      this.error.set(this.errorMessage(error));
+      this.claimError.set(this.errorMessage(error));
     } finally {
       this.claiming.set(false);
     }

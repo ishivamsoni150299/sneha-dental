@@ -2,7 +2,6 @@ package com.mydentalplatform.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,7 @@ final class PrerenderedPageController {
                 .header("Location", "/dentists")
                 .build();
         }
-        return ResponseEntity.ok(new ClassPathResource("static/index.html"));
+        return ResponseEntity.ok(staticResource("index.html"));
     }
 
     @GetMapping(value = "/dentists", produces = MediaType.TEXT_HTML_VALUE)
@@ -36,7 +35,7 @@ final class PrerenderedPageController {
     Resource dentists(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
         if (request.getParameterMap().keySet().stream().anyMatch(java.util.Set.of("q", "treatment", "location", "mode", "fee", "rating", "gender")::contains))
             response.setHeader("X-Robots-Tag", "noindex, follow");
-        return new ClassPathResource("static/dentists/index.html");
+        return staticResource("dentists/index.html");
     }
 
     @GetMapping(value = {"/privacy", "/terms"}, produces = MediaType.TEXT_HTML_VALUE)
@@ -44,7 +43,7 @@ final class PrerenderedPageController {
     ResponseEntity<Resource> legalAlias(HttpServletRequest request) {
         if (java.util.Set.of("mydentalplatform.com", "www.mydentalplatform.com").contains(request.getServerName().toLowerCase()))
             return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).header("Location", "/business" + request.getRequestURI()).build();
-        return ResponseEntity.ok(new ClassPathResource("static/index.html"));
+        return ResponseEntity.ok(staticResource("index.html"));
     }
 
     @GetMapping(value = {
@@ -61,16 +60,21 @@ final class PrerenderedPageController {
     }, produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     Resource dentistLandingPage(HttpServletRequest request) {
-        return new ClassPathResource("static" + request.getRequestURI() + "/index.html");
+        return staticResource(request.getRequestURI().substring(1) + "/index.html");
     }
 
     @GetMapping(value = {"/business", "/professional", "/account", "/account/recovery", "/business/privacy", "/business/terms"}, produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     Resource platformPage(HttpServletRequest request) {
+        Resource page = staticResource(request.getRequestURI().substring(1) + "/index.html");
+        return page.exists() ? page : staticResource("index.html");
+    }
+
+    private Resource staticResource(String path) {
         for (String location : staticLocations) {
-            Resource page = resources.getResource(location + request.getRequestURI().substring(1) + "/index.html");
+            Resource page = resources.getResource(location + path);
             if (page.exists()) return page;
         }
-        return resources.getResource(staticLocations[0] + "index.html");
+        return resources.getResource(staticLocations[0] + path);
     }
 }

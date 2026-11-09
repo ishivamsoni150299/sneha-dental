@@ -2,6 +2,64 @@
 
 Scope: public dentist discovery, independent dentist accounts, clinic onboarding and subscriptions, patient booking and appointment management, video consultations with chat and prescription sharing, and platform administration.
 
+## Release hardening — 9 November 2026
+
+Changes prepared locally; this section does not assert they have been deployed.
+
+- Angular runtime/compiler packages now require 20.3.35. Compatible lockfile
+  updates remove the reported runtime XSRF advisory and high-severity development
+  dependency findings. Runtime audit: zero findings. Full audit: 26 moderate
+  development-tool findings, zero high/critical. Further suggested fixes require
+  breaking toolchain changes and have not been forced. CI's runtime audit now
+  fails on moderate or higher findings.
+- Patient booking-link failures stay beside the form. Changing the reference
+  clears its previous challenge/code; refresh retains existing visits and rejects
+  duplicate requests. Recovery inputs expose field-specific accessible feedback.
+- Dentist profile load failures offer a retry rather than a blank editable form.
+  Practice-loading errors are separate from appointment errors and can be retried.
+  Verification submission prevents duplicate requests and shows review/verified
+  state. Reloaded profile details refresh the workspace's setup status.
+- Public page and asset HEAD requests are allowed through the same security
+  boundary as GET; protected API HEAD requests remain authenticated. The release
+  checker now rejects public pages whose HEAD requests return an error.
+- Prerendered dentist, home and legal pages now respect configured static-resource
+  locations, consistently with other platform pages. The built frontend served
+  by local Spring passes the strengthened GET/HEAD/asset/API release checks.
+- Browser tests follow current role-specific signup destinations, expand visit
+  details before reading booking references, select All visits for future clinic
+  appointments, and refresh availability before making a second booking. The
+  route audit uses a fresh page within each role's context and covers 320, 390,
+  768 and 1440 pixels; screenshot failures no longer hide the original failure.
+
+Local evidence: clean dependency installation, lint, 333 Angular tests,
+production build, compiled-asset checks and the full verification command passed.
+The HEAD and static-location regressions have dedicated backend coverage;
+the final backend verification ran 198 tests with zero failures/errors and one
+production-only test skipped. All ten deployment-check tests passed.
+Focused fixture browser checks covered recovery validation and profile retry at
+320/390/768/1440px, with mobile screenshots reviewed. These checks do not establish
+physical-device keyboard or external-service reliability.
+
+The isolated Spring/PostgreSQL browser suite passed booking, guest email-code
+linking, patient rescheduling/cancellation, clinic confirmation/completion,
+review moderation/response, dentist verification, video-booking account flow,
+unconfigured subscription-cancellation error handling and all three signup
+journeys. All 288 route/viewport checks passed across public, clinic, platform
+and dentist routes at the four widths above. Populated mobile clinic, platform
+and dentist screenshots were reviewed. CI now enables this responsive audit.
+SMS was simulated, email was captured in the disposable outbox, and video media
+and live payment providers were not contacted.
+
+Read-only production evidence: `https://mydentalplatform.com` passed the existing
+GET/asset/API HTTP checks on 9 November. Its health response identified healthy
+Spring/PostgreSQL. A separate HEAD request to `/appointments` returned 401;
+the local fix still needs deployment and the strengthened release check repeated.
+The earlier connection timeouts did not recur in this check.
+
+Live checkout/webhooks, delivered recovery/booking/reminder emails, real-device
+video, backup restoration, rollback and operational ownership remain the
+production acceptance requirements listed below.
+
 The application is a modular monolith: one Angular frontend, one Spring Boot API, one PostgreSQL database. Angular talks only to Spring. Flyway owns schema history. JDBC is the persistence layer; JPA and the unused Node SMTP implementation have been removed. Shared authentication components own login and signup UI.
 
 ## Launch hardening — 14 October 2026

@@ -14,6 +14,38 @@ describe('Professional profile feedback', () => {
     ] });
   });
 
+  it('offers a retry instead of blank editable details when the profile fails to load', async () => {
+    api.fetch.and.resolveTo(new Response('{}', { status: 503 }));
+    const fixture = TestBed.createComponent(ProfessionalProfileComponent);
+    fixture.componentRef.setInput('embedded', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Retry profile');
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Could not load profile');
+  });
+
+  it('submits verification once while pending and restores the action after failure', async () => {
+    const fixture = TestBed.createComponent(ProfessionalProfileComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('hasHours', true);
+    component.loading.set(false);
+    component.profile.set({ fullName: 'Dr Test', qualification: 'BDS', speciality: 'General dentistry', biography: '', experienceYears: 5, registrationNumber: 'TEST123', registrationCouncil: 'Test council', phoneE164: null, photoUrl: null, languages: [], verificationStatus: 'draft', locations: [{ id: 'practice', name: 'Practice', city: 'Noida', status: 'active' }] });
+    let finish!: (response: Response) => void;
+    api.fetch.and.returnValue(new Promise(resolve => { finish = resolve; }));
+    const pending = component.submitVerification();
+    expect(component.saving()).toBeTrue();
+    expect(component.canSubmitVerification()).toBeFalse();
+    await component.submitVerification();
+    expect(api.fetch).toHaveBeenCalledTimes(1);
+    finish(new Response('{"message":"Please try again"}', { status: 503 }));
+    await pending;
+    expect(component.saving()).toBeFalse();
+    expect(component.canSubmitVerification()).toBeTrue();
+    expect(component.error()).toBe('Please try again');
+  });
+
   it('explains invalid professional details without making a request', async () => {
     const component = TestBed.createComponent(ProfessionalProfileComponent).componentInstance;
     await component.saveProfile();

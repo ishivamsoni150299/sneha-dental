@@ -67,6 +67,7 @@ jobs:
       PUBLIC_BASE_URL: http://localhost:4200
       E2E_ISOLATED_DB: '1'
       E2E_BOOKING_OTP: '1'
+      E2E_UX_AUDIT: '1'
       BOOTSTRAP_ADMIN_EMAIL: browser-admin@example.test
       BOOTSTRAP_ADMIN_PASSWORD: BrowserAdminOnlyPass123!
       # Enables claim-email outbox creation while preventing external delivery from CI.

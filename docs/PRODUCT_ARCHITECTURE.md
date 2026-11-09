@@ -1,5 +1,21 @@
 # Product architecture
 
+## Patient appointment recovery — 8 November 2026
+
+Guest-booking linking now keeps failures beside its form, independently of
+appointment-list errors. Editing the reference or requesting another code clears
+the previous challenge and entered code; fields remain read-only while a linking
+request is running. Validation messages are associated with their inputs.
+Appointment refresh announces progress, retains current visits and ignores
+duplicate refresh requests. The page uses shared container and form-label styles.
+
+Validation: lint, production build and all 16 patient-appointment unit tests
+passed. Local Chromium checks with intercepted API fixtures passed at
+320/390/768/1440px for linking failure/retry, invalid-input feedback, challenge
+reset, keyboard navigation and horizontal overflow; mobile screenshots were
+reviewed. Actual email delivery, backend booking ownership and production
+integration were not exercised by these frontend checks.
+
 ## Platform navigation improvements — 13 October 2026
 
 Mili remains the default home and default sign-in destination. Explicit

@@ -3,13 +3,15 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
 
-for (const scenario of ['healthy', 'preview', 'missing-script', 'html-script', 'empty-style', 'missing-entry', 'blocked-mili', 'blocked-book', 'blocked-workspace']) {
+for (const scenario of ['healthy', 'preview', 'missing-script', 'html-script', 'empty-style', 'missing-entry', 'blocked-mili', 'blocked-book', 'blocked-workspace', 'blocked-head']) {
   test(`deployment gate: ${scenario}`, async () => {
     const mock = scenario === 'preview';
     const shell = `<html><head><base href="/"><link rel="stylesheet" href="styles.css"></head><body><app-root></app-root>${scenario === 'missing-entry' ? '' : '<script src="main.js" type="module"></script>'}</body></html>`;
     const server = http.createServer((request, response) => {
       const route = request.url;
-      if (scenario === `blocked-${route.slice(1)}`) {
+      if (scenario === 'blocked-head' && request.method === 'HEAD') {
+        response.writeHead(401).end();
+      } else if (scenario === `blocked-${route.slice(1)}`) {
         response.writeHead(401).end();
       } else if (route === '/main.js') {
         response.writeHead(scenario === 'missing-script' ? 404 : 200, { 'Content-Type': scenario === 'html-script' ? 'text/html' : 'text/javascript' })
@@ -45,6 +47,7 @@ for (const scenario of ['healthy', 'preview', 'missing-script', 'html-script', '
       if (scenario.includes('script')) assert.match(output, /unusable script/);
       if (scenario === 'empty-style') assert.match(output, /unusable stylesheet/);
       if (scenario === 'missing-entry') assert.match(output, /missing application script/);
+      if (scenario === 'blocked-head') assert.match(output, /HEAD expected 200, received 401/);
     } finally {
       await new Promise(resolve => server.close(resolve));
     }

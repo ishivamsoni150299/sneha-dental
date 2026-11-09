@@ -1,5 +1,20 @@
 # Screen and flow coverage — 18 October 2026
 
+## Verified follow-up — 9 November 2026
+
+The isolated browser suite now passes 288 route/viewport checks across public,
+clinic, platform and dentist routes at 320, 390, 768 and 1440px. Each check covers
+page loading, a visible heading, horizontal overflow, uncaught browser errors
+and retained authenticated routing where applicable. It is not an assertion
+that every state on every screen has been manually reviewed. Representative
+populated clinic, platform and dentist mobile screenshots were inspected.
+
+Patient booking-link and recovery validation now have local, accessible error
+feedback. Dentist profile/practice failures have explicit retry states;
+verification actions prevent duplicate submission and reflect review status.
+See `LAUNCH_READINESS.md` for current test counts, deployment findings and the
+remaining physical-device and external-service acceptance requirements.
+
 ## Mobile follow-up — 22 October 2026
 
 ### Minimal setup follow-up

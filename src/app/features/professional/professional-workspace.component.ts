@@ -120,6 +120,10 @@ interface Practice { id: string; name: string; city: string; status: string; sch
             <h2 class="text-xl font-bold text-ui-ink">Practice hours</h2>
             <p class="mt-2 text-sm text-ui-ink-muted">30-minute appointments. Schedule changes cannot remove a time with an upcoming booking.</p>
             @if (profileLoading()) { <p class="mt-6" role="status">Loading locations…</p> }
+            @else if (practicesError()) {
+              <p role="alert" class="ui-alert ui-alert-danger mt-6">{{ practicesError() }}</p>
+              <button type="button" (click)="loadPractices()" class="ui-btn ui-btn-secondary mt-3">Retry practice locations</button>
+            }
             @else if (!practices().length) { <p class="mt-6 text-ui-ink-muted">Add a practice in the <button (click)="selectTab('profile')" class="ui-btn ui-btn-ghost">Profile tab</button> first.</p> }
             @else {
               <label class="mt-5 block text-sm font-semibold">Practice location
@@ -186,6 +190,7 @@ export class ProfessionalWorkspaceComponent implements OnInit {
   readonly saving = signal(false);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
+  readonly practicesError = signal<string | null>(null);
   readonly message = signal<string | null>(null);
   readonly declining = signal<Visit | null>(null);
   readonly days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map((label, i) => ({ label, key: ['mon','tue','wed','thu','fri','sat','sun'][i] }));
@@ -227,12 +232,13 @@ export class ProfessionalWorkspaceComponent implements OnInit {
   }
   async loadPractices(): Promise<void> {
     this.profileLoading.set(true);
+    this.practicesError.set(null);
     try {
       const profile = await this.request<{ locations: Practice[]; verificationStatus: string }>('/api/providers/me');
       this.verificationStatus.set(profile.verificationStatus);
       this.practices.set(profile.locations.filter(p => p.status === 'active'));
       if (this.practices().length) this.selectLocation(this.practices()[0].id);
-    } catch (e) { this.error.set((e as Error).message); }
+    } catch (e) { this.practicesError.set((e as Error).message); }
     finally { this.profileLoading.set(false); }
   }
   changeView(view: string): void { if (view === this.view() || this.busy() || this.loading()) return; this.view.set(view); this.search.set(''); this.declining.set(null); void this.loadVisits(); }

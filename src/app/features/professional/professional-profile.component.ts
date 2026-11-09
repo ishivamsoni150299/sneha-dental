@@ -31,7 +31,14 @@ interface ProviderProfile {
         @if (profile()?.verificationStatus === 'rejected' && profile()?.verificationReason) { <p class="mt-4 ui-alert ui-alert-danger" role="status">Verification rejected: {{ profile()?.verificationReason }}. Update your details and submit again.</p> }
         @if (message()) { <p class="mt-4 ui-alert" role="status">{{ message() }}</p> }
         @if (error()) { <p class="mt-4 ui-alert ui-alert-danger" role="alert">{{ error() }}</p> }
-        @if (loading()) { <p class="mt-8 text-sm text-ui-ink-muted">Loading your profile…</p> }
+        @if (loading()) { <p role="status" class="mt-8 ui-body">Loading your profile…</p> }
+        @else if (!profile()) {
+          <div class="ui-empty-state mt-5">
+            <h2 class="ui-title">Your profile is unavailable</h2>
+            <p class="ui-body mt-2">Try loading it again to continue setting up your practice.</p>
+            <button type="button" (click)="load()" class="ui-btn ui-btn-primary mt-4">Retry profile</button>
+          </div>
+        }
         @else {
           <div class="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.9fr]">
             <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="ui-card p-5 sm:p-6">
@@ -86,9 +93,9 @@ interface ProviderProfile {
               </section>
               <section class="ui-card p-5 sm:p-6">
                 <h2 class="text-lg font-bold">3. Verification</h2>
-                <p class="mt-2 text-sm leading-6 text-ui-ink-muted">After saving your details, adding a practice and setting hours, submit for review. Your profile appears to patients once approved.</p>
+                <p class="ui-body mt-2">{{ profile()?.verificationStatus === 'verified' ? 'Your credentials have been verified. Keep your professional details and practice hours up to date.' : profile()?.verificationStatus === 'pending' ? 'Your details are under review. You can check the outcome here.' : 'After saving your details, adding a practice and setting hours, submit for review. Your profile appears to patients once approved.' }}</p>
                 @if (!hasHours() && profile()?.verificationStatus !== 'verified') { <p class="mt-2 text-sm font-semibold text-amber-800">Set at least one bookable day in Hours to enable submission.</p> }
-                <button (click)="submitVerification()" class="ui-btn ui-btn-primary mt-4 w-full" [disabled]="!canSubmitVerification()">Submit for verification</button>
+                <button (click)="submitVerification()" class="ui-btn ui-btn-primary mt-4 w-full" [disabled]="!canSubmitVerification()">{{ saving() ? 'Saving…' : profile()?.verificationStatus === 'pending' ? 'Verification in review' : profile()?.verificationStatus === 'verified' ? 'Profile verified' : 'Submit for verification' }}</button>
               </section>
             </div>
           </div>
@@ -128,7 +135,7 @@ export class ProfessionalProfileComponent implements OnInit {
   }
   canSubmitVerification(): boolean {
     const p = this.profile();
-    return !!p && this.hasHours() && !['pending', 'verified'].includes(p.verificationStatus) && !!p.qualification?.trim() && !!p.speciality?.trim() && !!p.registrationNumber?.trim() && !!p.registrationCouncil?.trim() && p.locations.length > 0;
+    return !!p && !this.loading() && !this.saving() && !this.savingLocation() && this.hasHours() && !['pending', 'verified'].includes(p.verificationStatus) && !!p.qualification?.trim() && !!p.speciality?.trim() && !!p.registrationNumber?.trim() && !!p.registrationCouncil?.trim() && p.locations.length > 0;
   }
   async load(): Promise<void> {
     this.loading.set(true); this.error.set(null);
@@ -139,6 +146,7 @@ export class ProfessionalProfileComponent implements OnInit {
       this.profile.set(p);
       this.profileForm.patchValue({ fullName: p.fullName, qualification: p.qualification ?? '', speciality: p.speciality ?? '', biography: p.biography ?? '', experienceYears: p.experienceYears ?? 0, registrationNumber: p.registrationNumber ?? '', registrationCouncil: p.registrationCouncil ?? '', phoneE164: p.phoneE164 ?? '', languages: (p.languages ?? []).join(', ') });
       await this.loadPhoto(p.photoUrl);
+      if (!this.destroyed) this.profileChanged.emit();
     } catch (error) { this.error.set((error as Error).message); }
     finally { this.loading.set(false); }
   }
@@ -201,7 +209,7 @@ export class ProfessionalProfileComponent implements OnInit {
       const v = this.profileForm.getRawValue();
       const r = await this.api.fetch('/api/providers/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...v, languages: v.languages.split(',').map(x => x.trim()).filter(Boolean), photoUrl: this.profile()?.photoUrl ?? '' }) });
       if (!r.ok) throw new Error('Could not save profile.');
-      await this.load(); this.profileChanged.emit(); this.message.set('Professional details saved.');
+      await this.load(); this.message.set('Professional details saved.');
     } catch (error) { this.error.set((error as Error).message); }
     finally { this.saving.set(false); }
   }
@@ -228,12 +236,17 @@ export class ProfessionalProfileComponent implements OnInit {
   }
   async submitVerification(): Promise<void> {
     if (!this.canSubmitVerification()) return;
+    this.saving.set(true);
+    this.message.set(null);
     this.error.set(null);
     try {
       const r = await this.api.fetch('/api/providers/me/submit-verification', { method: 'POST' });
       const body = await r.json().catch(() => ({})) as { message?: string };
       if (!r.ok) throw new Error(body.message ?? 'Complete all required details first.');
-      await this.load(); this.profileChanged.emit(); this.message.set('Profile submitted for verification.');
+      if (this.destroyed) return;
+      await this.load();
+      if (!this.destroyed) this.message.set('Profile submitted for verification.');
     } catch (error) { this.error.set((error as Error).message); }
+    finally { this.saving.set(false); }
   }
 }

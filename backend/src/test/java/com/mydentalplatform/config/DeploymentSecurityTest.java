@@ -28,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -95,6 +96,13 @@ class DeploymentSecurityTest {
     @ValueSource(strings = {"/mili", "/book", "/workspace", "/appointments", "/platform/login", "/coming-soon", "/admin/login", "/business/clinic/dashboard"})
     void browserDeepLinksLoadAngularWithoutAnAuthorizationHeader(String route) throws Exception {
         mvc.perform(get(route)).andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));
+        mvc.perform(head(route)).andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/admin/clinics", "/api/patient/account/session", "/api/providers/me", "/actuator/env"})
+    void headRequestsCannotBypassApiAuthentication(String route) throws Exception {
+        mvc.perform(head(route).accept("text/html")).andExpect(status().isUnauthorized());
     }
 
     @ParameterizedTest

@@ -19,7 +19,8 @@ public class SpaRoutingConfig implements WebMvcConfigurer {
     static boolean isBrowserNavigation(HttpServletRequest request) {
         String path = request.getRequestURI();
         String accept = request.getHeader("Accept");
-        return "GET".equals(request.getMethod()) && accept != null && accept.contains("text/html")
+        return ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod()))
+            && accept != null && accept.contains("text/html")
             && !path.contains(".")
             && !reservedPath(path, "/api") && !reservedPath(path, "/actuator")
             && !reservedPath(path, "/webhooks");

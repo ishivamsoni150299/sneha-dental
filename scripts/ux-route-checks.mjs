@@ -2,14 +2,18 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 
 // Read-only route/layout checks. Call only with isolated E2E browser contexts.
-export async function checkUxRoutes(page, base, role, paths) {
+export async function checkUxRoutes(sessionPage, base, role, paths) {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(base).hostname));
   const dir = 'artifacts/ux-route-checks';
   await mkdir(dir, { recursive: true });
   const failures = [];
-  for (const width of [1440, 768, 320]) {
-    await page.setViewportSize({ width, height: 900 });
+  // Preserve the authenticated context, but release each route's browser resources.
+  // A long audit in one renderer can crash before all roles receive coverage.
+  await sessionPage.goto('about:blank');
+  for (const width of [1440, 768, 390, 320]) {
     for (const path of paths) {
+      const page = await sessionPage.context().newPage();
+      await page.setViewportSize({ width, height: 900 });
       const errors = [];
       const onError = error => errors.push(error.message);
       page.on('pageerror', onError);
@@ -27,10 +31,11 @@ export async function checkUxRoutes(page, base, role, paths) {
         console.log(`PASS UX ${role} ${width}px ${path}`);
       } catch (error) {
         const name = `${role}-${width}-${path.replace(/[^a-z0-9]/gi, '_')}`;
-        await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true });
         failures.push(`${role} ${width}px ${path}: ${error.message}`);
         console.error(`FAIL UX ${failures.at(-1)}`);
-      } finally { page.off('pageerror', onError); }
+        await page.screenshot({ path: `${dir}/${name}.png`, fullPage: true, timeout: 5000 })
+          .catch(screenshotError => console.error(`Screenshot unavailable: ${screenshotError.message}`));
+      } finally { page.off('pageerror', onError); await page.close(); }
     }
   }
   return failures;

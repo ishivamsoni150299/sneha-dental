@@ -63,6 +63,19 @@ describe('ProfessionalWorkspaceComponent', () => {
     expect(component.tab()).toBe('appointments');
   });
 
+  it('keeps failed practice loading separate from appointment errors and clears it on retry', async () => {
+    const component = TestBed.createComponent(ProfessionalWorkspaceComponent).componentInstance;
+    component.error.set('Appointment update failed');
+    api.fetch.and.resolveTo(new Response('{"message":"Locations unavailable"}', { status: 503 }));
+    await component.loadPractices();
+    expect(component.practicesError()).toBe('Locations unavailable');
+    expect(component.error()).toBe('Appointment update failed');
+    api.fetch.and.resolveTo(new Response('{"locations":[],"verificationStatus":"draft"}'));
+    await component.loadPractices();
+    expect(component.practicesError()).toBeNull();
+    expect(component.error()).toBe('Appointment update failed');
+  });
+
   it('prioritizes pending requests and finds patients without another screen', () => {
     const component = TestBed.createComponent(ProfessionalWorkspaceComponent).componentInstance;
     const visit = { id: 'one', booking_ref: 'REF-ONE', patient_name: 'Asha', phone_e164: '+919999999999', service: 'Consultation', date: '2026-10-11', time: '10:00', status: 'confirmed', source: 'marketplace', location_name: 'Practice' };

@@ -7,7 +7,7 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
   selector: 'app-account-recovery', standalone: true, imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="account-page mx-auto max-w-lg px-4 py-8 sm:py-12">
+    <div class="account-page ui-container ui-auth-layout">
       <section class="ui-card ui-auth-card">
         <a routerLink="/account" class="ui-btn ui-btn-ghost justify-self-start">Back to sign in</a>
         <div class="space-y-3"><h1 class="ui-heading ui-heading-interface">{{ workspaceUnavailable ? 'Workspace unavailable' : 'Account recovery' }}</h1>
@@ -19,7 +19,8 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
           @if (!workspaceUnavailable) {
             <form [formGroup]="generateForm" (ngSubmit)="generate()" class="space-y-4">
               <p class="ui-body">Generate a replacement recovery code. Your previous code will stop working.</p>
-              <label class="ui-label">Current password<input type="password" autocomplete="current-password" formControlName="password" class="ui-field mt-2 text-base"></label>
+              <label class="ui-label">Current password<input type="password" autocomplete="current-password" formControlName="password" [readOnly]="busy()" [attr.aria-invalid]="generateForm.controls.password.touched && generateForm.controls.password.invalid" [attr.aria-describedby]="generateForm.controls.password.touched && generateForm.controls.password.invalid ? 'current-password-error' : null" class="ui-field mt-2 text-base"></label>
+              @if (generateForm.controls.password.touched && generateForm.controls.password.invalid) { <p id="current-password-error" class="ui-error">Enter your current password.</p> }
               <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">{{ busy() ? 'Generating…' : 'Generate recovery code' }}</button>
             </form>
             @if (code()) { <p class="ui-body">Save this privately. It is shown only once.</p><textarea readonly aria-label="Recovery code" [value]="code()" class="ui-field font-mono text-sm" (focus)="$any($event.target).select()"></textarea> }
@@ -32,11 +33,14 @@ import { AuthFacade } from '../../core/services/auth-facade.service';
           <div role="status" class="space-y-4"><h2 class="ui-heading">Password updated</h2><p class="ui-body">{{ message() }}</p><a routerLink="/account" class="ui-btn ui-btn-primary ui-btn-block">Sign in with your new password</a></div>
         } @else {
           <form [formGroup]="form" (ngSubmit)="reset()" class="space-y-4">
-            <label class="ui-label">Email address<input type="email" autocomplete="username" formControlName="email" class="ui-field mt-2 text-base"></label>
-            <label class="ui-label">Saved recovery code<input autocomplete="off" formControlName="code" class="ui-field mt-2 text-base"></label>
-            <label class="ui-label">New password<input type="password" autocomplete="new-password" aria-describedby="recovery-password-hint" formControlName="password" class="ui-field mt-2 text-base"></label>
+            <label class="ui-label">Email address<input type="email" autocomplete="username" formControlName="email" [readOnly]="busy()" [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" [attr.aria-describedby]="form.controls.email.touched && form.controls.email.invalid ? 'recovery-email-error' : null" class="ui-field mt-2 text-base"></label>
+            @if (form.controls.email.touched && form.controls.email.invalid) { <p id="recovery-email-error" class="ui-error">Enter a valid email address.</p> }
+            <label class="ui-label">Saved recovery code<input autocomplete="off" formControlName="code" [readOnly]="busy()" [attr.aria-invalid]="form.controls.code.touched && form.controls.code.invalid" [attr.aria-describedby]="form.controls.code.touched && form.controls.code.invalid ? 'recovery-code-error' : null" class="ui-field mt-2 text-base"></label>
+            @if (form.controls.code.touched && form.controls.code.invalid) { <p id="recovery-code-error" class="ui-error">Enter the recovery code you saved.</p> }
+            <label class="ui-label">New password<input type="password" autocomplete="new-password" aria-describedby="recovery-password-hint" formControlName="password" [readOnly]="busy()" [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid" class="ui-field mt-2 text-base"></label>
             <p id="recovery-password-hint" class="text-sm text-ui-ink-muted">Use 8–72 characters. Confirm the same password below.</p>
-            <label class="ui-label">Confirm new password<input type="password" autocomplete="new-password" formControlName="confirm" class="ui-field mt-2 text-base"></label>
+            <label class="ui-label">Confirm new password<input type="password" autocomplete="new-password" formControlName="confirm" [readOnly]="busy()" [attr.aria-invalid]="form.controls.confirm.touched && (form.controls.confirm.invalid || form.controls.confirm.value !== form.controls.password.value)" [attr.aria-describedby]="form.controls.confirm.touched && (form.controls.confirm.invalid || form.controls.confirm.value !== form.controls.password.value) ? 'recovery-confirm-error' : null" class="ui-field mt-2 text-base"></label>
+            @if (form.controls.confirm.touched && (form.controls.confirm.invalid || form.controls.confirm.value !== form.controls.password.value)) { <p id="recovery-confirm-error" class="ui-error">Enter the same password in both fields.</p> }
             <button [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-block">{{ busy() ? 'Resetting…' : 'Reset password' }}</button>
           </form>
           <details><summary class="ui-btn ui-btn-ghost cursor-pointer">Lost your recovery code?</summary><p class="ui-body mt-2">If you lost your password and recovery code, or previously used an email link, contact the platform owner to verify your identity and recover your account.</p></details>

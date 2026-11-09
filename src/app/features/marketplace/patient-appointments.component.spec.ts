@@ -66,6 +66,53 @@ async function createFixture(options: { signedIn?: boolean; claim?: string } = {
 }
 
 describe('PatientAppointmentsComponent', () => {
+  it('keeps booking-link failures beside the form without hiding the empty appointment state', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    component.claimForm.controls.bookingRef.setValue('SC-ABCDEFGH');
+    api.requestClaim.and.rejectWith(new Error('Unable to send the linking code. Try again.'));
+    await component.claimBooking();
+    fixture.detectChanges();
+    expect(component.error()).toBeNull();
+    expect(fixture.nativeElement.querySelector('details [role="alert"]').textContent).toContain('Unable to send');
+    expect(fixture.nativeElement.textContent).toContain('No linked appointments yet');
+  });
+
+  it('clears the old linking challenge when the booking reference changes', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    component.claimForm.controls.bookingRef.setValue('SC-ABCDEFGH');
+    api.requestClaim.and.resolveTo('challenge-1');
+    await component.claimBooking();
+    component.claimCodeForm.controls.code.setValue('12345678');
+    const input = document.createElement('input');
+    input.value = 'sc-ijklmnop';
+    component.normaliseBookingRef({ target: input } as unknown as Event);
+    expect(component.claimForm.controls.bookingRef.value).toBe('SC-IJKLMNOP');
+    expect(component.claimChallengeId()).toBeNull();
+    expect(component.claimCodeForm.controls.code.value).toBe('');
+    expect(component.claimMessage()).toBeNull();
+    await component.completeClaim();
+    expect(api.completeClaim).not.toHaveBeenCalled();
+  });
+
+  it('retains visits during refresh and ignores duplicate refresh requests', async () => {
+    const { fixture, api } = await createFixture({ signedIn: true });
+    const component = fixture.componentInstance;
+    component.appointments.set([appointmentSummary()]);
+    let finish!: (session: Awaited<ReturnType<PatientAppointmentApiService['session']>>) => void;
+    api.session.and.returnValue(new Promise(resolve => { finish = resolve; }));
+    const pending = component.loadSession();
+    await component.loadSession();
+    fixture.detectChanges();
+    expect(api.session).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.textContent).toContain('Your current visits remain below.');
+    expect(fixture.nativeElement.querySelector('article').textContent).toContain('Smile Care');
+    finish({ profile: { accountLabel: 'patient@example.com' }, appointments: [] });
+    await pending;
+    expect(component.loading()).toBeFalse();
+  });
+
   it('requires cancellation confirmation and prevents repeated actions while saving', async () => {
     const { fixture, api } = await createFixture({ signedIn: true });
     const component = fixture.componentInstance;
