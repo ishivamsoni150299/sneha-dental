@@ -22,6 +22,8 @@
 .dashboard-views button.selected { background: var(--ui-primary-soft); border-color: var(--ui-primary); color: var(--ui-primary-hover); }
 .dashboard-views button.selected strong { color: var(--ui-primary-hover); }
 .queue-heading { font-size: 1rem; font-weight: 700; }
+.dashboard-queue.ui-card { padding: 0; }
+.queue-empty { padding-inline: 1.25rem; }
 .dashboard-queue table td { vertical-align: middle; }
 .dashboard-queue table td p { font-size: .8125rem; line-height: 1.5; }
 .dashboard-queue .text-gray-400 { color: var(--ui-ink-muted); }
@@ -46,11 +48,22 @@
 .dashboard-tools { display: flex; flex-wrap: wrap; gap: .5rem; }
 .clinic-dashboard :is(button, a, summary, input, select):focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
 @media (max-width: 767px) {
+  .clinic-dashboard.admin-page { padding: 1rem .875rem 1.5rem; }
+  .clinic-dashboard > :not([hidden]) ~ :not([hidden]) { margin-top: .875rem; }
+  .clinic-dashboard .admin-page-title { font-size: 1.25rem; }
+  .clinic-dashboard .admin-page-subtitle { margin-top: .25rem; font-size: .8125rem; }
+  .dashboard-sections { padding-bottom: 0; gap: 0; }
   .dashboard-sections .ui-tab { flex: 1; justify-content: center; flex-wrap: wrap; font-size: .8125rem; }
-  .dashboard-views { gap: .5rem; }
-  .dashboard-views button { padding: .875rem .625rem; min-height: 104px; }
-  .dashboard-views button span { font-size: .75rem; line-height: 1.4; }
-  .dashboard-views button strong { font-size: 1.5rem; }
+  .dashboard-views { gap: .25rem; padding: .25rem; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-md); background: var(--ui-surface-muted); }
+  .dashboard-views button { flex-direction: row; align-items: center; justify-content: center; gap: .375rem; padding: .5rem .25rem; min-height: 44px; border-color: transparent; background: transparent; border-radius: .5rem; }
+  .dashboard-views button span { font-size: .75rem; line-height: 1.3; }
+  .dashboard-views button strong { font-size: .8125rem; line-height: 1.3; }
+  .dashboard-views button.selected { background: var(--ui-surface); border-color: var(--ui-line-strong); box-shadow: var(--ui-shadow-sm); }
+  .queue-empty { padding: 1.5rem 1rem; }
+  .queue-empty > div:first-child { width: 2.5rem; height: 2.5rem; margin-bottom: .75rem; }
+  .queue-empty > a { min-height: 44px; }
+  .dashboard-queue > div:first-child > div:first-child { padding: .75rem .875rem .5rem; }
+  .dashboard-queue > div:first-child > label { padding-inline: .875rem; }
   .dashboard-report dl { grid-template-columns: 1fr; }
   .dashboard-queue input { font-size: 16px; }
 }
