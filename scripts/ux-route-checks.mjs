@@ -28,6 +28,9 @@ export async function checkUxRoutes(sessionPage, base, role, paths) {
           const pathname = new URL(page.url()).pathname;
           assert.ok(pathname !== '/account' && !pathname.endsWith('/login'), 'Authenticated route must not fall back to login');
         }
+        if (process.env.E2E_UX_SCREENSHOTS === '1' && width === 390) {
+          await page.screenshot({ path: `${dir}/${role}-${width}-${path.replace(/[^a-z0-9]/gi, '_')}.png`, fullPage: true });
+        }
         console.log(`PASS UX ${role} ${width}px ${path}`);
       } catch (error) {
         const name = `${role}-${width}-${path.replace(/[^a-z0-9]/gi, '_')}`;

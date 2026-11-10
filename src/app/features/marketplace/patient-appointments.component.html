@@ -21,7 +21,7 @@
 </section>
 }
 
-<section class="min-h-[36rem] bg-ui-muted py-6 sm:py-8">
+<section class="patient-account-body min-h-[36rem] bg-ui-muted py-6 sm:py-8">
   <div class="ui-container">
     @if (patientAuth.role() && patientAuth.role() !== 'patient') {
       <div class="mx-auto max-w-2xl border-y border-amber-200 bg-white px-5 py-10 text-center sm:px-10">
@@ -60,7 +60,7 @@
           }
 
           @if (!loading() && !error() && appointments().length === 0) {
-            <div class="mt-6 ui-card px-5 py-12 text-center">
+            <div class="patient-account-empty mt-6 ui-card px-5 py-12 text-center">
               <h3 class="text-xl font-bold text-ui-ink">No linked appointments yet</h3>
               <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ui-ink-muted">Your next visit starts here. Find a dentist and book while signed in to see your appointment in this account.</p>
               <a routerLink="/dentists" class="ui-btn ui-btn-primary mt-5">Find a dentist</a>

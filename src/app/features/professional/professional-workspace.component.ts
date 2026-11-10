@@ -57,15 +57,15 @@ interface Practice { id: string; name: string; city: string; status: string; sch
         @if (tab() === 'profile') {
           <app-professional-profile [embedded]="true" [hasHours]="hasBookableHours()" (locationAdded)="onLocationAdded()" (profileChanged)="loadPractices()" />
         } @else if (tab() === 'appointments') {
-          <div class="my-5 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap gap-2" role="group" aria-label="Appointment views">
+          <div class="professional-visit-toolbar my-5 flex flex-wrap items-center justify-between gap-3">
+            <div class="professional-visit-filters flex flex-wrap gap-2" role="group" aria-label="Appointment views">
               @for (option of appointmentViews; track option.id) {
-                <button type="button" (click)="changeView(option.id)" [disabled]="busy() || loading()" [attr.aria-pressed]="view() === option.id" [class.ui-tab-active]="view() === option.id" class="ui-btn ui-btn-secondary">{{ option.label }}</button>
+                <button type="button" (click)="changeView(option.id)" [disabled]="busy() || loading()" [attr.aria-label]="option.label" [attr.aria-pressed]="view() === option.id" [class.ui-tab-active]="view() === option.id" class="ui-btn ui-btn-secondary">{{ option.id === 'pending' ? 'Pending' : option.label }}</button>
               }
             </div>
             <button (click)="loadVisits()" [disabled]="busy() || loading()" class="ui-btn ui-btn-ghost">Refresh</button>
           </div>
-          <label class="block mb-4"><span class="sr-only">Find a patient</span><input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" class="ui-field" placeholder="Find a patient by name, phone or reference"></label>
+          <label class="block mb-4"><span class="sr-only">Find a patient</span><input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" class="ui-field" placeholder="Name, phone or reference"></label>
           @if (loading()) { <p role="status" class="py-8 text-ui-ink-muted">Loading appointments…</p> }
           @else {
             @for (visit of visibleVisits(); track visit.id) {

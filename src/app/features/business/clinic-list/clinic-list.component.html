@@ -30,7 +30,7 @@
   </header>
 
   @if (!loading() && totalCount() > 0) {
-    <nav aria-label="Clinic status filters" class="flex flex-wrap gap-1 border-y border-ui-line py-2">
+    <nav aria-label="Clinic status filters" class="clinic-status-filters flex flex-wrap gap-1 border-y border-ui-line py-2">
       <button
         type="button"
         class="ui-tab shrink-0"
@@ -69,17 +69,17 @@
       </button>
     </nav>
 
-    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem_auto] lg:items-end">
+    <div class="clinic-list-tools grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem_auto] lg:items-end">
       <div>
         <label for="clinic-search" class="ui-label">Find a clinic</label>
         <div class="relative">
           <input
             id="clinic-search"
             type="search"
-            class="ui-field pr-20"
+            class="ui-field" [class.pr-20]="search()"
             [ngModel]="search()"
             (ngModelChange)="search.set($event)"
-            placeholder="Name, doctor, city, or domain">
+            aria-label="Find a clinic by name, doctor, city or domain" placeholder="Name or city">
           @if (search()) {
             <button
               type="button"
@@ -97,9 +97,9 @@
           class="ui-field"
           [ngModel]="sortBy()"
           (ngModelChange)="sortBy.set($event)">
-          <option value="attention">Setup attention</option>
-          <option value="name">Clinic name</option>
-          <option value="subscription">Subscription status</option>
+          <option value="attention">Setup</option>
+          <option value="name">Name</option>
+          <option value="subscription">Plan</option>
         </select>
       </div>
       <p class="ui-caption pb-3 lg:text-right">
