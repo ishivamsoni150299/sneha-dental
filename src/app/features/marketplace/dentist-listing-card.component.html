@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="listing-facts">
-      <span><strong>{{ consultationFee() != null ? '₹' + consultationFee() : 'Ask clinic for fee' }}</strong> {{ videoOnly() ? 'video consultation' : 'consultation' }}</span>
+      <span class="consultation-fee"><strong>{{ consultationFee() != null ? '₹' + consultationFee() : 'Ask clinic for fee' }}</strong><span><i [class]="videoOnly() ? 'ph ph-video-camera' : 'ph ph-first-aid-kit'" aria-hidden="true"></i> {{ videoOnly() ? 'Video consultation' : 'Clinic consultation' }}</span></span>
       @if (reviewCount()) {<span><i class="ph ph-star" aria-hidden="true"></i> {{ rating().toFixed(1) }} · {{ reviewCount() }} verified {{ reviewCount() === 1 ? 'review' : 'reviews' }}</span>}
     </div>
   </div>
@@ -32,7 +32,7 @@
               [attr.aria-label]="'Request ' + slot.doctorName + ', ' + availabilityDay() + ' at ' + slotLabel(slot) + ' IST'">{{ slotLabel(slot) }}</a>
           }
         </div>
-        <a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="bookingQuery(videoOnly() ? 'video' : 'in_person')" class="ui-btn ui-btn-ghost">More times <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+        <a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="bookingQuery(videoOnly() ? 'video' : 'in_person')" class="ui-btn ui-btn-secondary more-times">More times <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
       } @else {
         <p class="muted">{{ nextAppointment() ? 'Next appointment: ' + nextAppointment() : 'No online times in the next 7 days' }}</p>
         <a [routerLink]="['/dentists', clinic().marketplaceSlug, 'book']" [queryParams]="bookingQuery(videoOnly() ? 'video' : 'in_person')" class="ui-btn ui-btn-secondary">Check availability</a>
