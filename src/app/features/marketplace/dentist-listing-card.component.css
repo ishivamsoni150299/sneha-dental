@@ -8,24 +8,32 @@
 .doctor-info h2{font-family:var(--ui-font-sans);font-size:20px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
 .doctor-info p{margin-top:var(--ui-space-xs);color:var(--ui-ink-muted);font-size:13px;line-height:1.5}
 .listing-facts{display:flex;flex-wrap:wrap;gap:var(--ui-space-md);margin-top:var(--ui-space-md);color:var(--ui-ink-muted);font-size:13px}
-.listing-facts strong{color:var(--ui-ink);font-size:18px}
+.listing-facts strong{color:var(--ui-ink);font-size:20px}
+.consultation-fee{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+.consultation-fee>span{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.more-times{width:100%;justify-content:space-between}
+.listing-details[open] summary i{transform:rotate(180deg)}
 .listing-details{margin-top:var(--ui-space-xs)}
-.listing-details summary{display:flex;align-items:center;gap:var(--ui-space-xs);min-height:44px;width:fit-content;color:var(--ui-primary);font-size:13px;font-weight:600;cursor:pointer;list-style:none}
+.listing-details summary{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-xs);min-height:44px;width:100%;color:var(--ui-primary);font-size:13px;font-weight:600;cursor:pointer;list-style:none}
 .listing-details summary::-webkit-details-marker{display:none}
 .details-content{display:grid;gap:var(--ui-space-sm);padding-block:var(--ui-space-sm);font-size:13px;line-height:1.6;color:var(--ui-ink-muted)}
 .detail-actions{display:flex;flex-wrap:wrap;gap:var(--ui-space-xs)}
 .booking-panel{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:var(--ui-space-sm);padding:var(--ui-space-lg);border-left:1px solid var(--ui-line);background:var(--ui-surface-muted)}
 .availability-title{font-weight:700;font-size:14px;color:var(--ui-ink)}
 .availability-title span{font-size:12px;font-weight:400;color:var(--ui-ink-muted)}
-.slot-options{display:flex;flex-wrap:wrap;gap:var(--ui-space-xs)}
+.slot-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ui-space-xs)}
 .slot-options a{display:grid;place-items:center;flex:1;min-height:48px;padding:var(--ui-space-xs);border:1px solid var(--ui-primary-line);border-radius:var(--ui-radius-xs);background:var(--ui-surface);color:var(--ui-primary);font-size:13px;font-weight:650;white-space:nowrap}
 .slot-options a:hover{background:var(--ui-primary-soft);border-color:var(--ui-primary)}
 .muted{color:var(--ui-ink-muted);font-size:12px;line-height:1.5}
 @media(max-width:767px){
-.dentist-row{grid-template-columns:minmax(0,1fr)}
+.dentist-row{grid-template-columns:minmax(0,1fr);border-radius:var(--ui-radius-lg);box-shadow:var(--ui-shadow-xs)}
 .listing-main{padding:var(--ui-space-md)}
-.profile-overview{grid-template-columns:52px minmax(0,1fr);gap:var(--ui-space-sm)}
-.portrait-link img,.portrait-placeholder{width:52px;height:52px}
+.profile-overview{grid-template-columns:64px minmax(0,1fr);gap:var(--ui-space-md)}
+.portrait-link img,.portrait-placeholder{width:64px;height:64px}
 .doctor-info h2{font-size:18px}
 .booking-panel{padding:var(--ui-space-md);border-left:0;border-top:1px solid var(--ui-line)}
+.listing-facts{padding-top:var(--ui-space-sm);border-top:1px solid var(--ui-line)}
+.listing-details{border-top:1px solid var(--ui-line);padding-top:4px}
+.slot-options a{min-height:48px;font-size:14px}
+.availability-title{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px}
 }
