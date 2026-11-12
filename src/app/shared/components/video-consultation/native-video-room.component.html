@@ -23,6 +23,7 @@
       </div>
       @if (!connected()) {
         <div class="prejoin mx-auto w-full max-w-lg shrink-0 overflow-y-auto px-4 pb-3">
+          <div class="prejoin-heading"><h3>Get ready for your call</h3><p>Find a quiet place. Check your devices before joining.</p></div>
           <button type="button" (click)="prepare()" [disabled]="busy()" class="ui-btn ui-btn-secondary mb-2 w-full">{{ devicesReady() ? 'Check devices again' : 'Check camera & microphone' }}</button>
           <button type="button" (click)="join()" [disabled]="busy()" class="ui-btn ui-btn-primary w-full">{{ busy() ? status() : 'Join call' }}</button>
           <button type="button" (click)="join(true)" [disabled]="busy()" aria-describedby="listen-only-hint" class="ui-btn ui-btn-ghost w-full">Listen only</button>

@@ -3,6 +3,13 @@
 .local-preview{inset:0}
 .local-thumbnail{bottom:12px;right:12px;width:88px;height:72px}
 .prejoin{max-height:48%}
+.prejoin-heading{padding:12px 0;text-align:center}
+.prejoin-heading h3{font-size:16px;font-weight:650;color:var(--ui-ink)}
+.prejoin-heading p{margin-top:4px;font-size:12px;line-height:1.5;color:var(--ui-ink-muted)}
+.prejoin .ui-btn{min-height:48px;white-space:normal;text-align:center}
+.call-control[aria-pressed=false]{background:var(--ui-surface-muted);border-color:var(--ui-line-strong)}
+.call-control[aria-expanded=true]{background:var(--ui-primary-soft);border-color:var(--ui-primary-line);color:var(--ui-primary)}
+summary:focus-visible{outline:3px solid var(--ui-focus);outline-offset:2px}
 .chat-panel{display:none;width:100%;position:absolute;inset:0;z-index:10;background:white}
 .chat-panel.chat-visible{display:block}
 .call-control{display:flex;min-height:52px;min-width:60px;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:12px;padding:8px;font-size:11px;font-weight:600}

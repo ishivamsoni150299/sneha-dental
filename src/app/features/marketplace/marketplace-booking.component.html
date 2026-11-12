@@ -31,7 +31,7 @@
 } @else {
   @if (submission(); as booking) {
     <section class="booking-receipt mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="booking-receipt-title">
-      @if (embeddedSlug) { <div class="receipt-mark" aria-hidden="true">✓</div> }
+      <div class="receipt-mark" aria-hidden="true"><i class="ph ph-paper-plane-tilt"></i></div>
       <p class="ui-caption">Pending {{ isIndependent() ? 'dentist' : 'clinic' }} confirmation</p>
       <h1 id="booking-receipt-title" tabindex="-1" class="ui-heading ui-heading-interface mt-2">Your request was sent</h1>
       <p class="ui-body mt-3">{{ clinic()!.name }} will review your request. Wait for confirmation before your {{ booking.consultationMode === 'video' ? 'call' : 'visit' }}.</p>
@@ -42,7 +42,12 @@
       </dl>
       <a routerLink="/appointments" [queryParams]="patientAuth.isSignedIn() ? {} : { claim: booking.ref }" class="ui-btn ui-btn-primary ui-btn-block">View my appointments</a>
       @if (!patientAuth.isSignedIn()) {<p class="ui-caption mt-3">Keep your reference. Sign in and verify ownership to link this request.</p>}
-      @if (booking.consultationMode === 'video') {<p class="ui-caption mt-3">Once confirmed, join from My appointments 10 minutes before your call.</p>}
+      @if (booking.consultationMode === 'video') {
+        <aside class="video-guidance mt-5" aria-label="What happens next">
+          <h2>Before your video call</h2>
+          <ol><li>Check My appointments for your dentist’s confirmation.</li><li>Once confirmed, open your appointment 10 minutes before your call.</li><li>Check your camera and microphone, then join from a quiet place.</li></ol>
+        </aside>
+      }
       @if (!embeddedSlug) { <a routerLink="/dentists" class="ui-btn ui-btn-ghost ui-btn-block mt-3">Back to dentists</a> }
     </section>
   } @else {
@@ -52,6 +57,14 @@
         <div class="practice-summary mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>@if (!embeddedSlug) { <h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1> }<p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
         </div>
+        @if (consultationMode() === 'video') {
+          <ol class="video-progress" aria-label="Video booking progress">
+            <li [class.current]="!selectedSlot() || editingTime()" [attr.aria-current]="!selectedSlot() || editingTime() ? 'step' : null"><span>1</span> Choose time</li>
+            <li [class.current]="selectedSlot() && !editingTime()" [attr.aria-current]="selectedSlot() && !editingTime() ? 'step' : null"><span>2</span> Your details</li>
+            <li><span>3</span> Request sent</li>
+          </ol>
+          <p class="video-booking-note"><i class="ph ph-video-camera" aria-hidden="true"></i> Join from your device after your dentist confirms the request.</p>
+        }
         @if (!isIndependent() && videoReady() && clinic()!.marketplaceProfile?.videoConsultationEnabled) {
         <fieldset class="booking-mode-options mt-7">
           <legend class="mb-3 text-sm font-semibold text-ui-ink">How would you like to meet?</legend>
@@ -124,6 +137,7 @@
           <section [hidden]="editingTime()" class="video-signin mx-auto mb-10 max-w-lg rounded-2xl border border-ui-line bg-white p-6" aria-labelledby="video-signin-heading">
             <h2 id="video-signin-heading" tabindex="-1" class="scroll-mt-20 text-xl font-semibold text-ui-ink">Sign in to continue</h2>
             <p class="mb-5 mt-2 text-sm text-ui-ink-muted">Use your patient account to book and join your call.</p>
+            <div class="video-guidance mb-5"><h3>Your next step</h3><p>After signing in, review your details and send your request. Your chosen time is not reserved until the dentist confirms.</p></div>
             @if (patientAuth.role()) {
               <p class="ui-body mb-4">You are signed in with a work account. Switch to a patient account to book.</p>
               <button type="button" class="ui-btn ui-btn-primary" (click)="switchAccount()">Switch account</button>
