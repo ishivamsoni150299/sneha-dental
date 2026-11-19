@@ -365,9 +365,9 @@ body {
   min-width: 0;
   overflow-wrap: anywhere;
   border: 1px solid var(--ui-line);
-  border-radius: var(--ui-radius-lg);
+  border-radius: var(--ui-radius-md);
   background: var(--ui-surface);
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-xs);
 }
 
 .ui-card {
@@ -383,9 +383,8 @@ body {
 .ui-card-muted,
 .ds-card-muted,
 .ui-panel-muted {
-  border-color: color-mix(in srgb, var(--ui-primary-line) 65%, var(--ui-line));
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--ui-primary-soft) 66%, white), var(--ui-surface) 72%);
+  border-color: var(--ui-line);
+  background: var(--ui-surface-muted);
 }
 
 .ui-card-interactive {
