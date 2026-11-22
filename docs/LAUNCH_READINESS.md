@@ -2,6 +2,21 @@
 
 Scope: public dentist discovery, independent dentist accounts, clinic onboarding and subscriptions, patient booking and appointment management, video consultations with chat and prescription sharing, and platform administration.
 
+## Release verification — 22 November 2026
+
+At `813b5bb`, [CI](https://github.com/ishivamsoni150299/sneha-dental/actions/runs/44568947377)
+passed marketplace verification but the browser test waited for a form inside a
+closed disclosure. With the test opening “Request help finding a dentist” first,
+the booking journeys passed locally against disposable Spring/PostgreSQL,
+including patient rescheduling/cancellation and clinic confirmation/completion.
+`npm ci` followed by `npm run verify` passed in a clean checkout. The optional
+route/viewport audit was not rerun in this local browser pass.
+
+The read-only production HTTP gate passed, including `HEAD /appointments`. The
+main frontend bundle filename matched the clean build (`main-55FZDGZ4.js`);
+the deployed backend revision and migration version were not established.
+No production booking or external delivery was tested.
+
 ## Release hardening — 9 November 2026
 
 Changes prepared locally; this section does not assert they have been deployed.

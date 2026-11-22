@@ -179,6 +179,7 @@ try {
   assert.equal(unpublishedProfile.status, 404, 'Unverified clinic profiles must stay inaccessible');
   await page.locator('#dentist-search').fill(`No matching dentist ${suffix}`);
   await page.locator('#dentist-search').press('Enter');
+  await page.getByText('Request help finding a dentist', { exact: true }).click();
   const dentistRequest = page.locator('app-request-dentist');
   await dentistRequest.getByRole('heading', { name: 'Request a dentist' }).waitFor();
   assert.equal(await page.getByRole('button', { name: /All filters/ }).count(), 1,
