@@ -14,7 +14,7 @@ export const CHAT_TOPIC = 'consultation-chat';
     </header>
     <div #history role="log" aria-label="Consultation messages" aria-live="polite" aria-relevant="additions" class="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
       @if (!messages().length) {
-        <div class="py-8 text-center"><i class="ph ph-chat-circle-text text-3xl text-blue-600" aria-hidden="true"></i><p class="mt-3 text-sm font-semibold text-gray-900">Everything you need, in one conversation</p><p class="mt-2 text-sm leading-6 text-gray-500">Send a message or share written prescription details during your call.</p></div>
+        <div class="py-4 text-center"><i class="ph ph-chat-circle-text text-3xl text-blue-600" aria-hidden="true"></i><p class="mt-3 text-sm font-semibold text-gray-900">Messages for this call</p><p class="mt-2 text-sm leading-6 text-gray-500">{{ canPrescribe() ? 'Send a message or share prescription details.' : 'Message your dentist here. You can save any prescription they share.' }}</p></div>
       }
       @for (message of messages(); track message.id) {
         <article class="max-w-full rounded-2xl border p-3" [class.bg-blue-50]="message.mine" [class.border-blue-100]="message.mine" [class.bg-gray-50]="!message.mine" [class.border-gray-200]="!message.mine">

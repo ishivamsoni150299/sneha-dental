@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, InjectionToken, OnDestroy, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, InjectionToken, OnDestroy, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import type { LocalTrack, Room, RemoteTrack } from 'livekit-client';
 import { CHAT_TOPIC, ConsultationChatComponent, ConsultationMessage } from './consultation-chat.component';
 import type { VideoSession } from '../../../core/services/video-consultation.service';
@@ -8,7 +9,7 @@ export const LIVEKIT_SDK = new InjectionToken<() => Promise<typeof import('livek
 });
 
 @Component({
-  selector: 'app-native-video-room', standalone: true, imports: [ConsultationChatComponent], changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-native-video-room', standalone: true, imports: [ConsultationChatComponent, NgTemplateOutlet], changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-0 flex-1 flex-col' },
   templateUrl: './native-video-room.component.html',
   styleUrl: './native-video-room.component.css',
@@ -36,8 +37,35 @@ export class NativeVideoRoomComponent implements OnDestroy {
   readonly elapsed = signal('00:00');
   readonly chatOpen = signal(false);
   readonly unread = signal(0);
+  readonly devicesChecked = signal(false);
+  readonly cameraAvailable = signal(false);
+  readonly micAvailable = signal(false);
+  readonly confirmingLeave = signal(false);
+  readonly peer = computed(() => this.staff() ? 'patient' : 'dentist');
+  readonly tone = computed(() => this.reconnecting() || this.status().startsWith('Weak') ? 'warning' : this.connected() ? 'success' : 'info');
+  readonly cameraState = computed(() => this.deviceState(this.cameraAvailable(), this.cameraOn()));
+  readonly micState = computed(() => this.deviceState(this.micAvailable(), this.micOn()));
   private readonly chat = viewChild(ConsultationChatComponent);
   private readonly chatToggle = viewChild<ElementRef<HTMLButtonElement>>('chatToggle');
+  private readonly stayButton = viewChild<ElementRef<HTMLButtonElement>>('stayButton');
+  private readonly leaveButton = viewChild<ElementRef<HTMLButtonElement>>('leaveButton');
+
+  @HostListener('keydown.escape', ['$event'])
+  onEscape(event: KeyboardEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dismiss();
+  }
+  dismiss(): void {
+    if (this.chatOpen()) this.toggleChat(false);
+    else if (this.confirmingLeave()) this.stay();
+    else this.requestLeave();
+  }
+  requestLeave(): void {
+    if (!this.connected()) { this.leave(); return; }
+    this.confirmingLeave.set(true); setTimeout(() => this.stayButton()?.nativeElement.focus());
+  }
+  stay(): void { this.confirmingLeave.set(false); setTimeout(() => this.leaveButton()?.nativeElement.focus()); }
   private devicesAttempted = false;
   readonly sendMessage = async (message: ConsultationMessage): Promise<void> => {
     if (!this.room || !this.connected() || this.reconnecting() || !this.remotePresent()) throw new Error('Not connected');
@@ -79,6 +107,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
       this.stopPreview(); this.tracks = tracks;
       this.showPreview(); this.devicesReady.set(tracks.length > 0);
       this.cameraOn.set(tracks.some(track => track.kind === 'video')); this.micOn.set(tracks.some(track => track.kind === 'audio'));
+      this.cameraAvailable.set(this.cameraOn()); this.micAvailable.set(this.micOn()); this.devicesChecked.set(true);
       const failed = results.find(result => result.status === 'rejected');
       if (failed?.status === 'rejected') this.error.set(this.deviceError(failed.reason));
       if (this.room && this.connected()) for (const track of tracks) await this.room.localParticipant.publishTrack(track);
@@ -88,7 +117,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
       this.microphones.set(devices.filter(device => device.kind === 'audioinput'));
       this.startMeter();
     } catch (error) { if (!this.destroyed && attempt === this.generation) this.error.set(this.deviceError(error)); }
-    finally { if (!this.destroyed && attempt === this.generation) { this.busy.set(false); this.status.set('Ready to join'); } }
+    finally { if (!this.destroyed && attempt === this.generation) { this.busy.set(false); this.devicesChecked.set(true); this.status.set('Ready to join'); } }
   }
 
   async join(listenOnly = false): Promise<void> {
@@ -102,7 +131,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
       this.error.set('Camera and microphone are unavailable. Check your devices, or choose Listen only to join without them.');
       return;
     }
-    if (listenOnly) { this.stopPreview(); this.cameraOn.set(false); this.micOn.set(false); this.devicesReady.set(false); }
+    if (listenOnly) { this.stopPreview(); this.cameraOn.set(false); this.micOn.set(false); this.cameraAvailable.set(false); this.micAvailable.set(false); this.devicesReady.set(false); }
     this.busy.set(true); this.status.set('Connecting…');
     try {
       const sdk = await this.loadSdk();
@@ -174,6 +203,7 @@ export class NativeVideoRoomComponent implements OnDestroy {
         for (const item of tracks) if (this.room && this.connected()) await this.room.localParticipant.publishTrack(item);
         if (this.destroyed || attempt !== this.generation) return;
         track = tracks[0]; this.devicesReady.set(this.tracks.length > 0); this.showPreview();
+        if (track) (kind === 'camera' ? this.cameraAvailable : this.micAvailable).set(true);
       }
       if (track) { if (enabled) await track.unmute(); else await track.mute(); }
       if (this.destroyed || attempt !== this.generation) { track?.stop(); return; }
@@ -229,11 +259,16 @@ export class NativeVideoRoomComponent implements OnDestroy {
   private release(): void {
     this.generation++; this.busy.set(false); clearInterval(this.timer); this.stopPreview();
     this.devicesAttempted = false; this.reconnecting.set(false); this.chatOpen.set(false); this.unread.set(0); this.audioBlocked.set(false); this.elapsed.set('00:00');
+    this.devicesChecked.set(false); this.cameraAvailable.set(false); this.micAvailable.set(false); this.confirmingLeave.set(false);
     const room = this.room; this.room = null;
     if (room) { room.removeAllListeners(); void room.disconnect().catch(() => undefined); }
     this.remote()?.nativeElement.replaceChildren(); this.audio()?.nativeElement.replaceChildren();
     this.connected.set(false); this.cameraOn.set(false); this.micOn.set(false); this.devicesReady.set(false);
     this.hasRemoteVideo.set(false); this.remotePresent.set(false);
+  }
+  private deviceState(available: boolean, on: boolean): { label: string; tone: 'success' | 'warning' | 'neutral' } {
+    if (available) return on ? { label: 'Ready', tone: 'success' } : { label: 'Off', tone: 'neutral' };
+    return this.devicesChecked() ? { label: 'Unavailable', tone: 'warning' } : { label: 'Not checked', tone: 'neutral' };
   }
   private deviceError(error: unknown): string {
     const name = error instanceof Error ? error.name : '';

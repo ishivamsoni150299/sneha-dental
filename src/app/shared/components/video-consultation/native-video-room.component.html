@@ -1,62 +1,126 @@
-<div class="call-shell relative flex min-h-0 flex-1 flex-col overflow-hidden bg-gray-50" [class.chat-active]="chatOpen()">
-  <header class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
-    <div class="min-w-0"><h2 class="text-sm font-semibold text-gray-900">Video consultation</h2><p role="status" class="mt-1 flex items-center gap-2 text-xs text-gray-500"><span class="h-2 w-2 shrink-0 rounded-full" [class.bg-green-500]="connected() && !reconnecting()" [class.bg-amber-500]="reconnecting()" [class.bg-blue-500]="!connected()"></span>{{ status() }}</p></div>
-    <span class="shrink-0 text-xs tabular-nums text-gray-500">{{ connected() ? elapsed() : 'Private call' }}</span>
+<ng-template #deviceToggles>
+  <button type="button" (click)="toggle('microphone')" [disabled]="busy()" [attr.aria-label]="micOn() ? 'Mute microphone' : 'Unmute microphone'" class="call-control" [class.is-off]="!micOn()"><i class="ph text-xl" [class.ph-microphone]="micOn()" [class.ph-microphone-slash]="!micOn()" aria-hidden="true"></i><span aria-hidden="true">{{ micOn() ? 'Mute' : 'Unmute' }}</span></button>
+  <button type="button" (click)="toggle('camera')" [disabled]="busy()" [attr.aria-label]="cameraOn() ? 'Turn camera off' : 'Turn camera on'" class="call-control" [class.is-off]="!cameraOn()"><i class="ph text-xl" [class.ph-video-camera]="cameraOn()" [class.ph-video-camera-slash]="!cameraOn()" aria-hidden="true"></i><span aria-hidden="true">{{ cameraOn() ? 'Camera off' : 'Camera on' }}</span></button>
+</ng-template>
+
+<div class="call-shell" [class.in-call]="connected()" [class.chat-active]="chatOpen()">
+  <header class="call-header">
+    <div class="min-w-0">
+      <h2 class="call-title">Video consultation</h2>
+      <p role="status" class="call-status" [attr.data-tone]="tone()"><span class="ui-status-dot shrink-0" aria-hidden="true"></span><span class="min-w-0 truncate">{{ status() }}</span></p>
+    </div>
+    @if (connected()) {
+      <span class="call-timer"><span class="sr-only">Call time </span>{{ elapsed() }}</span>
+    } @else {
+      <button type="button" (click)="leave()" aria-label="Close video consultation" class="ui-btn ui-btn-ghost ui-btn-icon shrink-0"><i class="ph ph-x text-xl" aria-hidden="true"></i></button>
+    }
   </header>
-  @if (error()) { <div role="alert" class="max-h-28 shrink-0 overflow-y-auto border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{{ error() }}</div> }
-  <div class="call-content relative flex min-h-0 flex-1">
-    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div class="relative m-2 flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-gray-900 sm:m-4">
-        <div #remote class="remote-media absolute inset-0" [class.hidden]="!hasRemoteVideo()"></div>
+
+  @if (error()) {
+    <div role="alert" class="call-alert">
+      <i class="ph ph-warning-circle call-alert-icon" aria-hidden="true"></i>
+      <p class="min-w-0 flex-1">{{ error() }}</p>
+      <button type="button" (click)="error.set('')" aria-label="Dismiss message" class="call-alert-dismiss"><i class="ph ph-x" aria-hidden="true"></i></button>
+    </div>
+  }
+
+  <div class="call-content">
+    <div class="call-main">
+      <div class="call-stage" [class.has-preview-controls]="!connected() && devicesReady()">
+        <div #remote class="remote-media" [class.hidden]="!hasRemoteVideo()"></div>
         @if (!hasRemoteVideo() && (connected() || !cameraOn())) {
-          <div class="max-w-sm px-5 py-5 text-center text-white">
-            <span class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-800"><i class="ph ph-video-camera text-2xl" aria-hidden="true"></i></span>
-            <h3 class="text-lg font-semibold sm:text-2xl">{{ connected() ? (remotePresent() ? 'Camera is off' : staff() ? 'Waiting for your patient' : 'Waiting for your dentist') : 'Ready when you are' }}</h3>
-            <p class="mt-2 text-sm leading-6 text-gray-300">{{ connected() ? (remotePresent() ? 'Your call can continue with audio and chat.' : 'Stay here. Your call starts when they join.') : 'Check your camera and microphone, or join when you’re ready.' }}</p>
+          <div class="stage-message">
+            @if (connected()) {
+              <span class="stage-avatar" [class.is-waiting]="!remotePresent()"><i class="ph text-2xl" [class.ph-user]="remotePresent()" [class.ph-hourglass-medium]="!remotePresent()" aria-hidden="true"></i></span>
+              <h3>{{ remotePresent() ? 'Their camera is off' : 'Waiting for your ' + peer() }}</h3>
+              <p>{{ remotePresent() ? 'You can keep talking, and use chat if needed.' : 'Stay on this screen. The call starts when they join.' }}</p>
+            } @else if (cameraAvailable()) {
+              <span class="stage-avatar"><i class="ph ph-video-camera-slash text-2xl" aria-hidden="true"></i></span>
+              <h3>Your camera is off</h3>
+              <p>Turn it on below, or join with audio only.</p>
+            } @else if (devicesChecked()) {
+              <span class="stage-avatar"><i class="ph ph-video-camera-slash text-2xl" aria-hidden="true"></i></span>
+              <h3>Camera not available</h3>
+              <p>You can still join with your microphone, or choose Listen only.</p>
+            } @else {
+              <span class="stage-avatar"><i class="ph ph-user-focus text-2xl" aria-hidden="true"></i></span>
+              <h3>See yourself before you join</h3>
+              <p>Your browser asks for camera and microphone permission when you test or join.</p>
+            }
           </div>
         }
-        <div class="absolute overflow-hidden rounded-xl bg-gray-800 shadow-lg" [class.local-preview]="!connected()" [class.local-thumbnail]="connected()" [class.hidden]="!connected() && !cameraOn()">
+        <div class="self-view" [class.self-preview]="!connected()" [class.self-thumbnail]="connected()" [class.hidden]="!connected() && !cameraOn()">
           <div #local class="local-media h-full w-full" [class.hidden]="!cameraOn()"></div>
-          @if (!cameraOn()) { <div class="flex h-full items-center justify-center text-gray-300"><i class="ph ph-video-camera-slash text-2xl" aria-label="Your camera is off"></i></div> }
-          <span class="absolute bottom-1 left-2 rounded bg-gray-900 px-1 text-xs text-white">You</span>
+          @if (!cameraOn()) { <div class="flex h-full items-center justify-center text-ui-inverse-muted"><i class="ph ph-video-camera-slash text-2xl" aria-label="Your camera is off"></i></div> }
+          <span class="self-label">You @if (!micOn()) { <i class="ph ph-microphone-slash" aria-label="muted"></i> }</span>
         </div>
+        @if (!connected() && devicesReady()) {
+          <div class="preview-controls"><ng-container [ngTemplateOutlet]="deviceToggles" /></div>
+        }
+        @if (reconnecting()) {
+          <div class="stage-overlay" aria-hidden="true"><span class="call-spinner"></span><p>Reconnecting… keep this window open</p></div>
+        }
+        @if (audioBlocked()) {
+          <div class="stage-overlay"><button type="button" (click)="enableAudio()" class="ui-btn ui-btn-primary ui-btn-lg"><i class="ph ph-speaker-high text-lg" aria-hidden="true"></i>Tap to hear the call</button></div>
+        }
       </div>
+
       @if (!connected()) {
-        <div class="prejoin mx-auto w-full max-w-lg shrink-0 overflow-y-auto px-4 pb-3">
-          <div class="prejoin-heading"><h3>Get ready for your call</h3><p>Find a quiet place. Check your devices before joining.</p></div>
-          <button type="button" (click)="prepare()" [disabled]="busy()" class="ui-btn ui-btn-secondary mb-2 w-full">{{ devicesReady() ? 'Check devices again' : 'Check camera & microphone' }}</button>
-          <button type="button" (click)="join()" [disabled]="busy()" class="ui-btn ui-btn-primary w-full">{{ busy() ? status() : 'Join call' }}</button>
-          <button type="button" (click)="join(true)" [disabled]="busy()" aria-describedby="listen-only-hint" class="ui-btn ui-btn-ghost w-full">Listen only</button>
-          <p id="listen-only-hint" class="text-center text-xs text-ui-ink-muted">Camera and microphone off. You can turn them on during the call.</p>
+        <section class="prejoin" aria-labelledby="prejoin-title">
+          <h3 id="prejoin-title">Ready to join?</h3>
+          <p class="prejoin-lede">Only you can see this preview. Your {{ peer() }} sees and hears you after you join.</p>
+          <ul class="device-list" aria-label="Device status">
+            <li>
+              <i class="ph ph-video-camera" aria-hidden="true"></i><span class="device-name">Camera</span>
+              <span class="ui-badge" [class.ui-badge-success]="cameraState().tone === 'success'" [class.ui-badge-warning]="cameraState().tone === 'warning'">{{ cameraState().label }}</span>
+            </li>
+            <li>
+              <i class="ph ph-microphone" aria-hidden="true"></i><span class="device-name">Microphone</span>
+              <span class="ui-badge" [class.ui-badge-success]="micState().tone === 'success'" [class.ui-badge-warning]="micState().tone === 'warning'">{{ micState().label }}</span>
+              @if (micOn()) { <meter min="0" max="100" [value]="micLevel()" aria-label="Microphone input level" class="mic-meter"></meter><span class="device-hint">Say something — the bar should move.</span> }
+            </li>
+          </ul>
+          <button type="button" (click)="join()" [disabled]="busy()" class="ui-btn ui-btn-primary ui-btn-lg ui-btn-block">
+            @if (busy()) { <span class="call-spinner call-spinner-sm" aria-hidden="true"></span>{{ status() }} } @else { <i class="ph ph-video-camera text-lg" aria-hidden="true"></i>Join call }
+          </button>
+          <div class="prejoin-secondary">
+            <button type="button" (click)="prepare()" [disabled]="busy()" class="ui-btn ui-btn-secondary">{{ devicesChecked() ? 'Check again' : 'Test camera & mic' }}</button>
+            <button type="button" (click)="join(true)" [disabled]="busy()" aria-describedby="listen-only-hint" class="ui-btn ui-btn-secondary">Listen only</button>
+          </div>
+          <p id="listen-only-hint" class="prejoin-hint">Listen only joins with camera and mic off. You can turn them on during the call.</p>
           @if (devicesReady()) {
-          <details class="mt-2 text-sm text-gray-600">
-            <summary class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg focus-visible:outline-blue-600"><i class="ph ph-gear" aria-hidden="true"></i>Change camera or microphone</summary>
-            <div class="space-y-3 py-2">
-              @if (devicesReady()) {
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label class="text-xs font-semibold">Camera<select aria-label="Camera" [disabled]="busy()" (change)="switchDevice('videoinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of cameras(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Camera' }}</option> }</select></label>
-                  <label class="text-xs font-semibold">Microphone<select aria-label="Microphone" [disabled]="busy()" (change)="switchDevice('audioinput', $any($event.target).value)" class="mt-1 min-h-11 w-full rounded-xl border border-gray-300 bg-white px-2 text-base">@for (device of microphones(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Microphone' }}</option> }</select></label>
-                </div>
-                <div class="flex items-center gap-3 text-xs"><span>Microphone level</span><meter min="0" max="100" [value]="micLevel()" aria-label="Microphone input level" class="h-3 flex-1"></meter></div>
-              }
-            </div>
-          </details>
+            <details class="device-settings">
+              <summary><i class="ph ph-gear" aria-hidden="true"></i>Change camera or microphone</summary>
+              <div class="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
+                <label>Camera<select aria-label="Camera" [disabled]="busy()" (change)="switchDevice('videoinput', $any($event.target).value)" class="ui-field mt-1">@for (device of cameras(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Camera' }}</option> }</select></label>
+                <label>Microphone<select aria-label="Microphone" [disabled]="busy()" (change)="switchDevice('audioinput', $any($event.target).value)" class="ui-field mt-1">@for (device of microphones(); track device.deviceId) { <option [value]="device.deviceId">{{ device.label || 'Microphone' }}</option> }</select></label>
+              </div>
+            </details>
           }
-        </div>
+        </section>
       }
-      @if (audioBlocked()) { <button type="button" (click)="enableAudio()" class="mx-auto mb-3 min-h-11 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white">Tap to hear the call</button> }
     </div>
-    <aside class="chat-panel min-h-0 border-l border-gray-200" [class.chat-visible]="chatOpen()" [attr.aria-hidden]="!chatOpen()" [attr.inert]="chatOpen() ? null : ''" aria-label="Consultation chat">
+    <aside id="consultation-chat-panel" class="chat-panel" [class.chat-visible]="chatOpen()" [attr.aria-hidden]="!chatOpen()" [attr.inert]="chatOpen() ? null : ''" aria-label="Consultation chat">
       <app-consultation-chat [canPrescribe]="staff()" [available]="connected() && !reconnecting() && remotePresent()" [transport]="sendMessage" (received)="onMessage()" (dismissed)="toggleChat(false)" />
     </aside>
   </div>
-  <footer class="flex shrink-0 items-center justify-center gap-2 border-t border-gray-200 bg-white px-2 pt-3 sm:gap-4">
-    @if (connected() || devicesReady()) {
-      <button type="button" (click)="toggle('microphone')" [disabled]="busy()" [attr.aria-pressed]="micOn()" [attr.aria-label]="micOn() ? 'Mute microphone' : 'Unmute microphone'" class="call-control border border-gray-200 text-gray-700 disabled:opacity-40"><i class="ph text-xl" [class.ph-microphone]="micOn()" [class.ph-microphone-slash]="!micOn()" aria-hidden="true"></i>{{ micOn() ? 'Mute' : 'Unmute' }}</button>
-      <button type="button" (click)="toggle('camera')" [disabled]="busy()" [attr.aria-pressed]="cameraOn()" [attr.aria-label]="cameraOn() ? 'Turn camera off' : 'Turn camera on'" class="call-control border border-gray-200 text-gray-700 disabled:opacity-40"><i class="ph text-xl" [class.ph-video-camera]="cameraOn()" [class.ph-video-camera-slash]="!cameraOn()" aria-hidden="true"></i>{{ cameraOn() ? 'Camera off' : 'Camera on' }}</button>
-    }
-    @if (connected()) { <button #chatToggle type="button" (click)="toggleChat(!chatOpen())" [attr.aria-expanded]="chatOpen()" class="call-control relative border border-gray-200 text-gray-700"><i class="ph ph-chat-circle-text text-xl" aria-hidden="true"></i>Chat @if (unread()) { <span class="absolute -right-1 -top-1 rounded-full bg-blue-600 px-1.5 text-xs text-white" aria-label="Unread messages">{{ unread() }}</span> }</button> }
-    <button type="button" (click)="leave()" class="call-control bg-red-600 text-white hover:bg-red-700"><i class="ph ph-phone-disconnect text-xl" aria-hidden="true"></i>{{ connected() ? 'Leave' : 'Cancel' }}</button>
-  </footer>
+
+  @if (connected()) {
+    <footer class="call-controls">
+      @if (confirmingLeave()) {
+        <div class="leave-confirm" role="group" aria-labelledby="leave-title">
+          <div><p id="leave-title">Leave this consultation?</p><p class="leave-hint">Save any prescriptions from chat first.</p></div>
+          <div class="flex gap-2">
+            <button #stayButton type="button" (click)="stay()" class="ui-btn ui-btn-secondary">Stay</button>
+            <button type="button" (click)="leave()" class="ui-btn leave-now"><i class="ph ph-phone-disconnect text-lg" aria-hidden="true"></i>Leave call</button>
+          </div>
+        </div>
+      } @else {
+        <ng-container [ngTemplateOutlet]="deviceToggles" />
+        <button #chatToggle type="button" (click)="toggleChat(!chatOpen())" [attr.aria-expanded]="chatOpen()" aria-controls="consultation-chat-panel" class="call-control relative" [class.is-active]="chatOpen()"><i class="ph ph-chat-circle-text text-xl" aria-hidden="true"></i>Chat @if (unread()) { <span class="unread-badge"><span class="sr-only">, </span>{{ unread() }}<span class="sr-only"> unread</span></span> }</button>
+        <button #leaveButton type="button" (click)="requestLeave()" class="call-control call-leave"><i class="ph ph-phone-disconnect text-xl" aria-hidden="true"></i>Leave</button>
+      }
+    </footer>
+  }
   <div #audio class="hidden"></div>
 </div>

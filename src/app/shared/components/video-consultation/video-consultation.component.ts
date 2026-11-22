@@ -16,20 +16,27 @@ export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => 
 @Component({
   selector: 'app-video-consultation', standalone: true, imports: [NativeVideoRoomComponent, ConsultationChatComponent, CallViewportDirective], changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <button type="button" (click)="join()" [disabled]="loading()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-      <i class="ph ph-video-camera" aria-hidden="true"></i> {{ loading() ? 'Opening…' : 'Join video call' }}
+    <button type="button" (click)="join()" [disabled]="loading()" class="ui-btn ui-btn-primary">
+      <i class="ph ph-video-camera text-lg" aria-hidden="true"></i> {{ loading() ? 'Opening…' : 'Join video call' }}
     </button>
-    <dialog #dialog appCallViewport class="video-room" aria-label="Private video consultation" (cancel)="close()">
+    <dialog #dialog appCallViewport class="video-room" aria-label="Private video consultation" (cancel)="cancelDialog($event)">
       @if (!nativeSession()) {
-        <header class="flex items-center justify-between gap-2 border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
-          <h2 class="text-sm font-semibold text-gray-900">Video consultation</h2>
-          <div class="flex gap-2">@if (dailyReady()) { <button type="button" (click)="toggleChat(!chatOpen())" [attr.aria-expanded]="chatOpen()" class="min-h-11 rounded-xl bg-blue-50 px-3 text-sm font-semibold text-blue-700">Chat {{ unread() ? '(' + unread() + ')' : '' }}</button> }
-          <button type="button" (click)="close()" aria-label="Close video consultation" class="flex h-11 w-11 items-center justify-center rounded-xl text-gray-600"><i class="ph ph-x text-xl" aria-hidden="true"></i></button></div>
+        <header class="flex items-center justify-between gap-2 border-b border-ui-line bg-ui-surface px-4 py-2.5 sm:px-6">
+          <h2 class="text-sm font-semibold text-ui-ink">Video consultation</h2>
+          <div class="flex gap-2">@if (dailyReady()) { <button type="button" (click)="toggleChat(!chatOpen())" [attr.aria-expanded]="chatOpen()" class="ui-btn ui-btn-secondary"><i class="ph ph-chat-circle-text" aria-hidden="true"></i>Chat {{ unread() ? '(' + unread() + ')' : '' }}</button> }
+          <button type="button" (click)="close()" aria-label="Close video consultation" class="ui-btn ui-btn-ghost ui-btn-icon"><i class="ph ph-x text-xl" aria-hidden="true"></i></button></div>
         </header>
       }
-      @if (loading()) {<p role="status" class="p-6 text-center text-sm text-gray-600">Preparing your private room…</p>}
+      @if (loading()) {
+        <div role="status" class="room-state"><span class="room-spinner" aria-hidden="true"></span><p class="font-semibold text-ui-ink">Preparing your private room…</p><p class="text-sm text-ui-ink-muted">This usually takes a few seconds.</p></div>
+      }
       @if (error()) {
-        <div role="alert" class="mx-auto max-w-lg p-6 text-center"><i class="ph ph-video-camera-slash text-4xl text-blue-600" aria-hidden="true"></i><p class="mt-4 text-sm leading-6 text-gray-700">{{ error() }}</p><button type="button" (click)="join()" class="mt-5 min-h-11 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white">Try again</button></div>
+        <div role="alert" class="room-state">
+          <span class="flex h-14 w-14 items-center justify-center rounded-full bg-ui-primary-soft text-ui-primary"><i class="ph ph-video-camera-slash text-2xl" aria-hidden="true"></i></span>
+          <h3 class="font-semibold text-ui-ink">Video room unavailable</h3>
+          <p class="max-w-md text-sm leading-6 text-ui-ink-soft">{{ error() }}</p>
+          <div class="mt-2 flex flex-wrap justify-center gap-2"><button type="button" (click)="close()" class="ui-btn ui-btn-secondary">Close</button><button type="button" (click)="join()" class="ui-btn ui-btn-primary">Try again</button></div>
+        </div>
       }
       @if (nativeSession(); as session) { <app-native-video-room [session]="session" [staff]="staff() || dentist()" [refreshSession]="refreshSession" (joined)="trackJoined()" (closed)="close()" /> }
       <div class="relative flex min-h-0 flex-1" [class.hidden]="!!error() || !!nativeSession() || loading()">
@@ -39,7 +46,11 @@ export const VIDEO_FRAME_FACTORY = new InjectionToken<(element: HTMLElement) => 
     </dialog>
   `,
   styles: [`
-    .video-room{padding:0;border:0;border-radius:18px;width:min(1120px,96vw);max-width:100vw;height:90dvh;max-height:100dvh;background:white;overflow:hidden}
+    .video-room{padding:0;border:0;border-radius:var(--ui-radius-lg);width:min(1120px,96vw);max-width:100vw;height:90dvh;max-height:100dvh;background:var(--ui-canvas);overflow:hidden;box-shadow:var(--ui-shadow-lg)}
+    .room-state{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:1.5rem;text-align:center}
+    .room-spinner{width:2.25rem;height:2.25rem;margin-bottom:.5rem;border-radius:50%;border:3px solid var(--ui-primary-soft);border-top-color:var(--ui-primary);animation:room-spin .9s linear infinite}
+    @keyframes room-spin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.room-spinner{animation-duration:2.4s}}
     .video-room::backdrop{background:rgb(17 24 39 / .72);backdrop-filter:blur(5px)}
     .video-room[open]{display:flex;flex-direction:column}
     .video-room header{flex-shrink:0}
@@ -80,6 +91,7 @@ export class VideoConsultationComponent implements OnDestroy {
   private readonly analytics = inject(AnalyticsService);
   private readonly createFrame = inject(VIDEO_FRAME_FACTORY);
   private readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly nativeRoom = viewChild(NativeVideoRoomComponent);
   private readonly frame = viewChild<ElementRef<HTMLDivElement>>('frame');
   private call: DailyCall | null = null;
   private generation = 0;
@@ -137,6 +149,13 @@ export class VideoConsultationComponent implements OnDestroy {
     this.loading.set(false);
     if (this.dialog()?.nativeElement.open) this.dialog()!.nativeElement.close();
     void this.destroyCall();
+  }
+
+  cancelDialog(event: Event): void {
+    event.preventDefault();
+    const room = this.nativeRoom();
+    if (room) room.dismiss();
+    else this.close();
   }
 
   ngOnDestroy(): void { this.close(); }

@@ -27,6 +27,29 @@ describe('NativeVideoRoomComponent', () => {
     const view = TestBed.createComponent(NativeVideoRoomComponent);
     view.componentRef.setInput('session', session); view.detectChanges(); return view;
   }
+  it('closes chat before asking to leave and lets Escape dismiss the leave confirmation', async () => {
+    const view = fixture();
+    await view.componentInstance.join(true);
+    const closed = jasmine.createSpy('closed');
+    view.componentInstance.closed.subscribe(closed);
+    view.componentInstance.toggleChat(true);
+    const escape = () => {
+      view.detectChanges();
+      const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+      view.nativeElement.dispatchEvent(event);
+      expect(event.defaultPrevented).toBeTrue();
+    };
+    escape();
+    expect(view.componentInstance.chatOpen()).toBeFalse();
+    expect(view.componentInstance.confirmingLeave()).toBeFalse();
+    escape();
+    expect(view.componentInstance.confirmingLeave()).toBeTrue();
+    escape();
+    expect(view.componentInstance.confirmingLeave()).toBeFalse();
+    expect(view.componentInstance.connected()).toBeTrue();
+    expect(closed).not.toHaveBeenCalled();
+    view.destroy();
+  });
   it('gets a fresh token after the camera check and releases the connection when leaving', async () => {
     const view = fixture();
     const refresh = jasmine.createSpy('refresh').and.resolveTo({ ...session, token: 'fresh-token' });
@@ -150,6 +173,28 @@ describe('NativeVideoRoomComponent', () => {
     audioTrack.restartTrack.and.resolveTo();
     await view.componentInstance.switchDevice('audioinput', 'headset');
     expect(view.componentInstance.error()).toBe(''); view.destroy();
+  });
+  it('asks for confirmation before leaving an active call', async () => {
+    const view = fixture(); const closed = jasmine.createSpy('closed');
+    view.componentInstance.closed.subscribe(closed);
+    await view.componentInstance.join(true);
+    view.componentInstance.requestLeave();
+    expect(view.componentInstance.confirmingLeave()).toBeTrue();
+    expect(room.disconnect).not.toHaveBeenCalled(); expect(closed).not.toHaveBeenCalled();
+    view.componentInstance.stay();
+    expect(view.componentInstance.connected()).toBeTrue();
+    view.componentInstance.requestLeave(); view.componentInstance.leave();
+    expect(closed).toHaveBeenCalled(); expect(view.componentInstance.confirmingLeave()).toBeFalse(); view.destroy();
+  });
+  it('closes immediately before joining and reports which devices are unavailable', async () => {
+    const view = fixture(); const closed = jasmine.createSpy('closed');
+    view.componentInstance.closed.subscribe(closed);
+    expect(view.componentInstance.cameraState().label).toBe('Not checked');
+    await view.componentInstance.prepare();
+    expect(view.componentInstance.micState().label).toBe('Ready');
+    expect(view.componentInstance.cameraState().label).toBe('Unavailable');
+    view.componentInstance.requestLeave();
+    expect(closed).toHaveBeenCalled(); view.destroy();
   });
   it('ignores a late connection failure after leaving and rejoining', async () => {
     const view = fixture();

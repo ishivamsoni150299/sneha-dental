@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { NativeVideoRoomComponent } from './native-video-room.component';
 import type { DailyCall } from '@daily-co/daily-js';
 import { VIDEO_FRAME_FACTORY, VideoConsultationComponent } from './video-consultation.component';
 import { VideoAccessError, VideoConsultationService } from '../../../core/services/video-consultation.service';
@@ -44,6 +46,21 @@ describe('VideoConsultationComponent', () => {
     const view = fixture(); await view.componentInstance.join(); view.detectChanges();
     expect(view.nativeElement.textContent).toContain('opens 10 minutes');
     expect(call.join).not.toHaveBeenCalled();
+    view.componentInstance.close();
+  });
+
+  it('keeps an active native call open when the dialog receives a cancel request', async () => {
+    video.join.and.resolveTo({ ...session, provider: 'livekit' });
+    const view = fixture();
+    await view.componentInstance.join(); view.detectChanges();
+    const native = view.debugElement.query(By.directive(NativeVideoRoomComponent)).componentInstance as NativeVideoRoomComponent;
+    native.connected.set(true);
+    const dialog: HTMLDialogElement = view.nativeElement.querySelector('dialog');
+    const cancel = new Event('cancel', { cancelable: true });
+    dialog.dispatchEvent(cancel);
+    expect(cancel.defaultPrevented).toBeTrue();
+    expect(dialog.open).toBeTrue();
+    expect(native.confirmingLeave()).toBeTrue();
     view.componentInstance.close();
   });
 

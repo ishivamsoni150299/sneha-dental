@@ -57,7 +57,7 @@
         <div class="practice-summary mt-2 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>@if (!embeddedSlug) { <h1 class="booking-title mt-1 text-2xl font-semibold text-ui-ink sm:text-3xl">{{ consultationMode() === 'video' ? 'Book a video consultation' : 'Request an appointment' }}</h1> }<p class="booking-provider mt-1 text-sm text-gray-500">{{ clinic()!.name }}@if (consultationMode() !== 'video') { · {{ clinic()!.marketplaceProfile?.locality }}}</p></div>
         </div>
-        @if (consultationMode() === 'video') {
+        @if (consultationMode() === 'video' && !embeddedSlug) {
           <ol class="video-progress" aria-label="Video booking progress">
             <li [class.current]="!selectedSlot() || editingTime()" [attr.aria-current]="!selectedSlot() || editingTime() ? 'step' : null"><span>1</span> Choose time</li>
             <li [class.current]="selectedSlot() && !editingTime()" [attr.aria-current]="selectedSlot() && !editingTime() ? 'step' : null"><span>2</span> Your details</li>
