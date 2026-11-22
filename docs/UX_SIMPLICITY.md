@@ -33,6 +33,12 @@ availability and existing booking permissions, holds, and consent.
 
 ## Implemented journeys
 
+Mili shows role-specific shortcuts with their purpose. When chat is available,
+the example request fills the composer for editing rather than sending it.
+Choosing a dentist moves focus to the booking instructions and keeps the
+selected practice or dentist visible. An empty clinic queue links directly to
+pending requests when there are any, or to all visits.
+
 | User | Frequent task | Current path |
 | --- | --- | --- |
 | Patient | Request an appointment | Choose a listed time → enter name/mobile → consent and send; mobile verification when required |

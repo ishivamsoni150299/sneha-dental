@@ -12,7 +12,12 @@
     </li>
   }
 </ol>
-<p class="step-guidance" tabindex="-1" role="status">{{ checkout?.submitting() ? 'Sending your request. Please keep this page open…' : guidance[step()] }}</p>
+<p class="step-guidance" tabindex="-1" role="status">
+  @if (selected(); as dentist) {
+    @if (!receipt()) { <strong>{{ dentist.dentistName || dentist.clinicName }} · </strong> }
+  }
+  {{ checkout?.submitting() ? 'Sending your request. Please keep this page open…' : guidance[step()] }}
+</p>
 @if (selected(); as dentist) {
   <app-marketplace-booking [embeddedSlug]="dentist.slug" [initialDate]="applied.date" [preferredPeriod]="applied.period" (requestSent)="complete($event)" />
 } @else {

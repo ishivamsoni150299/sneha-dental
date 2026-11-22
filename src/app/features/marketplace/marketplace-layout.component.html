@@ -1,10 +1,10 @@
 <div class="marketplace-shell">
-  <a href="#marketplace-content" class="sr-only focus:not-sr-only">Skip to content</a>
+  <button type="button" class="ui-skip" (click)="content.focus()">Skip to content</button>
   <app-platform-header />
-  <main id="marketplace-content" tabindex="-1"><router-outlet /></main>
+  <main #content id="marketplace-content" tabindex="-1"><router-outlet /></main>
   <app-platform-navigation />
   <footer>
-    <div class="footer-brand"><a routerLink="/mili" aria-label="My Dental Platform home"><app-platform-brand size="sm" /></a><p>Good dental care starts with a confident choice.</p><span>Connecting patients with verified dentists in Delhi NCR.</span></div>
-    <nav aria-label="Footer"><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a><a routerLink="/dentists">Patients</a><a routerLink="/account" [queryParams]="{mode: 'signup', type: 'dentist'}">Dentists</a><a routerLink="/account" [queryParams]="{mode: 'signup', type: 'clinic'}">Clinics</a></nav>
+    <div class="footer-brand"><a routerLink="/mili" aria-label="My Dental Platform home"><app-platform-brand size="sm" /></a><p>Find verified dental care in Delhi NCR.</p></div>
+    <nav aria-label="Footer"><a routerLink="/dentists">Find a dentist</a><a routerLink="/account" [queryParams]="{mode: 'signup', type: 'dentist'}">Join as a dentist</a><a routerLink="/account" [queryParams]="{mode: 'signup', type: 'clinic'}">Register a clinic</a><a routerLink="/business/privacy">Privacy</a><a routerLink="/business/terms">Terms</a></nav>
   </footer>
 </div>

@@ -99,7 +99,9 @@ export class MiliBookingComponent implements OnChanges, OnInit {
     finally { if (request === this.request) this.loading.set(false); }
   }
 
-  select(choice: DentistChoice): void { if (!this.updating) this.selected.set(choice); }
+  select(choice: DentistChoice): void {
+    if (!this.updating) { this.selected.set(choice); this.focusSearch(); }
+  }
   back(): void { if (!this.checkout?.submitting() && !this.updating) { this.selected.set(null); this.receipt.set(null); this.focusSearch(); } }
   complete(receipt: BookingSubmission): void { this.receipt.set(receipt); this.sent.emit(receipt); }
   close(): void { if (!this.checkout?.submitting() && !this.updating) this.finished.emit(); }

@@ -15,8 +15,8 @@
           <p role="status">{{ busy() ? 'Working on your request…' : voice() === 'connecting' ? 'Connecting your microphone…' : muted() ? 'Microphone muted' : voice() === 'listening' ? 'I’m listening' : voice() === 'speaking' ? 'Mili is speaking' : available() && auth.currentUser() ? 'Say it or type it. Let’s take care of it.' : 'Find care. Manage your day. Start here.' }}</p>
         </div>
         @if (!auth.currentUser()) {
-          <p class="notice">Explore dentists now, or sign in for help with your account.</p>
-          <button class="primary" type="button" (click)="signIn()">Sign in to talk to Mili</button>
+          <p class="notice">You can look for a dentist without signing in.</p>
+          <button type="button" class="guest-sign-in" (click)="signIn()">Sign in to your account</button>
         } @else if (!available()) {
           <p class="notice" role="status">{{ checked() ? 'Voice and AI requests are currently unavailable. Use the task controls to continue.' : 'Checking voice and AI availability…' }}</p>
         } @else {
@@ -48,6 +48,9 @@
               }
             </div>
           </div>
+          @if (!hasTask() && !input && voice() === 'off') {
+            <button class="prompt-example" type="button" (click)="input = 'Find a dentist in Noida tomorrow morning'; command.focus()">Try a request: “Find a dentist in Noida tomorrow morning”</button>
+          }
       }
       @if (result() || busy() || error()) {
         <aside #taskCanvas class="task-canvas" tabindex="-1" aria-labelledby="task-heading" [attr.aria-busy]="busy()">
@@ -93,9 +96,12 @@
         </aside>
       }
         @if (!hasTask()) {
-          <div class="shortcuts" aria-label="Suggested tasks">
+          <div class="task-menu" role="group" aria-label="Suggested tasks">
             @for (shortcut of shortcuts(); track shortcut.title) {
-              <button type="button" [disabled]="busy()" (click)="choose(shortcut)"><span class="shortcut-title">{{ shortcut.title }}</span><svg class="arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10" /></svg></button>
+              <button type="button" [disabled]="busy()" (click)="choose(shortcut)">
+                <span><strong>{{ shortcut.title }}</strong><small>{{ shortcut.detail }}</small></span>
+                <span aria-hidden="true">→</span>
+              </button>
             }
           </div>
         }

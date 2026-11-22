@@ -125,6 +125,13 @@
 
 html {
   color-scheme: light;
+  scroll-padding-block-start: 4.5rem;
+}
+
+@media (max-width: 767px) {
+  html:has(.patient-tab-bar, .professional-workspace-tabs, .clinic-admin-shell, .platform-mobile-nav) {
+    scroll-padding-block-end: calc(5rem + env(safe-area-inset-bottom));
+  }
 }
 
 body {
@@ -140,7 +147,7 @@ body {
 }
 
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--ui-focus);
+  outline: 2px solid var(--ui-primary-hover);
   outline-offset: 3px;
 }
 
@@ -235,6 +242,18 @@ body {
 .ui-section {
   padding-block: clamp(3.5rem, 8vw, 7rem);
 }
+
+.ui-skip {
+  position: fixed;
+  inset: .5rem auto auto .5rem;
+  z-index: 9999;
+  transform: translateY(calc(-100% - 1rem));
+  padding: .75rem 1rem;
+  background: var(--ui-ink);
+  color: var(--ui-surface);
+  border-radius: var(--ui-radius-xs);
+}
+.ui-skip:focus { transform: none; }
 
 .ui-section-compact {
   padding-block: clamp(2.5rem, 5vw, 4.5rem);
@@ -701,8 +720,9 @@ textarea.ui-field {
 }
 
 .ui-alert {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
+  align-items: flex-start;
+  overflow-wrap: anywhere;
   gap: 0.75rem;
   border: 1px solid var(--ui-line);
   border-radius: var(--ui-radius-md);
@@ -755,7 +775,8 @@ textarea.ui-field {
 }
 
 .ui-table-shell {
-  overflow: hidden;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
   border: 1px solid var(--ui-line);
   border-radius: var(--ui-radius-lg);
   background: var(--ui-surface);
@@ -780,6 +801,7 @@ textarea.ui-field {
 }
 
 .ui-table td {
+  font-variant-numeric: tabular-nums;
   padding: 0.9rem 1rem;
   border-top: 1px solid var(--ui-line);
   color: var(--ui-ink-soft);
@@ -790,7 +812,8 @@ textarea.ui-field {
   transition: background-color var(--ui-duration-fast);
 }
 
-.ui-table tbody tr:hover {
+.ui-table tbody tr:hover,
+.ui-table tbody tr:focus-within {
   background: color-mix(in srgb, var(--ui-primary-soft) 24%, white);
 }
 

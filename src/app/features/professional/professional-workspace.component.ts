@@ -63,9 +63,9 @@ interface Practice { id: string; name: string; city: string; status: string; sch
                 <button type="button" (click)="changeView(option.id)" [disabled]="busy() || loading()" [attr.aria-label]="option.label" [attr.aria-pressed]="view() === option.id" [class.ui-tab-active]="view() === option.id" class="ui-btn ui-btn-secondary">{{ option.id === 'pending' ? 'Pending' : option.label }}</button>
               }
             </div>
-            <button (click)="loadVisits()" [disabled]="busy() || loading()" class="ui-btn ui-btn-ghost">Refresh</button>
+            <button (click)="loadVisits()" [disabled]="busy() || loading()" class="ui-btn ui-btn-ghost">{{ loading() ? 'Refreshing…' : 'Refresh' }}</button>
           </div>
-          <label class="block mb-4"><span class="sr-only">Find a patient</span><input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" class="ui-field" placeholder="Name, phone or reference"></label>
+          <label class="block mb-4"><span class="ui-label">Find a patient</span><input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" class="ui-field" placeholder="Name, phone or reference"></label>
           @if (loading()) { <p role="status" class="py-8 text-ui-ink-muted">Loading appointments…</p> }
           @else {
             @for (visit of visibleVisits(); track visit.id) {

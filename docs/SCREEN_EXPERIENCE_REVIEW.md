@@ -1,5 +1,15 @@
 # Screen and flow coverage — 18 October 2026
 
+## Shared navigation and daily work — 22 November 2026
+
+Marketplace, tenant and platform-admin shells now let keyboard users move focus
+directly to page content without navigating away. Public footer links describe
+their destinations, and the desktop platform menu includes patient requests
+instead of repeating a shortcut above each screen. Clinic and dentist appointment
+searches retain visible labels while typing. Shared tables scroll horizontally
+when space is tight, and route-loading feedback persists until navigation ends.
+These are shared-shell improvements, not individual redesigns of every route.
+
 ## Verified follow-up — 9 November 2026
 
 The isolated browser suite now passes 288 route/viewport checks across public,

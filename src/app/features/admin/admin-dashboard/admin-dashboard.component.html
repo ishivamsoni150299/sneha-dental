@@ -469,7 +469,7 @@
 
           </div>
 
-          <label class="block px-5 pb-3"><span class="sr-only">Search appointments by name, phone or reference</span><input type="search" placeholder="Name, phone or reference" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" class="ui-field"></label>
+          <label class="block px-5 pb-3"><span class="ui-label">Search appointments<span class="sr-only"> by name, phone or reference</span></span><input type="search" placeholder="Name, phone or reference" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" class="ui-field"></label>
           <!-- Date filters (expandable) -->
           @if (showFilters()) {
             <div id="appointment-filters" class="px-5 pb-4 space-y-3 border-t border-gray-50 pt-3">
@@ -560,11 +560,15 @@
             </div>
             @if (hasActiveFilters()) {
               <p class="text-ui-ink-muted font-semibold text-sm">No results match your search</p>
-              <button (click)="clearFilters()" class="text-xs text-blue-600 hover:underline mt-2">Clear filters</button>
+              <button type="button" (click)="clearFilters()" class="ui-btn ui-btn-secondary mt-2">Clear filters</button>
             } @else {
               <p class="text-ui-ink-muted font-semibold text-sm">{{ appointments().length ? 'No visits in this view' : 'No appointments yet' }}</p>
               @if (appointments().length) {
-                <p class="ui-caption mt-2">Choose All visits to see your other bookings.</p>
+                @if (activeTab() !== 'pending' && counts().pending > 0) {
+                  <button type="button" (click)="selectView('pending')" class="ui-btn ui-btn-primary mt-2">Review pending requests ({{ counts().pending }})</button>
+                } @else {
+                  <button type="button" (click)="selectView('all')" class="ui-btn ui-btn-secondary mt-2">Show all visits</button>
+                }
                 <button type="button" (click)="selectView('all')" class="ui-btn ui-btn-secondary mt-4">View all visits</button>
               } @else { <p class="ui-caption mt-2">Share your booking link to start receiving appointments.</p> }
               <a [href]="websiteUrl || '/'" target="_blank" rel="noopener noreferrer"

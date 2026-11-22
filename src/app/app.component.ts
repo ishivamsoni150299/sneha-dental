@@ -14,8 +14,8 @@ import { PlatformAgentComponent } from './shared/components/platform-agent/platf
   template: `
     <!-- Route progress bar -->
     @if (navigating()) {
-      <div class="fixed top-0 left-0 right-0 z-[9999] h-0.5 bg-blue-100 overflow-hidden">
-        <div class="h-full bg-blue-600 animate-route-progress"></div>
+      <div role="status" class="route-progress fixed top-0 left-0 right-0 z-[9999] h-0.5 overflow-hidden">
+        <span class="sr-only">Opening page…</span><div class="h-full animate-route-progress"></div>
       </div>
     }
 
@@ -34,11 +34,11 @@ import { PlatformAgentComponent } from './shared/components/platform-agent/platf
   `,
   styles: [`
     @keyframes route-progress {
-      0%   { width: 0%; opacity: 1; }
-      70%  { width: 85%; opacity: 1; }
-      100% { width: 100%; opacity: 0; }
+      from { transform: translateX(-100%); }
+      to { transform: translateX(300%); }
     }
-    .animate-route-progress { animation: route-progress 1.5s ease-out forwards; }
+    .route-progress { background: var(--ui-primary-soft); }
+    .animate-route-progress { width: 35%; background: var(--ui-primary); animation: route-progress 1.5s ease-in-out infinite; }
     @media (prefers-reduced-motion: reduce) { .animate-route-progress { animation: none; width: 70%; } }
   `]
 })

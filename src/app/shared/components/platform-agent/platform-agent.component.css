@@ -23,3 +23,15 @@ input{width:100%;min-width:0;min-height:46px;border:1px solid var(--ui-line);bor
 @media(max-width:600px){.workspace-body,.has-task .workspace-body{padding-bottom:calc(24px + env(safe-area-inset-bottom))}.edit-form input{font-size:16px}.main-page{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}.actions>button{flex:1}.task-canvas{scroll-margin-top:12px}}
 @media(max-height:600px) and (max-width:900px){.workspace-body{padding-top:12px;gap:12px}.character-scene{height:82px}.large{transform:scale(.7)}.mili-stage h3{margin-top:10px;font-size:24px}.has-task .workspace-body{padding-top:8px}.composer{margin-top:0}}
 @media(prefers-reduced-motion:reduce){.task-canvas{animation:none}}
+.guest-sign-in,.prompt-example{display:block;margin-inline:auto;color:var(--ui-primary);background:none;border:0;text-decoration:underline;text-underline-offset:3px}
+.prompt-example{margin-top:-12px;text-align:start}
+.task-menu{border-block:1px solid var(--ui-line)}
+.task-menu button{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;padding:1rem .75rem;text-align:start;border:0;border-radius:0}
+.task-menu button+button{border-top:1px solid var(--ui-line)}
+.task-menu strong,.task-menu small{display:block}.task-menu strong{font-size:1rem}.task-menu small{margin-top:.2rem;color:var(--ui-ink-muted);font-size:.8125rem}.task-menu button>span:last-child{color:var(--ui-primary);font-size:1.25rem}
+.mili-panel:not(.has-task) .mili-stage h3{font-family:var(--ui-font-display);font-weight:500;font-size:clamp(2rem,5vw,3rem);line-height:1.08;text-wrap:balance}
+@media(max-width:600px){
+  .mili-panel:not(.has-task) .workspace-body{padding-top:24px}
+  .mili-panel:not(.has-task) .character-scene{height:104px}
+  .mili-panel:not(.has-task) .large{transform:scale(.82)}
+}
