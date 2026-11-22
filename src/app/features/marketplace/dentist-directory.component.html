@@ -50,58 +50,38 @@
       <button type="button" (click)="videoOnly.set(false)" [attr.aria-pressed]="!videoOnly()" [class.bg-blue-50]="!videoOnly()" [class.border-blue-600]="!videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ui-line px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-hospital" aria-hidden="true"></i> In-clinic visit</button>
       <button type="button" (click)="chooseVideo()" [attr.aria-pressed]="videoOnly()" [class.bg-blue-50]="videoOnly()" [class.border-blue-600]="videoOnly()" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ui-line px-4 py-3 text-sm font-semibold text-blue-700"><i class="ph ph-video-camera" aria-hidden="true"></i> Video consultation</button>
     </div>
-    <form class="search-bar" role="search" (submit)="$event.preventDefault(); findDentists()">
-      <div class="search-field">
-        <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <div><label for="dentist-search">Treatment or dentist (optional)</label>
-          <input id="dentist-search" type="search" enterkeyhint="search" placeholder="e.g. cleaning or a dentist’s name" [value]="searchTerm()" (input)="updateSearch($event)">
-        </div>
-      </div>
-      <div class="search-field location-field">
-        <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
-        <div><label for="dentist-locality">Where are you?</label>
-          <select id="dentist-locality" name="locality" [ngModel]="locality()" (change)="updateLocality($event)">
+    <form class="area-tools" role="search" (submit)="$event.preventDefault(); findDentists()">
+      <div class="area-picker">
+        <i class="ph ph-map-pin" aria-hidden="true"></i>
+        <label for="dentist-locality" class="sr-only">Choose your area</label>
+          <select id="dentist-locality" name="locality" [ngModel]="userCoordinates() ? '__nearby' : locality()" (change)="updateLocality($event)">
+            @if (userCoordinates()) { <option value="__nearby" disabled>Within 25 km</option> }
             <option value="">Delhi NCR</option>
             @for (place of locationChoices.slice(1); track place) { <option [value]="place">{{ place }}</option> }
             @for (place of localities(); track place) { <option [value]="place">{{ place }}</option> }
           </select>
-        </div>
-        <button type="button" class="location-button" (click)="useMyLocation()" [disabled]="locating()" aria-label="Find dentists near my location"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+        @if (!videoOnly()) {
+          <button type="button" (click)="useMyLocation()" [disabled]="locating()" aria-label="Find dentists near my location"><i class="ph ph-crosshair" aria-hidden="true"></i>{{ locating() ? 'Locating…' : 'Use my location' }}</button>
+        }
       </div>
-
-      <button type="submit" class="search-submit ui-btn ui-btn-primary">Find dentists <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+      <label class="directory-query"><i class="ph ph-magnifying-glass" aria-hidden="true"></i><span class="sr-only">Treatment or dentist (optional)</span><input id="dentist-search" type="search" enterkeyhint="search" placeholder="Dentist or treatment" [value]="searchTerm()" (input)="updateSearch($event)"></label>
     </form>
     @if (locationError()) { <p role="status" class="text-sm text-gray-500 mt-3">{{ locationError() }}</p> }
     @if (userCoordinates()) { <p role="status" class="text-sm text-blue-700 mt-3">Showing dentists within 25 km of you.</p> }
 
   </div>
 </section>
-@if (locationHighlights().length) {
-  <section [class]="'location-identity location-' + locality().toLowerCase()" [attr.aria-label]="'Finding dental care in ' + locality()">
-    <div class="directory-wrap">
-      <div class="location-identity-heading"><span>{{ locality() }}</span><strong>Local details worth checking before you book</strong></div>
-      <div class="location-highlight-grid">
-        @for (item of locationHighlights(); track item.title) {
-          <div><i [class]="'ph ' + item.icon" aria-hidden="true"></i><p><strong>{{ item.title }}</strong><span>{{ item.text }}</span></p></div>
-        }
-      </div>
-    </div>
-  </section>
-}
 <section id="marketplace-results" class="results-section" tabindex="-1" aria-label="Dentist search results">
   <div class="directory-wrap">
     <div class="results-heading">
-      <div><h2>Choose a dentist</h2></div>
+      <div><h2>{{ videoOnly() ? 'Video appointments' : userCoordinates() ? 'Dentists near you' : 'Dentists in ' + (locality() || 'Delhi NCR') }}</h2></div>
       <div class="quick-filters">
         @if (hasTodaySlots()) { <button type="button" (click)="availableTodayOnly.set(!availableTodayOnly()); findDentists()" [class.selected]="availableTodayOnly()" [attr.aria-pressed]="availableTodayOnly()">Available today</button> }
         <button type="button" (click)="toggleMobileFilter()" [attr.aria-expanded]="isMobileFilterOpen()" aria-haspopup="dialog" aria-controls="advanced-filters"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> All filters @if (activeFilterCount()) {<span class="filter-count">{{ activeFilterCount() }}</span>}</button>
       </div>
     </div>
     @if (videoOnly()) {
-      <div role="status" class="mb-5 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900">
-        <i class="ph ph-video-camera mt-1 text-xl" aria-hidden="true"></i>
-        <div><strong>Talk to a dentist from home.</strong><p>Book with a participating clinic. After confirmation, join your private video room from My appointments. An in-clinic examination or treatment may still be needed.</p></div>
-      </div>
+      <p class="ui-caption mb-2">Join from My appointments after confirmation. Some treatments need an in-clinic visit.</p>
     }
     @if (serviceId() === 'emergency-dental-care') {
       <aside role="note" class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-950" aria-labelledby="emergency-guidance-heading">
@@ -219,6 +199,16 @@
 
 <details class="directory-extras">
 <summary>Treatment costs and helpful guides</summary>
+@if (locationHighlights().length) {
+  <section class="location-identity" [attr.aria-label]="'Finding dental care in ' + locality()">
+    <h3>Booking in {{ locality() }}</h3>
+    <div class="location-highlight-grid">
+      @for (item of locationHighlights(); track item.title) {
+        <div><i [class]="'ph ' + item.icon" aria-hidden="true"></i><p><strong>{{ item.title }}</strong><span>{{ item.text }}</span></p></div>
+      }
+    </div>
+  </section>
+}
 @if (serviceId() !== 'emergency-dental-care') {
 <section class="discovery-promotions" aria-label="Dental care highlights"
   aria-roledescription="carousel" (mouseenter)="promotionHovered.set(true)" (mouseleave)="promotionHovered.set(false)"

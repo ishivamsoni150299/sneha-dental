@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
@@ -20,6 +20,7 @@ export class LoginComponent implements OnInit {
   readonly accountType = signal<AccountType>('patient');
   readonly ready = signal(false);
   readonly loginForm = viewChild(PasswordLoginComponent);
+  readonly accountTitle = viewChild<ElementRef<HTMLElement>>('accountTitle');
   readonly types: { id: AccountType; label: string; help: string }[] = [
     { id: 'patient', label: 'Patient', help: 'Book and manage your dental visits.' },
     { id: 'dentist', label: 'Dentist', help: 'Create your profile and manage your practice.' },
@@ -38,7 +39,8 @@ export class LoginComponent implements OnInit {
   }
   setMode(signup: boolean): void {
     if (this.auth.isAuthenticated || this.loginForm()?.busy()) return;
-    void this.router.navigate([], { relativeTo: this.route, queryParams: { mode: signup ? 'signup' : null }, queryParamsHandling: 'merge' });
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { mode: signup ? 'signup' : null }, queryParamsHandling: 'merge' })
+      .then(changed => { if (changed) this.accountTitle()?.nativeElement.focus(); });
   }
   setType(type: AccountType): void {
     if (this.auth.isAuthenticated || this.loginForm()?.busy()) return;

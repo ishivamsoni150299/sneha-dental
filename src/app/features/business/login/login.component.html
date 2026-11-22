@@ -1,18 +1,12 @@
 <section class="account-page mx-auto max-w-lg px-4 py-8 sm:py-12" aria-labelledby="account-title">
   <div class="ui-card ui-auth-card">
     <div class="space-y-3">
-      <h1 id="account-title" class="ui-heading ui-heading-interface">{{ signup() ? 'Create your account' : 'Sign in' }}</h1>
-      <p class="ui-body">{{ signup() ? 'For your dental visits or practice.' : 'Sign in to continue.' }}</p>
+      <h1 #accountTitle id="account-title" tabindex="-1" class="ui-heading ui-heading-interface">{{ signup() ? 'Create your account' : 'Sign in' }}</h1>
+      <p class="ui-body">{{ signup() ? 'Choose the account that fits you.' : 'Use your account email. We’ll open your appointments or workspace.' }}</p>
     </div>
     @if (!ready()) {
       <p role="status" class="ui-body">Checking your session…</p>
     } @else {
-      @if (!auth.isAuthenticated) {
-      <div class="flex gap-2" aria-label="Account access">
-        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="!signup()" [attr.aria-pressed]="!signup()" (click)="setMode(false)">Sign in</button>
-        <button type="button" class="ui-tab flex-1" [disabled]="loginForm()?.busy()" [class.ui-tab-active]="signup()" [attr.aria-pressed]="signup()" (click)="setMode(true)">Create account</button>
-      </div>
-      }
       @if (signup()) {
         <fieldset class="account-type-options" [disabled]="auth.isAuthenticated || loginForm()?.busy()">
           <legend class="ui-label mb-2">I’m joining as a</legend>
@@ -35,6 +29,12 @@
         }
       } @else {
         <app-password-login portal="patient" (authenticated)="onAuthenticated($event)" />
+      }
+      @if (!auth.isAuthenticated) {
+        <div class="ui-auth-footer">
+          {{ signup() ? 'Already have an account?' : 'New here?' }}
+          <button type="button" class="ui-link min-h-11 px-2" [disabled]="loginForm()?.busy()" (click)="setMode(!signup())">{{ signup() ? 'Sign in' : 'Create account' }}</button>
+        </div>
       }
     }
   </div>

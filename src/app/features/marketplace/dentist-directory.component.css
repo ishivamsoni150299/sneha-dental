@@ -113,7 +113,21 @@ h1{font-family:var(--ui-font-display);font-size:clamp(38px,4.7vw,62px);font-weig
   .filter-dialog::before{content:'';display:block;width:40px;height:4px;margin:10px auto 0;border-radius:999px;background:var(--ui-line-strong)}
   .patient-faq{padding:20px;border-radius:20px}
 }
-.search-submit{grid-column:1/-1;min-height:48px;margin:4px}
+.area-tools{display:flex;align-items:center;flex-wrap:wrap;gap:4px 20px;margin-top:8px}
+.area-picker,.directory-query{display:flex;align-items:center;gap:8px;min-width:0}
+.area-picker i,.directory-query i{color:var(--ui-primary)}
+.area-picker select,.directory-query input{min-height:44px;min-width:0;background:transparent;color:var(--ui-ink);font-size:16px}
+.area-picker select{max-width:12rem;text-overflow:ellipsis;font-weight:600}
+.area-picker button{display:inline-flex;align-items:center;gap:5px;min-height:44px;color:var(--ui-primary-hover);font-size:13px}
+.directory-query{border-bottom:1px solid var(--ui-line-strong)}
+.directory-query input{width:100%}
+@media(max-width:600px){
+  .area-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+  .area-picker select{flex:1;max-width:none}
+  .area-picker button{flex:none}
+  .discovery-hero{padding-block:12px 6px}
+  .directory-query{border:0}
+}
 @media(max-width:767px){
   .filter-dialog[open]{display:flex;flex-direction:column;overflow:hidden;height:min(90dvh,760px)}
   .filter-dialog::before{flex-shrink:0}

@@ -33,6 +33,18 @@ availability and existing booking permissions, holds, and consent.
 
 ## Implemented journeys
 
+The dentist directory shows verified listings without a search submission.
+In-clinic discovery uses a 25 km radius automatically only when browser
+permission is already granted; a locality link or restored search takes
+precedence. Visitors can select a city without sharing coordinates. In the
+default clinic-card order, practices accepting patients with published slots
+come first. Video consultation does not require a proximity match.
+
+Switching to video keeps the directory controls in place. Mobile checkout
+uses a compact format and fee selector. Sign-in leads with the credentials
+form; account creation is a secondary action. Role landing pages retain
+their existing destinations and show the relevant next task.
+
 Mili shows role-specific shortcuts with their purpose. When chat is available,
 the example request fills the composer for editing rather than sending it.
 Choosing a dentist moves focus to the booking instructions and keeps the

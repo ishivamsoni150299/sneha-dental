@@ -403,7 +403,7 @@
 
     <main class="admin-page clinic-dashboard flex-1 space-y-5">
       <div class="clinic-appointments-heading flex flex-wrap items-center justify-between gap-3">
-        <div><h1 class="admin-page-title">Clinic dashboard</h1><p class="admin-page-subtitle">{{ todayFormatted }}</p></div>
+        <div><h1 class="admin-page-title">Clinic dashboard</h1><p class="admin-page-subtitle">{{ todayFormatted }}@if (!loading() && counts().pending) { · {{ counts().pending }} awaiting confirmation}</p></div>
         <button type="button" (click)="loadAppointments()" [disabled]="loading()" aria-label="Refresh appointments" class="ui-btn ui-btn-secondary ui-btn-sm">Refresh</button>
       </div>
       <nav class="dashboard-sections" aria-label="Appointment sections">

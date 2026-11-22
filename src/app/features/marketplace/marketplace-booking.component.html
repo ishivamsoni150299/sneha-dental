@@ -63,7 +63,6 @@
             <li [class.current]="selectedSlot() && !editingTime()" [attr.aria-current]="selectedSlot() && !editingTime() ? 'step' : null"><span>2</span> Your details</li>
             <li><span>3</span> Request sent</li>
           </ol>
-          <p class="video-booking-note"><i class="ph ph-video-camera" aria-hidden="true"></i> Join from your device after your dentist confirms the request.</p>
         }
         @if (!isIndependent() && videoReady() && clinic()!.marketplaceProfile?.videoConsultationEnabled) {
         <fieldset class="booking-mode-options mt-7">
@@ -136,8 +135,7 @@
         @if (consultationMode() === 'video' && (!accountReady() || !patientAuth.isSignedIn())) {
           <section [hidden]="editingTime()" class="video-signin mx-auto mb-10 max-w-lg rounded-2xl border border-ui-line bg-white p-6" aria-labelledby="video-signin-heading">
             <h2 id="video-signin-heading" tabindex="-1" class="scroll-mt-20 text-xl font-semibold text-ui-ink">Sign in to continue</h2>
-            <p class="mb-5 mt-2 text-sm text-ui-ink-muted">Use your patient account to book and join your call.</p>
-            <div class="video-guidance mb-5"><h3>Your next step</h3><p>After signing in, review your details and send your request. Your chosen time is not reserved until the dentist confirms.</p></div>
+            <p class="mb-4 mt-2 text-sm text-ui-ink-muted">Use your patient account to request this time. You can join the call after your dentist confirms.</p>
             @if (patientAuth.role()) {
               <p class="ui-body mb-4">You are signed in with a work account. Switch to a patient account to book.</p>
               <button type="button" class="ui-btn ui-btn-primary" (click)="switchAccount()">Switch account</button>

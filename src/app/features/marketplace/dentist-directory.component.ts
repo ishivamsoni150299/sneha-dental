@@ -92,7 +92,7 @@ export class DentistDirectoryComponent implements OnInit {
     const timer = zone.runOutsideAngular(() => window.setInterval(() => {
       if (!this.document.hidden) zone.run(() => this.rotatePromotion());
     }, 8000));
-    inject(DestroyRef).onDestroy(() => window.clearInterval(timer));
+    inject(DestroyRef).onDestroy(() => { this.locationRequest++; window.clearInterval(timer); });
   }
 
   rotatePromotion(): void {
@@ -307,6 +307,7 @@ export class DentistDirectoryComponent implements OnInit {
   readonly sortBy = signal('recommended');
   readonly userCoordinates = signal<{ latitude: number; longitude: number } | null>(null);
   readonly locating = signal(false);
+  private locationRequest = 0;
   readonly locationError = signal<string | null>(null);
   readonly compareIds = signal<string[]>([]);
   readonly availability = signal<Record<string, MarketplaceAvailabilitySlot[]>>({});
@@ -577,6 +578,7 @@ export class DentistDirectoryComponent implements OnInit {
       this.loading.set(false);
       return;
     }
+    if (!saved && !initialLocation && !this.videoOnly() && this.isDiscoveryHome) void this.useGrantedLocation();
     await this.loadClinics();
   }
 
@@ -637,7 +639,7 @@ export class DentistDirectoryComponent implements OnInit {
 
   updateLocality(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    this.locality.set(value === 'All Delhi NCR' ? '' : value);
+    this.chooseLocation(value);
   }
 
   updateService(event: Event): void {
@@ -645,6 +647,7 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   clearFilters(): void {
+    this.cancelLocation();
     this.discoveryType.set('dentists');
     this.videoOnly.set(false);
     this.searchTerm.set('');
@@ -676,8 +679,7 @@ export class DentistDirectoryComponent implements OnInit {
         this.locality.set('');
         break;
       case 'gps':
-        this.userCoordinates.set(null);
-        if (this.sortBy() === 'distance') this.sortBy.set('recommended');
+        this.cancelLocation();
         break;
       case 'service':
         this.serviceId.set('');
@@ -704,14 +706,15 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   chooseLocation(location: string): void {
-    this.userCoordinates.set(null);
+    this.cancelLocation();
     this.locality.set(location === 'All Delhi NCR' ? '' : location);
     this.findDentists();
   }
 
   chooseVideo(): void {
+    this.cancelLocation();
     this.videoOnly.set(true);
-    this.findDentists();
+    if (!this.loading() && !this.error()) this.trackResults();
   }
 
   chooseService(serviceId: string): void {
@@ -720,7 +723,27 @@ export class DentistDirectoryComponent implements OnInit {
     this.findDentists();
   }
 
-  useMyLocation(): void {
+  private cancelLocation(): void {
+    this.locationRequest++;
+    this.locating.set(false);
+    this.userCoordinates.set(null);
+    this.locationError.set(null);
+    if (this.sortBy() === 'distance') this.sortBy.set('recommended');
+  }
+
+  private async useGrantedLocation(): Promise<void> {
+    const request = this.locationRequest;
+    if (!navigator.permissions?.query) return;
+    try {
+      const permission = await navigator.permissions.query({ name: 'geolocation' });
+      if (request === this.locationRequest && permission.state === 'granted') this.useMyLocation(true);
+    } catch {
+      // Some browsers expose Permissions but cannot query geolocation. Keep manual choice available.
+    }
+  }
+
+  useMyLocation(automatic = false): void {
+    const request = ++this.locationRequest;
     if (!this.isBrowser || !navigator.geolocation) {
       this.locationError.set('Geolocation is not supported in this browser.');
       return;
@@ -729,13 +752,15 @@ export class DentistDirectoryComponent implements OnInit {
     this.locationError.set(null);
     navigator.geolocation.getCurrentPosition(
       position => {
+        if (request !== this.locationRequest) return;
         this.locality.set('');
         this.userCoordinates.set({ latitude: position.coords.latitude, longitude: position.coords.longitude });
         this.sortBy.set('distance');
         this.locating.set(false);
-        this.findDentists();
+        if (!automatic) this.findDentists();
       },
       () => {
+        if (request !== this.locationRequest) return;
         this.locating.set(false);
         this.locationError.set('Please allow location access or choose your city.');
       },
@@ -936,6 +961,11 @@ export class DentistDirectoryComponent implements OnInit {
   }
 
   private compareListings(first: MarketplaceClinic, second: MarketplaceClinic): number {
+    if (['recommended', 'distance'].includes(this.sortBy())) {
+      const bookable = (clinic: MarketplaceClinic) => Number(!!clinic.marketplaceProfile?.acceptingNewPatients && this.upcomingSlotsFor(clinic.id).length > 0);
+      const availabilityOrder = bookable(second) - bookable(first);
+      if (availabilityOrder) return availabilityOrder;
+    }
     if (this.sortBy() === 'distance') {
       const dist1 = this.distanceFor(first) ?? 999999;
       const dist2 = this.distanceFor(second) ?? 999999;

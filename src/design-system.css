@@ -6324,4 +6324,10 @@ details[open] > .ui-disclosure-summary::before { content: '−'; }
   .clinic-appointments-heading{flex-wrap:nowrap;align-items:center;gap:8px}
   .clinic-appointments-heading>div{min-width:0}
   .clinic-appointments-heading>button{flex-shrink:0}
+  .platform-admin-shell .clinic-index-header {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.5rem}
+  .clinic-index-header .ui-eyebrow,.clinic-index-header .ui-body{display:none}
+  .clinic-index-header .ui-btn{min-height:44px}
+  .platform-admin-shell .clinic-list-tools{grid-template-columns:minmax(0,1fr) minmax(5.5rem,32%);align-items:end;gap:.5rem}
+  .clinic-list-tools>div{min-width:0}
+  .clinic-list-tools>.ui-caption{grid-column:1/-1;padding-bottom:0}
 }

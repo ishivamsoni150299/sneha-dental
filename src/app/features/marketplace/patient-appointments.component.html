@@ -44,7 +44,7 @@
         <div>
           <div class="patient-visits-toolbar flex flex-wrap items-center justify-between gap-3">
             <h2 class="sr-only">Appointments</h2>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               @if (appointments().length) { <a routerLink="/dentists" class="ui-btn ui-btn-primary">Book an appointment</a> }
               <button type="button" (click)="loadSession()" [disabled]="loading()" class="ui-btn ui-btn-secondary">{{ loading() ? 'Refreshing...' : 'Refresh' }}</button>
             </div>
@@ -61,7 +61,7 @@
           @if (!loading() && !error() && appointments().length === 0) {
             <div class="patient-account-empty mt-6 ui-card px-5 py-12 text-center">
               <h3 class="text-xl font-bold text-ui-ink">No linked appointments yet</h3>
-              <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ui-ink-muted">Your next visit starts here. Find a dentist and book while signed in to see your appointment in this account.</p>
+              <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-ui-ink-muted">Book a visit here, or link an earlier guest booking below.</p>
               <a routerLink="/dentists" class="ui-btn ui-btn-primary mt-5">Find a dentist</a>
             </div>
           }

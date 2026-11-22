@@ -28,7 +28,7 @@ interface Practice { id: string; name: string; city: string; status: string; sch
       </header>
       <main class="mx-auto max-w-6xl px-4 py-6 sm:py-10">
         <h1 class="ui-heading ui-heading-interface">{{ tab() === 'appointments' ? 'Your appointments' : tab() === 'availability' ? 'Your hours' : 'Your profile' }}</h1>
-        <p class="ui-caption mt-2">{{ tab() === 'appointments' ? 'Confirm requests. See patients. Complete visits.' : tab() === 'availability' ? 'Choose when patients can book.' : 'Keep your practice and registration details up to date.' }} Times in IST.</p>
+        <p class="ui-caption mt-2">{{ tab() === 'appointments' ? 'Open Pending to review new requests. Times in IST.' : tab() === 'availability' ? 'Choose when patients can book. Times in IST.' : 'Keep your practice and registration details up to date.' }}</p>
         @if (verificationStatus() && verificationStatus() !== 'verified') {
           <section class="mt-5 ui-card p-5" aria-labelledby="dentist-setup-title">
             <h2 id="dentist-setup-title" class="font-semibold">{{ verificationStatus() === 'pending' ? 'Your profile is under review' : 'Get ready for patient bookings' }}</h2>
