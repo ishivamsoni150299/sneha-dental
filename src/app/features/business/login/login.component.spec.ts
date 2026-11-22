@@ -1,10 +1,11 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthFacade, type AuthRole } from '../../../core/services/auth-facade.service';
 import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
+  let fixture: ComponentFixture<LoginComponent>;
   let router: jasmine.SpyObj<Router>;
   let auth: {
     authReady: Promise<void>;
@@ -52,8 +53,40 @@ describe('LoginComponent', () => {
         },
       ],
     });
-    return TestBed.createComponent(LoginComponent).componentInstance;
+    fixture = TestBed.createComponent(LoginComponent);
+    return fixture.componentInstance;
   }
+
+  it('keeps entered credentials when changing mode or signup account type', async () => {
+    const component = create('clinic');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const form = component.loginForm()!;
+    form.form.patchValue({ email: 'person@example.test', password: 'test-password' });
+    form.error.set('Previous sign-in error');
+    form.showPassword.set(true);
+    component.signup.set(true);
+    fixture.detectChanges();
+    form.form.controls.confirm.setValue('test-password');
+    component.accountType.set('dentist');
+    fixture.detectChanges();
+    expect(component.loginForm()).toBe(form);
+    expect(form.portal()).toBe('dentist');
+    expect(form.form.getRawValue()).toEqual(jasmine.objectContaining({
+      email: 'person@example.test', password: 'test-password', confirm: 'test-password',
+    }));
+    expect(form.error()).toBe('');
+    expect(form.showPassword()).toBeFalse();
+    component.accountType.set('clinic');
+    fixture.detectChanges();
+    expect(form.portal()).toBe('clinic');
+    component.signup.set(false);
+    fixture.detectChanges();
+    expect(component.loginForm()).toBe(form);
+    expect(form.signup()).toBeFalse();
+    expect(form.form.controls.email.value).toBe('person@example.test');
+  });
 
   it('returns a clinic owner to the originally requested clinic page', async () => {
     const component = create('clinic', '/business/clinic/patients');

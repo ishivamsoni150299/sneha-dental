@@ -126,11 +126,15 @@ interface Practice { id: string; name: string; city: string; status: string; sch
             }
             @else if (!practices().length) { <p class="mt-6 text-ui-ink-muted">Add a practice in the <button (click)="selectTab('profile')" class="ui-btn ui-btn-ghost">Profile tab</button> first.</p> }
             @else {
-              <label class="mt-5 block text-sm font-semibold">Practice location
-                <select [ngModel]="selectedId" (ngModelChange)="selectLocation($event)" [disabled]="saving()" class="ui-field mt-2 text-base">
-                  @for (practice of practices(); track practice.id) { <option [value]="practice.id">{{ practice.name }} · {{ practice.city }}</option> }
-                </select>
-              </label>
+              @if (practices().length === 1) {
+                <p class="ui-body mt-5">{{ practices()[0].name }} · {{ practices()[0].city }}</p>
+              } @else {
+                <label class="mt-5 block text-sm font-semibold">Practice location
+                  <select [ngModel]="selectedId" (ngModelChange)="selectLocation($event)" [disabled]="saving()" class="ui-field mt-2 text-base">
+                    @for (practice of practices(); track practice.id) { <option [value]="practice.id">{{ practice.name }} · {{ practice.city }}</option> }
+                  </select>
+                </label>
+              }
               <form (ngSubmit)="saveSchedule()">
                 <fieldset [disabled]="saving()" class="mt-4">
                   @for (day of days; track day.key; let i = $index) {

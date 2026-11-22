@@ -85,12 +85,25 @@ describe('PlatformAgentComponent', () => {
     await component.cancel(); expect(component.result()).toBeNull();
   });
 
-  it('opens a shortcut directly without a model request', async () => {
+  it('opens a shortcut without a model request or an extra task to dismiss on return', async () => {
     role.set('patient');
     await component.choose(component.shortcuts()[1]);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/appointments');
     expect(api.fetch).not.toHaveBeenCalled();
-    expect(component.taskStatus()).toBe('Page opened');
+    expect(component.result()).toBeNull();
+    expect(component.hasTask()).toBeFalse();
+    fixture.componentRef.setInput('mainPage', true); fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.task-menu')).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.task-canvas')).toBeNull();
+  });
+  it('opens clinic setup directly regardless of AI availability', async () => {
+    for (const available of [true, false]) {
+      component.available.set(available);
+      await component.choose(component.shortcuts()[0]);
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/business/signup?resume=true');
+      expect(api.fetch).not.toHaveBeenCalled();
+      expect(component.hasTask()).toBeFalse();
+    }
   });
   it('offers clinic setup only to eligible accounts', () => {
     expect(component.shortcuts().some(item => item.title === 'Set up my clinic')).toBeTrue();
@@ -108,7 +121,7 @@ describe('PlatformAgentComponent', () => {
     router.navigateByUrl.and.resolveTo(false);
     await component.choose({ title: 'Appointments', path: '/appointments' });
     expect(router.navigateByUrl).not.toHaveBeenCalled();
-    expect(component.taskStatus()).toBe('Page opened');
+    expect(component.hasTask()).toBeFalse();
   });
   it('requires a revised draft to be reviewed before confirmation', async () => {
     component.result.set(draft); component.beginEdit();

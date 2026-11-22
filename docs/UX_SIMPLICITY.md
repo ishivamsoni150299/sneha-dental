@@ -5,6 +5,34 @@ dentists and clinics easy to understand and aim for completion within 20 seconds
 This is a usability target, not a promise about network speed, authentication,
 clinical decisions, onboarding, verification or payment processing.
 
+## Platform simplification — 22 November 2026
+
+- Home puts direct tasks before the optional AI composer. Opening a shortcut
+  no longer creates a redundant "page opened" task to dismiss on returning.
+  Draft reviews and booking progress are still retained.
+- Clinic setup always opens its existing form from the shortcut, regardless
+  of AI availability. Dentist and platform shortcuts describe their own work.
+- Switching between sign-in, signup and signup account types keeps the same
+  form and entered credentials for that page visit. Context-specific errors
+  clear and the password is hidden again; credentials are not persisted.
+  Role-specific account creation and the recovery-code handoff are unchanged.
+- Clinic rescheduling shows available times as directly selectable controls,
+  matching patient rescheduling. Choosing a time still requires an explicit
+  save. Existing availability checks and server rejection behavior remain.
+- A single practice or already-selected sole doctor is shown as information,
+  not a redundant dropdown. Multiple locations/doctors still offer selection.
+
+Validation: 57 focused Angular tests, lint and production build passed.
+Synthetic browser checks covered account input continuity and five account
+role shortcuts at 320, 390 and 1440px, plus clinic empty/populated views and
+keyboard rescheduling at 320, 390, 768 and 1440px. Mobile and desktop screenshots
+were reviewed. The clinic check measures patient visibility against the actual
+bottom navigation rather than a fixed vertical coordinate.
+
+This batch simplifies shared entry and daily workflows, not every advanced
+screen. Live account creation, backend rescheduling, physical-device keyboards
+and timed user acceptance were not exercised by these fixture checks.
+
 ## Rules for every role
 
 Search continuity (14 October 2026): returning to a directory page during the

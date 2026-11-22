@@ -21,15 +21,7 @@
           @if (accountType() === type.id) { <p class="ui-helper account-type-help">{{ type.help }}</p> }
         }
       }
-      @if (signup()) {
-        @for (type of types; track type.id) {
-          @if (accountType() === type.id) {
-            <app-password-login [portal]="type.id" [signup]="true" (authenticated)="onAuthenticated($event)" />
-          }
-        }
-      } @else {
-        <app-password-login portal="patient" (authenticated)="onAuthenticated($event)" />
-      }
+      <app-password-login [portal]="signup() ? accountType() : 'patient'" [signup]="signup()" (authenticated)="onAuthenticated($event)" />
       @if (!auth.isAuthenticated) {
         <div class="ui-auth-footer">
           {{ signup() ? 'Already have an account?' : 'New here?' }}

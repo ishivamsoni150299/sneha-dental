@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthFacade, AuthRole } from '../../../core/services/auth-facade.service';
 import { RouterLink } from '@angular/router';
@@ -53,7 +53,7 @@ import { RouterLink } from '@angular/router';
     }
   `,
 })
-export class PasswordLoginComponent {
+export class PasswordLoginComponent implements OnChanges {
   readonly portal = input<'clinic' | 'dentist' | 'platform' | 'patient'>('clinic');
   readonly signup = input(false);
   readonly authenticated = output<AuthRole>();
@@ -63,6 +63,10 @@ export class PasswordLoginComponent {
   readonly accountCreated = signal(false);
   readonly showPassword = signal(false);
   readonly copyMessage = signal('');
+  ngOnChanges(): void {
+    this.error.set('');
+    this.showPassword.set(false);
+  }
   async copyRecoveryCode(): Promise<void> {
     try { await navigator.clipboard.writeText(this.recoveryCode()); this.copyMessage.set('Code copied'); }
     catch { this.copyMessage.set('Select the code above to copy it'); }

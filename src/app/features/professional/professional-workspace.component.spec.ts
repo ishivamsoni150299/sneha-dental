@@ -33,6 +33,23 @@ describe('ProfessionalWorkspaceComponent', () => {
     expect(component.hours[0].enabled).toBeTrue();
     expect(component.saving()).toBeFalse();
   });
+  it('only asks for a practice choice when more than one practice exists', () => {
+    const practice = { id: 'location-1', name: 'Practice One', city: 'Noida', status: 'active', schedule: {} };
+    spyOn(ProfessionalWorkspaceComponent.prototype, 'ngOnInit').and.resolveTo();
+    const fixture = TestBed.createComponent(ProfessionalWorkspaceComponent);
+    const component = fixture.componentInstance;
+    component.practices.set([practice]);
+    component.selectLocation(practice.id);
+    component.tab.set('availability');
+    fixture.detectChanges();
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.querySelector('select')).toBeNull();
+    expect(page.textContent).toContain('Practice One');
+    component.practices.set([practice, { ...practice, id: 'location-2', name: 'Practice Two' }]);
+    fixture.detectChanges();
+    expect(page.querySelector('select')?.options.length).toBe(2);
+    expect(component.selectedId).toBe('location-1');
+  });
   it('opens profile setup for an unverified dentist', async () => {
     api.fetch.and.callFake(async url => new Response(
       url === '/api/providers/me' ? JSON.stringify({ verificationStatus: 'draft', locations: [] }) : '[]',

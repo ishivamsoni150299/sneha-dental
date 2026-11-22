@@ -32,6 +32,16 @@
           }
         }
       </div>
+      @if (!hasTask()) {
+        <div class="task-menu" role="group" aria-label="Suggested tasks">
+          @for (shortcut of shortcuts(); track shortcut.title) {
+            <button type="button" [disabled]="busy()" (click)="choose(shortcut)">
+              <span><strong>{{ shortcut.title }}</strong><small>{{ shortcut.detail }}</small></span>
+              <span aria-hidden="true">→</span>
+            </button>
+          }
+        </div>
+      }
       @if (available() && auth.currentUser()) {
           <div class="composer" [class.voice-active]="voice() !== 'off'">
             @if (caption() && voice() !== 'off') { <p class="caption" aria-live="off">{{ caption() }}</p> }
@@ -95,16 +105,6 @@
           @if (!result()?.booking) { <p class="task-footnote">{{ result()?.draftId ? 'Nothing is created until you confirm.' : 'You can find dentists, request an appointment and prepare a new clinic.' }}</p> }
         </aside>
       }
-        @if (!hasTask()) {
-          <div class="task-menu" role="group" aria-label="Suggested tasks">
-            @for (shortcut of shortcuts(); track shortcut.title) {
-              <button type="button" [disabled]="busy()" (click)="choose(shortcut)">
-                <span><strong>{{ shortcut.title }}</strong><small>{{ shortcut.detail }}</small></span>
-                <span aria-hidden="true">→</span>
-              </button>
-            }
-          </div>
-        }
     </div>
     @if (mainPage()) { <app-platform-navigation /> }
   </section>

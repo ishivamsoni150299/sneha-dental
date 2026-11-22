@@ -5,14 +5,16 @@
         <div class="p-6">
         <h2 id="reschedule-title" class="text-lg font-bold text-ui-ink">Reschedule appointment</h2>
         <p class="text-sm text-gray-500 mt-1">{{ appointment.name }} · {{ appointment.bookingRef }}</p>
-        <p class="text-xs text-gray-500 mt-2">Times are in India Standard Time. Confirm the new time with the patient.</p>
+        <p class="ui-caption mt-2">Choose a new time in IST. Confirm the change with the patient.</p>
         <div class="clinic-reschedule-fields mt-5">
-        <fieldset [disabled]="rescheduleSaving()" class="space-y-4">
-          @if (rescheduleDoctors().length || appointment.doctorId) {
+        <fieldset [disabled]="rescheduleSaving()" class="min-w-0 space-y-4">
+          @if (rescheduleDoctors().length === 1 && rescheduleDoctorId === rescheduleDoctors()[0].id) {
+            <p class="ui-body">{{ rescheduleDoctors()[0].name }}</p>
+          } @else if (rescheduleDoctors().length || appointment.doctorId) {
           <div>
             <label for="reschedule-doctor" class="block text-sm font-semibold text-ui-ink mb-1">Doctor</label>
             <select id="reschedule-doctor" [(ngModel)]="rescheduleDoctorId" (ngModelChange)="loadRescheduleSlots()"
-              class="w-full border border-ui-line rounded-xl p-3">
+              class="ui-field">
               <option value="">Select doctor</option>
               @for (doctor of rescheduleDoctors(); track doctor.id) { <option [value]="doctor.id">{{ doctor.name }}</option> }
             </select>
@@ -21,26 +23,32 @@
           <div>
             <label for="reschedule-date" class="block text-sm font-semibold text-ui-ink mb-1">Date</label>
             <input id="reschedule-date" type="date" [min]="today" [(ngModel)]="rescheduleDate" (ngModelChange)="loadRescheduleSlots()"
-              class="w-full border border-ui-line rounded-xl p-3">
+              class="ui-field">
           </div>
-          <div>
-            <label for="reschedule-time" class="block text-sm font-semibold text-ui-ink mb-1">{{ rescheduleDoctorId ? 'Available time' : 'Preferred time' }}</label>
-            <select id="reschedule-time" [(ngModel)]="rescheduleTime" [disabled]="rescheduleLoading()"
-              class="w-full border border-ui-line rounded-xl p-3">
-              <option value="">{{ rescheduleLoading() ? 'Loading times…' : 'Select time' }}</option>
-              @for (time of rescheduleSlots(); track time) { <option [value]="time">{{ formatSlotDisplay(time) }}</option> }
-            </select>
-            @if (!rescheduleLoading() && !rescheduleError() && !rescheduleSlots().length) {
-              <p class="text-sm text-gray-500 mt-2">No available slots. Choose another date or doctor.</p>
+          <fieldset class="min-w-0">
+            <legend class="ui-label mb-2">{{ rescheduleDoctorId ? 'Available times' : 'Preferred times' }} · IST</legend>
+            @if (rescheduleLoading()) {
+              <p role="status" class="ui-caption">Checking open times…</p>
+            } @else if (rescheduleSlots().length) {
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                @for (time of rescheduleSlots(); track time) {
+                  <label class="cursor-pointer">
+                    <input type="radio" name="reschedule-time" [(ngModel)]="rescheduleTime" [value]="time" class="peer sr-only">
+                    <span class="ui-btn ui-btn-secondary w-full peer-checked:border-ui-primary peer-checked:bg-ui-primary peer-checked:text-[var(--ui-on-primary)] peer-disabled:opacity-50 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ui-primary">{{ formatSlotDisplay(time) }}</span>
+                  </label>
+                }
+              </div>
+            } @else if (!rescheduleError()) {
+              <p role="status" class="ui-caption">No open times. Choose another date or doctor.</p>
             }
-          </div>
+          </fieldset>
         </fieldset>
         @if (rescheduleError()) { <p role="alert" class="text-sm text-red-600 mt-4">{{ rescheduleError() }}</p> }
         </div>
         <div class="flex gap-3 mt-6">
-          <button (click)="closeReschedule()" [disabled]="rescheduleSaving()" class="flex-1 border border-ui-line rounded-xl px-4 py-3 text-ui-ink">Cancel</button>
+          <button (click)="closeReschedule()" [disabled]="rescheduleSaving()" class="ui-btn ui-btn-secondary flex-1">Keep current time</button>
           <button (click)="saveReschedule()" [disabled]="rescheduleSaving() || rescheduleLoading() || !rescheduleTime"
-            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl px-4 py-3 disabled:opacity-50">
+            class="ui-btn ui-btn-primary flex-1">
             {{ rescheduleSaving() ? 'Saving…' : 'Save new time' }}
           </button>
         </div>

@@ -20,7 +20,7 @@ interface AgentResult {
   refreshSession?: boolean;
 }
 interface Message { role: 'user' | 'assistant'; text: string }
-interface TaskShortcut { title: string; detail: string; action?: string; path?: string; prompt?: string }
+interface TaskShortcut { title: string; detail: string; action?: string; path?: string }
 const DESTINATIONS = new Set(['/mili', '/dentists', '/appointments', '/workspace', '/account', '/business/signup', '/business/signup?resume=true', '/business/clinic/settings', '/business/clinic/dashboard', '/professional/workspace', '/business/clinics']);
 
 @Component({
@@ -45,10 +45,11 @@ export class PlatformAgentComponent {
     const common = [{ title: 'Find a dentist', detail: 'Choose a dentist and request a time', action: 'booking' },
       { title: 'My appointments', detail: 'Open your appointments', path: '/appointments' }];
     const role = this.auth.role();
-    if (role === 'incomplete-signup') return [{ title: 'Set up my clinic', detail: this.available() ? 'Prepare a clinic for your review' : 'Continue your clinic setup', ...(this.available() ? { prompt: 'Help me set up my clinic' } : { path: '/business/signup?resume=true' }) }, common[0]];
+    if (role === 'incomplete-signup') return [{ title: 'Set up my clinic', detail: 'Continue your clinic setup', path: '/business/signup?resume=true' }, common[0]];
     if (role === 'clinic-admin') return [{ title: 'Clinic workspace', detail: 'Appointments and daily work', path: '/business/clinic/dashboard' },
       { title: 'Clinic settings', detail: 'Manage your clinic details', path: '/business/clinic/settings' }];
-    if (role === 'dentist' || role === 'platform-admin') return [{ title: 'My workspace', detail: 'Open your professional workspace', path: roleWorkspace(role) }, common[0]];
+    if (role === 'dentist') return [{ title: 'Dentist workspace', detail: 'Appointments, hours and your profile', path: roleWorkspace(role) }, common[0]];
+    if (role === 'platform-admin') return [{ title: 'Manage clinics', detail: 'Open the clinic directory', path: roleWorkspace(role) }, common[0]];
     return common;
   });
   readonly available = signal(false);
@@ -120,23 +121,19 @@ export class PlatformAgentComponent {
     if (this.browser) setTimeout(() => this.command?.nativeElement.focus());
   }
 
-  async choose(shortcut: { title: string; path?: string; prompt?: string; action?: string }): Promise<void> {
+  async choose(shortcut: { title: string; path?: string; action?: string }): Promise<void> {
     if (this.busy() || this.result()?.draftId) return;
     if (shortcut.action === 'booking') {
       this.taskTitle.set('Find your next appointment'); this.error.set(''); this.bookingSent.set(false);
       this.result.set({ status: 'booking', message: 'Choose a dentist and a time.', booking: { query: '', locality: '', date: '', period: 'any' } });
       this.revealTask(); return;
     }
-    if (shortcut.prompt) { await this.send(shortcut.prompt); return; }
     if (!shortcut.path || !DESTINATIONS.has(shortcut.path)) return;
     const path = shortcut.path === '/workspace' ? this.directWorkspace() : shortcut.path;
     this.taskTitle.set(shortcut.title); this.error.set(''); this.busy.set(true);
     const version = this.generation;
     try {
       if (this.router.url !== path && !await this.router.navigateByUrl(path)) throw new Error('The page could not open. Please use the navigation.');
-      if (version !== this.generation) return;
-      this.result.set({ status: 'navigate', path, message: `${shortcut.title} is open. Continue on the page whenever you’re ready.` });
-      this.revealTask();
     } catch (error) {
       if (version === this.generation) this.error.set(error instanceof Error ? error.message : 'The page could not open.');
     } finally { if (version === this.generation) this.busy.set(false); }
