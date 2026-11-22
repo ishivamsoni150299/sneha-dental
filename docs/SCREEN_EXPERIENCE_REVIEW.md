@@ -10,6 +10,13 @@ searches retain visible labels while typing. Shared tables scroll horizontally
 when space is tight, and route-loading feedback persists until navigation ends.
 These are shared-shell improvements, not individual redesigns of every route.
 
+Mobile follow-up: booking bars and Mili use a shared bottom clearance. Staff
+navigation accounts for side cutouts, mobile menu headers stay visible while
+scrolling, and the tenant install prompt is dismissible in the page rather
+than floating over the booking flow. The route audit now includes short phone
+portrait (320×568) and landscape (740×360) layouts. Browser emulation does not
+establish real-device keyboard or notch behavior.
+
 ## Verified follow-up — 9 November 2026
 
 The isolated browser suite now passes 288 route/viewport checks across public,

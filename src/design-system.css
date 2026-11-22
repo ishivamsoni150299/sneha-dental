@@ -129,8 +129,20 @@ html {
 }
 
 @media (max-width: 767px) {
+  :root {
+    --ui-mobile-nav-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    --ui-mobile-gutter-left: max(.875rem, env(safe-area-inset-left, 0px));
+    --ui-mobile-gutter-right: max(.875rem, env(safe-area-inset-right, 0px));
+  }
   html:has(.patient-tab-bar, .professional-workspace-tabs, .clinic-admin-shell, .platform-mobile-nav) {
-    scroll-padding-block-end: calc(5rem + env(safe-area-inset-bottom));
+    scroll-padding-block-end: var(--ui-mobile-nav-space);
+  }
+  html:has(.profile-booking-bar, .marketplace-shell .booking-mobile-dock) {
+    scroll-padding-block-end: calc(var(--ui-mobile-nav-space) + 4.5rem);
+  }
+  :is(.ui-mobile-sheet, .platform-mobile-nav, .professional-workspace-tabs) {
+    padding-left: max(.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(.5rem, env(safe-area-inset-right, 0px));
   }
 }
 
@@ -4857,7 +4869,7 @@ dialog.ui-modal-drawer {
   overscroll-behavior: contain;
 }
 .ui-mobile-sheet::backdrop { background: color-mix(in srgb, var(--ui-ink) 45%, transparent); }
-.ui-mobile-sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--ui-line); }
+.ui-mobile-sheet-header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--ui-line); background: var(--ui-surface); }
 .ui-mobile-sheet-links { display: grid; padding: .5rem 1rem; }
 .ui-mobile-sheet-links + .ui-mobile-sheet-links { border-top: 1px solid var(--ui-line); }
 .ui-mobile-sheet-links .ui-btn { justify-content: space-between; min-height: 3rem; white-space: normal; text-align: left; }
@@ -4938,6 +4950,16 @@ details[open] > .ui-disclosure-summary::before { content: '−'; }
   .professional-workspace-tabs { position: fixed; inset: auto 0 0; z-index: 40; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: 0; padding: .5rem 1rem calc(.5rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--ui-line); background: var(--ui-surface); }
   .professional-workspace-tabs .ui-btn { flex-direction: column; gap: .25rem; min-width: 0; min-height: 3rem; padding: .25rem; font-size: .75rem; border: 0; box-shadow: none; }
   .professional-workspace-tabs i { display: block; font-size: 1.375rem; }
+  .professional-workspace .professional-workspace-tabs {
+    padding-left: var(--ui-mobile-gutter-left);
+    padding-right: var(--ui-mobile-gutter-right);
+  }
+  .clinic-admin-shell .admin-topbar-inner,
+  .professional-workspace > main,
+  .professional-workspace .ui-topbar > div {
+    padding-left: var(--ui-mobile-gutter-left);
+    padding-right: var(--ui-mobile-gutter-right);
+  }
   .professional-workspace :is(input, select, textarea) { font-size: 16px; }
   .patient-visits-heading { padding-block: 1.25rem; }
   .patient-visits-heading > p:not(.patient-visits-description) { display: none; }

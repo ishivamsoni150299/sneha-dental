@@ -24,9 +24,6 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
       </main>
       <app-footer />
 
-      <!-- Spacer so page content is not hidden under the fixed dock -->
-      <div class="md:hidden" [class.hidden]="!showMobileDock()" style="height: calc(112px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
-
       <!-- Desktop WhatsApp action -->
       @if (clinic.hasWhatsapp) {
       <div class="hidden md:flex fixed bottom-8 right-6 z-50">
@@ -75,7 +72,7 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
 
       <!-- PWA install banner -->
       @if (showInstallBanner()) {
-        <div class="fixed bottom-[116px] left-3 right-3 z-[70] animate-slide-up md:hidden">
+        <aside aria-label="Install clinic app" class="mx-3 my-4 md:hidden">
           <div class="flex items-center gap-3 rounded-2xl bg-gray-900 px-4 py-3.5 text-white shadow-2xl">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand shadow-lg">
               <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -92,42 +89,25 @@ import { VoiceAgentComponent } from '../voice-agent/voice-agent.component';
                 <p class="mt-0.5 text-xs leading-tight text-gray-400">Get the full-screen app with no browser chrome</p>
               }
             </div>
-            @if (isIos) {
-              <button (click)="dismissInstallBanner()"
-                      class="shrink-0 p-1 text-gray-400 transition-colors hover:text-white">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            } @else if (installPromptReady()) {
+            @if (!isIos && installPromptReady()) {
               <button (click)="triggerInstall()"
-                      class="shrink-0 rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--accent-dk)]">
+                      class="min-h-11 shrink-0 rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--accent-dk)]">
                 Install
               </button>
-            } @else {
+            }
               <button (click)="dismissInstallBanner()"
-                      class="shrink-0 p-1 text-gray-400 transition-colors hover:text-white"
+                      class="grid h-11 w-11 shrink-0 place-items-center text-gray-300 transition-colors hover:text-white"
                       aria-label="Close install help">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
               </button>
-            }
           </div>
-          @if (isIos) {
-            <div class="mt-1.5 flex justify-center">
-              <div class="flex items-center gap-1.5 rounded-full bg-gray-900 px-3 py-1.5 text-xs text-white shadow-lg">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                </svg>
-                Tap Share below, then "Add to Home Screen"
-              </div>
-            </div>
-          }
-        </div>
+        </aside>
       }
 
       <!-- Mobile action dock — anchored flush to viewport bottom -->
+      <div class="md:hidden" [class.hidden]="!showMobileDock()" style="height: calc(112px + env(safe-area-inset-bottom, 0px));" aria-hidden="true"></div>
       <div class="fixed bottom-0 left-2.5 right-2.5 z-40 box-border md:hidden" [class.hidden]="!showMobileDock()" style="padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));">
         <div class="mobile-dock-shell">
           <div class="mobile-dock-grid"

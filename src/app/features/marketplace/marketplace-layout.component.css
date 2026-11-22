@@ -108,8 +108,8 @@
 }
 @media (max-width: 47.9375rem) {
 
-  .marketplace-shell .booking-mobile-dock { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); padding-bottom: 12px; }
-  .marketplace-shell:has(.booking-checkout) { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-shell .booking-mobile-dock { bottom: var(--ui-mobile-nav-space); padding-bottom: 12px; }
+  .marketplace-shell:has(.booking-checkout) { padding-bottom: var(--ui-mobile-nav-space); }
 }
 html:has(.filter-dialog[open]) { overflow: hidden; }
 
@@ -118,9 +118,9 @@ html:has(.filter-dialog[open]) { overflow: hidden; }
 
 @media (max-width: 47.9375rem) {
   body:has(.marketplace-shell) .mili-launcher { display: none; }
-  .marketplace-shell { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-  .marketplace-shell:has(.profile-booking-bar) { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
-  .marketplace-shell .profile-booking-bar { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .marketplace-shell { padding-bottom: var(--ui-mobile-nav-space); }
+  .marketplace-shell:has(.profile-booking-bar) { padding-bottom: calc(var(--ui-mobile-nav-space) + 4.5rem); }
+  .marketplace-shell .profile-booking-bar { bottom: var(--ui-mobile-nav-space); }
   .marketplace-shell:has(.booking-checkout) .mobile-menu-button { display: none; }
   .marketplace-shell :is(input, select, textarea) { font-size: 16px; }
   .marketplace-shell :is(button, summary) { touch-action: manipulation; }

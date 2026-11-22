@@ -10,10 +10,10 @@ export async function checkUxRoutes(sessionPage, base, role, paths) {
   // Preserve the authenticated context, but release each route's browser resources.
   // A long audit in one renderer can crash before all roles receive coverage.
   await sessionPage.goto('about:blank');
-  for (const width of [1440, 768, 390, 320]) {
+  for (const [width, height] of [[1440, 900], [768, 900], [740, 360], [390, 844], [320, 568]]) {
     for (const path of paths) {
       const page = await sessionPage.context().newPage();
-      await page.setViewportSize({ width, height: 900 });
+      await page.setViewportSize({ width, height });
       const errors = [];
       const onError = error => errors.push(error.message);
       page.on('pageerror', onError);
