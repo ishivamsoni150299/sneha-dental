@@ -125,6 +125,33 @@ container primitives and add a grid only where the content requires it.
 Avoid cards inside cards. An inner bordered surface is appropriate only for a
 real repeated item, form grouping, or independently actionable region.
 
+Directory provider cards reuse the clinic listing stylesheet in
+`dentist-listing-card.component.css`: profile, location, fee and expandable
+details sit beside a muted booking panel on desktop, then stack below 768px.
+Keep appointment times and the more-times action together, with explicit
+availability failures and a non-bookable state for closed patient intake.
+Time links include the dentist, day and IST time in their accessible names.
+
+Directory search has one labelled form: visit format, area, optional dentist or
+treatment, and a Find dentists submit action. Results update as choices change;
+submitting moves keyboard focus to the results. Count, filters and sorting share
+one results header. Location assistance stays with the search form, while
+treatment guides remain collapsed below results. Provider recruitment stays in
+the secondary guides and shared footer, not the patient empty state. The page
+uses `ui-container` with a scoped 70rem content token.
+Visit format remains visible in the search control rather than being repeated
+as a removable filter chip and filter count.
+When an unfiltered in-clinic search is empty but verified independent video
+providers exist, offer an explicit switch to video rather than a reset loop.
+Do not silently change consultation format or advertise an unsupported mode.
+
+Validation: 33 directory unit tests, lint and the production build passed.
+Local Chromium fixture checks covered 320/390/768/1440px, keyboard search and
+details, filter application, preserved doctor/time booking links, compact
+desktop cards, mobile stacking, 44px card targets, and loading/empty/error/retry
+and closed-intake states. These checks do not verify live appointment creation
+or production deployment.
+
 ## 5. Actions
 
 Every action starts with `ui-btn`.

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { DentistDirectoryComponent } from './dentist-directory.component';
-import { MarketplaceService, type MarketplaceClinic } from '../../core/services/marketplace.service';
+import { MarketplaceService, type MarketplaceClinic, type MarketplaceProvider } from '../../core/services/marketplace.service';
 import { formatDateInTimeZone } from '../../core/utils/date-input';
 
 function createMockClinic(overrides: Partial<MarketplaceClinic> = {}): MarketplaceClinic {
@@ -82,6 +82,12 @@ function createDelhiClinic(): MarketplaceClinic {
 
 describe('DentistDirectoryComponent', () => {
   let marketplaceSpy: jasmine.SpyObj<MarketplaceService>;
+  const provider: MarketplaceProvider = {
+    id: 'provider-1', slug: 'test-dentist', fullName: 'Dr Test Dentist', qualification: 'BDS',
+    speciality: 'General Dentistry', experienceYears: 2, languages: ['Hindi'],
+    locationId: 'location-1', locationName: 'Noida', locality: 'Sector 75', city: 'Noida',
+    consultationFee: 500, acceptingNewPatients: true, isIndependent: true, eligibleForVideo: true,
+  };
 
   beforeEach(() => {
     marketplaceSpy = jasmine.createSpyObj<MarketplaceService>('MarketplaceService', [
@@ -320,6 +326,79 @@ describe('DentistDirectoryComponent', () => {
     expect(component.resultCount()).toBe(1);
     component.discoveryType.set('clinics');
     expect(component.resultCount()).toBe(0);
+  });
+
+  it('submits the labelled search and moves focus to the matching results', async () => {
+    const { fixture, component } = await setupComponent();
+    const input = fixture.nativeElement.querySelector('#dentist-search') as HTMLInputElement;
+    input.value = 'Neha';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    const submit = fixture.nativeElement.querySelector('.directory-search [type="submit"]') as HTMLButtonElement;
+    submit.click();
+    expect(component.filteredClinics().map(clinic => clinic.id)).toEqual(['clinic-noida-1']);
+    expect(document.activeElement?.id).toBe('marketplace-results');
+    expect((fixture.nativeElement.querySelector('.directory-extras') as HTMLDetailsElement).open).toBeFalse();
+  });
+
+  it('offers video discovery instead of a reset loop when only video dentists are listed', async () => {
+    marketplaceSpy.getVerifiedClinics.and.resolveTo({ dentists: [], totalCount: 0, limit: 50, offset: 0 });
+    marketplaceSpy.getVerifiedProviders.and.resolveTo([provider]);
+    const { fixture, component } = await setupComponent();
+    expect(fixture.nativeElement.textContent).toContain('No in-clinic dentists listed yet.');
+    (fixture.nativeElement.querySelector('.empty-actions button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(component.videoOnly()).toBeTrue();
+    expect(component.resultCount()).toBe(1);
+    expect(fixture.nativeElement.querySelector('.active-filters')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.filter-count')).toBeNull();
+    component.videoOnly.set(false);
+    component.locality.set('Delhi');
+    expect(component.canSuggestVideo()).toBeFalse();
+    component.clearFilters();
+    component.providers.set([{ ...provider, eligibleForVideo: false }]);
+    expect(component.canSuggestVideo()).toBeFalse();
+  });
+
+  it('keeps provider time links accessible and preserves the selected booking context', async () => {
+    marketplaceSpy.getVerifiedProviders.and.resolveTo([{ ...provider, bookingSlug: 'provider-booking', bookingDoctorId: 'provider-doctor' }]);
+    const { fixture, component } = await setupComponent();
+    component.chooseVideo();
+    component.locality.set('Noida');
+    fixture.detectChanges();
+    const card = fixture.nativeElement.querySelector('.dentist-list > .dentist-row') as HTMLElement;
+    const link = card.querySelector('.slot-options a') as HTMLAnchorElement;
+    const url = new URL(link.href);
+    expect(url.pathname).toBe('/dentists/provider-booking/book');
+    expect(url.searchParams.get('mode')).toBe('video');
+    expect(url.searchParams.get('location')).toBe('Noida');
+    expect(url.searchParams.get('doctorId')).toBe('doc-1');
+    expect(url.searchParams.get('startsAt')).toBe('2026-09-06T11:00:00+05:30');
+    expect(link.getAttribute('aria-label')).toContain(provider.fullName);
+    expect(link.getAttribute('aria-label')).toContain('IST');
+    const moreTimes = card.querySelector('.more-times') as HTMLAnchorElement;
+    expect(new URL(moreTimes.href).searchParams.get('doctorId')).toBe('provider-doctor');
+    expect((card.querySelector('.listing-details') as HTMLDetailsElement).open).toBeFalse();
+  });
+
+  it('shows provider availability failures and non-bookable intake without misleading time actions', async () => {
+    marketplaceSpy.getVerifiedProviders.and.resolveTo([provider]);
+    const { fixture, component } = await setupComponent();
+    component.chooseVideo();
+    component.availabilityErrors.set({ [provider.id]: true });
+    fixture.detectChanges();
+    const card = fixture.nativeElement.querySelector('.dentist-list > .dentist-row') as HTMLElement;
+    expect(card.querySelector('[role="status"]')?.textContent).toContain('Times could not be loaded');
+    expect(card.querySelector('.slot-options')).toBeNull();
+    expect(card.querySelector('.more-times')?.textContent).toContain('Check availability');
+    component.availabilityErrors.set({});
+    component.upcomingAvailability.set({});
+    fixture.detectChanges();
+    expect(card.querySelector('.booking-panel')?.textContent).toContain('Choose a time on the booking page.');
+    component.providers.set([{ ...provider, acceptingNewPatients: false }]);
+    fixture.detectChanges();
+    expect(card.querySelector('.booking-panel')?.textContent).toContain('Not accepting new patients');
+    expect(card.querySelector('a[href*="/book"]')).toBeNull();
   });
 
   it('renders verified clinics with doctor details, consultation fees, and trust badges', async () => {

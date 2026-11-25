@@ -28,7 +28,7 @@ export interface ActiveFilterChip {
   standalone: true,
   imports: [RouterLink, FormsModule, TreatmentGuideComponent, DentistListingCardComponent, RequestDentistComponent],
   templateUrl: './dentist-directory.component.html',
-  styleUrl: './dentist-directory.component.css',
+  styleUrls: ['./dentist-listing-card.component.css', './dentist-directory.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DentistDirectoryComponent implements OnInit {
@@ -549,6 +549,9 @@ export class DentistDirectoryComponent implements OnInit {
   });
 
   readonly hasFilters = computed(() => this.activeFilterCount() > 0);
+  readonly displayedFilterChips = computed(() => this.activeFilterChips().filter(chip => chip.id !== 'video'));
+  readonly canSuggestVideo = computed(() => !this.hasFilters() && this.providers().some(provider =>
+    provider.isIndependent && (provider.eligibleForVideo || provider.consultationModes?.includes('video'))));
 
   readonly comparedClinics = computed(() => {
     const selected = new Set(this.compareIds());

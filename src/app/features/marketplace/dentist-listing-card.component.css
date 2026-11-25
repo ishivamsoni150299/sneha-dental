@@ -1,11 +1,11 @@
 :host{display:block;min-width:0}
 :is(a,button,summary):focus-visible{outline:3px solid var(--ui-focus);outline-offset:3px}
-.dentist-row{display:grid;grid-template-columns:minmax(0,1fr) 280px;overflow:clip;border:1px solid var(--ui-line);border-radius:var(--ui-radius-md);background:var(--ui-surface)}
+.dentist-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(19rem,.7fr);overflow:clip;border:1px solid var(--ui-line);border-radius:var(--ui-radius-md);background:var(--ui-surface)}
 .listing-main{min-width:0;padding:var(--ui-space-lg)}
 .profile-overview{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:start;gap:var(--ui-space-md)}
 .portrait-link img,.portrait-placeholder{width:64px;height:64px;object-fit:cover;border-radius:var(--ui-radius-sm)}
 .portrait-placeholder{display:grid;place-items:center;background:var(--ui-primary-soft);color:var(--ui-primary);font-size:22px;font-weight:700}
-.doctor-info h2{font-family:var(--ui-font-sans);font-size:20px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.doctor-info :is(h2,h3){font-family:var(--ui-font-sans);font-size:20px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
 .doctor-info p{margin-top:var(--ui-space-xs);color:var(--ui-ink-muted);font-size:13px;line-height:1.5}
 .listing-facts{display:flex;flex-wrap:wrap;gap:var(--ui-space-md);margin-top:var(--ui-space-md);color:var(--ui-ink-muted);font-size:13px}
 .listing-facts strong{color:var(--ui-ink);font-size:20px}
@@ -30,7 +30,7 @@
 .listing-main{padding:var(--ui-space-md)}
 .profile-overview{grid-template-columns:64px minmax(0,1fr);gap:var(--ui-space-md)}
 .portrait-link img,.portrait-placeholder{width:64px;height:64px}
-.doctor-info h2{font-size:18px}
+.doctor-info :is(h2,h3){font-size:18px}
 .booking-panel{padding:var(--ui-space-md);border-left:0;border-top:1px solid var(--ui-line)}
 .listing-facts{padding-top:var(--ui-space-sm);border-top:1px solid var(--ui-line)}
 .listing-details{border-top:1px solid var(--ui-line);padding-top:4px}
